@@ -1,0 +1,12 @@
+[submodule "paf-mvp-core-js"]
+	path = paf-mvp-core-js
+	url = https://github.com/criteo/paf-mvp-core-js.git
+[submodule "paf-mvp-operator-client-express"]
+	path = paf-mvp-operator-client-express
+	url = https://github.com/criteo/paf-mvp-operator-client-express.git
+[submodule "paf-mvp-operator-express"]
+	path = paf-mvp-operator-express
+	url = https://github.com/criteo/paf-mvp-operator-express.git
+[submodule "paf-mvp-frontend"]
+	path = paf-mvp-frontend
+	url = https://github.com/criteo/paf-mvp-frontend.git

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="html">
+<head>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
+    <meta name="viewport" content="width=device-width"/>
+    <title>
+        {{subject}}
+    </title>
+    <style>
+        table {
+            border: solid 1px black;
+        }
+        table td, th {
+            padding: 4px;
+            border: solid 1px rgba(0, 0, 0, 0.46);
+        }
+    </style>
+</head>
+<body>
+
+{{#if cookies.PrebidId}}
+    <div style="text-align: center">
+        You have an ID!
+        <br/><br/>
+    </div>
+{{else}}
+    <div style="text-align: center">
+        You don't have ID yet!
+        <br><br>
+    </div>
+{{/if}}
+
+<div style="text-align: center">
+    <table align="center">
+    <tr>
+        <th>ID</th>
+        <td colspan="3">{{#if cookies.PrebidId}}{{ cookies.PrebidId }}{{else}}no ID cookie{{/if}}</td>
+        <td>{{#if cookies.PrebidId}}<a href="{{removeIdUrl}}" style="color: red">remove ID</a>{{else}}<a href="{{createIdUrl}}">Generate ID cookie</a>{{/if}}</td>
+    </tr>
+        <tr>
+            <th>Preferences</th>
+            <td>{{#if cookies.PrebidPrefs}}{{cookies.PrebidPrefs}}{{else}}no preferences cookie{{/if}}</td>
+            <td>{{#if optInUrl}}<a href="{{optInUrl}}" style="color: green">opt in</a>{{/if}}</td>
+            <td>{{#if optOutUrl}}<a href="{{optOutUrl}}" style="color: black">opt out</a>{{/if}}</td>
+            <td>{{#if cookies.PrebidPrefs}}<a href="{{removePrefsUrl}}" style="color: red">remove preferences</a>{{/if}}</td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>
