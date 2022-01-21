@@ -70,8 +70,8 @@ if (isHttps) {
     const fs = require('fs');
 
     https.createServer({
-        key: fs.readFileSync('./prebid.key'),
-        cert: fs.readFileSync('./prebid.crt'),
+        key: fs.readFileSync('./paf.key'),
+        cert: fs.readFileSync('./paf.crt'),
         passphrase: 'prebid'
     }, mainApp).listen(443)
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "update": "git submodule update; git submodule foreach --recursive \"git checkout main; git pull; npm run update\""
+    "update": "git submodule update; git submodule foreach --recursive \"git checkout main; git pull; npm run update\"",
+    "start": "nodemon ."
   },
   "repository": {
     "type": "git",
@@ -22,7 +23,13 @@
     "cookie-parser": "^1.4.6",
     "express": "^4.17.2",
     "express-hbs": "^2.4.0",
-    "vhost": "^3.0.2"
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.4.0",
+    "vhost": "^3.0.2",
+    "paf-core": "file:./paf-mvp-core-js",
+    "paf-frontend": "file:./paf-mvp-frontend",
+    "paf-operator-client-express": "file:./paf-mvp-operator-client-express",
+    "paf-operator-express": "file:./paf-mvp-operator-express"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",

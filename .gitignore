@@ -35,3 +35,7 @@ node_modules
 
 ## We don't want to commit the client file as it is generated at build time
 src/clients/*
+
+paf.crt
+paf.csr
+paf.key
