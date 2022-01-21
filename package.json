@@ -4,7 +4,9 @@
   "description": "Prebid Addressability Framework (PAF): Demo websites",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "update": "git submodule update; git submodule foreach --recursive \"git checkout main; git pull; npm run update\""
   },
   "repository": {
     "type": "git",

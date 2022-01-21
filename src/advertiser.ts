@@ -1,4 +1,4 @@
-import {express, Request, Response} from "express";
+import express, {Request, Response} from "express";
 import {advertiser, operator, protocol, publicKeys} from "./config";
 import {OperatorBackendClient, RedirectType} from "../paf-mvp-operator-client-express/src/operator-backend-client";
 import {addOperatorClientProxyEndpoints} from "../paf-mvp-operator-client-express/src/operator-client-proxy";

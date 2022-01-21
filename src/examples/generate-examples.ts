@@ -4,15 +4,15 @@ import {
     GetNewIdRequest,
     GetNewIdResponse,
     Id,
-    MessageBase,
     PostIdPrefsRequest,
-    PostIdPrefsResponse, Preferences
-} from "../../prebid-sso/model/generated-model";
-import {advertiser, cmp, operator} from "../config";
-import {schemas} from "../../prebid-sso/model/schemas";
-import {OperatorClient} from "../../paf-mvp-operator-client-express/server/operator-client";
-import {OperatorApi} from "../../prebid-sso/operator-api/operator-api";
+    PostIdPrefsResponse,
+    Preferences
+} from "../../paf-mvp-core-js/src/model/generated-model";
+import {advertiser, cmp, operator, publicKeys} from "../config";
 import path from "path";
+import {OperatorClient} from "../../paf-mvp-operator-client-express/src/operator-client";
+import {OperatorApi} from "../../paf-mvp-operator-express/src/operator-api";
+import {schemas} from "../../paf-mvp-core-js/src/model/schemas";
 
 const fs = require('fs').promises;
 
@@ -31,8 +31,8 @@ class Examples {
 
     constructor() {
 
-        const advertiserClient = new OperatorClient(operator.host, advertiser.host, advertiser.privateKey)
-        const cmpClient = new OperatorClient(operator.host, cmp.host, cmp.privateKey)
+        const advertiserClient = new OperatorClient('https', operator.host, advertiser.host, advertiser.privateKey, publicKeys)
+        const cmpClient = new OperatorClient('https', operator.host, cmp.host, cmp.privateKey, publicKeys)
 
         const operatorAPI = new OperatorApi(operator.host, operator.privateKey)
 
