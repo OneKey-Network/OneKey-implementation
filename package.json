@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build-js": "webpack",
+    "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
+    "build": "tsc && npm run build-js && npm run build-js-cmp",
     "update": "git submodule update; git submodule foreach --recursive \"git checkout main; git pull; npm run update\"",
     "start": "nodemon ."
   },
@@ -35,6 +37,9 @@
     "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.10",
-    "@types/vhost": "^3.0.4"
+    "@types/vhost": "^3.0.4",
+    "ts-loader": "^9.2.6",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
   }
 }

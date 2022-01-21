@@ -36,6 +36,8 @@ node_modules
 ## We don't want to commit the client file as it is generated at build time
 src/clients/*
 
+/public/assets/prebid-sso-lib.js
+/public/assets/cmp/cmp.js
 paf.crt
 paf.csr
 paf.key
