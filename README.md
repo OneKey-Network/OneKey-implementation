@@ -2,6 +2,14 @@
 
 A demo project to play with the different actors of Prebid Addressability Framework.
 
+## Install
+
+```
+git submodule init
+npm install
+npm run update
+```
+
 ## Quick start
 0. Prepare SSL
 
