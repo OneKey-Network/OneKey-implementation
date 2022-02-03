@@ -15,5 +15,5 @@
       ]
     }
   },
-  "extends": "./paf-mvp-frontend/tsconfig.json"
+  "extends": "./node_modules/paf-mvp-frontend/tsconfig.json"
 }

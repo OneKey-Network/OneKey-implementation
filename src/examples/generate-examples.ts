@@ -3,16 +3,16 @@ import {
     GetIdPrefsResponse,
     GetNewIdRequest,
     GetNewIdResponse,
-    Id,
+    Identifier,
     PostIdPrefsRequest,
     PostIdPrefsResponse,
     Preferences
-} from "../../paf-mvp-core-js/src/model/generated-model";
+} from "paf-mvp-core-js/dist/model/generated-model";
 import {advertiser, cmp, operator, publicKeys} from "../config";
 import path from "path";
-import {OperatorClient} from "../../paf-mvp-operator-client-express/src/operator-client";
-import {OperatorApi} from "../../paf-mvp-operator-express/src/operator-api";
-import {schemas} from "../../paf-mvp-core-js/src/model/schemas";
+import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
+import {OperatorApi} from "paf-mvp-operator-express/dist/operator-api";
+// import {schemas} from "paf-mvp-core-js/dist/model/schemas";
 
 const fs = require('fs').promises;
 
@@ -26,7 +26,7 @@ class Examples {
     postIdPrefsResponse: PostIdPrefsResponse
     getNewIdRequest: GetNewIdRequest
     getNewIdResponse: GetNewIdResponse
-    id: Id
+    id: Identifier
     preferences: Preferences
 
     constructor() {
@@ -40,7 +40,7 @@ class Examples {
 
         this.preferences = cmpClient.buildPreferences(this.id, true, getTimestamp("2022/01/18 12:16"))
 
-        const newId: Id = {
+        const newId: Identifier = {
             persisted: false,
             ...operatorAPI.signId("2e71121a-4feb-4a34-b7d1-839587d36390", getTimestamp("2022/01/24 17:19"))
         }
@@ -66,15 +66,16 @@ class Examples {
     }
 
     validate(): this {
-        schemas.GetIdPrefsRequest.validate(this.getIdPrefsRequest)
-        schemas.GetIdPrefsResponse.validate(this.getIdPrefsResponse_known)
-        schemas.GetIdPrefsResponse.validate(this.getIdPrefsResponse_unknown)
-
-        schemas.PostIdPrefsRequest.validate(this.postIdPrefsRequest)
-        schemas.PostIdPrefsResponse.validate(this.postIdPrefsResponse)
-
-        schemas.GetNewIdRequest.validate(this.getNewIdRequest)
-        schemas.GetNewIdResponse.validate(this.getNewIdResponse)
+        // TODO: Replace with correct implementation
+        // schemas.GetIdPrefsRequest.validate(this.getIdPrefsRequest)
+        // schemas.GetIdPrefsResponse.validate(this.getIdPrefsResponse_known)
+        // schemas.GetIdPrefsResponse.validate(this.getIdPrefsResponse_unknown)
+        //
+        // schemas.PostIdPrefsRequest.validate(this.postIdPrefsRequest)
+        // schemas.PostIdPrefsResponse.validate(this.postIdPrefsResponse)
+        //
+        // schemas.GetNewIdRequest.validate(this.getNewIdRequest)
+        // schemas.GetNewIdResponse.validate(this.getNewIdResponse)
 
         return this
     }

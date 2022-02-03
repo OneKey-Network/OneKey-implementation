@@ -8,7 +8,7 @@
     "build-js": "webpack",
     "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
     "build": "tsc && npm run build-js && npm run build-js-cmp",
-    "update": "git submodule update; git submodule foreach --recursive \"git checkout main; git pull; npm run update\"",
+    "update": "rm -rf node_modules\/paf-mvp-core-js & rm -rf node_modules\/paf-mvp-frontend & rm -rf node_modules\/paf-mvp-operator-express & rm -rf node_modules\/paf-mvp-operator-client-express & npm i",
     "start": "nodemon ."
   },
   "repository": {
@@ -28,10 +28,10 @@
     "nodemon": "^2.0.15",
     "ts-node": "^10.4.0",
     "vhost": "^3.0.2",
-    "paf-core": "file:./paf-mvp-core-js",
-    "paf-frontend": "file:./paf-mvp-frontend",
-    "paf-operator-client-express": "file:./paf-mvp-operator-client-express",
-    "paf-operator-express": "file:./paf-mvp-operator-express"
+    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.1.1",
+    "paf-mvp-frontend": "criteo/paf-mvp-frontend#semver:0.1.1",
+    "paf-mvp-operator-client-express": "criteo/paf-mvp-operator-client-express#semver:0.1.1",
+    "paf-mvp-operator-express": "criteo/paf-mvp-operator-express#semver:0.1.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",

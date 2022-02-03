@@ -1,11 +1,11 @@
 import express from "express";
 import {cmp, operator, portal, prebidDomain, protocol, publicKeys} from "./config";
-import {OperatorClient} from "../paf-mvp-operator-client-express/src/operator-client";
-import {Cookies} from "../paf-mvp-core-js/src/cookies";
-import {GetIdPrefsResponse, Id, Preferences} from "../paf-mvp-core-js/src/model/generated-model";
-import {getRequestUrl} from "../paf-mvp-operator-client-express/src/operator-backend-client";
-import {httpRedirect, removeCookie} from "../paf-mvp-core-js/src/express";
-import {uriParams} from "../paf-mvp-core-js/src/endpoints";
+import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
+import {Cookies} from "paf-mvp-core-js/dist/cookies";
+import {GetIdPrefsResponse, Identifier, Preferences} from "paf-mvp-core-js/dist/model/generated-model";
+import {getRequestUrl} from "paf-mvp-operator-client-express/dist/operator-backend-client";
+import {httpRedirect, removeCookie} from "paf-mvp-core-js/dist/express";
+import {uriParams} from "paf-mvp-core-js/dist/endpoints";
 
 export const portalApp = express();
 
@@ -34,7 +34,7 @@ portalApp.get('/', (req, res) => {
     };
 
     // little trick because we know the cookie is available in the same TLD+1
-    const existingId = cookies[Cookies.ID] ? JSON.parse(cookies[Cookies.ID]) as Id : undefined;
+    const existingId = cookies[Cookies.ID] ? JSON.parse(cookies[Cookies.ID]) as Identifier : undefined;
 
     if (existingId) {
         // TODO preferences should be signed
