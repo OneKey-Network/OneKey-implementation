@@ -1,6 +1,6 @@
 import express from "express";
 import {operator, publicKeys} from "./config";
-import {addOperatorApi} from "../paf-mvp-operator-express/src/operator-api";
+import {addOperatorApi} from "paf-mvp-operator-express/dist/operator-api";
 
 export const operatorApp = express();
 
