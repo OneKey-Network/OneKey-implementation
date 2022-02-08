@@ -2,36 +2,42 @@ import {
     GetIdsPrefsRequest,
     GetIdsPrefsResponse,
     RedirectGetIdsPrefsRequest,
+    RedirectGetIdsPrefsResponse,
     GetNewIdRequest,
     GetNewIdResponse,
     Get3PcResponse,
+    GetIdentityResponse,
     Identifier,
     PostIdsPrefsRequest,
     RedirectPostIdsPrefsRequest,
+    RedirectPostIdsPrefsResponse,
     PostIdsPrefsResponse,
     Preferences,
     Identifiers,
     Error
 } from "paf-mvp-core-js/dist/model/generated-model";
 import {toIdsCookie, toPrefsCookie} from "paf-mvp-core-js/dist/cookies";
+import {getTimeStampInSec} from "paf-mvp-core-js/dist/timestamp";
 import {advertiser, cmp, operator, publicKeys} from "../src/config";
 import path from "path";
 import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
 import {
-    GetIdsPrefsURLBuilder,
-    GetNewIdURLBuilder,
-    Get3PCURLBuilder,
-    GetIdentityURLBuilder,
-    PostIdsPrefsURLBuilder
-} from "paf-mvp-operator-client-express/dist/url-builders";
+    GetIdsPrefsRequestBuilder,
+    GetNewIdRequestBuilder,
+    Get3PCRequestBuilder,
+    GetIdentityRequestBuilder,
+    PostIdsPrefsRequestBuilder
+} from "paf-mvp-core-js/dist/model/request-builders";
 import {OperatorApi} from "paf-mvp-operator-express/dist/operator-api";
+import {GetNewIdResponseBuilder, GetIdsPrefsResponseBuilder, PostIdsPrefsResponseBuilder, Get3PCResponseBuilder, GetIdentityResponseBuilder} from "paf-mvp-core-js/dist/model/response-builders";
 import {Validator} from "jsonschema";
 
 const fs = require('fs').promises;
 
-const getTimestamp = (dateString: string) => new Date(dateString).getTime() / 1000
+const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString))
 const getGetUrl = (url: URL): string => `GET ${url}`
 const getPOSTUrl = (url: URL): string => `POST ${url}`
+const getRedirect = (url: URL): string => `303 ${url}`
 
 class Examples {
     // **************************** Main data
@@ -53,44 +59,45 @@ class Examples {
     getIdsPrefsRequestJson: GetIdsPrefsRequest
     getIdsPrefsRequestHttp: string
 
-    getIdsPrefsResponse_knownJson: GetIdsPrefsResponse // TODO redirect version
-    getIdsPrefsResponse_unknownJson: GetIdsPrefsResponse // TODO redirect version
-    // TODO http response?
+    getIdsPrefsResponse_knownJson: GetIdsPrefsResponse
+    getIdsPrefsResponse_unknownJson: GetIdsPrefsResponse
 
     redirectGetIdsPrefsRequestJson: RedirectGetIdsPrefsRequest
     redirectGetIdsPrefsRequestHttp: string
-    // TODO http redirect response x 2
+
+    redirectGetIdsPrefsResponse_knownJson: RedirectGetIdsPrefsResponse
+    redirectGetIdsPrefsResponse_knownTxt: string
+    redirectGetIdsPrefsResponse_unknownJson: RedirectGetIdsPrefsResponse
+    redirectGetIdsPrefsResponse_unknownTxt: string
 
     // **************************** Write
     postIdsPrefsRequestJson: PostIdsPrefsRequest
     postIdsPrefsRequestHttp: string
 
-    postIdsPrefsResponseJson: PostIdsPrefsResponse // TODO redirect version
-    // TODO http response?
+    postIdsPrefsResponseJson: PostIdsPrefsResponse
 
     redirectPostIdsPrefsRequestJson: RedirectPostIdsPrefsRequest
     redirectPostIdsPrefsRequestHttp: string
-    // TODO http redirect response
+    redirectPostIdsPrefsResponseJson: RedirectPostIdsPrefsResponse
+    redirectPostIdsPrefsResponseTxt: string
 
     // **************************** Get new ID
     getNewIdRequestJson: GetNewIdRequest
     getNewIdRequestHttp: string
 
     getNewIdResponseJson: GetNewIdResponse
-    // TODO http response?
 
     // **************************** Verify 3PC
     get3pcRequestHttp: string
     get3pcResponse_supportedJson: Get3PcResponse
     get3pcResponse_unsupportedJson: Error
 
-    // TODO http response?
-
     // **************************** Identity
-    getIdentityRequestHttp: string
+    getIdentityRequest_operatorHttp: string
+    getIdentityResponse_operatorJson: GetIdentityResponse
 
-    // TODO JSON response
-    // TODO http response
+    getIdentityRequest_cmpHttp: string
+    getIdentityResponse_cmpJson: GetIdentityResponse
 
     constructor() {
         const operatorAPI = new OperatorApi(operator.host, operator.privateKey)
@@ -115,57 +122,96 @@ class Examples {
         this.preferences_cookieTxt = toPrefsCookie(this['preferences_cookie-prettyJson'])
 
         // **************************** Read
-        const getIdsURLBuilder = new GetIdsPrefsURLBuilder('https', operator.host, cmp.host, cmp.privateKey)
-        this.getIdsPrefsRequestJson = getIdsURLBuilder.buildRequest(getTimestamp("2022/01/24 17:19"))
-        this.getIdsPrefsRequestHttp = getGetUrl(getIdsURLBuilder.getRestUrl(this.getIdsPrefsRequestJson))
-        this.getIdsPrefsResponse_knownJson = operatorAPI.buildGetIdsPrefsResponse(advertiser.host, {
-            identifiers: [this.idJson],
-            preferences: this.preferencesJson
-        }, getTimestamp("2022/01/24 17:19:10"))
-        this.getIdsPrefsResponse_unknownJson = operatorAPI.buildGetIdsPrefsResponse(advertiser.host, {identifiers: [newId]}, getTimestamp("2022/01/24 17:19:10"))
+        const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder('https', operator.host, cmp.host, cmp.privateKey)
+        const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
+        this.getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.buildRequest(getTimestamp("2022/01/24 17:19"))
+        this.getIdsPrefsRequestHttp = getGetUrl(getIdsPrefsRequestBuilder.getRestUrl(this.getIdsPrefsRequestJson))
+        this.getIdsPrefsResponse_knownJson = getIdsPrefsResponseBuilder.buildResponse(
+            advertiser.host,
+            {
+                identifiers: [this.idJson],
+                preferences: this.preferencesJson
+            },
+            getTimestamp("2022/01/24 17:19:10"))
+        this.getIdsPrefsResponse_unknownJson = getIdsPrefsResponseBuilder.buildResponse(
+            advertiser.host,
+            {
+                identifiers: [newId]
+            },
+            getTimestamp("2022/01/24 17:19:10")
+        )
 
-        this.redirectGetIdsPrefsRequestJson = getIdsURLBuilder.toRedirectRequest(this.getIdsPrefsRequestJson, originalAdvertiserUrl)
-        this.redirectGetIdsPrefsRequestHttp = getGetUrl(getIdsURLBuilder.getRedirectUrl(this.redirectGetIdsPrefsRequestJson))
+        this.redirectGetIdsPrefsRequestJson = getIdsPrefsRequestBuilder.toRedirectRequest(this.getIdsPrefsRequestJson, originalAdvertiserUrl)
+        this.redirectGetIdsPrefsRequestHttp = getGetUrl(getIdsPrefsRequestBuilder.getRedirectUrl(this.redirectGetIdsPrefsRequestJson))
+
+        this.redirectGetIdsPrefsResponse_knownJson = getIdsPrefsResponseBuilder.toRedirectResponse(this.getIdsPrefsResponse_knownJson, 200)
+        this.redirectGetIdsPrefsResponse_knownTxt = getRedirect(getIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectGetIdsPrefsResponse_knownJson))
+        this.redirectGetIdsPrefsResponse_unknownJson = getIdsPrefsResponseBuilder.toRedirectResponse(this.getIdsPrefsResponse_unknownJson, 200)
+        this.redirectGetIdsPrefsResponse_unknownTxt = getRedirect(getIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectGetIdsPrefsResponse_unknownJson))
 
         // **************************** Write
-        const postIdsURLBuilder = new PostIdsPrefsURLBuilder('https', operator.host, cmp.host, cmp.privateKey)
+        const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder('https', operator.host, cmp.host, cmp.privateKey)
+        const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
         this.postIdsPrefsRequestJson = cmpClient.buildPostIdsPrefsRequest({
             identifiers: [this.idJson],
             preferences: this.preferencesJson
         }, getTimestamp("2022/01/25 09:01"))
-        this.postIdsPrefsRequestHttp = getPOSTUrl(postIdsURLBuilder.getRestUrl(this.postIdsPrefsRequestJson)) // Notice is POST url
-        this.postIdsPrefsResponseJson = operatorAPI.buildPostIdsPrefsResponse(cmp.host, {
+        this.postIdsPrefsRequestHttp = getPOSTUrl(postIdsPrefsRequestBuilder.getRestUrl(this.postIdsPrefsRequestJson)) // Notice is POST url
+        this.postIdsPrefsResponseJson = postIdsPrefsResponseBuilder.buildResponse(cmp.host, {
             identifiers: [this.idJson],
             preferences: this.preferencesJson
         }, getTimestamp("2022/01/25 09:01:03"))
 
-        this.redirectPostIdsPrefsRequestJson = postIdsURLBuilder.toRedirectRequest(this.postIdsPrefsRequestJson, originalAdvertiserUrl)
-        this.redirectPostIdsPrefsRequestHttp = getGetUrl(postIdsURLBuilder.getRedirectUrl(this.redirectPostIdsPrefsRequestJson))
+        this.redirectPostIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(this.postIdsPrefsRequestJson, originalAdvertiserUrl)
+        this.redirectPostIdsPrefsRequestHttp = getGetUrl(postIdsPrefsRequestBuilder.getRedirectUrl(this.redirectPostIdsPrefsRequestJson))
+        this.redirectPostIdsPrefsResponseJson = postIdsPrefsResponseBuilder.toRedirectResponse(this.postIdsPrefsResponseJson, 200)
+        this.redirectPostIdsPrefsResponseTxt = getRedirect(postIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectPostIdsPrefsResponseJson))
 
         // **************************** Get new ID
-        const getNewIdURLBuilder = new GetNewIdURLBuilder('https', operator.host, cmp.host, cmp.privateKey)
-        this.getNewIdRequestJson = getNewIdURLBuilder.buildRequest(getTimestamp("2022/03/01 19:04"))
-        this.getNewIdRequestHttp = getGetUrl(getNewIdURLBuilder.getRestUrl(this.getNewIdRequestJson))
+        const getNewIdRequestBuilder = new GetNewIdRequestBuilder('https', operator.host, cmp.host, cmp.privateKey)
+        const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operator.host, operator.privateKey)
+        this.getNewIdRequestJson = getNewIdRequestBuilder.buildRequest(getTimestamp("2022/03/01 19:04"))
+        this.getNewIdRequestHttp = getGetUrl(getNewIdRequestBuilder.getRestUrl(this.getNewIdRequestJson))
 
-        this.getNewIdResponseJson = operatorAPI.buildGetNewIdResponse(cmp.host, newId, getTimestamp("2022/03/01 19:04:47"))
+        this.getNewIdResponseJson = getNewIdResponseBuilder.buildResponse(cmp.host, newId, getTimestamp("2022/03/01 19:04:47"))
 
         // **************************** Verify 3PC
-        const get3PCURLBuilder = new Get3PCURLBuilder('https', operator.host, cmp.host, cmp.privateKey)
-        this.get3pcRequestHttp = getGetUrl(get3PCURLBuilder.getRestUrl(undefined))
+        const get3PCRequestBuilder = new Get3PCRequestBuilder('https', operator.host, cmp.host, cmp.privateKey)
+        const get3PCResponseBuilder = new Get3PCResponseBuilder(operator.host, operator.privateKey)
+        this.get3pcRequestHttp = getGetUrl(get3PCRequestBuilder.getRestUrl(undefined))
 
-        this.get3pcResponse_supportedJson = operatorAPI.build3PC(true) as Get3PcResponse
-        this.get3pcResponse_unsupportedJson = operatorAPI.build3PC(false) as Error
+        this.get3pcResponse_supportedJson = get3PCResponseBuilder.buildResponse(true) as Get3PcResponse
+        this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(false) as Error
 
         // **************************** Identity
-        const getIdentityURLBuilder = new GetIdentityURLBuilder('https', operator.host, advertiser.host, cmp.privateKey)
-        this.getIdentityRequestHttp = getGetUrl(getIdentityURLBuilder.getRestUrl(undefined))
+        const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder('https', operator.host, advertiser.host, cmp.privateKey)
+        const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(operator.host, operator.privateKey, operator.name, operator.type)
+        this.getIdentityRequest_operatorHttp = getGetUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined))
+        this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([
+            {
+                publicKey: operator.publicKey,
+                start: new Date("2022/01/01 11:50"),
+                end: new Date("2022/03/01 12:00")
+            }
+        ])
+
+        // TODO add examples with multiple keys
+        const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder('https', cmp.host, advertiser.host, cmp.privateKey)
+        const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmp.host, cmp.privateKey, cmp.name, cmp.type)
+        this.getIdentityRequest_cmpHttp = getGetUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined))
+        this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
+            {
+                publicKey: cmp.publicKey,
+                start: new Date("2022/01/15 11:50")
+            }
+        ])
     }
 }
 
 class SchemasValidator {
 
     private v = new Validator();
-    private schemas: {[id: string]: any} = {}
+    private schemas: { [id: string]: any } = {}
 
     async initValidator(): Promise<this> {
 
@@ -212,10 +258,10 @@ class SchemasValidator {
         if (key.endsWith('Json')) {
             baseName = `${key.replace(/Json$/, '')}.json`;
             fileBody = JSON.stringify(dict[key], null, 2);
-        } else if(key.endsWith('Txt')) {
+        } else if (key.endsWith('Txt')) {
             baseName = `${key.replace(/Txt$/, '')}.txt`;
             fileBody = dict[key] as string;
-        } else if(key.endsWith('Http')) {
+        } else if (key.endsWith('Http')) {
             baseName = `${key.replace(/Http$/, '')}.http`;
             fileBody = dict[key] as string;
         }
