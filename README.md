@@ -40,7 +40,7 @@ npm run start
 
 2. Edit your `/etc/hosts` file or equivalent to fake your web browser to target `localhost`.
     1. See console logs when starting the server for details
-3. Access [the portal](http://portal.prebidsso.com) to **generate an ID**
+3. Access [the portal](http://portal.pafdemo.com) to **generate an ID**
 4. Access any of the clients' websites ([advertiser](http://advertiser.com) or [publisher](http://publisher.com))
     1. advertiser uses a backend operator client and has its own proxy
     2. publisher _doesn't_ use any backend operator client, and its proxy is provided by the CMP host
