@@ -2,7 +2,7 @@ import express from "express";
 import {cmp, operator, portal, prebidDomain, protocol, publicKeys} from "./config";
 import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
 import {Cookies} from "paf-mvp-core-js/dist/cookies";
-import {GetIdPrefsResponse, Identifier, Preferences} from "paf-mvp-core-js/dist/model/generated-model";
+import {GetIdsPrefsResponse, Identifier, Preferences} from "paf-mvp-core-js/dist/model/generated-model";
 import {getRequestUrl} from "paf-mvp-operator-client-express/dist/operator-backend-client";
 import {httpRedirect, removeCookie} from "paf-mvp-core-js/dist/express";
 import {uriParams} from "paf-mvp-core-js/dist/endpoints";
@@ -61,7 +61,7 @@ portalApp.get(writeNewId, (req, res) => {
     // little trick because we know the cookie is available in the same TLD+1
     const preferences = JSON.parse(cookies[Cookies.PREFS]) as Preferences;
 
-    const generatedId = (JSON.parse(req.query[uriParams.data] as string) as GetIdPrefsResponse).body.identifiers[0];
+    const generatedId = (JSON.parse(req.query[uriParams.data] as string) as GetIdsPrefsResponse).body.identifiers[0];
     httpRedirect(res, client.getRedirectWriteUrl({identifiers: [generatedId], preferences}, getRequestUrl(req, '/')).toString());
 });
 
