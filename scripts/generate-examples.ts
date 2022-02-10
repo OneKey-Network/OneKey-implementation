@@ -111,7 +111,7 @@ class Examples {
 
     constructor() {
         const operatorAPI = new OperatorApi(operator.host, operator.privateKey)
-        const originalAdvertiserUrl = `https://${advertiser.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
+        const originalAdvertiserUrl = new URL(`https://${advertiser.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`)
 
         const newId: Identifier = {
             persisted: false,
@@ -167,11 +167,11 @@ class Examples {
         // **************************** Write
         const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder('https', operator.host, cmp.host, cmp.privateKey)
         const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
-        this.postIdsPrefsRequestJson = cmpClient.buildPostIdsPrefsRequest({
+        this.postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRequest({
             identifiers: [this.idJson],
             preferences: this.preferencesJson
         }, getTimestamp("2022/01/25 09:01"))
-        this.postIdsPrefsRequestHttp = getPOSTUrl(postIdsPrefsRequestBuilder.getRestUrl(this.postIdsPrefsRequestJson)) // Notice is POST url
+        this.postIdsPrefsRequestHttp = getPOSTUrl(postIdsPrefsRequestBuilder.getRestUrl()) // Notice is POST url
         this.postIdsPrefsResponseJson = postIdsPrefsResponseBuilder.buildResponse(cmp.host, {
             identifiers: [this.idJson],
             preferences: this.preferencesJson
@@ -193,7 +193,7 @@ class Examples {
         // **************************** Verify 3PC
         const get3PCRequestBuilder = new Get3PCRequestBuilder('https', operator.host, cmp.host, cmp.privateKey)
         const get3PCResponseBuilder = new Get3PCResponseBuilder(operator.host, operator.privateKey)
-        this.get3pcRequestHttp = getGetUrl(get3PCRequestBuilder.getRestUrl(undefined))
+        this.get3pcRequestHttp = getGetUrl(get3PCRequestBuilder.getRestUrl())
 
         this.get3pcResponse_supportedJson = get3PCResponseBuilder.buildResponse(this["test_3pc_cookie-prettyJson"]) as Get3PcResponse
         this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(undefined) as Error

@@ -1,25 +1,48 @@
 import express from "express";
-import {cmp, operator, portal, prebidDomain, protocol, publicKeys} from "./config";
+import {operator, portal, prebidDomain, protocol, publicKeys} from "./config";
 import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
-import {Cookies, fromIdsCookie} from "paf-mvp-core-js/dist/cookies";
-import {GetIdsPrefsResponse, Identifier, Preferences} from "paf-mvp-core-js/dist/model/generated-model";
+import {Cookies, fromIdsCookie, fromPrefsCookie} from "paf-mvp-core-js/dist/cookies";
+import {Preferences, RedirectGetIdsPrefsResponse} from "paf-mvp-core-js/dist/model/generated-model";
 import {getRequestUrl} from "paf-mvp-operator-client-express/dist/operator-backend-client";
-import {httpRedirect, removeCookie} from "paf-mvp-core-js/dist/express";
-import {uriParams} from "paf-mvp-core-js/dist/endpoints";
+import {getPafDataFromQueryString, httpRedirect, removeCookie} from "paf-mvp-core-js/dist/express";
+import {PostIdsPrefsRequestBuilder, GetIdsPrefsRequestBuilder} from "paf-mvp-core-js/dist/model/request-builders";
 
 export const portalApp = express();
 
 // The portal is a client of the operator API
 const client = new OperatorClient(protocol, operator.host, portal.host, portal.privateKey, publicKeys)
+const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(protocol, operator.host, portal.host, portal.privateKey)
+const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(protocol, operator.host, portal.host, portal.privateKey)
 
 const removeIdUrl = '/remove-id';
 const removePrefsUrl = '/remove-prefs';
 const writeNewId = '/write-new-id';
 
+const getWritePrefsUrl = (identifiers: any, preferences: Preferences, returnUrl: any) => {
+    const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
+        postIdsPrefsRequestBuilder.buildRequest({
+            identifiers,
+            preferences
+        }),
+        returnUrl
+    );
+
+    return postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
+};
+
+const getWritePrefsUrlFromOptin = (identifiers: any, optin: boolean, returnUrl: any) => {
+    const preferences = client.buildPreferences(identifiers, optin);
+    return getWritePrefsUrl(identifiers, preferences, returnUrl);
+};
+
 portalApp.get('/', (req, res) => {
     const cookies = req.cookies;
 
     const formatCookie = (value: string|undefined) => value ? JSON.stringify(JSON.parse(value), null, 2) : undefined
+
+    const request = getIdsPrefsRequestBuilder.buildRequest()
+    const redirectRequest = getIdsPrefsRequestBuilder.toRedirectRequest(request, new URL(writeNewId, `${req.protocol}://${req.get('host')}`))
+    const readUrl = getIdsPrefsRequestBuilder.getRedirectUrl(redirectRequest)
 
     const options: any = {
         cookies: {
@@ -27,7 +50,7 @@ portalApp.get('/', (req, res) => {
             [Cookies.preferences]: formatCookie(cookies[Cookies.preferences])
         },
         // this goes to "read or init" id and then redirects to the local write endpoint, that itself calls the operator again
-        createIdUrl: client.getRedirectReadUrl(new URL(writeNewId, `${req.protocol}://${req.get('host')}`).toString()).toString(),
+        createIdUrl: readUrl.toString(),
         // Remove is done locally, it's a hack that should not exist outside a demo
         removeIdUrl,
         removePrefsUrl
@@ -37,9 +60,12 @@ portalApp.get('/', (req, res) => {
     const identifiers = fromIdsCookie(cookies[Cookies.identifiers])
 
     if (identifiers) {
+
+        const returnUrl = getRequestUrl(req)
+
         // TODO preferences should be signed
-        options.optInUrl = client.getRedirectWriteUrl({identifiers, preferences: client.buildPreferences(identifiers, true)}, getRequestUrl(req)).toString()
-        options.optOutUrl = client.getRedirectWriteUrl({identifiers, preferences: client.buildPreferences(identifiers, true)}, getRequestUrl(req)).toString();
+        options.optInUrl = getWritePrefsUrlFromOptin(identifiers, true, returnUrl).toString()
+        options.optOutUrl = getWritePrefsUrlFromOptin(identifiers, false, returnUrl).toString();
     }
 
     res.render('portal/index', options);
@@ -59,9 +85,10 @@ portalApp.get(writeNewId, (req, res) => {
     const cookies = req.cookies;
 
     // little trick because we know the cookie is available in the same TLD+1
-    const preferences = JSON.parse(cookies[Cookies.preferences]) as Preferences;
+    const preferences = fromPrefsCookie(cookies[Cookies.preferences])
 
-    const generatedId = (JSON.parse(req.query[uriParams.data] as string) as GetIdsPrefsResponse).body.identifiers[0];
-    httpRedirect(res, client.getRedirectWriteUrl({identifiers: [generatedId], preferences}, getRequestUrl(req, '/')).toString());
+    const redirectGetIdsPrefsResponse = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req)
+    const identifiers = redirectGetIdsPrefsResponse.response.body.identifiers;
+    httpRedirect(res, getWritePrefsUrl(identifiers, preferences, getRequestUrl(req)).toString());
 });
 
