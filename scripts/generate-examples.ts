@@ -14,9 +14,10 @@ import {
     PostIdsPrefsResponse,
     Preferences,
     Identifiers,
+    Test3Pc,
     Error
 } from "paf-mvp-core-js/dist/model/generated-model";
-import {toIdsCookie, toPrefsCookie} from "paf-mvp-core-js/dist/cookies";
+import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "paf-mvp-core-js/dist/cookies";
 import {getTimeStampInSec} from "paf-mvp-core-js/dist/timestamp";
 import {advertiser, cmp, operator, publicKeys} from "../src/config";
 import path from "path";
@@ -35,9 +36,13 @@ import {Validator} from "jsonschema";
 const fs = require('fs').promises;
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString))
-const getGetUrl = (url: URL): string => `GET ${url}`
-const getPOSTUrl = (url: URL): string => `POST ${url}`
+const getUrl = (method: "POST"|"GET", url: URL): string => `${method} ${url.pathname}${url.search}\nHost: ${url.host}`
+const getGetUrl = (url: URL): string => getUrl("GET", url)
+const getPOSTUrl = (url: URL): string => getUrl("POST", url)
 const getRedirect = (url: URL): string => `303 ${url}`
+
+// The examples are not supposed to look like a demo but a real environment
+operator.host = 'operator.paf-operation-domain.io'
 
 class Examples {
     // **************************** Main data
@@ -54,6 +59,11 @@ class Examples {
     ['preferences_cookie-prettyJson']: Preferences
     // Stringified version
     preferences_cookieTxt: string
+
+    // JSON version
+    ['test_3pc_cookie-prettyJson']: Test3Pc
+    // Stringified version
+    test_3pc_cookieTxt: string
 
     // **************************** Read
     getIdsPrefsRequestJson: GetIdsPrefsRequest
@@ -121,6 +131,11 @@ class Examples {
         this['preferences_cookie-prettyJson'] = this.preferencesJson
         this.preferences_cookieTxt = toPrefsCookie(this['preferences_cookie-prettyJson'])
 
+        this['test_3pc_cookie-prettyJson'] = {
+            timestamp: getTimestamp("2022/01/26 17:24")
+        }
+        this.test_3pc_cookieTxt = toTest3pcCookie(this['test_3pc_cookie-prettyJson'])
+
         // **************************** Read
         const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder('https', operator.host, cmp.host, cmp.privateKey)
         const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
@@ -180,8 +195,8 @@ class Examples {
         const get3PCResponseBuilder = new Get3PCResponseBuilder(operator.host, operator.privateKey)
         this.get3pcRequestHttp = getGetUrl(get3PCRequestBuilder.getRestUrl(undefined))
 
-        this.get3pcResponse_supportedJson = get3PCResponseBuilder.buildResponse(true) as Get3PcResponse
-        this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(false) as Error
+        this.get3pcResponse_supportedJson = get3PCResponseBuilder.buildResponse(this["test_3pc_cookie-prettyJson"]) as Get3PcResponse
+        this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(undefined) as Error
 
         // **************************** Identity
         const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder('https', operator.host, advertiser.host, cmp.privateKey)
