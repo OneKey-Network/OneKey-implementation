@@ -122,7 +122,7 @@ class Examples {
         this.idJson = operatorAPI.signId("7435313e-caee-4889-8ad7-0acd0114ae3c", getTimestamp("2022/01/18 12:13"));
 
         const cmpClient = new OperatorClient('https', operator.host, cmp.host, cmp.privateKey, publicKeys)
-        this.preferencesJson = cmpClient.buildPreferences(this.idJson, true, getTimestamp("2022/01/18 12:16"))
+        this.preferencesJson = cmpClient.buildPreferences([this.idJson], true, getTimestamp("2022/01/18 12:16"))
 
         // **************************** Cookies
         this['ids_cookie-prettyJson'] = [this.idJson]
