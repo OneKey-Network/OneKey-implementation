@@ -3,8 +3,7 @@ import {operator, portal, prebidDomain, protocol, publicKeys} from "./config";
 import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "paf-mvp-core-js/dist/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "paf-mvp-core-js/dist/model/generated-model";
-import {getRequestUrl} from "paf-mvp-operator-client-express/dist/operator-backend-client";
-import {getPafDataFromQueryString, httpRedirect, removeCookie} from "paf-mvp-core-js/dist/express";
+import {getPafDataFromQueryString, httpRedirect, removeCookie, getRequestUrl} from "paf-mvp-core-js/dist/express";
 import {PostIdsPrefsRequestBuilder, GetIdsPrefsRequestBuilder} from "paf-mvp-core-js/dist/model/request-builders";
 
 export const portalApp = express();
@@ -30,8 +29,8 @@ const getWritePrefsUrl = (identifiers: any, preferences: Preferences, returnUrl:
     return postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
 };
 
-const getWritePrefsUrlFromOptin = (identifiers: any, optin: boolean, returnUrl: any) => {
-    const preferences = client.buildPreferences(identifiers, optin);
+const getWritePrefsUrlFromOptin = (identifiers: any, optIn: boolean, returnUrl: any) => {
+    const preferences = client.buildPreferences(identifiers, optIn);
     return getWritePrefsUrl(identifiers, preferences, returnUrl);
 };
 
@@ -89,6 +88,6 @@ portalApp.get(writeNewId, (req, res) => {
 
     const redirectGetIdsPrefsResponse = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req)
     const identifiers = redirectGetIdsPrefsResponse.response.body.identifiers;
-    httpRedirect(res, getWritePrefsUrl(identifiers, preferences, getRequestUrl(req)).toString());
+    httpRedirect(res, getWritePrefsUrl(identifiers, preferences, getRequestUrl(req, '/')).toString());
 });
 
