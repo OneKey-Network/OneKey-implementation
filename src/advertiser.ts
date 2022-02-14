@@ -11,7 +11,7 @@ advertiserApp.get('/', (req: Request, res: Response) => {
     const view = 'advertiser/index';
 
     // Act as an HTTP middleware
-    if (client.getIdAndPreferencesOrRedirect(req, res, view)) {
+    if (client.getIdsAndPreferencesOrRedirect(req, res, view)) {
         res.render(view, {protocol});
     }
 });

@@ -1,16 +1,16 @@
-import { getIdAndPreferences, signPreferences, writeIdAndPref } from 'paf-mvp-frontend/dist/paf-lib'
+import { getIdsAndPreferences, signPreferences, writeIdsAndPref } from 'paf-mvp-frontend/dist/paf-lib'
 
 declare const PAF: {
-    getIdAndPreferences: typeof getIdAndPreferences,
+    getIdsAndPreferences: typeof getIdsAndPreferences,
     signPreferences: typeof signPreferences,
-    writeIdAndPref: typeof writeIdAndPref
+    writeIdsAndPref: typeof writeIdsAndPref
 }
 
 // TODO should protocol be a parameter?
 const proxyBase = 'https://cmp.com';
 
 export const cmpCheck = async () => {
-    const prebidData = await PAF.getIdAndPreferences(proxyBase);
+    const prebidData = await PAF.getIdsAndPreferences(proxyBase);
 
     if (prebidData === undefined) {
         // Will trigger a redirect
@@ -29,7 +29,7 @@ Please confirm if you want to opt-in, otherwise click cancel`)
         const signedPreferences = await PAF.signPreferences(proxyBase, {identifier: returnedId, optIn})
 
         // 2. write
-        await PAF.writeIdAndPref(proxyBase, {
+        await PAF.writeIdsAndPref(proxyBase, {
             identifiers: prebidData.identifiers,
             preferences: signedPreferences
         })
