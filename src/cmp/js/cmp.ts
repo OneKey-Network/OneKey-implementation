@@ -1,16 +1,16 @@
-/**
- * TODO For the moment, issues to properly import prebid lib in Typescript and at the same time have a small webpack compilation
- * TODO To have a small generated CMP.js file, do the following:
- * - comment this import
- * - add // @ts-ignore before each Prebid.xxxx call
- */
-import * as Prebid from "../../../paf-mvp-frontend/src/lib/prebid-sso-lib";
+import { getIdsAndPreferences, signPreferences, writeIdsAndPref } from 'paf-mvp-frontend/dist/paf-lib'
+
+declare const PAF: {
+    getIdsAndPreferences: typeof getIdsAndPreferences,
+    signPreferences: typeof signPreferences,
+    writeIdsAndPref: typeof writeIdsAndPref
+}
 
 // TODO should protocol be a parameter?
 const proxyBase = 'https://cmp.com';
 
 export const cmpCheck = async () => {
-    const prebidData = await Prebid.getIdAndPreferences(proxyBase);
+    const prebidData = await PAF.getIdsAndPreferences(proxyBase);
 
     if (prebidData === undefined) {
         // Will trigger a redirect
@@ -26,10 +26,10 @@ export const cmpCheck = async () => {
 Please confirm if you want to opt-in, otherwise click cancel`)
 
         // 1. sign preferences
-        const signedPreferences = await Prebid.signPreferences(proxyBase, {identifier: returnedId, optIn})
+        const signedPreferences = await PAF.signPreferences(proxyBase, {identifier: returnedId, optIn})
 
         // 2. write
-        await Prebid.writeIdAndPref(proxyBase, {
+        await PAF.writeIdsAndPref(proxyBase, {
             identifiers: prebidData.identifiers,
             preferences: signedPreferences
         })
