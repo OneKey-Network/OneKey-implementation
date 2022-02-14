@@ -2,7 +2,7 @@
 <html lang="html">
 <head>
     <!-- Prebid SSO integration -->
-    <script onload="PAF.getIdsAndPreferences('{{protocol}}://advertiser.com');" src="{{protocol}}://cdn.pafdemo.com/assets/paf-lib.js"></script>
+    <script onload="PAF.refreshIdsAndPreferences({proxyBase: '{{protocol}}://advertiser.com', triggerRedirectIfNeeded: true});" src="{{protocol}}://cdn.pafdemo.com/assets/paf-lib.js"></script>
 
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
     <meta name="viewport" content="width=device-width"/>

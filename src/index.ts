@@ -8,7 +8,7 @@ import {join} from "path";
 import {cmpApp} from "./cmp";
 import {publisherApp} from "./publisher";
 import {portalApp} from "./portal";
-import {cdnApp} from "./prebid-cdn";
+import {cdnApp} from "./paf-cdn";
 import bodyParser from "body-parser";
 
 const hbs = require('express-hbs');

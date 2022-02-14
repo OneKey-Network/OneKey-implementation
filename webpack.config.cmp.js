@@ -23,8 +23,5 @@ module.exports = {
                 loader: "ts-loader"
             }
         ]
-    },
-    plugins: [
-        new webpack.IgnorePlugin({resourceRegExp: /@prebid/}),
-    ]
+    }
 };

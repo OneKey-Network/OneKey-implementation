@@ -1,5 +1,5 @@
 import express from "express";
-import {operator, portal, prebidDomain, protocol, publicKeys} from "./config";
+import {operator, portal, pafDomain, protocol, publicKeys} from "./config";
 import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "paf-mvp-core-js/dist/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "paf-mvp-core-js/dist/model/generated-model";
@@ -71,12 +71,12 @@ portalApp.get('/', (req, res) => {
 });
 
 portalApp.get(removeIdUrl, (req, res) => {
-    removeCookie(req, res, Cookies.identifiers, {domain: prebidDomain})
+    removeCookie(req, res, Cookies.identifiers, {domain: pafDomain})
     httpRedirect(res, '/');
 });
 
 portalApp.get(removePrefsUrl, (req, res) => {
-    removeCookie(req, res, Cookies.preferences, {domain: prebidDomain})
+    removeCookie(req, res, Cookies.preferences, {domain: pafDomain})
     httpRedirect(res, '/');
 });
 

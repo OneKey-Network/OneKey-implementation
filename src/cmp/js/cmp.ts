@@ -1,36 +1,36 @@
-import { getIdsAndPreferences, signPreferences, writeIdsAndPref } from 'paf-mvp-frontend/dist/paf-lib'
+import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from 'paf-mvp-frontend/dist/paf-lib'
 
 declare const PAF: {
-    getIdsAndPreferences: typeof getIdsAndPreferences,
+    refreshIdsAndPreferences: typeof refreshIdsAndPreferences,
     signPreferences: typeof signPreferences,
     writeIdsAndPref: typeof writeIdsAndPref
 }
 
-// TODO should protocol be a parameter?
+// Using the CMP backend as a PAF operator proxy
 const proxyBase = 'https://cmp.com';
 
 export const cmpCheck = async () => {
-    const prebidData = await PAF.getIdsAndPreferences(proxyBase);
+    const pafData = await PAF.refreshIdsAndPreferences({proxyBase, triggerRedirectIfNeeded: true});
 
-    if (prebidData === undefined) {
+    if (pafData === undefined) {
         // Will trigger a redirect
         return;
     }
     
-    const returnedId = prebidData.identifiers?.[0]
+    const returnedId = pafData.identifiers?.[0]
     const hasPersistedId = returnedId?.persisted === undefined || returnedId?.persisted
 
-    if (!hasPersistedId || prebidData.preferences === undefined) {
+    if (!hasPersistedId || pafData.preferences === undefined) {
         const optIn = confirm(`Hi, here's the CMP!
         
 Please confirm if you want to opt-in, otherwise click cancel`)
 
         // 1. sign preferences
-        const signedPreferences = await PAF.signPreferences(proxyBase, {identifier: returnedId, optIn})
+        const signedPreferences = await PAF.signPreferences({proxyBase}, {identifier: returnedId, optIn})
 
         // 2. write
-        await PAF.writeIdsAndPref(proxyBase, {
-            identifiers: prebidData.identifiers,
+        await PAF.writeIdsAndPref({proxyBase}, {
+            identifiers: pafData.identifiers,
             preferences: signedPreferences
         })
     }

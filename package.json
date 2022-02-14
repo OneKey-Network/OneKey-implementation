@@ -1,6 +1,6 @@
 {
   "name": "paf-mvp-demo-express",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Prebid Addressability Framework (PAF): Demo websites",
   "main": "index.js",
   "scripts": {
@@ -29,9 +29,9 @@
     "nodemon": "^2.0.15",
     "ts-node": "^10.4.0",
     "vhost": "^3.0.2",
-    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.1.4",
-    "paf-mvp-frontend": "criteo/paf-mvp-frontend#semver:0.1.4",
-    "paf-mvp-operator-client-express": "criteo/paf-mvp-operator-client-express#semver:0.1.4",
+    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.1.5",
+    "paf-mvp-frontend": "criteo/paf-mvp-frontend#semver:0.1.5",
+    "paf-mvp-operator-client-express": "criteo/paf-mvp-operator-client-express#semver:0.1.5",
     "paf-mvp-operator-express": "criteo/paf-mvp-operator-express#semver:0.1.4"
   },
   "devDependencies": {
