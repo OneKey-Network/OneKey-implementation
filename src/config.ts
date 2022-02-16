@@ -14,7 +14,7 @@ export interface PrebidConfig extends Config {
     type: "vendor" | "operator" // TODO should support more
 }
 
-export const prebidDomain = '.pafdemo.com'
+export const pafDomain = '.pafdemo.com'
 
 export const advertiser: PrebidConfig = {
     name: 'The advertiser CORP',
@@ -48,7 +48,7 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 
 export const operator: PrebidConfig = {
     name: 'Some PAF operator',
-    host: `operator${prebidDomain}`,
+    host: `operator${pafDomain}`,
     type: "operator",
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
@@ -79,7 +79,7 @@ VyCwPbOO2qK+WeIUncY5YX+RFlZ34uzoAOxh/cE7BpYbSE5O8oDzECDU
 export const portal: PrebidConfig = {
     name: 'A PAF portal',
     type: "vendor",
-    host: `portal${prebidDomain}`,
+    host: `portal${pafDomain}`,
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEasA7VcBrU8fs2P+Z4xmcZ8bhnj3Q
 Ku3ypZLhzircDPwCeqAUye/pd62OX3zSWZFQQdz7fR93Bztwc7ZodYe8UQ==
@@ -92,7 +92,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 }
 
 export const cdn: Config = {
-    host: `cdn${prebidDomain}`,
+    host: `cdn${pafDomain}`,
 }
 
 export const publicKeys = {
