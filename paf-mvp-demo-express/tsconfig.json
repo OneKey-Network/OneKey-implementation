@@ -4,13 +4,15 @@
     "baseUrl": ".",
     "paths": {
       "@core/*": ["../paf-mvp-core-js/src/*"],
+      "@operator/*": ["../paf-mvp-operator-express/src/*"],
       "*": ["node_modules/*"]
     }
   },
   "include":
     [
-      "../paf-mvp-core-js/src/**/*",
       "./src/**/*",
-      "./scripts/**/*"
+      "./scripts/**/*",
+      "../paf-mvp-core-js/src/**/*",
+      "../paf-mvp-operator-express/src/**/*"
     ]
 }

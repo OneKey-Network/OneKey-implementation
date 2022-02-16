@@ -29,7 +29,7 @@ import {
     GetIdentityRequestBuilder,
     PostIdsPrefsRequestBuilder
 } from "@core/model/request-builders";
-import {OperatorApi} from "paf-mvp-operator-express/dist/operator-api";
+import {OperatorApi} from "@operator/operator-api";
 import {GetNewIdResponseBuilder, GetIdsPrefsResponseBuilder, PostIdsPrefsResponseBuilder, Get3PCResponseBuilder, GetIdentityResponseBuilder} from "@core/model/response-builders";
 import {Validator} from "jsonschema";
 
