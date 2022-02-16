@@ -6,6 +6,7 @@
       "@core/*": ["../paf-mvp-core-js/src/*"],
       "@operator/*": ["../paf-mvp-operator-express/src/*"],
       "@operator-client/*": ["../paf-mvp-operator-client-express/src/*"],
+      "@frontend/*": ["../paf-mvp-frontend/src/*"],
       "*": ["node_modules/*"]
     }
   },
@@ -15,6 +16,7 @@
       "./scripts/**/*",
       "../paf-mvp-core-js/src/**/*",
       "../paf-mvp-operator-express/src/**/*",
-      "../paf-mvp-operator-client-express/src/**/*"
+      "../paf-mvp-operator-client-express/src/**/*",
+      "../paf-mvp-frontend/src/**/*"
     ]
 }

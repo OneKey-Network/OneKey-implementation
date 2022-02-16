@@ -1,4 +1,4 @@
-import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from 'paf-mvp-frontend/dist/paf-lib'
+import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from '@frontend/lib/paf-lib'
 
 declare const PAF: {
     refreshIdsAndPreferences: typeof refreshIdsAndPreferences,

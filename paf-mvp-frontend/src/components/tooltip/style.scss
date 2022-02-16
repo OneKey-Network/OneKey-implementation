@@ -1,0 +1,38 @@
+.container {
+  display: inline;
+  position: relative;
+  font-size: .6rem;
+  color: #505253;
+  text-align: left;
+
+  &:hover {
+    .tooltipContent {
+      display: flex;
+    }
+  }
+}
+
+.tooltipContent {
+  display: none;
+  max-width: 232px;
+  position: absolute;
+  padding: .5rem;
+  background: #fff;
+  left: -8px;
+  top: -13px;
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  width: 200px;
+
+  @supports (width: max-content) {
+    & {
+      width: max-content;
+    }
+  }
+}
+
+
+.icon {
+  margin-right: 4px;
+  cursor: pointer;
+}

@@ -7,7 +7,6 @@
     "build-js": "webpack",
     "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
     "build": "tsc && npm run build-js && npm run build-js-cmp",
-    "update": "rm -rf node_modules/paf-mvp-core-js & rm -rf node_modules/paf-mvp-frontend & rm -rf node_modules/paf-mvp-operator-express & rm -rf node_modules/paf-mvp-operator-client-express & npm i",
     "start": "nodemon .",
     "generate-examples": "ts-node -r tsconfig-paths/register ./scripts/generate-examples.ts"
   },
@@ -31,7 +30,6 @@
     "express": "^4.17.2",
     "express-hbs": "^2.4.0",
     "nodemon": "^2.0.15",
-    "paf-mvp-frontend": "criteo/paf-mvp-frontend#semver:0.1.5",
     "ts-node": "^10.4.0",
     "vhost": "^3.0.2"
   },

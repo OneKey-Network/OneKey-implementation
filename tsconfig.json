@@ -8,6 +8,8 @@
     "sourceMap": true,
     "declaration": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "rootDir": "./"
+  },
+  "exclude": ["./paf-mvp-frontend/src/**/*"]
 }
