@@ -1,6 +1,6 @@
 import express from "express";
 import {operator, portal, pafDomain, protocol, publicKeys} from "./config";
-import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
+import {OperatorClient} from "@operator-client/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
 import {getPafDataFromQueryString, httpRedirect, removeCookie, getRequestUrl} from "@core/express";

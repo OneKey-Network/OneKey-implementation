@@ -21,7 +21,7 @@ import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
 import {getTimeStampInSec} from "@core/timestamp";
 import {advertiser, cmp, operator, publicKeys} from "../src/config";
 import path from "path";
-import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
+import {OperatorClient} from "@operator-client/operator-client";
 import {
     GetIdsPrefsRequestBuilder,
     GetNewIdRequestBuilder,

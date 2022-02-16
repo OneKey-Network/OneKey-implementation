@@ -1,7 +1,7 @@
 import express, {Request, Response} from "express";
 import {advertiser, operator, protocol, publicKeys} from "./config";
-import {OperatorBackendClient, RedirectType} from "paf-mvp-operator-client-express/dist/operator-backend-client";
-import {addOperatorClientProxyEndpoints} from "paf-mvp-operator-client-express/dist/operator-client-proxy";
+import {OperatorBackendClient, RedirectType} from "@operator-client/operator-backend-client";
+import {addOperatorClientProxyEndpoints} from "@operator-client/operator-client-proxy";
 
 export const advertiserApp = express();
 
