@@ -1,0 +1,8 @@
+# Ignore generated assets
+/public/assets/paf-lib.js
+/public/assets/cmp/cmp.js
+
+# Ignore generated SSL certificates
+/paf.crt
+/paf.csr
+/paf.key
