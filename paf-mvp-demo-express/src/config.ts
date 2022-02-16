@@ -1,4 +1,4 @@
-import {publicKeyFromString} from "paf-mvp-core-js/dist/crypto/keys";
+import {publicKeyFromString} from "@core/crypto/keys";
 
 export const isHttps = true
 export const protocol = isHttps ? 'https' : 'http'

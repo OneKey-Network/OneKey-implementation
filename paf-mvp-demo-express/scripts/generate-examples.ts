@@ -16,9 +16,9 @@ import {
     Identifiers,
     Test3Pc,
     Error
-} from "paf-mvp-core-js/dist/model/generated-model";
-import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "paf-mvp-core-js/dist/cookies";
-import {getTimeStampInSec} from "paf-mvp-core-js/dist/timestamp";
+} from "@core/model/generated-model";
+import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
+import {getTimeStampInSec} from "@core/timestamp";
 import {advertiser, cmp, operator, publicKeys} from "../src/config";
 import path from "path";
 import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
@@ -28,9 +28,9 @@ import {
     Get3PCRequestBuilder,
     GetIdentityRequestBuilder,
     PostIdsPrefsRequestBuilder
-} from "paf-mvp-core-js/dist/model/request-builders";
+} from "@core/model/request-builders";
 import {OperatorApi} from "paf-mvp-operator-express/dist/operator-api";
-import {GetNewIdResponseBuilder, GetIdsPrefsResponseBuilder, PostIdsPrefsResponseBuilder, Get3PCResponseBuilder, GetIdentityResponseBuilder} from "paf-mvp-core-js/dist/model/response-builders";
+import {GetNewIdResponseBuilder, GetIdsPrefsResponseBuilder, PostIdsPrefsResponseBuilder, Get3PCResponseBuilder, GetIdentityResponseBuilder} from "@core/model/response-builders";
 import {Validator} from "jsonschema";
 
 const fs = require('fs').promises;
@@ -231,7 +231,7 @@ class SchemasValidator {
     async initValidator(): Promise<this> {
 
         // FIXME use a parameter to validate examples. Or ignore validation
-        const inputDir = path.join(__dirname, '..', 'node_modules', 'paf-mvp-core-js', 'json-schemas');
+        const inputDir = path.join(__dirname, '..', '..','paf-mvp-core-js', 'json-schemas');
         const files = await fs.promises.readdir(inputDir);
         const schemas = await Promise.all(files
             .map(async (f: string) => JSON.parse(await fs.promises.readFile(path.join(inputDir, f), 'utf-8')))

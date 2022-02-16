@@ -1,19 +1,16 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "target": "es6",
-    "noImplicitAny": true,
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "outDir": "dist",
     "baseUrl": ".",
-    "resolveJsonModule": true,
     "paths": {
-      "*": [
-        "node_modules/*"
-      ]
+      "@core/*": ["../paf-mvp-core-js/src/*"],
+      "*": ["node_modules/*"]
     }
   },
-  "extends": "./node_modules/paf-mvp-frontend/tsconfig.json"
+  "include":
+    [
+      "../paf-mvp-core-js/src/**/*",
+      "./src/**/*",
+      "./scripts/**/*"
+    ]
 }

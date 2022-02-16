@@ -1,6 +1,5 @@
 {
   "name": "paf-mvp-demo-express",
-  "version": "0.1.5",
   "description": "Prebid Addressability Framework (PAF): Demo websites",
   "main": "index.js",
   "scripts": {
@@ -8,7 +7,7 @@
     "build-js": "webpack",
     "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
     "build": "tsc && npm run build-js && npm run build-js-cmp",
-    "update": "rm -rf node_modules\/paf-mvp-core-js & rm -rf node_modules\/paf-mvp-frontend & rm -rf node_modules\/paf-mvp-operator-express & rm -rf node_modules\/paf-mvp-operator-client-express & npm i",
+    "update": "rm -rf node_modules/paf-mvp-core-js & rm -rf node_modules/paf-mvp-frontend & rm -rf node_modules/paf-mvp-operator-express & rm -rf node_modules/paf-mvp-operator-client-express & npm i",
     "start": "nodemon .",
     "generate-examples": "ts-node ./scripts/generate-examples.ts"
   },
@@ -21,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
   },
-  "homepage": "https://github.com/criteo/paf-mvp-demo-express#readme",
+  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-demo-express#readme",
   "dependencies": {
     "@types/body-parser": "^1.19.2",
     "@types/cookie-parser": "^1.4.2",
@@ -32,7 +31,6 @@
     "express": "^4.17.2",
     "express-hbs": "^2.4.0",
     "nodemon": "^2.0.15",
-    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.1.5",
     "paf-mvp-frontend": "criteo/paf-mvp-frontend#semver:0.1.5",
     "paf-mvp-operator-client-express": "criteo/paf-mvp-operator-client-express#semver:0.1.5",
     "paf-mvp-operator-express": "criteo/paf-mvp-operator-express#semver:0.1.5",

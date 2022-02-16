@@ -1,10 +1,10 @@
 import express from "express";
 import {operator, portal, pafDomain, protocol, publicKeys} from "./config";
 import {OperatorClient} from "paf-mvp-operator-client-express/dist/operator-client";
-import {Cookies, fromIdsCookie, fromPrefsCookie} from "paf-mvp-core-js/dist/cookies";
-import {Preferences, RedirectGetIdsPrefsResponse} from "paf-mvp-core-js/dist/model/generated-model";
-import {getPafDataFromQueryString, httpRedirect, removeCookie, getRequestUrl} from "paf-mvp-core-js/dist/express";
-import {PostIdsPrefsRequestBuilder, GetIdsPrefsRequestBuilder} from "paf-mvp-core-js/dist/model/request-builders";
+import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
+import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
+import {getPafDataFromQueryString, httpRedirect, removeCookie, getRequestUrl} from "@core/express";
+import {PostIdsPrefsRequestBuilder, GetIdsPrefsRequestBuilder} from "@core/model/request-builders";
 
 export const portalApp = express();
 
