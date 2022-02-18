@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["../paf-mvp-core-js/src/*"],
+      "*": ["node_modules/*"]
+    }
+  }
+}

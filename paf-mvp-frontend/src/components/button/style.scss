@@ -1,0 +1,37 @@
+$accent-color: #076F8A;
+
+.btn {
+  appearance: none;
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  padding: .25rem .5rem;
+  text-align: center;
+  font-weight: 600;
+
+  &.wide {
+    width: 100%;
+  }
+
+  &.primary {
+    background: #120B45;
+    color: #fff;
+    font-size: .75rem;
+    line-height: 1rem;
+  }
+
+  &.accent {
+    color: $accent-color;
+    border-color: $accent-color;
+  }
+
+  &.outline {
+    border: 1px solid;
+  }
+
+  &:disabled {
+    background: #F7F7F7;
+    color: rgba(80, 82, 83, 0.24);
+  }
+}

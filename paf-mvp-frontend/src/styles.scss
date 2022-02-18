@@ -1,0 +1,7 @@
+[paf-root] {
+  all: initial;
+}
+// Do not combine this two selectors. IE will fail
+:host {
+  all: initial;
+}

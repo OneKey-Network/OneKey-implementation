@@ -1,0 +1,42 @@
+{
+  "name": "paf-mvp-demo-express",
+  "description": "Prebid Addressability Framework (PAF): Demo websites",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-js": "webpack",
+    "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
+    "build": "tsc && npm run build-js && npm run build-js-cmp",
+    "start": "nodemon .",
+    "generate-examples": "ts-node -r tsconfig-paths/register ./scripts/generate-examples.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/criteo/paf-mvp-demo-express.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
+  },
+  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-demo-express#readme",
+  "dependencies": {
+    "@types/body-parser": "^1.19.2",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.10",
+    "@types/vhost": "^3.0.4",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.17.2",
+    "express-hbs": "^2.4.0",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.4.0",
+    "vhost": "^3.0.2"
+  },
+  "devDependencies": {
+    "jsonschema": "^1.4.0",
+    "ts-loader": "^9.2.6",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
+  }
+}

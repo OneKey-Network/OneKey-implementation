@@ -1,0 +1,31 @@
+.dBlock {
+  display: block;
+}
+
+.dFlex {
+  display: flex;
+}
+
+.alignCenter {
+  display: flex;
+  align-items: center;
+}
+
+.justifyCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.justifyBetween {
+  display: flex;
+  justify-content: space-between;
+}
+
+.justifyEnd {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flexWrap {
+  flex-wrap: wrap;
+}

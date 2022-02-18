@@ -1,0 +1,53 @@
+$spacer: 1rem !default;
+$spacers: () !default;
+$spacers: map-merge(
+  (
+    0: 0,
+    1: (
+      $spacer * 0.25,
+    ),
+    2: (
+      $spacer * 0.5,
+    ),
+    3: $spacer,
+    4: (
+      $spacer * 1.5,
+    ),
+    5: (
+      $spacer * 3,
+    ),
+    6: (
+      $spacer * 4,
+    ),
+  ),
+  $spacers
+);
+$dimensions: p padding, m margin;
+
+@each $className, $dimension in $dimensions {
+  @for $i from 0 through 6 {
+    .#{$className}-#{$i} {
+      #{$dimension}: map-get($spacers, $i) !important;
+    }
+
+    .#{$className}t-#{$i},
+    .#{$className}y-#{$i} {
+      #{$dimension}-top: map-get($spacers, $i) !important;
+    }
+
+    .#{$className}b-#{$i},
+    .#{$className}y-#{$i} {
+      #{$dimension}-bottom: map-get($spacers, $i) !important;
+    }
+
+    .#{$className}r-#{$i},
+    .#{$className}x-#{$i} {
+      #{$dimension}-right: map-get($spacers, $i) !important;
+    }
+
+    .#{$className}l-#{$i},
+    .#{$className}x-#{$i} {
+      #{$dimension}-left: map-get($spacers, $i) !important;
+    }
+  }
+}
