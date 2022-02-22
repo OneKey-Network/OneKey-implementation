@@ -77,7 +77,7 @@ export default [
         resolvePreactCompat: true,
       }),
       typescript({
-          tsconfig: './tsconfig.json'
+          tsconfig: './tsconfig.app.json'
         }
       ), // compile typescript => js
       ...(() => {
