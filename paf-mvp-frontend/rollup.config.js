@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { defineConfig } from 'rollup';
 import image from '@rollup/plugin-image';
 import alias from '@rollup/plugin-alias';
@@ -15,15 +16,16 @@ import livereload from 'rollup-plugin-livereload';
 import postCssInitial from 'postcss-initial';
 import autoprefixer from 'autoprefixer';
 
+const relative = path => join(__dirname, path);
 const DEV = process.env.ROLLUP_WATCH;
 const DIST = 'dist';
 
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
-    input: 'src/lib/paf-lib.ts',
+    input: relative('src/lib/paf-lib.ts'),
     output: {
-      file: `${DIST}/paf-lib.js`,
+      file: relative(`${DIST}/paf-lib.js`),
       format: 'umd',
       name: 'PAF',
       sourcemap: true
@@ -31,7 +33,7 @@ export default [
     treeshake: 'smallest', // remove unused code
     plugins: [
       typescript({
-        tsconfig: 'src/lib/tsconfig.json'
+        tsconfig: relative('src/lib/tsconfig.json')
       }),
       commonjs(),
       nodeResolve(),
@@ -39,9 +41,9 @@ export default [
     ]
   }),
   defineConfig({
-    input: 'src/main.ts', // entry file
+    input: relative('src/main.ts'), // entry file
     output: {
-      file: `${DIST}/app.bundle.js`,
+      file: relative(`${DIST}/app.bundle.js`),
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
       sourcemap: true,
@@ -77,7 +79,7 @@ export default [
         resolvePreactCompat: true,
       }),
       typescript({
-          tsconfig: './tsconfig.app.json'
+          tsconfig: relative('tsconfig.app.json')
         }
       ), // compile typescript => js
       ...(() => {

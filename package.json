@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon . --config paf-mvp-demo-express/nodemon.json",
+    "dev": "npm run start --prefix paf-mvp-demo-express",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "ts2js": "tsc -p .",
+    "build-front": "npm run build --prefix paf-mvp-frontend",
     "###########": "FYI: Google cloud console automatically runs these scripts after deploy:",
-    "gcp-build": "tsc -p .",
+    "gcp-build": "npm run ts2js && npm run build-front",
     "start": "node paf-mvp-demo-express/src/index.js"
   },
   "repository": {
@@ -87,6 +89,7 @@
     "sass": "^1.43.4",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
+    "tsconfig-paths": "^3.12.0",
     "tslib": "^2.3.1",
     "typescript": "^4.5.4",
     "typescript-plugin-css-modules": "^3.4.0",
