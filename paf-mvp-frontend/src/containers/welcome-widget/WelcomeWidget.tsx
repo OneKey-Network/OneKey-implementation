@@ -5,7 +5,6 @@ import { useEffect, useState } from 'preact/compat';
 import style from './style.scss';
 import grid from '../../styles/grid.scss';
 import layout from '../../styles/layouts.scss';
-import mediavineLogo from '../../../assets/images/mediavine_logo.png';
 
 import { Button } from '../../components/button/Button';
 import { Option } from '../../components/forms/option/Option';
@@ -23,6 +22,7 @@ const STORAGE_KEY = 'PAF.userData';
 export const WelcomeWidget = (props: WelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+  const isParticipating = false;
 
   const widgetStorageData = JSON.parse(localStorage.getItem(STORAGE_KEY));
   const isConsentGranted = widgetStorageData?.consent;
@@ -54,22 +54,16 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
   return (
     <div class={style.container}>
       <Modal maxWidth={385} onClose={() => setIsOpen(false)}>
-        <div class={`${style.center} ${style.logo}`}>
-          <img src={props.brandLogoUrl} alt={props.brandName} />
-        </div>
-
-        <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Get the best of {props.brandName}</h2>
+        <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Set up the best marketing preferences for you</h2>
 
         <p class={`${style.textCenter} ${style.textMuted}`}>
-          Enjoy brand-enriched content and make your ads more relevant with personalized marketing.
+          Personalize your marketing to make content and ads more relevant to you on participating websites.
         </p>
 
         <div class={grid['my-5']}>
-          {/* TODO: Hide this tooltip for not the participant. Currently added only for development purpose */}
-          <Tooltip>
-            Prebid links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time by
-            refreshing your Browsing ID.
-          </Tooltip>
+          {isParticipating && <Tooltip>
+            OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time by refreshing your Browsing ID.
+          </Tooltip>}
           <OptionsGroup selected={getConsentValue()} onSelectOption={(value) => setConsent(value === 'on')}>
             <Option value="on">
               <div class={style.optionTitle}>
@@ -77,15 +71,15 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
                 {arrow}
               </div>
               <p class={style.optionDescription}>
-                👉 Get targeted content and make your ads more relevant on many websites.
+                👉 Get relevant content and ads with total control on your settings.
               </p>
             </Option>
             <Option value="off">
               <div className={style.optionTitle}>
-                <h3>Keep default ad settings</h3>
+                <h3>Turn on standard marketing</h3>
                 {arrow}
               </div>
-              <p class={style.optionDescription}>👉 See random ads without setting preferences on this website.</p>
+              <p class={style.optionDescription}>👉 See generic content and ads without setting preferences.</p>
             </Option>
           </OptionsGroup>
         </div>
@@ -93,32 +87,41 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
         <p class={`${style.textCenter} ${style.textMuted}`}>
           By choosing one of these options, you agree to our site's terms and conditions.
         </p>
-        <div class={`${layout.justifyCenter} ${layout.alignCenter} ${grid['mb-5']}`}>
+        <div class={`${layout.justifyCenter} ${layout.alignCenter}`}>
           <Button action={() => setIsDetailsPanelOpen(true)} accent outline>
-            How does this work?
+            Learn more about Onekey
           </Button>
-        </div>
-        <div className={`${layout.justifyCenter} ${layout.alignCenter}}`}>
-          <img src={mediavineLogo} alt="Mediavine network" />
         </div>
 
         <SubPanel isOpen={isDetailsPanelOpen} onClose={() => setIsDetailsPanelOpen(false)}>
           <div class={style.textCenter}>
-            <h4>How does this work?</h4>
+            <h4>Learn more about Onekey</h4>
             <p class={style.textMuted}>
-              Prebid’s non-profit SSO technology relies on digital IDs to study your browsing activity and interactions,
-              send your preferences to our participating websites and customize your ads. You may still receive targeted
-              content unrelated to your browsing activity or interactions.
+              We believe you should have transparency and control over how, where, and why your data is used.
+            </p>
+            <p class={style.textMuted}>
+              We partnered with OneKey, a non-profit technology, to manage your standard marketing preferences when
+              accessing our website. OneKey relies on digital IDs to study your activity and interactions, send your
+              preferences to our participating websites and customize your ads.
+            </p>
+            <p class={style.textMuted}>
+              IDs like these are an essential part of how Brandname's website operates and provides you with a more
+              relevant experience. OneKey Network’s participating websites are direct marketing sites and only receive
+              your ID and your preferences if using OneKey when accessing them.
             </p>
             <p class={style.textMuted}>
               You may change your preferences at any time. Your consent will automatically expire 2 years after you
-              provide it. You have a right to be forgotten, which you can exercise at any time by resetting your Secure
-              Web ID. You can also obtain a temporary Secure Web ID by using the incognito/private browsing function of
-              your browser.
+              provide it. You have a right to be forgotten, which you can exercise at any time by resetting your ID. You
+              can also obtain a temporary ID by using the incognito/private browsing function of your browser.
             </p>
             <p class={style.textMuted}>
-              These details are shared with the Prebid Network to manage your preferences. See our Privacy Policy and
-              Privacy Notice.
+              If you choose not to participate, you will still receive targeted content unrelated to your browsing
+              activity or interactions.
+            </p>
+            <p class={style.textMuted}>
+              You can learn more and manage your choices at any time by going to "Privacy settings" at the bottom of any
+              page.
+              See our Privacy Policy and Privacy Notice.
             </p>
           </div>
         </SubPanel>
