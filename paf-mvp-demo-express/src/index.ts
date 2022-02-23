@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import express, {Express} from "express";
 import cookieParser from 'cookie-parser'
 import {operatorApp} from "./operator";
@@ -10,6 +11,8 @@ import {publisherApp} from "./publisher";
 import {portalApp} from "./portal";
 import {cdnApp} from "./paf-cdn";
 import bodyParser from "body-parser";
+import { readFileSync } from "fs";
+import { createServer } from "https";
 
 const hbs = require('express-hbs');
 
@@ -23,7 +26,7 @@ const addMiddleware = (app: Express) => {
     app.engine('hbs', hbs.express4(templateOptions));
     app.set('view engine', 'hbs')
     app.set('views', relative('/views'));
-    app.use(express.static('public'));
+    app.use(express.static(relative('../public')));
 
     // Cookie parser
     app.use(cookieParser())
@@ -57,7 +60,8 @@ addApp(cmp, cmpApp);
 addApp(cdn, cdnApp);
 
 // start the Express server
-mainApp.listen(80, () => {
+const port = process.env.PORT || 80;
+mainApp.listen(port, () => {
     console.log(`server started`);
     console.log(`Make sure you have added these lines to your /etc/hosts file or equivalent:`);
     for (let host of apps.map(c => c.host)) {
@@ -66,12 +70,9 @@ mainApp.listen(80, () => {
 });
 
 if (isHttps) {
-    const https = require('https');
-    const fs = require('fs');
-
-    https.createServer({
-        key: fs.readFileSync('./paf.key'),
-        cert: fs.readFileSync('./paf.crt'),
+    createServer({
+        key: readFileSync(relative('../paf.key')),
+        cert: readFileSync(relative('../paf.crt')),
         passphrase: 'prebid'
     }, mainApp).listen(443)
 }

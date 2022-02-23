@@ -18,7 +18,7 @@ export const pafDomain = '.pafdemo.com'
 
 export const advertiser: PrebidConfig = {
     name: 'The advertiser CORP',
-    host: 'advertiser.com',
+    host: 'pristine-glass-340812.ew.r.appspot.com',
     type: "vendor",
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUnarwp0gUZgjb9fsYNLcNrddNKV5
@@ -63,7 +63,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 
 export const publisher: PrebidConfig = {
     name: 'The publisher CORP',
-    host: 'publisher.com',
+    host: 'dmytro.site',
     type: "vendor",
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEM5QkveaeWF0LMKZcHXaUD3qCuiqd

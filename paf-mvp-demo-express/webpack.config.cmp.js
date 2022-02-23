@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require("webpack");
 
 module.exports = {
     mode: "development",
@@ -14,7 +13,7 @@ module.exports = {
         library: 'CMP'
     },
     resolve: {
-        extensions: [".ts", ".tsx", ".js"],
+        extensions: [".ts", ".js"],
     },
     module: {
         rules: [

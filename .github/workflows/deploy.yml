@@ -1,0 +1,21 @@
+name: Deploy to Google App Engine
+
+# On push/merge to main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  job_id:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 'actions/checkout@v2' # work in the sandbox
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.SERVICE_ACCOUNT_KEY_JSON }}'
+      - id: 'deploy'
+        name: 'Deploy to Google Cloud'
+        uses: 'google-github-actions/deploy-appengine@v0'

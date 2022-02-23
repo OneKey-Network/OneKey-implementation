@@ -9,7 +9,23 @@
     "declaration": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "rootDir": "./"
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["paf-mvp-core-js/src/*"],
+      "@operator/*": ["paf-mvp-operator-express/src/*"],
+      "@operator-client/*": ["paf-mvp-operator-client-express/src/*"],
+      "@frontend/*": ["paf-mvp-frontend/src/*"]
+    }
   },
-  "exclude": ["./paf-mvp-frontend/src/**/*"]
+  "include": [
+    "./paf-mvp-core-js",
+    "./paf-mvp-operator-express",
+    "./paf-mvp-operator-client-express",
+    "./paf-mvp-frontend",
+    "./paf-mvp-demo-express"
+  ],
+  "exclude": [
+    "paf-mvp-frontend/src"
+  ]
 }
