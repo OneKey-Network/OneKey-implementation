@@ -1,22 +1,20 @@
-import {publicKeyFromString} from "@core/crypto/keys";
-
 export const isHttps = false
 export const protocol = isHttps ? 'https' : 'http'
 
 export interface Config {
     host: string;
+    name: string;
 }
 
 export interface PrebidConfig extends Config {
     publicKey: string;
     privateKey: string;
-    name: string;
     type: "vendor" | "operator" // TODO should support more
 }
 
 export const advertiser: PrebidConfig = {
     name: 'The advertiser CORP',
-    host: 'pristine-glass-340812.ew.r.appspot.com',
+    host: 'www.pafmarket.shop',
     type: "vendor",
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUnarwp0gUZgjb9fsYNLcNrddNKV5
@@ -31,7 +29,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 
 export const cmp: PrebidConfig = {
     name: 'The CMP CORP',
-    host: 'cmp.com',
+    host: 'www.crto-poc-2.com',
     type: "vendor",
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEl0278pcupaxUfiqHJ9AG9gVMyIO+
@@ -46,7 +44,7 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 
 export const operator: PrebidConfig = {
     name: 'Some PAF operator',
-    host: `operator.pafdemo.com`,
+    host: 'crto-poc-1.com',
     type: "operator",
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
@@ -61,7 +59,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 
 export const publisher: PrebidConfig = {
     name: 'The publisher CORP',
-    host: 'dmytro.site',
+    host: 'www.pafdemopublisher.com',
     type: "vendor",
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEM5QkveaeWF0LMKZcHXaUD3qCuiqd
@@ -77,7 +75,7 @@ VyCwPbOO2qK+WeIUncY5YX+RFlZ34uzoAOxh/cE7BpYbSE5O8oDzECDU
 export const portal: PrebidConfig = {
     name: 'A PAF portal',
     type: "vendor",
-    host: `portal.pafdemo.com`,
+    host: `www.crto-poc-1.com`,
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEasA7VcBrU8fs2P+Z4xmcZ8bhnj3Q
 Ku3ypZLhzircDPwCeqAUye/pd62OX3zSWZFQQdz7fR93Bztwc7ZodYe8UQ==
@@ -90,14 +88,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 }
 
 export const cdn: Config = {
-    host: `cdn.pafdemo.com`,
-}
-
-export const publicKeys = {
-    [advertiser.host]: publicKeyFromString(advertiser.publicKey),
-    [cmp.host]: publicKeyFromString(cmp.publicKey),
-    [publisher.host]: publicKeyFromString(publisher.publicKey),
-    [operator.host]: publicKeyFromString(operator.publicKey),
-    [portal.host]: publicKeyFromString(portal.publicKey),
+    host: `crto-poc-2.com`,
+    name: 'CDN'
 }
 

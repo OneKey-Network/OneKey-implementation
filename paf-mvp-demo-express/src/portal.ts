@@ -1,10 +1,11 @@
 import express from "express";
-import {operator, portal, protocol, publicKeys} from "./config";
+import {operator, portal, protocol} from "./config";
 import {OperatorClient} from "@operator-client/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
 import {getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie} from "@core/express";
 import {GetIdsPrefsRequestBuilder, PostIdsPrefsRequestBuilder} from "@core/model/request-builders";
+import {publicKeys} from "./public-keys";
 
 const domainParser = require('tld-extract');
 
