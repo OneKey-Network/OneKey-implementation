@@ -1,6 +1,6 @@
 import {publicKeyFromString} from "@core/crypto/keys";
 
-export const isHttps = true
+export const isHttps = false
 export const protocol = isHttps ? 'https' : 'http'
 
 export interface Config {
