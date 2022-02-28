@@ -1,4 +1,5 @@
 import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from '@frontend/lib/paf-lib'
+import {cmp, protocol} from "../../config";
 
 declare const PAF: {
     refreshIdsAndPreferences: typeof refreshIdsAndPreferences,
@@ -7,7 +8,7 @@ declare const PAF: {
 }
 
 // Using the CMP backend as a PAF operator proxy
-const proxyBase = 'https://cmp.com';
+const proxyBase = `${protocol}://${cmp.host}`;
 
 export const cmpCheck = async () => {
     const pafData = await PAF.refreshIdsAndPreferences({proxyBase, triggerRedirectIfNeeded: true});

@@ -19,7 +19,7 @@ import {
 } from "@core/model/generated-model";
 import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
 import {getTimeStampInSec} from "@core/timestamp";
-import {advertiser, cmp, operator, publicKeys} from "../src/config";
+import {advertiser, cmp, operator} from "../src/config";
 import path from "path";
 import {OperatorClient} from "@operator-client/operator-client";
 import {
@@ -32,6 +32,7 @@ import {
 import {OperatorApi} from "@operator/operator-api";
 import {GetNewIdResponseBuilder, GetIdsPrefsResponseBuilder, PostIdsPrefsResponseBuilder, Get3PCResponseBuilder, GetIdentityResponseBuilder} from "@core/model/response-builders";
 import {Validator} from "jsonschema";
+import {publicKeys} from "../src/public-keys";
 
 const fs = require('fs').promises;
 

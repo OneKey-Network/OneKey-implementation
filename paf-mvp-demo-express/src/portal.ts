@@ -1,10 +1,13 @@
 import express from "express";
-import {operator, portal, pafDomain, protocol, publicKeys} from "./config";
+import {operator, portal, protocol} from "./config";
 import {OperatorClient} from "@operator-client/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
-import {getPafDataFromQueryString, httpRedirect, removeCookie, getRequestUrl} from "@core/express";
-import {PostIdsPrefsRequestBuilder, GetIdsPrefsRequestBuilder} from "@core/model/request-builders";
+import {getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie} from "@core/express";
+import {GetIdsPrefsRequestBuilder, PostIdsPrefsRequestBuilder} from "@core/model/request-builders";
+import {publicKeys} from "./public-keys";
+
+const domainParser = require('tld-extract');
 
 export const portalApp = express();
 
@@ -33,6 +36,9 @@ const getWritePrefsUrlFromOptin = (identifiers: any, optIn: boolean, returnUrl: 
     const preferences = client.buildPreferences(identifiers, optIn);
     return getWritePrefsUrl(identifiers, preferences, returnUrl);
 };
+
+
+const tld = domainParser(`https://${portal.host}`).domain
 
 portalApp.get('/', (req, res) => {
     const cookies = req.cookies;
@@ -71,12 +77,12 @@ portalApp.get('/', (req, res) => {
 });
 
 portalApp.get(removeIdUrl, (req, res) => {
-    removeCookie(req, res, Cookies.identifiers, {domain: pafDomain})
+    removeCookie(req, res, Cookies.identifiers, {domain: tld})
     httpRedirect(res, '/');
 });
 
 portalApp.get(removePrefsUrl, (req, res) => {
-    removeCookie(req, res, Cookies.preferences, {domain: pafDomain})
+    removeCookie(req, res, Cookies.preferences, {domain: tld})
     httpRedirect(res, '/');
 });
 

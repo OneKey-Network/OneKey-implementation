@@ -1,6 +1,7 @@
 import express from "express";
-import {cmp, operator, protocol, publicKeys, publisher} from "./config";
+import {cmp, operator, protocol, publisher} from "./config";
 import {addOperatorClientProxyEndpoints} from "@operator-client/operator-client-proxy";
+import {publicKeys} from "./public-keys";
 
 export const cmpApp = express();
 
