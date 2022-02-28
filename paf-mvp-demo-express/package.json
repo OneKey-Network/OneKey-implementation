@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-js": "webpack",
     "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
-    "build": "tsc && npm run build-js && npm run build-js-cmp",
+    "build": "npm run build-js && npm run build-js-cmp",
     "start": "nodemon .",
     "generate-examples": "ts-node -r tsconfig-paths/register ./scripts/generate-examples.ts"
   },
@@ -30,6 +30,7 @@
     "express": "^4.17.2",
     "express-hbs": "^2.4.0",
     "nodemon": "^2.0.15",
+    "tld-extract": "^2.0.1",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.5",
     "vhost": "^3.0.2"
