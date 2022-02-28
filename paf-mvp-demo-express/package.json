@@ -32,7 +32,6 @@
     "nodemon": "^2.0.15",
     "tld-extract": "^2.0.1",
     "ts-node": "^10.4.0",
-    "tsconfig-paths": "^3.12.0",
     "typescript": "^4.5.5",
     "vhost": "^3.0.2"
   },

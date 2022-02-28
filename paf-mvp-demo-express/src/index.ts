@@ -1,4 +1,3 @@
-import 'module-alias/register';
 import express, {Express} from "express";
 import cookieParser from 'cookie-parser'
 import {operatorApp} from "./operator";
@@ -64,8 +63,8 @@ const port = process.env.PORT || 80;
 mainApp.listen(port, () => {
     console.log(`server started`);
     console.log(`Make sure you have added these lines to your /etc/hosts file or equivalent:`);
-    for (let host of apps.map(c => c.host)) {
-        console.log(`127.0.0.1 ${host}`)
+    for (let app of apps) {
+        console.log(`127.0.0.1 ${app.host} # ${app.name}`)
     }
 });
 
