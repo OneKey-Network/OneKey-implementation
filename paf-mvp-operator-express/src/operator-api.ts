@@ -140,11 +140,6 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const response = get3PCResponseBuilder.buildResponse(testCookieValue);
 
-        // TODO could do some check on timestamp value
-        if (testCookieValue === undefined) {
-            res.status(404)
-        }
-
         res.send(response)
     });
 
