@@ -10,8 +10,8 @@
     "build-front": "npm run build --prefix paf-mvp-frontend",
     "build-cmp": "npm run build-js --prefix paf-mvp-demo-express && npm run build-js-cmp --prefix paf-mvp-demo-express",
     "###########": "FYI: Google cloud console automatically runs these scripts after deploy:",
-    "gcp-build": "npm run ts2js && npm run build-front && npm run build-cmp",
-    "start": "node paf-mvp-demo-express/src/index.js"
+    "gcp-build": "npm run build-front && npm run build-cmp",
+    "start": "cd paf-mvp-demo-express; npm run start"
   },
   "repository": {
     "type": "git",
