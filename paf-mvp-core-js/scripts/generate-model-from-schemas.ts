@@ -5,7 +5,7 @@ import * as fs from "fs";
 import {ResolverOptions} from "@apidevtools/json-schema-ref-parser";
 
 if (!(process.argv[2]?.length > 0)) {
-    throw `Usage: generate-model-from-schemas.ts <inputDir>\nExample: generate-model-from-schemas.ts ../../addressable-network-proposals/mvp-spec/json-schemas`
+    throw `Usage: ts-node generate-model-from-schemas.ts <inputDir>\nExample: ts-node generate-model-from-schemas.ts ../../../addressable-network-proposals/mvp-spec/json-schemas`
 }
 
 const inputDir = path.join(process.cwd(), process.argv[2]);

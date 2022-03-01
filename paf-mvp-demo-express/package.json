@@ -7,8 +7,7 @@
     "build-js": "webpack",
     "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
     "build": "npm run build-js && npm run build-js-cmp",
-    "start": "nodemon .",
-    "generate-examples": "ts-node -r tsconfig-paths/register ./scripts/generate-examples.ts"
+    "start": "nodemon ."
   },
   "repository": {
     "type": "git",

@@ -19,7 +19,7 @@ import {
 } from "@core/model/generated-model";
 import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
 import {getTimeStampInSec} from "@core/timestamp";
-import {advertiser, cmp, operator} from "../src/config";
+import {advertiser, cmp, operator, publisher} from "../src/config";
 import path from "path";
 import {OperatorClient} from "@operator-client/operator-client";
 import {
@@ -33,8 +33,7 @@ import {OperatorApi} from "@operator/operator-api";
 import {GetNewIdResponseBuilder, GetIdsPrefsResponseBuilder, PostIdsPrefsResponseBuilder, Get3PCResponseBuilder, GetIdentityResponseBuilder} from "@core/model/response-builders";
 import {Validator} from "jsonschema";
 import {publicKeys} from "../src/public-keys";
-
-const fs = require('fs').promises;
+import * as fs from "fs";
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString))
 const getUrl = (method: "POST"|"GET", url: URL): string => `${method} ${url.pathname}${url.search}\nHost: ${url.host}`
@@ -42,8 +41,21 @@ const getGetUrl = (url: URL): string => getUrl("GET", url)
 const getPOSTUrl = (url: URL): string => getUrl("POST", url)
 const getRedirect = (url: URL): string => `303 ${url}`
 
+if (!(process.argv[2]?.length > 0)) {
+    throw `Usage: ts-node -r tsconfig-paths/register generate-examples.ts <outputDir>\nExample: ts-node -r tsconfig-paths/register generate-examples.ts ../../../addressable-network-proposals/mvp-spec/partials`
+}
+
+const outputDir = path.join(process.cwd(), process.argv[2]);
+
+if (!fs.existsSync(outputDir)) {
+    throw `Output dir not found: "${outputDir}"`
+}
+
 // The examples are not supposed to look like a demo but a real environment
 operator.host = 'operator.paf-operation-domain.io'
+cmp.host = 'cmp.com'
+advertiser.host = 'advertiser.com'
+publisher.host = 'publisher.com'
 
 class Examples {
     // **************************** Main data
@@ -264,9 +276,6 @@ class SchemasValidator {
     validator.validate(examples)
      */
 
-    // FIXME use a parameter to choose output dir
-    const outputDir = path.join(__dirname, '..', 'temp');
-
     const dict = examples as unknown as { [typeName: string]: unknown };
     for (let key of Object.keys(examples)) {
         let baseName: string
@@ -284,6 +293,6 @@ class SchemasValidator {
 
         const fullPath = path.join(outputDir, baseName);
         console.log(fullPath)
-        await fs.writeFile(fullPath, fileBody);
+        await fs.promises.writeFile(fullPath, fileBody);
     }
 })()
