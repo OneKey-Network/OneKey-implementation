@@ -5,7 +5,10 @@ import * as fs from "fs";
 import {ResolverOptions} from "@apidevtools/json-schema-ref-parser";
 
 if (!(process.argv[2]?.length > 0)) {
-    throw `Usage: ts-node generate-model-from-schemas.ts <inputDir>\nExample: ts-node generate-model-from-schemas.ts ../../../addressable-network-proposals/mvp-spec/json-schemas`
+    const scriptName = path.basename(__filename);
+    console.error(`Usage: ts-node ${scriptName} <inputDir>
+Example: ts-node ${scriptName} ../../../addressable-network-proposals/mvp-spec/json-schemas`)
+    process.exit(1)
 }
 
 const inputDir = path.join(process.cwd(), process.argv[2]);

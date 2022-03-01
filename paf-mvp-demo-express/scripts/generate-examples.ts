@@ -42,7 +42,10 @@ const getPOSTUrl = (url: URL): string => getUrl("POST", url)
 const getRedirect = (url: URL): string => `303 ${url}`
 
 if (!(process.argv[2]?.length > 0)) {
-    throw `Usage: ts-node -r tsconfig-paths/register generate-examples.ts <outputDir>\nExample: ts-node -r tsconfig-paths/register generate-examples.ts ../../../addressable-network-proposals/mvp-spec/partials`
+    const scriptName = path.basename(__filename);
+    console.error(`Usage: ts-node -r tsconfig-paths/register ${scriptName} <outputDir>
+Example: ts-node -r tsconfig-paths/register ${scriptName} ../../../addressable-network-proposals/mvp-spec/partials`)
+    process.exit(1)
 }
 
 const outputDir = path.join(process.cwd(), process.argv[2]);
