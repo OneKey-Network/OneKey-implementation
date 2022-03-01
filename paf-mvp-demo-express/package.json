@@ -9,7 +9,6 @@
     "build": "npm run build-js && npm run build-js-cmp",
     "start": "ts-node -r tsconfig-paths/register ./src/index.ts",
     "start:watch": "nodemon .",
-    "generate-examples": "ts-node -r tsconfig-paths/register ./scripts/generate-examples.ts"
   },
   "repository": {
     "type": "git",
