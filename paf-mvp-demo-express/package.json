@@ -8,7 +8,7 @@
     "build-js-cmp": "webpack --config ./webpack.config.cmp.js",
     "build": "npm run build-js && npm run build-js-cmp",
     "start": "ts-node -r tsconfig-paths/register ./src/index.ts",
-    "start:watch": "nodemon .",
+    "start:watch": "nodemon ."
   },
   "repository": {
     "type": "git",
