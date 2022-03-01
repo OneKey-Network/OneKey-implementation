@@ -169,6 +169,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         const {request, returnUrl} = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
 
         if (returnUrl) {
+            // FIXME verify returnUrl is HTTPs
 
             const response = getReadResponse(request, req);
 
@@ -185,6 +186,8 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         const {request, returnUrl} = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
 
         if (returnUrl) {
+            // FIXME verify returnUrl is HTTPs
+
             const response = getWriteResponse(request, res);
 
             const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200)
