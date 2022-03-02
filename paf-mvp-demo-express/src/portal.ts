@@ -12,9 +12,9 @@ const domainParser = require('tld-extract');
 export const portalApp = express();
 
 // The portal is a client of the operator API
-const client = new OperatorClient('https', operator.host, portal.host, portal.privateKey, publicKeys)
-const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder('https', operator.host, portal.host, portal.privateKey)
-const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder('https', operator.host, portal.host, portal.privateKey)
+const client = new OperatorClient(operator.host, portal.host, portal.privateKey, publicKeys)
+const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operator.host, portal.host, portal.privateKey)
+const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operator.host, portal.host, portal.privateKey)
 
 const removeIdUrl = '/remove-id';
 const removePrefsUrl = '/remove-prefs';

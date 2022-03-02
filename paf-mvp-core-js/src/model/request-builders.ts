@@ -10,12 +10,12 @@ import {setInQueryString} from "../express";
 export abstract class RestRequestBuilder<T extends object | undefined> {
     protected ecdsaKey: PrivateKey;
 
-    constructor(protected protocol: 'https' | 'http', public operatorHost: string, protected host: string, privateKey: string, protected restEndpoint: string) {
+    constructor(public operatorHost: string, protected host: string, privateKey: string, protected restEndpoint: string) {
         this.ecdsaKey = privateKeyFromString(privateKey);
     }
 
     protected getOperatorUrl(endpoint: string, pafQuery: object | undefined = undefined): URL {
-        let url = new URL(`${this.protocol}://${this.operatorHost}${endpoint}`);
+        let url = new URL(`https://${this.operatorHost}${endpoint}`);
 
         if (pafQuery) {
             url = setInQueryString(url, pafQuery)
@@ -31,8 +31,8 @@ export abstract class RestRequestBuilder<T extends object | undefined> {
 
 export abstract class RestAndRedirectRequestBuilder<T extends object | undefined> extends RestRequestBuilder<T> {
 
-    constructor(protocol: "https" | "http", operatorHost: string, host: string, privateKey: string, restEndpoint: string, protected redirectEndpoint: string) {
-        super(protocol, operatorHost, host, privateKey, restEndpoint);
+    constructor(operatorHost: string, host: string, privateKey: string, restEndpoint: string, protected redirectEndpoint: string) {
+        super(operatorHost, host, privateKey, restEndpoint);
     }
 
     getRedirectUrl(redirectRequest: { request: T, returnUrl: string }): URL {
@@ -50,8 +50,8 @@ export abstract class RestAndRedirectRequestBuilder<T extends object | undefined
 export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<GetIdsPrefsRequest> {
     private readonly signer = new GetIdsPrefsRequestSigner()
 
-    constructor(protocol: "https" | "http", operatorHost: string, host: string, privateKey: string) {
-        super(protocol, operatorHost, host, privateKey, jsonEndpoints.read, redirectEndpoints.read);
+    constructor(operatorHost: string, host: string, privateKey: string) {
+        super(operatorHost, host, privateKey, jsonEndpoints.read, redirectEndpoints.read);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): GetIdsPrefsRequest {
@@ -70,8 +70,8 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
 export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<PostIdsPrefsRequest> {
     private readonly signer = new PostIdsPrefsRequestSigner()
 
-    constructor(protocol: "https" | "http", operatorHost: string, host: string, privateKey: string) {
-        super(protocol, operatorHost, host, privateKey, jsonEndpoints.write, redirectEndpoints.write);
+    constructor(operatorHost: string, host: string, privateKey: string) {
+        super(operatorHost, host, privateKey, jsonEndpoints.write, redirectEndpoints.write);
     }
 
     buildRequest(idsAndPreferences: IdsAndPreferences, timestamp = getTimeStampInSec()): PostIdsPrefsRequest {
@@ -98,8 +98,8 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
 export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> {
     private readonly signer = new GetNewIdRequestSigner()
 
-    constructor(protocol: "https" | "http", operatorHost: string, host: string, privateKey: string) {
-        super(protocol, operatorHost, host, privateKey, jsonEndpoints.newId);
+    constructor(operatorHost: string, host: string, privateKey: string) {
+        super(operatorHost, host, privateKey, jsonEndpoints.newId);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): GetNewIdRequest {
@@ -116,8 +116,8 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
 }
 
 export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
-    constructor(protocol: "https" | "http", operatorHost: string, host: string, privateKey: string) {
-        super(protocol, operatorHost, host, privateKey, jsonEndpoints.verify3PC);
+    constructor(operatorHost: string, host: string, privateKey: string) {
+        super(operatorHost, host, privateKey, jsonEndpoints.verify3PC);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): undefined {
@@ -133,8 +133,8 @@ export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
 }
 
 export class GetIdentityRequestBuilder extends RestRequestBuilder<undefined> {
-    constructor(protocol: "https" | "http", operatorHost: string, host: string, privateKey: string) {
-        super(protocol, operatorHost, host, privateKey, jsonEndpoints.identity);
+    constructor(operatorHost: string, host: string, privateKey: string) {
+        super(operatorHost, host, privateKey, jsonEndpoints.identity);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): undefined {

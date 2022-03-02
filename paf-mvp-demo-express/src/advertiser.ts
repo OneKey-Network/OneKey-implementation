@@ -6,7 +6,7 @@ import {publicKeys} from "./public-keys";
 
 export const advertiserApp = express();
 
-const client = new OperatorBackendClient('https', operator.host, advertiser.host, advertiser.privateKey, publicKeys, RedirectType.http)
+const client = new OperatorBackendClient(operator.host, advertiser.host, advertiser.privateKey, publicKeys, RedirectType.http)
 
 advertiserApp.get('/', (req: Request, res: Response) => {
     const view = 'advertiser/index';
@@ -18,4 +18,4 @@ advertiserApp.get('/', (req: Request, res: Response) => {
 });
 
 // ...and also as a JS proxy
-addOperatorClientProxyEndpoints(advertiserApp, 'https', operator.host, advertiser.host, advertiser.privateKey, [`https://${advertiser.host}`], publicKeys)
+addOperatorClientProxyEndpoints(advertiserApp, operator.host, advertiser.host, advertiser.privateKey, [`https://${advertiser.host}`], publicKeys)

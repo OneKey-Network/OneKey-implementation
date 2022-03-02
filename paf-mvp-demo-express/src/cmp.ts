@@ -5,4 +5,4 @@ import {publicKeys} from "./public-keys";
 
 export const cmpApp = express();
 
-addOperatorClientProxyEndpoints(cmpApp, "https", operator.host, cmp.host, cmp.privateKey, [`https://${publisher.host}`], publicKeys)
+addOperatorClientProxyEndpoints(cmpApp, operator.host, cmp.host, cmp.privateKey, [`https://${publisher.host}`], publicKeys)

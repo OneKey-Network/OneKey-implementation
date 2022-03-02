@@ -54,14 +54,14 @@ export class OperatorBackendClient {
     client: OperatorClient;
     private getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
 
-    constructor(protocol: 'https' | 'http', host: string, sender: string, privateKey: string, protected publicKeys: PublicKeys, private redirectType: RedirectType = RedirectType.http) {
+    constructor(host: string, sender: string, privateKey: string, protected publicKeys: PublicKeys, private redirectType: RedirectType = RedirectType.http) {
         if (![RedirectType.http, RedirectType.meta].includes(redirectType)) {
             throw "Only backend redirect types are supported"
         }
 
-        this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(protocol, host, sender, privateKey)
+        this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(host, sender, privateKey)
 
-        this.client = new OperatorClient(protocol, host, sender, privateKey, publicKeys)
+        this.client = new OperatorClient(host, sender, privateKey, publicKeys)
     }
 
     getIdsAndPreferencesOrRedirect(req: Request, res: Response, view: string): IdsAndOptionalPreferences | undefined {
