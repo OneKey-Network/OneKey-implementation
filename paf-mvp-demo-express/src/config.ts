@@ -3,8 +3,6 @@
 // our URL in HTTPS.
 // TODO: Refine the system to me more friendly with the dev environment.
 export const isHttps = false
-export const protocol = 'https'
-
 export interface Config {
     host: string;
     name: string;

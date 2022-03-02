@@ -1,5 +1,5 @@
 import express from "express";
-import {operator, portal, protocol} from "./config";
+import {operator, portal} from "./config";
 import {OperatorClient} from "@operator-client/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
@@ -12,9 +12,9 @@ const domainParser = require('tld-extract');
 export const portalApp = express();
 
 // The portal is a client of the operator API
-const client = new OperatorClient(protocol, operator.host, portal.host, portal.privateKey, publicKeys)
-const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(protocol, operator.host, portal.host, portal.privateKey)
-const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(protocol, operator.host, portal.host, portal.privateKey)
+const client = new OperatorClient('https', operator.host, portal.host, portal.privateKey, publicKeys)
+const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder('https', operator.host, portal.host, portal.privateKey)
+const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder('https', operator.host, portal.host, portal.privateKey)
 
 const removeIdUrl = '/remove-id';
 const removePrefsUrl = '/remove-prefs';
