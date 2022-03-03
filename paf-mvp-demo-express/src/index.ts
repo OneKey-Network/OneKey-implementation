@@ -3,21 +3,31 @@ import cookieParser from 'cookie-parser'
 import {operatorApp} from "./operator";
 import vhost from "vhost";
 import {advertiserApp} from "./advertiser";
-import {advertiser, cdn, cmp, Config, isHttps, operator, portal, publisher} from "./config";
+import {advertiser, cdn, cmp, Config, operator, portal, publisher} from "./config";
 import {join} from "path";
 import {cmpApp} from "./cmp";
 import {publisherApp} from "./publisher";
 import {portalApp} from "./portal";
 import {cdnApp} from "./paf-cdn";
 import bodyParser from "body-parser";
-import { readFileSync } from "fs";
-import { createServer } from "https";
+import * as fs from "fs";
+import {readFileSync} from "fs";
+import {createServer} from "https";
+
+const relative = (path: string) => join(__dirname, path);
+
+/**
+ * **When running locally**, use generated certificate and run HTTPs server
+ * (on prod a reverse proxy handles it)
+ * See README.md for instruction on how to generate it
+ */
+const keyPath = relative('../paf.key');
+const crtPath = relative('../paf.crt');
+const isLocalDev = fs.existsSync(keyPath) && fs.existsSync(crtPath);
 
 const hbs = require('express-hbs');
 
 const mainApp = express();
-
-const relative = (path: string) => join(__dirname, path);
 
 const addMiddleware = (app: Express) => {
     // Template engine
@@ -33,12 +43,11 @@ const addMiddleware = (app: Express) => {
     // POST parser TODO ideally should parse it as JSON directly (but issues with CORS)
     app.use(bodyParser.text());
 
-    if (isHttps) {
-        app.enable('trust proxy')
-        app.use((req, res, next) => {
-            req.secure ? next() : res.redirect('https://' + req.headers.host + req.url)
-        })
-    }
+    // Systematically redirect to HTTPs
+    app.enable('trust proxy')
+    app.use((req, res, next) => {
+        req.secure ? next() : res.redirect('https://' + req.headers.host + req.url)
+    })
 }
 
 addMiddleware(mainApp)
@@ -62,17 +71,25 @@ addApp(cdn, cdnApp);
 const port = process.env.PORT || 80;
 mainApp.listen(port, () => {
     console.log(`server started`);
-    console.log(`Make sure you have added these lines to your /etc/hosts file or equivalent:`);
+    console.log(``);
+    console.log(`Listening on:`)
     for (let app of apps) {
-        console.log(`127.0.0.1 ${app.host} # ${app.name}`)
+        console.log(`${app.host} (${app.name})`)
+    }
+    console.log(``);
+    if (isLocalDev) {
+        console.log(`Make sure you have added these lines to your /etc/hosts file or equivalent:`);
+        for (let app of apps) {
+            console.log(`127.0.0.1 ${app.host} # ${app.name}`)
+        }
     }
 });
 
-if (isHttps) {
+if (isLocalDev) {
+    console.log(`Local dev: starting HTTPs (443) server`);
     createServer({
-        key: readFileSync(relative('../paf.key')),
-        cert: readFileSync(relative('../paf.crt')),
+        key: readFileSync(keyPath),
+        cert: readFileSync(crtPath),
         passphrase: 'prebid'
     }, mainApp).listen(443)
 }
-

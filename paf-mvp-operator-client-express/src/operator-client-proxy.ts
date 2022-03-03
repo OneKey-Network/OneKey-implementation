@@ -42,12 +42,12 @@ export const getMessageObject = <T>(req: Request, res: Response): T => {
     return requestStr ? JSON.parse(requestStr) as T : undefined
 }
 
-export const addOperatorClientProxyEndpoints = (app: Express, protocol: 'https' | 'http', operatorHost: string, sender: string, privateKey: string, allowedOrigins: string[], publicKeys: PublicKeys) => {
-    const client = new OperatorClient(protocol, operatorHost, sender, privateKey, publicKeys)
+export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: string, sender: string, privateKey: string, allowedOrigins: string[], publicKeys: PublicKeys) => {
+    const client = new OperatorClient(operatorHost, sender, privateKey, publicKeys)
 
-    const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(protocol, operatorHost, sender, privateKey)
-    const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(protocol, operatorHost, sender, privateKey)
-    const get3PCRequestBuilder = new Get3PCRequestBuilder(protocol, operatorHost, sender, privateKey)
+    const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, sender, privateKey)
+    const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey)
+    const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey)
 
     const corsOptions: CorsOptions = {
         origin: allowedOrigins,

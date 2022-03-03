@@ -1,10 +1,3 @@
-// Our production environment use HTTPS at the load-balancer level.
-// Therefore, in this environment, we use internally HTTP but we forge all
-// our URL in HTTPS.
-// TODO: Refine the system to me more friendly with the dev environment.
-export const isHttps = false
-export const protocol = 'https'
-
 export interface Config {
     host: string;
     name: string;
