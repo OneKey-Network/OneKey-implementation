@@ -8,16 +8,16 @@ declare const PAF: {
 }
 
 // Using the CMP backend as a PAF operator proxy
-const proxyBase = `https://${cmp.host}`;
+const proxyHostName = cmp.host;
 
 export const cmpCheck = async () => {
-    const pafData = await PAF.refreshIdsAndPreferences({proxyBase, triggerRedirectIfNeeded: true});
+    const pafData = await PAF.refreshIdsAndPreferences({proxyHostName, triggerRedirectIfNeeded: true});
 
     if (pafData === undefined) {
         // Will trigger a redirect
         return;
     }
-    
+
     const returnedId = pafData.identifiers?.[0]
     const hasPersistedId = returnedId?.persisted === undefined || returnedId?.persisted
 
@@ -27,10 +27,10 @@ export const cmpCheck = async () => {
 Please confirm if you want to opt-in, otherwise click cancel`)
 
         // 1. sign preferences
-        const signedPreferences = await PAF.signPreferences({proxyBase}, {identifier: returnedId, optIn})
+        const signedPreferences = await PAF.signPreferences({proxyHostName}, {identifier: returnedId, optIn})
 
         // 2. write
-        await PAF.writeIdsAndPref({proxyBase}, {
+        await PAF.writeIdsAndPref({proxyHostName}, {
             identifiers: pafData.identifiers,
             preferences: signedPreferences
         })

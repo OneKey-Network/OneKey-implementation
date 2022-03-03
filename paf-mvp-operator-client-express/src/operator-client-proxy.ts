@@ -3,7 +3,7 @@ import cors, {CorsOptions} from "cors";
 import {OperatorClient} from "./operator-client";
 import {Error, IdsAndPreferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
 import {NewPrefs} from "@core/model/model";
-import {jsonEndpoints, proxyEndpoints, proxyUriParams, redirectEndpoints} from "@core/endpoints";
+import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from "@core/endpoints";
 import {httpRedirect} from "@core/express";
 import {PublicKeys} from "@core/crypto/keys";
 import {fromDataToObject} from "@core/query-string";
@@ -60,70 +60,31 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
 
-    app.get(`/paf${jsonEndpoints.read}`, cors(corsOptions), (req, res) => {
+    app.get(jsonProxyEndpoints.read, cors(corsOptions), (req, res) => {
         const getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.buildRequest()
         const url = getIdsPrefsRequestBuilder.getRestUrl(getIdsPrefsRequestJson)
 
         httpRedirect(res, url.toString(), 302)
     });
 
-    app.post(`/paf${jsonEndpoints.write}`, cors(corsOptions), (req, res) => {
+    app.post(jsonProxyEndpoints.write, cors(corsOptions), (req, res) => {
         const url = postIdsPrefsRequestBuilder.getRestUrl()
 
-        // Note: the message is assumed to be signed with proxyEndpoints.signWrite beforehand
+        // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
         // /!\ Notice return code 307!
         httpRedirect(res, url.toString(), 307)
     });
 
-    app.get(`/paf${jsonEndpoints.verify3PC}`, cors(corsOptions), (req, res) => {
+    app.get(jsonProxyEndpoints.verify3PC, cors(corsOptions), (req, res) => {
         const url = get3PCRequestBuilder.getRestUrl()
 
         httpRedirect(res, url.toString(), 302)
     });
 
     // *****************************************************************************************************************
-    // ******************************************************************************************************* REDIRECTS
+    // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************
-
-    app.get(`/paf${redirectEndpoints.read}`, cors(corsOptions), (req, res) => {
-
-        const returnUrl = getReturnUrl(req, res);
-
-        if (returnUrl) {
-            const getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.toRedirectRequest(
-                getIdsPrefsRequestBuilder.buildRequest(),
-                returnUrl
-            )
-            const url = getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson)
-
-            httpRedirect(res, url.toString(), 302)
-        }
-
-    });
-
-    app.get(`/paf${redirectEndpoints.write}`, cors(corsOptions), (req, res) => {
-
-        const returnUrl = getReturnUrl(req, res);
-        const input = getMessageObject<IdsAndPreferences>(req, res);
-
-        if (input && returnUrl) {
-
-            const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
-                postIdsPrefsRequestBuilder.buildRequest(input),
-                returnUrl
-            );
-
-            const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson)
-
-            httpRedirect(res, url.toString(), 302)
-        }
-    });
-
-    // *****************************************************************************************************************
-    // *************************************************************************************************** SIGN & VERIFY
-    // *****************************************************************************************************************
-
-    app.post(`/paf${proxyEndpoints.verifyRedirectRead}`, cors(corsOptions), (req, res) => {
+    app.post(jsonProxyEndpoints.verifyRedirectRead, cors(corsOptions), (req, res) => {
         const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
         if (!message.response) {
@@ -141,13 +102,52 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
         }
     });
 
-    app.post(`/paf${proxyEndpoints.signPrefs}`, cors(corsOptions), (req, res) => {
+    app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
         const {identifier, optIn} = JSON.parse(req.body as string) as NewPrefs;
         res.send(client.buildPreferences([identifier], optIn))
     });
 
-    app.post(`/paf${proxyEndpoints.signWrite}`, cors(corsOptions), (req, res) => {
+    app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
         const message = JSON.parse(req.body as string) as IdsAndPreferences;
         res.send(postIdsPrefsRequestBuilder.buildRequest(message))
+    });
+
+    // *****************************************************************************************************************
+    // ******************************************************************************************************* REDIRECTS
+    // *****************************************************************************************************************
+
+    app.get(redirectProxyEndpoints.read, cors(corsOptions), (req, res) => {
+
+        const returnUrl = getReturnUrl(req, res);
+
+        if (returnUrl) {
+            const getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.toRedirectRequest(
+                getIdsPrefsRequestBuilder.buildRequest(),
+                returnUrl
+            )
+            const url = getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson)
+
+            httpRedirect(res, url.toString(), 302)
+        }
+
+    });
+
+    app.get(redirectProxyEndpoints.write, cors(corsOptions), (req, res) => {
+
+        const returnUrl = getReturnUrl(req, res);
+        const input = getMessageObject<IdsAndPreferences>(req, res);
+
+        if (input && returnUrl) {
+            // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
+
+            const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
+                postIdsPrefsRequestBuilder.buildRequest(input),
+                returnUrl
+            );
+
+            const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson)
+
+            httpRedirect(res, url.toString(), 302)
+        }
     });
 }

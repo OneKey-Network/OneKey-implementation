@@ -7,12 +7,12 @@ import {
   Preferences,
   Test3Pc,
 } from '@core/model/generated-model';
-import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
-import { NewPrefs } from '@core/model/model';
-import { jsonEndpoints, proxyEndpoints, proxyUriParams, redirectEndpoints } from '@core/endpoints';
-import { isBrowserKnownToSupport3PC } from '@core/user-agent';
-import { QSParam } from '@core/query-string';
-import { fromClientCookieValues, PafStatus, getPafStatus } from '@core/operator-client-commons';
+import {Cookies, getPrebidDataCacheExpiration} from '@core/cookies';
+import {NewPrefs} from '@core/model/model';
+import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from '@core/endpoints';
+import {isBrowserKnownToSupport3PC} from '@core/user-agent';
+import {QSParam} from '@core/query-string';
+import {fromClientCookieValues, getPafStatus, PafStatus} from '@core/operator-client-commons';
 
 const logger = console;
 
@@ -37,7 +37,7 @@ const removeUrlParameter = (url: string, parameter: string) => {
     const parts = queryString.split(/[&;]/g);
 
     // Reverse iteration as may be destructive
-    for (let i = parts.length; i-- > 0; ) {
+    for (let i = parts.length; i-- > 0;) {
       // Idiom for string.startsWith
       if (parts[i].lastIndexOf(prefix, 0) !== -1) {
         parts.splice(i, 1);
@@ -59,11 +59,7 @@ const setCookie = (name: string, value: string, expiration: Date) => {
 // Update the URL shown in the address bar, without PAF data
 const cleanUpUrL = () => history.pushState(null, '', removeUrlParameter(location.href, QSParam.paf));
 
-const getProxyUrl =
-  (proxyBase: string) =>
-  (endpoint: string): string => {
-    return `${proxyBase}/paf${endpoint}`;
-  };
+const getProxyUrl = (proxyBase: string) => (endpoint: string): string => `https://${proxyBase}${endpoint}`;
 
 const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
   logger.info(`Operator returned value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
@@ -85,7 +81,7 @@ const removeCookie = (cookieName: string) => {
 let thirdPartyCookiesSupported: boolean | undefined;
 
 export interface Options {
-  proxyBase: string;
+  proxyHostName: string;
 }
 
 export interface RefreshIdsAndPrefsOptions extends Options {
@@ -105,14 +101,14 @@ export type SignPrefsOptions = Options;
  * @return ids and preferences or undefined if user is not participating or if values can't be refreshed
  */
 export const refreshIdsAndPreferences = async ({
-  proxyBase,
-  triggerRedirectIfNeeded,
-}: RefreshIdsAndPrefsOptions): Promise<IdsAndOptionalPreferences | undefined> => {
-  const getUrl = getProxyUrl(proxyBase);
+                                                 proxyHostName,
+                                                 triggerRedirectIfNeeded,
+                                               }: RefreshIdsAndPrefsOptions): Promise<IdsAndOptionalPreferences | undefined> => {
+  const getUrl = getProxyUrl(proxyHostName);
 
   const redirectToRead = () => {
     logger.info('Redirect to operator');
-    const redirectUrl = new URL(getUrl(redirectEndpoints.read));
+    const redirectUrl = new URL(getUrl(redirectProxyEndpoints.read));
     redirectUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
     redirect(redirectUrl.toString());
   };
@@ -135,7 +131,7 @@ export const refreshIdsAndPreferences = async ({
       thirdPartyCookiesSupported = false;
 
       // Verify message
-      const response = await fetch(getUrl(proxyEndpoints.verifyRedirectRead), {
+      const response = await fetch(getUrl(jsonProxyEndpoints.verifyRedirectRead), {
         method: 'POST',
         body: uriData,
         credentials: 'include',
@@ -188,7 +184,7 @@ export const refreshIdsAndPreferences = async ({
       logger.info('Browser known to support 3PC: YES');
 
       logger.info('Attempt to read from JSON');
-      const readResponse = await fetch(getUrl(jsonEndpoints.read), { credentials: 'include' });
+      const readResponse = await fetch(getUrl(jsonProxyEndpoints.read), {credentials: 'include'});
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -211,7 +207,7 @@ export const refreshIdsAndPreferences = async ({
 
       logger.info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
-      const verifyResponse = await fetch(getUrl(jsonEndpoints.verify3PC), { credentials: 'include' });
+      const verifyResponse = await fetch(getUrl(jsonProxyEndpoints.verify3PC), {credentials: 'include'});
       const testOk = (await verifyResponse.json()) as Test3Pc;
 
       // 4. 3d party cookie ok?
@@ -225,7 +221,7 @@ export const refreshIdsAndPreferences = async ({
         setCookie(Cookies.identifiers, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
         setCookie(Cookies.preferences, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
 
-        return { identifiers: operatorData.body.identifiers };
+        return {identifiers: operatorData.body.identifiers};
       }
       logger.info('3PC verification OK: NO');
       thirdPartyCookiesSupported = false;
@@ -262,10 +258,10 @@ export const refreshIdsAndPreferences = async ({
  * @return the written identifiers and preferences
  */
 export const writeIdsAndPref = async (
-  { proxyBase }: WriteIdsAndPrefsOptions,
+  {proxyHostName}: WriteIdsAndPrefsOptions,
   input: IdsAndPreferences
 ): Promise<IdsAndOptionalPreferences | undefined> => {
-  const getUrl = getProxyUrl(proxyBase);
+  const getUrl = getProxyUrl(proxyHostName);
 
   const processWriteIdsAndPref = async (): Promise<IdsAndOptionalPreferences | undefined> => {
     console.log('Attempt to write:');
@@ -281,7 +277,7 @@ export const writeIdsAndPref = async (
       console.log('3PC supported');
 
       // 1) sign the request
-      const signedResponse = await fetch(getUrl(proxyEndpoints.signWrite), {
+      const signedResponse = await fetch(getUrl(jsonProxyEndpoints.signWrite), {
         method: 'POST',
         body: JSON.stringify(input),
         credentials: 'include',
@@ -289,7 +285,7 @@ export const writeIdsAndPref = async (
       const signedData = (await signedResponse.json()) as PostIdsPrefsRequest;
 
       // 2) send
-      const response = await fetch(getUrl(jsonEndpoints.write), {
+      const response = await fetch(getUrl(jsonProxyEndpoints.write), {
         method: 'POST',
         body: JSON.stringify(signedData),
         credentials: 'include',
@@ -307,7 +303,7 @@ export const writeIdsAndPref = async (
     console.log('3PC not supported: redirect');
 
     // Redirect. Signing of the request will happen on the backend proxy
-    const redirectUrl = new URL(getUrl(redirectEndpoints.write));
+    const redirectUrl = new URL(getUrl(redirectProxyEndpoints.write));
     redirectUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
     redirectUrl.searchParams.set(proxyUriParams.message, JSON.stringify(input));
 
@@ -332,10 +328,10 @@ export const writeIdsAndPref = async (
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
-export const signPreferences = async ({ proxyBase }: SignPrefsOptions, input: NewPrefs): Promise<Preferences> => {
-  const getUrl = getProxyUrl(proxyBase);
+export const signPreferences = async ({proxyHostName}: SignPrefsOptions, input: NewPrefs): Promise<Preferences> => {
+  const getUrl = getProxyUrl(proxyHostName);
 
-  const signedResponse = await fetch(getUrl(proxyEndpoints.signPrefs), {
+  const signedResponse = await fetch(getUrl(jsonProxyEndpoints.signPrefs), {
     method: 'POST',
     body: JSON.stringify(input),
     credentials: 'include',
