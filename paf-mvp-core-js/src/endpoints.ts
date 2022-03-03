@@ -16,9 +16,9 @@ export const jsonEndpoints = {
 // Endpoints exposed by the operator proxy
 const proxyPrefix = '/paf-proxy'
 export const jsonProxyEndpoints = {
-    verifyRedirectRead: `${proxyPrefix}/verify/redirectRead`,
-    signWrite: `${proxyPrefix}/sign/write`,
-    signPrefs: `${proxyPrefix}/sign/prefs`,
+    verifyRedirectRead: `${proxyPrefix}/v1/verify/redirectRead`,
+    signWrite: `${proxyPrefix}/v1/sign/write`,
+    signPrefs: `${proxyPrefix}/v1/sign/prefs`,
     read: `${proxyPrefix}${jsonEndpoints.read}`,
     write: `${proxyPrefix}${jsonEndpoints.write}`,
     verify3PC: `${proxyPrefix}${jsonEndpoints.verify3PC}`,
