@@ -85,7 +85,6 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 }
 
 export const cdn: Config = {
-    host: `crto-poc-2.com`,
+    host: `www.crto-poc-2.com`, // /!\ is the same as CMP
     name: 'CDN'
 }
-
