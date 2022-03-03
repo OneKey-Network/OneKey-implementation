@@ -14,6 +14,11 @@ import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
 import { fromClientCookieValues, PafStatus, getPafStatus } from '@core/operator-client-commons';
 
+declare global {
+  interface Window {
+    __renderPafWidget: () => void;
+  }
+}
 const logger = console;
 
 const redirect = (url: string): void => {
@@ -342,3 +347,18 @@ export const signPreferences = async ({ proxyBase }: SignPrefsOptions, input: Ne
   });
   return (await signedResponse.json()) as Preferences;
 };
+
+export const initializeWidget = () => {
+  const widgetElement = document.createElement('div');
+  widgetElement.setAttribute('paf-root', '');
+  window.addEventListener('load', () => {
+    document.body.appendChild(widgetElement);
+    window.__renderPafWidget();
+  });
+
+  return new Promise<boolean>((resolve) => {
+    widgetElement.addEventListener('grantConsent', (response: CustomEvent<boolean>) => resolve(response.detail), true);
+  });
+}
+
+

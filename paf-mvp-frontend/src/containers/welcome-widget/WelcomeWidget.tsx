@@ -11,6 +11,7 @@ import { Option } from '../../components/forms/option/Option';
 import { Tooltip } from '../../components/tooltip/Tooltip';
 import { SubPanel } from '../../components/sub-panel/SubPanel';
 import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
+import { globalEventService } from '../../main';
 
 interface WelcomeWidgetProps {
   brandName: string;
@@ -27,6 +28,15 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
   const widgetStorageData = JSON.parse(localStorage.getItem(STORAGE_KEY));
   const isConsentGranted = widgetStorageData?.consent;
   const [consent, setConsent] = useState(isConsentGranted);
+
+  const onChooseOption = (consent: boolean) => {
+    globalEventService.emitEvent({
+      type: 'grantConsent',
+      payload: consent
+    });
+    setConsent(consent);
+    setIsOpen(false);
+  }
   const arrow = (
     <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
@@ -64,7 +74,7 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
           {isParticipating && <Tooltip>
             OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time by refreshing your Browsing ID.
           </Tooltip>}
-          <OptionsGroup selected={getConsentValue()} onSelectOption={(value) => setConsent(value === 'on')}>
+          <OptionsGroup selected={getConsentValue()} onSelectOption={(value) => onChooseOption(value === 'on')}>
             <Option value="on">
               <div class={style.optionTitle}>
                 <h3>Turn on personalized marketing</h3>
