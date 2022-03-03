@@ -10,7 +10,7 @@ export class OperatorClient {
     private readonly prefsSigner = new PrefsSigner();
     private readonly ecdsaKey: PrivateKey;
 
-    constructor(protected protocol: 'https' | 'http', public operatorHost: string, private host: string, privateKey: string, protected publicKeys: PublicKeys) {
+    constructor(public operatorHost: string, private host: string, privateKey: string, protected publicKeys: PublicKeys) {
         this.ecdsaKey = privateKeyFromString(privateKey);
     }
 

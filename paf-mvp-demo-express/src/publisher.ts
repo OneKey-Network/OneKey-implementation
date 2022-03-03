@@ -1,12 +1,11 @@
 import express from "express";
-import {cdn, cmp, protocol} from "./config";
+import {cdn, cmp} from "./config";
 
 export const publisherApp = express();
 
 publisherApp.get('/', (req, res) => {
     const view = 'publisher/index';
     res.render(view, {
-        protocol,
         cmpDomain: cmp.host,
         cdnDomain: cdn.host
     });
