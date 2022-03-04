@@ -27,7 +27,16 @@ export const cmpCheck = async () => {
 Please confirm if you want to opt-in, otherwise click cancel`)
 
         // 1. sign preferences
-        const signedPreferences = await PAF.signPreferences({proxyHostName}, {identifier: returnedId, optIn})
+        const unsignedPreferences = {
+            version: "0.1",
+            data: {
+                use_browsing_for_personalization: optIn
+            }
+        };
+        const signedPreferences = await PAF.signPreferences({proxyHostName}, {
+            identifiers: pafData.identifiers,
+            unsignedPreferences
+        })
 
         // 2. write
         await PAF.writeIdsAndPref({proxyHostName}, {

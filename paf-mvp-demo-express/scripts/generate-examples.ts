@@ -15,7 +15,7 @@ import {
     Preferences,
     Identifiers,
     Test3Pc,
-    Error
+    Error, NewUnsignedPreferences
 } from "@core/model/generated-model";
 import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
 import {getTimeStampInSec} from "@core/timestamp";
@@ -125,6 +125,9 @@ class Examples {
     getIdentityRequest_cmpHttp: string
     getIdentityResponse_cmpJson: GetIdentityResponse
 
+    // **************************** Proxy
+    signPreferencesJson: NewUnsignedPreferences
+
     constructor() {
         const operatorAPI = new OperatorApi(operator.host, operator.privateKey)
         const originalAdvertiserUrl = new URL(`https://${advertiser.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`)
@@ -138,7 +141,7 @@ class Examples {
         this.idJson = operatorAPI.signId("7435313e-caee-4889-8ad7-0acd0114ae3c", getTimestamp("2022/01/18 12:13"));
 
         const cmpClient = new OperatorClient(operator.host, cmp.host, cmp.privateKey, publicKeys)
-        this.preferencesJson = cmpClient.buildPreferences([this.idJson], true, getTimestamp("2022/01/18 12:16"))
+        this.preferencesJson = cmpClient.buildPreferences([this.idJson], {use_browsing_for_personalization: true}, getTimestamp("2022/01/18 12:16"))
 
         // **************************** Cookies
         this['ids_cookie-prettyJson'] = [this.idJson]
@@ -236,6 +239,17 @@ class Examples {
                 start: new Date("2022/01/15 11:50")
             }
         ])
+
+        // **************************** Proxy
+        this.signPreferencesJson = {
+            identifiers: [this.idJson],
+            unsignedPreferences: {
+                version: "0.1",
+                data: {
+                    use_browsing_for_personalization: true
+                }
+            }
+        }
     }
 }
 

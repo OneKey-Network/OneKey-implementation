@@ -1,8 +1,12 @@
 import {Express, Request, Response} from "express";
 import cors, {CorsOptions} from "cors";
 import {OperatorClient} from "./operator-client";
-import {Error, IdsAndPreferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
-import {NewPrefs} from "@core/model/model";
+import {
+    Error,
+    IdsAndPreferences,
+    NewUnsignedPreferences,
+    RedirectGetIdsPrefsResponse
+} from "@core/model/generated-model";
 import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from "@core/endpoints";
 import {httpRedirect} from "@core/express";
 import {PublicKeys} from "@core/crypto/keys";
@@ -97,14 +101,13 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
             const error: Error = {message: 'verification failed'}
             res.send(error)
         } else {
-            console.debug(message.response)
             res.send(message.response)
         }
     });
 
     app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
-        const {identifier, optIn} = JSON.parse(req.body as string) as NewPrefs;
-        res.send(client.buildPreferences([identifier], optIn))
+        const {identifiers, unsignedPreferences} = JSON.parse(req.body as string) as NewUnsignedPreferences;
+        res.send(client.buildPreferences(identifiers, unsignedPreferences.data))
     });
 
     app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {

@@ -18,12 +18,10 @@ export class OperatorClient {
         return this.readVerifier.verify(this.publicKeys[message.sender], message)
     }
 
-    buildPreferences(identifiers: Identifiers, optIn: boolean, timestamp = new Date().getTime()): Preferences {
+    buildPreferences(identifiers: Identifiers, data: { use_browsing_for_personalization: boolean; }, timestamp = new Date().getTime()): Preferences {
         const unsignedPreferences: UnsignedData<Preferences> = {
             version: "0.1",
-            data: {
-                use_browsing_for_personalization: optIn
-            },
+            data,
             source: {
                 domain: this.host,
                 timestamp,
@@ -36,6 +34,7 @@ export class OperatorClient {
             ...rest,
             source: {
                 ...source,
+                // FIXME use identifiers to sign preferences!
                 signature: this.prefsSigner.sign(this.ecdsaKey, unsignedPreferences)
             }
         };

@@ -72,8 +72,10 @@ export interface _ {
   "ids-and-optional-preferences"?: IdsAndOptionalPreferences;
   "ids-and-preferences"?: IdsAndPreferences;
   "message-base"?: MessageBase;
+  "new-unsigned-preferences"?: NewUnsignedPreferences;
   "post-ids-prefs-request"?: PostIdsPrefsRequest;
   "post-ids-prefs-response"?: PostIdsPrefsResponse;
+  "preferences-data"?: PreferencesData;
   preferences?: Preferences;
   "redirect-get-ids-prefs-request"?: RedirectGetIdsPrefsRequest;
   "redirect-get-ids-prefs-response"?: RedirectGetIdsPrefsResponse;
@@ -165,13 +167,17 @@ export interface IdsAndOptionalPreferences {
  */
 export interface Preferences {
   version: Version;
-  data: {
-    /**
-     * `true` if the user accepted the usage of browsing history for ad personalization, `false` otherwise
-     */
-    use_browsing_for_personalization: boolean;
-  };
+  data: PreferencesData;
   source: Source;
+}
+/**
+ * Preferences data
+ */
+export interface PreferencesData {
+  /**
+   * Whether the user accepts (`true`) or not (`false`) that their browsing is used for personalization
+   */
+  use_browsing_for_personalization: boolean;
 }
 /**
  * Source of data representing what contracting party created and signed the data
@@ -255,6 +261,16 @@ export interface MessageBase {
   receiver: Domain;
   timestamp: Timestamp;
   signature: Signature;
+}
+/**
+ * A list of identifiers and a new (unsigned) value for preferences
+ */
+export interface NewUnsignedPreferences {
+  unsignedPreferences?: {
+    version: Version;
+    data: PreferencesData;
+  };
+  identifiers: Identifier[];
 }
 /**
  * POST /v1/ids-prefs request

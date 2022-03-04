@@ -33,7 +33,7 @@ const getWritePrefsUrl = (identifiers: any, preferences: Preferences, returnUrl:
 };
 
 const getWritePrefsUrlFromOptin = (identifiers: any, optIn: boolean, returnUrl: any) => {
-    const preferences = client.buildPreferences(identifiers, optIn);
+    const preferences = client.buildPreferences(identifiers, {use_browsing_for_personalization: optIn});
     return getWritePrefsUrl(identifiers, preferences, returnUrl);
 };
 
@@ -43,7 +43,7 @@ const tld = domainParser(`https://${portal.host}`).domain
 portalApp.get('/', (req, res) => {
     const cookies = req.cookies;
 
-    const formatCookie = (value: string|undefined) => value ? JSON.stringify(JSON.parse(value), null, 2) : undefined
+    const formatCookie = (value: string | undefined) => value ? JSON.stringify(JSON.parse(value), null, 2) : undefined
 
     const request = getIdsPrefsRequestBuilder.buildRequest()
     const redirectRequest = getIdsPrefsRequestBuilder.toRedirectRequest(request, new URL(writeNewId, `${req.protocol}://${req.get('host')}`))
