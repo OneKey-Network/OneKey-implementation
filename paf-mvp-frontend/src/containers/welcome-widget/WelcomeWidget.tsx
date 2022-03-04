@@ -5,6 +5,7 @@ import { useEffect, useState } from 'preact/compat';
 import style from './style.scss';
 import grid from '../../styles/grid.scss';
 import layout from '../../styles/layouts.scss';
+import typography from '../../styles/typography.scss';
 
 import { Button } from '../../components/button/Button';
 import { Option } from '../../components/forms/option/Option';
@@ -12,22 +13,24 @@ import { Tooltip } from '../../components/tooltip/Tooltip';
 import { SubPanel } from '../../components/sub-panel/SubPanel';
 import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
 import { globalEventManager } from '../../managers/event-manager';
+import { getCookieValue } from '../../utils/cookie';
+import { Cookies } from '@core/cookies';
+import { fromClientCookieValues } from '@core/operator-client-commons';
 
 interface WelcomeWidgetProps {
   brandName: string;
   brandLogoUrl: string;
 }
 
-const STORAGE_KEY = 'PAF.userData';
-
 export const WelcomeWidget = (props: WelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
-  const isParticipating = false;
 
-  const widgetStorageData = JSON.parse(localStorage.getItem(STORAGE_KEY));
-  const isConsentGranted = widgetStorageData?.consent;
-  const [consent, setConsent] = useState(isConsentGranted);
+  const pafCookies = fromClientCookieValues(getCookieValue(Cookies.identifiers), getCookieValue(Cookies.preferences));
+  const pafIdentifier = pafCookies.identifiers?.at(0)?.value;
+  const pafConsent = pafCookies.preferences?.data?.use_browsing_for_personalization;
+
+  const [consent, setConsent] = useState(pafIdentifier && pafConsent);
 
   const onChooseOption = (consent: boolean) => {
     globalEventManager.emitEvent({
@@ -45,15 +48,21 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
       />
     </svg>
   );
+  const refresh = (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0.666626 11.3337V6.66705H5.33329L3.18863 8.81371C3.9286 9.57039 4.9416 9.99798 5.99996 10.0004C7.69292
+      9.99788 9.20097 8.92986 9.76529 7.33371H9.77729C9.85365 7.11679 9.91142 6.89376 9.94996 6.66705H11.2913C10.9553
+      9.33365 8.68764 11.3336 5.99996 11.3337H5.99329C4.57913 11.3379 3.22207 10.7762 2.22463 9.77371L0.666626
+      11.3337ZM2.04929 5.33371H0.707959C1.04379 2.66812 3.30996 0.668475 5.99663 0.667019H5.99996C7.41438 0.662494
+       8.77177 1.22427 9.76929 2.22705L11.3333 0.667019V5.33371H6.66663L8.81463 3.18705C8.07389 2.42948 7.05949 2.00181
+       5.99996 2.00038C4.30699 2.00288 2.79895 3.0709 2.23463 4.66705H2.22263C2.14566 4.88379 2.08789 5.10686 2.04996
+       5.33371H2.04929Z" fill="currentColor"/>
+    </svg>
+  );
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'visible';
   }, [isOpen]);
-  useEffect(() => {
-    const storage = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    storage.consent = consent;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(storage));
-  }, [consent]);
 
   const getConsentValue = () => (consent === true ? 'on' : consent === false ? 'off' : undefined);
 
@@ -71,9 +80,22 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
         </p>
 
         <div class={grid['my-5']}>
-          {isParticipating && <Tooltip>
-            OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time by refreshing your Browsing ID.
-          </Tooltip>}
+          {!!pafIdentifier && <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-2']}`}>
+            <div className={`${layout.alignCenter}`}>
+              <Tooltip>
+                OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time
+                by refreshing your Browsing ID.
+              </Tooltip>
+              <b className={typography.textSmall}>Your browsing ID</b>
+            </div>
+
+            <div>
+              <button class={style.refreshBtn}>
+                {pafIdentifier.split('-').at(0)} {refresh}
+              </button>
+            </div>
+          </div>
+          }
           <OptionsGroup selected={getConsentValue()} onSelectOption={(value) => onChooseOption(value === 'on')}>
             <Option value="on">
               <div class={style.optionTitle}>

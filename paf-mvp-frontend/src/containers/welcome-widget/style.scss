@@ -40,3 +40,23 @@
   margin: 0;
   color: variables.$muted-color;
 }
+
+.refreshBtn {
+  padding: .25rem .5rem;
+  background: rgba(7, 111, 138, 0.12);
+  text-transform: uppercase;
+  color: variables.$primary-color;
+  appearance: none;
+  border: none;
+  border-radius: .5rem;
+  font-weight: 600;
+  font-size: .65rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  line-height: 1.6;
+
+  svg {
+    margin-left: .25rem;
+  }
+}

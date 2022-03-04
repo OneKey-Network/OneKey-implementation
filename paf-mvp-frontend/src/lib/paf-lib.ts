@@ -25,6 +25,10 @@ const redirect = (url: string): void => {
   document.location = url;
 };
 
+function checkLoaded() {
+  return document.readyState === "complete";
+}
+
 // Remove any "paf data" param from the query string
 // From https://stackoverflow.com/questions/1634748/how-can-i-delete-a-query-string-parameter-in-javascript/25214672#25214672
 // TODO should be able to use a more standard way, but URL class is immutable :-(
@@ -351,10 +355,15 @@ export const signPreferences = async ({ proxyBase }: SignPrefsOptions, input: Ne
 export const initializeWidget = () => {
   const widgetElement = document.createElement('div');
   widgetElement.setAttribute('paf-root', '');
-  window.addEventListener('load', () => {
+  const renderFn = () => {
     document.body.appendChild(widgetElement);
     window.__renderPafWidget();
-  });
+  }
+  if (checkLoaded()) {
+    renderFn();
+  } else {
+    window.addEventListener('load', renderFn);
+  }
 
   return new Promise<boolean>((resolve) => {
     widgetElement.addEventListener('grantConsent', (response: CustomEvent<boolean>) => resolve(response.detail), true);
