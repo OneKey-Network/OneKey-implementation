@@ -15,7 +15,7 @@ import {
     Get3PCRequestBuilder,
     GetIdsPrefsRequestBuilder,
     PostIdsPrefsRequestBuilder
-} from "@core/model/request-builders";
+} from "@core/model/operator-request-builders";
 
 /**
  * Get return URL parameter, otherwise set response code 400
@@ -88,7 +88,7 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
     // *****************************************************************************************************************
     // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************
-    app.post(jsonProxyEndpoints.verifyRedirectRead, cors(corsOptions), (req, res) => {
+    app.post(jsonProxyEndpoints.verifyRead, cors(corsOptions), (req, res) => {
         const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
         if (!message.response) {

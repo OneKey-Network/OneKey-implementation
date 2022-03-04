@@ -131,7 +131,7 @@ export const refreshIdsAndPreferences = async ({
       thirdPartyCookiesSupported = false;
 
       // Verify message
-      const response = await fetch(getUrl(jsonProxyEndpoints.verifyRedirectRead), {
+      const response = await fetch(getUrl(jsonProxyEndpoints.verifyRead), {
         method: 'POST',
         body: uriData,
         credentials: 'include',
@@ -331,6 +331,7 @@ export const writeIdsAndPref = async (
 export const signPreferences = async ({proxyHostName}: SignPrefsOptions, input: NewUnsignedPreferences): Promise<Preferences> => {
   const getUrl = getProxyUrl(proxyHostName);
 
+  // TODO use ProxyRestSignPreferencesRequestBuilder
   const signedResponse = await fetch(getUrl(jsonProxyEndpoints.signPrefs), {
     method: 'POST',
     body: JSON.stringify(input),

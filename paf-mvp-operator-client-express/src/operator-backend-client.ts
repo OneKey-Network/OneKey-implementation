@@ -15,7 +15,7 @@ import {
 } from "@core/express";
 import {isBrowserKnownToSupport3PC} from "@core/user-agent";
 import {PublicKeys} from "@core/crypto/keys";
-import {GetIdsPrefsRequestBuilder} from "@core/model/request-builders";
+import {GetIdsPrefsRequestBuilder} from "@core/model/operator-request-builders";
 
 export enum RedirectType {
     http = "http",
