@@ -1,6 +1,8 @@
 # Ignore generated assets
 /public/assets/paf-lib.js
 /public/assets/cmp/cmp.js
+/public/assets/cmp/**/*.d.ts
+/public/assets/cmp/**/*.js.map
 
 # Ignore generated SSL certificates
 /paf.crt
