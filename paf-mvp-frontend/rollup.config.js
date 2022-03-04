@@ -85,15 +85,19 @@ export default [
       ...(() => {
         if (!DEV) { // list of plugins for production
           return [
+            terser(), // minify js output
             copy({ // copy files
               targets: [
                 {
-                  src: 'assets',
-                  dest: DIST,
+                  src: 'assets/*',
+                  dest: '../paf-mvp-demo-express/public/assets',
                 },
+                {
+                  src: `${DIST}/*`,
+                  dest: '../paf-mvp-demo-express/public/assets'
+                }
               ],
             }),
-            terser(), // minify js output
           ]
         } else { // list of plugins for development
           return [

@@ -11,7 +11,7 @@ import { Option } from '../../components/forms/option/Option';
 import { Tooltip } from '../../components/tooltip/Tooltip';
 import { SubPanel } from '../../components/sub-panel/SubPanel';
 import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
-import { globalEventService } from '../../main';
+import { globalEventManager } from '../../managers/event-manager';
 
 interface WelcomeWidgetProps {
   brandName: string;
@@ -30,7 +30,7 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
   const [consent, setConsent] = useState(isConsentGranted);
 
   const onChooseOption = (consent: boolean) => {
-    globalEventService.emitEvent({
+    globalEventManager.emitEvent({
       type: 'grantConsent',
       payload: consent
     });

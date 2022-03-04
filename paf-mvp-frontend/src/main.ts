@@ -4,9 +4,8 @@ import habitat from 'preact-habitat';
 import { WelcomeWidget } from './containers/welcome-widget/WelcomeWidget';
 import { env } from './config';
 import { createElement } from './utils/create-element';
-import { IWidgetEvent, WidgetEvents } from './serivces/widget-events';
-
-export const globalEventService = new WidgetEvents();
+import { IWidgetEvent } from './serivces/widget-events';
+import { globalEventManager } from './managers/event-manager';
 
 function render() {
   const selector = '[paf-root]';
@@ -18,7 +17,7 @@ function render() {
 
   widget.render({ selector });
   widgetElement.appendChild(styles);
-  globalEventService.getSubscription()
+  globalEventManager.getSubscription()
     .subscribe((widgetEvent: IWidgetEvent) => {
       const customEvent = new CustomEvent(widgetEvent.type, {detail: widgetEvent.payload});
       widgetElement.dispatchEvent(customEvent);
