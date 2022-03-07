@@ -1,5 +1,7 @@
 import UAParser from 'ua-parser-js';
 import {
+  Error,
+  Get3PcResponse,
   GetIdsPrefsResponse,
   IdsAndOptionalPreferences,
   IdsAndPreferences,
@@ -7,13 +9,13 @@ import {
   Preferences,
   Test3Pc,
 } from '@core/model/generated-model';
-import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
-import { NewPrefs } from '@core/model/model';
-import { jsonEndpoints, proxyEndpoints, proxyUriParams, redirectEndpoints } from '@core/endpoints';
-import { isBrowserKnownToSupport3PC } from '@core/user-agent';
-import { QSParam } from '@core/query-string';
-import { fromClientCookieValues, PafStatus, getPafStatus } from '@core/operator-client-commons';
-import { getCookieValue } from '../utils/cookie';
+import {Cookies, getPrebidDataCacheExpiration} from '@core/cookies';
+import {NewPrefs} from '@core/model/model';
+import {jsonEndpoints, proxyEndpoints, proxyUriParams, redirectEndpoints} from '@core/endpoints';
+import {isBrowserKnownToSupport3PC} from '@core/user-agent';
+import {QSParam} from '@core/query-string';
+import {fromClientCookieValues, PafStatus, getPafStatus} from '@core/operator-client-commons';
+import {getCookieValue} from '../utils/cookie';
 
 const logger = console;
 
@@ -38,7 +40,7 @@ const removeUrlParameter = (url: string, parameter: string) => {
     const parts = queryString.split(/[&;]/g);
 
     // Reverse iteration as may be destructive
-    for (let i = parts.length; i-- > 0; ) {
+    for (let i = parts.length; i-- > 0;) {
       // Idiom for string.startsWith
       if (parts[i].lastIndexOf(prefix, 0) !== -1) {
         parts.splice(i, 1);
@@ -60,9 +62,9 @@ const cleanUpUrL = () => history.pushState(null, '', removeUrlParameter(location
 
 const getProxyUrl =
   (proxyBase: string) =>
-  (endpoint: string): string => {
-    return `${proxyBase}/paf${endpoint}`;
-  };
+    (endpoint: string): string => {
+      return `${proxyBase}/paf${endpoint}`;
+    };
 
 const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
   logger.info(`Operator returned value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
@@ -104,9 +106,9 @@ export type SignPrefsOptions = Options;
  * @return ids and preferences or undefined if user is not participating or if values can't be refreshed
  */
 export const refreshIdsAndPreferences = async ({
-  proxyBase,
-  triggerRedirectIfNeeded,
-}: RefreshIdsAndPrefsOptions): Promise<IdsAndOptionalPreferences | undefined> => {
+                                                 proxyBase,
+                                                 triggerRedirectIfNeeded,
+                                               }: RefreshIdsAndPrefsOptions): Promise<IdsAndOptionalPreferences | undefined> => {
   const getUrl = getProxyUrl(proxyBase);
 
   const redirectToRead = () => {
@@ -187,7 +189,7 @@ export const refreshIdsAndPreferences = async ({
       logger.info('Browser known to support 3PC: YES');
 
       logger.info('Attempt to read from JSON');
-      const readResponse = await fetch(getUrl(jsonEndpoints.read), { credentials: 'include' });
+      const readResponse = await fetch(getUrl(jsonEndpoints.read), {credentials: 'include'});
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -210,11 +212,11 @@ export const refreshIdsAndPreferences = async ({
 
       logger.info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
-      const verifyResponse = await fetch(getUrl(jsonEndpoints.verify3PC), { credentials: 'include' });
-      const testOk = (await verifyResponse.json()) as Test3Pc;
+      const verifyResponse = await fetch(getUrl(jsonEndpoints.verify3PC), {credentials: 'include'});
+      const testOk: Get3PcResponse | Error = (await verifyResponse.json());
 
       // 4. 3d party cookie ok?
-      if (testOk?.timestamp > 0) {
+      if ((testOk as Get3PcResponse)?.["3pc"]) {
         // TODO might want to do more verification
         logger.info('3PC verification OK: YES');
 
@@ -224,7 +226,7 @@ export const refreshIdsAndPreferences = async ({
         setCookie(Cookies.identifiers, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
         setCookie(Cookies.preferences, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
 
-        return { identifiers: operatorData.body.identifiers };
+        return {identifiers: operatorData.body.identifiers};
       }
       logger.info('3PC verification OK: NO');
       thirdPartyCookiesSupported = false;
@@ -261,7 +263,7 @@ export const refreshIdsAndPreferences = async ({
  * @return the written identifiers and preferences
  */
 export const writeIdsAndPref = async (
-  { proxyBase }: WriteIdsAndPrefsOptions,
+  {proxyBase}: WriteIdsAndPrefsOptions,
   input: IdsAndPreferences
 ): Promise<IdsAndOptionalPreferences | undefined> => {
   const getUrl = getProxyUrl(proxyBase);
@@ -331,7 +333,7 @@ export const writeIdsAndPref = async (
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
-export const signPreferences = async ({ proxyBase }: SignPrefsOptions, input: NewPrefs): Promise<Preferences> => {
+export const signPreferences = async ({proxyBase}: SignPrefsOptions, input: NewPrefs): Promise<Preferences> => {
   const getUrl = getProxyUrl(proxyBase);
 
   const signedResponse = await fetch(getUrl(proxyEndpoints.signPrefs), {
