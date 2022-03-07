@@ -7,5 +7,5 @@
     "../**/*.d.ts",
     "../**/*.js.map"
   ],
-  "exec": "npm run build && npm run start"
+  "exec": "npm run gcp-build && npm run start"
 }
