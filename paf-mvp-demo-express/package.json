@@ -5,8 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-cmp": "rollup -c",
-    "build-frontend": "npm run build --prefix ../paf-mvp-frontend",
-    "build": "npm run build-cmp && npm run build-frontend",
+    "build": "npm run build-cmp",
     "start": "ts-node -r tsconfig-paths/register ./src/index.ts",
     "start:watch": "nodemon --debug ."
   },

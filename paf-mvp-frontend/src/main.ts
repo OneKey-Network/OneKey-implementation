@@ -17,7 +17,8 @@ function render(element?: HTMLElement) {
 
   if (!widgetElement) return;
   const widget = habitat(WelcomeWidget);
-  const styles = createElement('link', { href: `${env.host}/dist/app.bundle.css`, rel: 'stylesheet' });
+  const stylesPath = env.isDevelopment ? 'dist' : 'assets';
+  const styles = createElement('link', { href: `${env.host}/${stylesPath}/app.bundle.css`, rel: 'stylesheet' });
 
   widget.render({ selector });
   widgetElement.appendChild(styles);
