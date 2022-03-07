@@ -13,6 +13,7 @@ import { jsonEndpoints, proxyEndpoints, proxyUriParams, redirectEndpoints } from
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
 import { fromClientCookieValues, PafStatus, getPafStatus } from '@core/operator-client-commons';
+import { getCookieValue } from '../utils/cookie';
 
 const logger = console;
 
@@ -49,8 +50,6 @@ const removeUrlParameter = (url: string, parameter: string) => {
 
   return url;
 };
-
-const getCookieValue = (name: string): string => document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`)?.pop() || '';
 
 const setCookie = (name: string, value: string, expiration: Date) => {
   document.cookie = `${name}=${value};expires=${expiration.toUTCString()}`;

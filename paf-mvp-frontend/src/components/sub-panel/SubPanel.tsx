@@ -16,12 +16,14 @@ export const SubPanel = ({ children, onClose, isOpen }: ISubPanelProps) => {
     <Fragment>
       {isOpen && <div class={classes.backdrop} onClick={() => onClose()} />}
       <div class={`${classes.container} ${isOpen ? classes.open : ''}`}>
-        <div className={layout.justifyEnd}>
+        <div class={layout.justifyEnd}>
           <Button classList={classes.closeBtn} action={() => onClose()}>
             &#x203A;
           </Button>
         </div>
-        {children}
+        <div class={classes.scroll}>
+          {children}
+        </div>
       </div>
     </Fragment>
   );

@@ -1,4 +1,4 @@
 export const env = {
   isDevelopment: false,
-  host: '', // TODO: insert cdn domain
+  host: 'https://www.crto-poc-2.com', // TODO: insert cdn domain
 };

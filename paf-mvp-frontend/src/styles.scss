@@ -1,7 +1,18 @@
-[paf-root] {
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Source+Sans+Pro:wght@400;600&display=swap');
+
+@mixin rootStyles {
   all: initial;
+  font-family: "Source Sans Pro", sans-serif;
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Montserrat, sans-serif;
+  }
+}
+
+[paf-root] {
+  @include rootStyles;
 }
 // Do not combine this two selectors. IE will fail
 :host {
-  all: initial;
+ @include rootStyles;
 }
