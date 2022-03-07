@@ -7,9 +7,13 @@ import { createElement } from './utils/create-element';
 import { IWidgetEvent } from './serivces/widget-events';
 import { globalEventManager } from './managers/event-manager';
 
-function render() {
+function checkLoaded() {
+  return document.readyState === 'complete';
+}
+
+function render(element?: HTMLElement) {
   const selector = '[paf-root]';
-  const widgetElement = document.querySelector(selector) as HTMLElement;
+  const widgetElement = element ?? document.querySelector(selector) as HTMLElement;
 
   if (!widgetElement) return;
   const widget = habitat(WelcomeWidget);
@@ -34,9 +38,30 @@ if (env.isDevelopment) {
   render();
 }
 
+const promptConsent = () => {
+  const widgetElement = createElement('div', {'paf-root': ''});
+  const renderCallback = () => {
+    document.body.appendChild(widgetElement);
+    render(widgetElement);
+  }
+  if (checkLoaded()) {
+    renderCallback();
+  } else {
+    window.addEventListener('load', renderCallback);
+  }
+
+  return new Promise<boolean>((resolve) => {
+    widgetElement.addEventListener('grantConsent', (response: CustomEvent<boolean>) => {
+      resolve(response.detail);
+      widgetElement.remove();
+    }, true);
+  });
+}
+
+
 declare global {
   interface Window {
-    __renderPafWidget: () => void;
+    __promptConsent: () => Promise<boolean>;
   }
 }
-window.__renderPafWidget = render;
+window.__promptConsent = promptConsent;

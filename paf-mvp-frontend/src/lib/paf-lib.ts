@@ -13,21 +13,13 @@ import { jsonEndpoints, proxyEndpoints, proxyUriParams, redirectEndpoints } from
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
 import { fromClientCookieValues, PafStatus, getPafStatus } from '@core/operator-client-commons';
+import { getCookieValue } from '../utils/cookie';
 
-declare global {
-  interface Window {
-    __renderPafWidget: () => void;
-  }
-}
 const logger = console;
 
 const redirect = (url: string): void => {
   document.location = url;
 };
-
-function checkLoaded() {
-  return document.readyState === "complete";
-}
 
 // Remove any "paf data" param from the query string
 // From https://stackoverflow.com/questions/1634748/how-can-i-delete-a-query-string-parameter-in-javascript/25214672#25214672
@@ -58,8 +50,6 @@ const removeUrlParameter = (url: string, parameter: string) => {
 
   return url;
 };
-
-const getCookieValue = (name: string): string => document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`)?.pop() || '';
 
 const setCookie = (name: string, value: string, expiration: Date) => {
   document.cookie = `${name}=${value};expires=${expiration.toUTCString()}`;
@@ -351,23 +341,3 @@ export const signPreferences = async ({ proxyBase }: SignPrefsOptions, input: Ne
   });
   return (await signedResponse.json()) as Preferences;
 };
-
-export const initializeWidget = () => {
-  const widgetElement = document.createElement('div');
-  widgetElement.setAttribute('paf-root', '');
-  const renderFn = () => {
-    document.body.appendChild(widgetElement);
-    window.__renderPafWidget();
-  }
-  if (checkLoaded()) {
-    renderFn();
-  } else {
-    window.addEventListener('load', renderFn);
-  }
-
-  return new Promise<boolean>((resolve) => {
-    widgetElement.addEventListener('grantConsent', (response: CustomEvent<boolean>) => resolve(response.detail), true);
-  });
-}
-
-
