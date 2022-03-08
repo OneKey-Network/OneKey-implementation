@@ -27,6 +27,8 @@ const removeRefDescription = (schema: JSONSchema4): JSONSchema4 => {
         Object.keys(schema.properties).forEach(currentKey => {
             schema.properties![currentKey] = removeRefDescription(schema.properties![currentKey])
         })
+    } else if (schema.items) {
+        schema.items = removeRefDescription(schema.items)
     }
 
     return schema
