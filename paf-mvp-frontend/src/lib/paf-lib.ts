@@ -8,14 +8,13 @@ import {
   PostIdsPrefsRequest,
   PostSignPreferencesRequest,
   Preferences,
-  Test3Pc,
 } from '@core/model/generated-model';
 import {Cookies, getPrebidDataCacheExpiration} from '@core/cookies';
 import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from '@core/endpoints';
 import {isBrowserKnownToSupport3PC} from '@core/user-agent';
 import {QSParam} from '@core/query-string';
 import {fromClientCookieValues, getPafStatus, PafStatus} from '@core/operator-client-commons';
-import { getCookieValue } from '../utils/cookie';
+import {getCookieValue} from '../utils/cookie';
 
 const logger = console;
 
@@ -60,7 +59,7 @@ const setCookie = (name: string, value: string, expiration: Date) => {
 // Update the URL shown in the address bar, without PAF data
 const cleanUpUrL = () => history.pushState(null, '', removeUrlParameter(location.href, QSParam.paf));
 
-const getProxyUrl = (proxyBase: string) => (endpoint: string): string => `https://${proxyBase}${endpoint}`;
+const getProxyUrl = (proxyHost: string) => (endpoint: string): string => `https://${proxyHost}${endpoint}`;
 
 const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
   logger.info(`Operator returned value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
