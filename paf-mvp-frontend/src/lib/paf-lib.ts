@@ -1,5 +1,7 @@
 import UAParser from 'ua-parser-js';
 import {
+  Error,
+  Get3PcResponse,
   GetIdsPrefsResponse,
   IdsAndOptionalPreferences,
   IdsAndPreferences,
@@ -207,10 +209,10 @@ export const refreshIdsAndPreferences = async ({
       logger.info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
       const verifyResponse = await fetch(getUrl(jsonProxyEndpoints.verify3PC), {credentials: 'include'});
-      const testOk = (await verifyResponse.json()) as Test3Pc;
+      const testOk: Get3PcResponse | Error = (await verifyResponse.json());
 
       // 4. 3d party cookie ok?
-      if (testOk?.timestamp > 0) {
+      if ((testOk as Get3PcResponse)?.["3pc"]) {
         // TODO might want to do more verification
         logger.info('3PC verification OK: YES');
 
