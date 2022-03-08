@@ -13,7 +13,7 @@ import {PublicKeys} from "@core/crypto/keys";
 import {fromDataToObject} from "@core/query-string";
 import {
     Get3PCRequestBuilder,
-    GetIdsPrefsRequestBuilder,
+    GetIdsPrefsRequestBuilder, GetNewIdRequestBuilder,
     PostIdsPrefsRequestBuilder
 } from "@core/model/operator-request-builders";
 
@@ -52,6 +52,7 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
     const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, sender, privateKey)
     const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey)
     const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey)
+    const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, sender, privateKey)
 
     const corsOptions: CorsOptions = {
         origin: allowedOrigins,
@@ -113,6 +114,13 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
     app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
         const message = JSON.parse(req.body as string) as IdsAndPreferences;
         res.send(postIdsPrefsRequestBuilder.buildRequest(message))
+    });
+
+    app.get(jsonProxyEndpoints.newId, cors(corsOptions), (req, res) => {
+        const getNewIdRequestJson = getNewIdRequestBuilder.buildRequest()
+        const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson)
+
+        httpRedirect(res, url.toString(), 302)
     });
 
     // *****************************************************************************************************************

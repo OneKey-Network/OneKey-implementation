@@ -3,7 +3,7 @@ import {getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "
 import cors, {CorsOptions} from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
-    GetIdsPrefsRequest,
+    GetIdsPrefsRequest, GetNewIdRequest,
     Identifier,
     PostIdsPrefsRequest,
     RedirectGetIdsPrefsRequest,
@@ -25,7 +25,7 @@ import {PrivateKey, privateKeyFromString, PublicKeys} from "@core/crypto/keys";
 import {jsonEndpoints, redirectEndpoints} from "@core/endpoints";
 import {
     Get3PCResponseBuilder,
-    GetIdsPrefsResponseBuilder,
+    GetIdsPrefsResponseBuilder, GetNewIdResponseBuilder,
     PostIdsPrefsResponseBuilder
 } from "@core/model/operator-response-builders";
 
@@ -45,6 +45,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey)
     const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorHost, privateKey)
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey)
+    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey)
 
     const tld = domainParser(`https://${operatorHost}`).domain
 
@@ -154,6 +155,14 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
             res.sendStatus(400)
             res.send(e)
         }
+    });
+
+    app.get(jsonEndpoints.newId, cors(corsOptions), (req, res) => {
+        const input = getPafDataFromQueryString<GetNewIdRequest>(req);
+
+        const response = getNewIdResponseBuilder.buildResponse(input.receiver, operatorApi.generateNewId())
+
+        res.send(response)
     });
 
     // *****************************************************************************************************************

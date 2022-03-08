@@ -22,6 +22,7 @@ export const jsonProxyEndpoints = {
     read: `${proxyPrefix}${jsonEndpoints.read}`,
     write: `${proxyPrefix}${jsonEndpoints.write}`,
     verify3PC: `${proxyPrefix}${jsonEndpoints.verify3PC}`,
+    newId: `${proxyPrefix}${jsonEndpoints.newId}`,
 }
 export const redirectProxyEndpoints = {
     read: `${proxyPrefix}${redirectEndpoints.read}`,
