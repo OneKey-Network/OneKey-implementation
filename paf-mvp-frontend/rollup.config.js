@@ -61,7 +61,7 @@ export default [
       replace({ // replace value in runtime
         preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production'),
-        './env.development': DEV ? './env.development' : './env.production' // to import correct env file
+        'env__development': DEV ? 'env__development' : 'env__production' // to import correct env file
       }),
       postcss({ // compile scss => css
         modules: true, // add hashes to css selectors to have CSS Modules
@@ -85,15 +85,19 @@ export default [
       ...(() => {
         if (!DEV) { // list of plugins for production
           return [
+            terser(), // minify js output
             copy({ // copy files
               targets: [
                 {
-                  src: 'assets',
-                  dest: DIST,
+                  src: 'assets/*',
+                  dest: '../paf-mvp-demo-express/public/assets',
                 },
+                {
+                  src: `${DIST}/*`,
+                  dest: '../paf-mvp-demo-express/public/assets'
+                }
               ],
             }),
-            terser(), // minify js output
           ]
         } else { // list of plugins for development
           return [

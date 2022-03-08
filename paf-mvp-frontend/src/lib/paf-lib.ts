@@ -2,17 +2,18 @@ import UAParser from 'ua-parser-js';
 import {
   GetIdsPrefsResponse,
   IdsAndOptionalPreferences,
-  IdsAndPreferences, PostSignPreferencesRequest,
+  IdsAndPreferences,
   PostIdsPrefsRequest,
+  PostSignPreferencesRequest,
   Preferences,
   Test3Pc,
 } from '@core/model/generated-model';
 import {Cookies, getPrebidDataCacheExpiration} from '@core/cookies';
-import {NewPrefs} from '@core/model/model';
 import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from '@core/endpoints';
 import {isBrowserKnownToSupport3PC} from '@core/user-agent';
 import {QSParam} from '@core/query-string';
 import {fromClientCookieValues, getPafStatus, PafStatus} from '@core/operator-client-commons';
+import { getCookieValue } from '../utils/cookie';
 
 const logger = console;
 
@@ -49,8 +50,6 @@ const removeUrlParameter = (url: string, parameter: string) => {
 
   return url;
 };
-
-const getCookieValue = (name: string): string => document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`)?.pop() || '';
 
 const setCookie = (name: string, value: string, expiration: Date) => {
   document.cookie = `${name}=${value};expires=${expiration.toUTCString()}`;

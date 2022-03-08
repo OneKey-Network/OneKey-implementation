@@ -1,10 +1,15 @@
-import {refreshIdsAndPreferences, signPreferences, writeIdsAndPref} from '@frontend/lib/paf-lib'
+import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from '@frontend/lib/paf-lib';
 import {cmp} from "../../config";
 
 declare const PAF: {
     refreshIdsAndPreferences: typeof refreshIdsAndPreferences,
     signPreferences: typeof signPreferences,
-    writeIdsAndPref: typeof writeIdsAndPref
+    writeIdsAndPref: typeof writeIdsAndPref,
+}
+declare global {
+    interface Window {
+        __promptConsent: () => Promise<boolean>
+    }
 }
 
 // Using the CMP backend as a PAF operator proxy
@@ -22,10 +27,7 @@ export const cmpCheck = async () => {
     const hasPersistedId = returnedId?.persisted === undefined || returnedId?.persisted
 
     if (!hasPersistedId || pafData.preferences === undefined) {
-        const optIn = confirm(`Hi, here's the CMP!
-        
-Please confirm if you want to opt-in, otherwise click cancel`)
-
+        const optIn = await window.__promptConsent();
         // 1. sign preferences
         const unsignedPreferences = {
             version: "0.1",

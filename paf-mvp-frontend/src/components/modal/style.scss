@@ -1,3 +1,5 @@
+@use 'src/styles/variables' as variables;
+
 .modalContainer {
   position: fixed;
   left: 0;
@@ -32,7 +34,8 @@
   }
 
   .closeBtn {
-    float: right;
+    display: flex;
+    align-items: center;
     appearance: none;
     background: #fff;
     font-family: sans-serif;
@@ -40,6 +43,12 @@
     border: none;
     cursor: pointer;
     padding: 8px 10px;
+    color: variables.$primary-color;
+
+    .btnText {
+      font-size: .8rem;
+      margin-right: .5rem;
+    }
   }
 }
 
