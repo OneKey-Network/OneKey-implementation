@@ -28,21 +28,13 @@ export type GetIdentityRequest = null;
  */
 export type Version = string;
 /**
- * Number of seconds since UNIX Epoch time (1970/01/01 00:00:00)
- */
-export type Timestamp1 = number;
-/**
- * Number of seconds since UNIX Epoch time (1970/01/01 00:00:00)
- */
-export type Timestamp2 = number;
-/**
  * The base64 representation of a data signature
  */
 export type Signature = string;
 /**
  * List of identifiers
  */
-export type Identifiers = Identifier1[];
+export type Identifiers = Identifier[];
 /**
  * The URL that the user should be be redirected to, to provide response data
  */
@@ -72,9 +64,9 @@ export interface _ {
   "ids-and-optional-preferences"?: IdsAndOptionalPreferences;
   "ids-and-preferences"?: IdsAndPreferences;
   "message-base"?: MessageBase;
-  "new-unsigned-preferences"?: NewUnsignedPreferences;
   "post-ids-prefs-request"?: PostIdsPrefsRequest;
   "post-ids-prefs-response"?: PostIdsPrefsResponse;
+  "post-sign-preferences-request"?: PostSignPreferencesRequest;
   "preferences-data"?: PreferencesData;
   preferences?: Preferences;
   "redirect-get-ids-prefs-request"?: RedirectGetIdsPrefsRequest;
@@ -87,6 +79,7 @@ export interface _ {
   source?: Source;
   "test-3pc"?: Test3Pc;
   timestamp?: Timestamp;
+  "unsigned-preferences"?: UnsignedPreferences;
   version?: Version;
 }
 /**
@@ -132,8 +125,8 @@ export interface GetIdentityResponse {
      * Public key string value
      */
     key: string;
-    start: Timestamp1;
-    end?: Timestamp2;
+    start: Timestamp;
+    end?: Timestamp;
   }[];
 }
 /**
@@ -228,25 +221,6 @@ export interface GetNewIdResponse {
   };
 }
 /**
- * A pseudonymous identifier generated for a web user
- */
-export interface Identifier1 {
-  version: Version;
-  /**
-   * The identifier type, identifier of type `paf_browser_id` is mandatory and is "pivot"
-   */
-  type: "paf_browser_id";
-  /**
-   * If set to `false`, means the identifier has not yet been persisted as a cookie.<br>Otherwise, means this identifier is persisted as a PAF cookie<br>(default value = `true` meaning if the property is omitted the identifier *is* persisted)
-   */
-  persisted?: boolean;
-  /**
-   * The identifier value
-   */
-  value: string;
-  source: Source;
-}
-/**
  * A list of identifiers and some preferences
  */
 export interface IdsAndPreferences {
@@ -261,16 +235,6 @@ export interface MessageBase {
   receiver: Domain;
   timestamp: Timestamp;
   signature: Signature;
-}
-/**
- * A list of identifiers and a new (unsigned) value for preferences
- */
-export interface NewUnsignedPreferences {
-  unsignedPreferences?: {
-    version: Version;
-    data: PreferencesData;
-  };
-  identifiers: Identifier[];
 }
 /**
  * POST /v1/ids-prefs request
@@ -293,12 +257,29 @@ export interface PostIdsPrefsResponse {
   body: IdsAndPreferences;
 }
 /**
+ * POST /paf-proxy/v1/sign/prefs request
+ */
+export interface PostSignPreferencesRequest {
+  unsignedPreferences: UnsignedPreferences;
+  identifiers: Identifiers;
+}
+/**
+ * The current preferences of the user before they are signed
+ */
+export interface UnsignedPreferences {
+  version: Version;
+  data: PreferencesData;
+}
+/**
  * GET /v1/redirect/get-ids-prefs request
  */
 export interface RedirectGetIdsPrefsRequest {
   returnUrl: ReturnUrl;
   request: GetIdsPrefsRequest;
 }
+/**
+ * GET /v1/redirect/get-ids-prefs response
+ */
 export interface RedirectGetIdsPrefsResponse {
   code: ResponseCode;
   response?: GetIdsPrefsResponse;
@@ -311,6 +292,9 @@ export interface RedirectPostIdsPrefsRequest {
   returnUrl: ReturnUrl;
   request: PostIdsPrefsRequest;
 }
+/**
+ * GET /v1/redirect/post-ids-prefs response
+ */
 export interface RedirectPostIdsPrefsResponse {
   code: ResponseCode;
   response?: PostIdsPrefsResponse;

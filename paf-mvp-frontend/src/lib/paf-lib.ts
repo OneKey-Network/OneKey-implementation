@@ -2,7 +2,7 @@ import UAParser from 'ua-parser-js';
 import {
   GetIdsPrefsResponse,
   IdsAndOptionalPreferences,
-  IdsAndPreferences, NewUnsignedPreferences,
+  IdsAndPreferences, PostSignPreferencesRequest,
   PostIdsPrefsRequest,
   Preferences,
   Test3Pc,
@@ -328,7 +328,7 @@ export const writeIdsAndPref = async (
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
-export const signPreferences = async ({proxyHostName}: SignPrefsOptions, input: NewUnsignedPreferences): Promise<Preferences> => {
+export const signPreferences = async ({proxyHostName}: SignPrefsOptions, input: PostSignPreferencesRequest): Promise<Preferences> => {
   const getUrl = getProxyUrl(proxyHostName);
 
   // TODO use ProxyRestSignPreferencesRequestBuilder

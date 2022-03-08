@@ -8,7 +8,7 @@ import {
     GetNewIdResponse,
     Identifier,
     Identifiers,
-    NewUnsignedPreferences,
+    PostSignPreferencesRequest,
     PostIdsPrefsRequest,
     PostIdsPrefsResponse,
     Preferences,
@@ -16,7 +16,7 @@ import {
     RedirectGetIdsPrefsResponse,
     RedirectPostIdsPrefsRequest,
     RedirectPostIdsPrefsResponse,
-    Test3Pc
+    Test3Pc, IdsAndPreferences
 } from "@core/model/generated-model";
 import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
 import {getTimeStampInSec} from "@core/timestamp";
@@ -139,9 +139,9 @@ class Examples {
 
     // **************************** Proxy
     signPreferencesHttp: string
-    signPreferencesJson: NewUnsignedPreferences
+    signPreferencesJson: PostSignPreferencesRequest
     signPostIdsPrefsHttp: string
-    signPostIdsPrefsJson: NewUnsignedPreferences
+    signPostIdsPrefsJson: IdsAndPreferences
     verifyGetIdsPrefsHttp: string
     verifyGetIdsPrefs_invalidJson: Error
 

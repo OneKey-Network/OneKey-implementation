@@ -2,7 +2,7 @@ import {
     GetIdsPrefsResponse,
     Identifiers,
     IdsAndPreferences,
-    NewUnsignedPreferences,
+    PostSignPreferencesRequest,
     Preferences,
     PreferencesData
 } from "./generated-model";
@@ -28,13 +28,13 @@ export abstract class ProxyRestRequestBuilder<T extends object | undefined> {
     }
 }
 
-export class ProxyRestSignPreferencesRequestBuilder extends ProxyRestRequestBuilder<NewUnsignedPreferences> {
+export class ProxyRestSignPreferencesRequestBuilder extends ProxyRestRequestBuilder<PostSignPreferencesRequest> {
 
     constructor(proxyHost: string) {
         super(proxyHost, jsonProxyEndpoints.signPrefs);
     }
 
-    buildRequest(identifiers: Identifiers, data: PreferencesData): NewUnsignedPreferences {
+    buildRequest(identifiers: Identifiers, data: PreferencesData): PostSignPreferencesRequest {
         return {
             identifiers,
             unsignedPreferences: {

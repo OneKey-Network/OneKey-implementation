@@ -4,7 +4,7 @@ import {OperatorClient} from "./operator-client";
 import {
     Error,
     IdsAndPreferences,
-    NewUnsignedPreferences,
+    PostSignPreferencesRequest,
     RedirectGetIdsPrefsResponse
 } from "@core/model/generated-model";
 import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from "@core/endpoints";
@@ -106,7 +106,7 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
     });
 
     app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
-        const {identifiers, unsignedPreferences} = JSON.parse(req.body as string) as NewUnsignedPreferences;
+        const {identifiers, unsignedPreferences} = JSON.parse(req.body as string) as PostSignPreferencesRequest;
         res.send(client.buildPreferences(identifiers, unsignedPreferences.data))
     });
 
