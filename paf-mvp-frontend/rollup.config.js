@@ -89,13 +89,14 @@ export default [
             copy({ // copy files
               targets: [
                 {
-                  src: 'assets/*',
+                  src: [
+                    './assets/*',
+                    `./${DIST}/app.bundle.js`,
+                    `./${DIST}/app.bundle.css`,
+                    `./${DIST}/paf-lib.js`,
+                  ],
                   dest: '../paf-mvp-demo-express/public/assets',
                 },
-                {
-                  src: `${DIST}/*`,
-                  dest: '../paf-mvp-demo-express/public/assets'
-                }
               ],
             }),
           ]
