@@ -16,16 +16,18 @@ import livereload from 'rollup-plugin-livereload';
 import postCssInitial from 'postcss-initial';
 import autoprefixer from 'autoprefixer';
 
-const relative = path => join(__dirname, path);
 const DEV = process.env.ROLLUP_WATCH;
 const DIST = 'dist';
+
+const relative = path => join(__dirname, path);
+const getDestFolder = (path) => (DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
 
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
     input: relative('src/lib/paf-lib.ts'),
     output: {
-      file: relative(`${DIST}/paf-lib.js`),
+      file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
       name: 'PAF',
       sourcemap: true
@@ -43,7 +45,7 @@ export default [
   defineConfig({
     input: relative('src/main.ts'), // entry file
     output: {
-      file: relative(`${DIST}/app.bundle.js`),
+      file: getDestFolder(`/app.bundle.js`),
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
       sourcemap: true,
@@ -89,12 +91,7 @@ export default [
             copy({ // copy files
               targets: [
                 {
-                  src: [
-                    './assets/*',
-                    `./${DIST}/app.bundle.js`,
-                    `./${DIST}/app.bundle.css`,
-                    `./${DIST}/paf-lib.js`,
-                  ],
+                  src: './assets/*',
                   dest: '../paf-mvp-demo-express/public/assets',
                 },
               ],
