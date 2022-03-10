@@ -22,7 +22,7 @@ import {
 } from "@core/cookies";
 import {IdSigner} from "@core/crypto/data-signature";
 import {PrivateKey, privateKeyFromString, PublicKeys} from "@core/crypto/keys";
-import {jsonEndpoints, redirectEndpoints} from "@core/endpoints";
+import {jsonOperatorEndpoints, redirectEndpoints} from "@core/endpoints";
 import {
     Get3PCResponseBuilder,
     GetIdsPrefsResponseBuilder, GetNewIdResponseBuilder,
@@ -119,7 +119,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, {domain: tld})
     }
 
-    app.get(jsonEndpoints.read, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.read, cors(corsOptions), (req, res) => {
         // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
         setTest3pcCookie(res);
 
@@ -130,7 +130,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         res.send(response)
     });
 
-    app.get(jsonEndpoints.verify3PC, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.verify3PC, cors(corsOptions), (req, res) => {
         // Note: no signature verification here
 
         const cookies = req.cookies;
@@ -144,7 +144,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         res.send(response)
     });
 
-    app.post(jsonEndpoints.write, cors(corsOptions), (req, res) => {
+    app.post(jsonOperatorEndpoints.write, cors(corsOptions), (req, res) => {
         const input = JSON.parse(req.body as string) as PostIdsPrefsRequest;
 
         try {
@@ -157,7 +157,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         }
     });
 
-    app.get(jsonEndpoints.newId, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.newId, cors(corsOptions), (req, res) => {
         const input = getPafDataFromQueryString<GetNewIdRequest>(req);
 
         const response = getNewIdResponseBuilder.buildResponse(input.receiver, operatorApi.generateNewId())
