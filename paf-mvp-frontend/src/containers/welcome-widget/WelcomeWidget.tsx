@@ -27,7 +27,7 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
 
   const pafCookies = fromClientCookieValues(getCookieValue(Cookies.identifiers), getCookieValue(Cookies.preferences));
-  const pafIdentifier = pafCookies.identifiers?.at(0)?.value;
+  const pafIdentifier = pafCookies.identifiers?.[0]?.value;
   const pafConsent = pafCookies.preferences?.data?.use_browsing_for_personalization;
 
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);
@@ -91,7 +91,7 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
 
             <div>
               <button class={style.refreshBtn}>
-                {pafIdentifier.split('-').at(0)} {refresh}
+                {pafIdentifier.split('-')?.[0]} {refresh}
               </button>
             </div>
           </div>
