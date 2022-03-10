@@ -1,9 +1,13 @@
 import {Express, Request, Response} from "express";
 import cors, {CorsOptions} from "cors";
 import {OperatorClient} from "./operator-client";
-import {Error, IdsAndPreferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
-import {NewPrefs} from "@core/model/model";
-import {jsonEndpoints, proxyEndpoints, proxyUriParams, redirectEndpoints} from "@core/endpoints";
+import {
+    Error,
+    IdsAndPreferences,
+    PostSignPreferencesRequest,
+    RedirectGetIdsPrefsResponse
+} from "@core/model/generated-model";
+import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from "@core/endpoints";
 import {httpRedirect} from "@core/express";
 import {PublicKeys} from "@core/crypto/keys";
 import {fromDataToObject} from "@core/query-string";
@@ -11,7 +15,7 @@ import {
     Get3PCRequestBuilder,
     GetIdsPrefsRequestBuilder,
     PostIdsPrefsRequestBuilder
-} from "@core/model/request-builders";
+} from "@core/model/operator-request-builders";
 
 /**
  * Get return URL parameter, otherwise set response code 400
@@ -60,32 +64,62 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
 
-    app.get(`/paf${jsonEndpoints.read}`, cors(corsOptions), (req, res) => {
+    app.get(jsonProxyEndpoints.read, cors(corsOptions), (req, res) => {
         const getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.buildRequest()
         const url = getIdsPrefsRequestBuilder.getRestUrl(getIdsPrefsRequestJson)
 
         httpRedirect(res, url.toString(), 302)
     });
 
-    app.post(`/paf${jsonEndpoints.write}`, cors(corsOptions), (req, res) => {
+    app.post(jsonProxyEndpoints.write, cors(corsOptions), (req, res) => {
         const url = postIdsPrefsRequestBuilder.getRestUrl()
 
-        // Note: the message is assumed to be signed with proxyEndpoints.signWrite beforehand
+        // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
         // /!\ Notice return code 307!
         httpRedirect(res, url.toString(), 307)
     });
 
-    app.get(`/paf${jsonEndpoints.verify3PC}`, cors(corsOptions), (req, res) => {
+    app.get(jsonProxyEndpoints.verify3PC, cors(corsOptions), (req, res) => {
         const url = get3PCRequestBuilder.getRestUrl()
 
         httpRedirect(res, url.toString(), 302)
     });
 
     // *****************************************************************************************************************
+    // ******************************************************************************************** JSON - SIGN & VERIFY
+    // *****************************************************************************************************************
+    app.post(jsonProxyEndpoints.verifyRead, cors(corsOptions), (req, res) => {
+        const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
+
+        if (!message.response) {
+            // FIXME do something smart in case of error
+            throw message.error
+        }
+
+        const verification = client.verifyReadResponseSignature(message.response);
+        if (!verification) {
+            const error: Error = {message: 'verification failed'}
+            res.send(error)
+        } else {
+            res.send(message.response)
+        }
+    });
+
+    app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
+        const {identifiers, unsignedPreferences} = JSON.parse(req.body as string) as PostSignPreferencesRequest;
+        res.send(client.buildPreferences(identifiers, unsignedPreferences.data))
+    });
+
+    app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
+        const message = JSON.parse(req.body as string) as IdsAndPreferences;
+        res.send(postIdsPrefsRequestBuilder.buildRequest(message))
+    });
+
+    // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
 
-    app.get(`/paf${redirectEndpoints.read}`, cors(corsOptions), (req, res) => {
+    app.get(redirectProxyEndpoints.read, cors(corsOptions), (req, res) => {
 
         const returnUrl = getReturnUrl(req, res);
 
@@ -101,12 +135,13 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
 
     });
 
-    app.get(`/paf${redirectEndpoints.write}`, cors(corsOptions), (req, res) => {
+    app.get(redirectProxyEndpoints.write, cors(corsOptions), (req, res) => {
 
         const returnUrl = getReturnUrl(req, res);
         const input = getMessageObject<IdsAndPreferences>(req, res);
 
         if (input && returnUrl) {
+            // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
 
             const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
                 postIdsPrefsRequestBuilder.buildRequest(input),
@@ -117,37 +152,5 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
 
             httpRedirect(res, url.toString(), 302)
         }
-    });
-
-    // *****************************************************************************************************************
-    // *************************************************************************************************** SIGN & VERIFY
-    // *****************************************************************************************************************
-
-    app.post(`/paf${proxyEndpoints.verifyRedirectRead}`, cors(corsOptions), (req, res) => {
-        const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
-
-        if (!message.response) {
-            // FIXME do something smart in case of error
-            throw message.error
-        }
-
-        const verification = client.verifyReadResponseSignature(message.response);
-        if (!verification) {
-            const error: Error = {message: 'verification failed'}
-            res.send(error)
-        } else {
-            console.debug(message.response)
-            res.send(message.response)
-        }
-    });
-
-    app.post(`/paf${proxyEndpoints.signPrefs}`, cors(corsOptions), (req, res) => {
-        const {identifier, optIn} = JSON.parse(req.body as string) as NewPrefs;
-        res.send(client.buildPreferences([identifier], optIn))
-    });
-
-    app.post(`/paf${proxyEndpoints.signWrite}`, cors(corsOptions), (req, res) => {
-        const message = JSON.parse(req.body as string) as IdsAndPreferences;
-        res.send(postIdsPrefsRequestBuilder.buildRequest(message))
     });
 }

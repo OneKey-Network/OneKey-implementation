@@ -13,26 +13,35 @@ declare global {
 }
 
 // Using the CMP backend as a PAF operator proxy
-const proxyBase = `https://${cmp.host}`;
+const proxyHostName = cmp.host;
 
 export const cmpCheck = async () => {
-    const pafData = await PAF.refreshIdsAndPreferences({proxyBase, triggerRedirectIfNeeded: true});
+    const pafData = await PAF.refreshIdsAndPreferences({proxyHostName, triggerRedirectIfNeeded: true});
 
     if (pafData === undefined) {
         // Will trigger a redirect
         return;
     }
-    
+
     const returnedId = pafData.identifiers?.[0]
     const hasPersistedId = returnedId?.persisted === undefined || returnedId?.persisted
 
     if (!hasPersistedId || pafData.preferences === undefined) {
         const optIn = await window.__promptConsent();
         // 1. sign preferences
-        const signedPreferences = await PAF.signPreferences({proxyBase}, {identifier: returnedId, optIn})
+        const unsignedPreferences = {
+            version: "0.1",
+            data: {
+                use_browsing_for_personalization: optIn
+            }
+        };
+        const signedPreferences = await PAF.signPreferences({proxyHostName}, {
+            identifiers: pafData.identifiers,
+            unsignedPreferences
+        })
 
         // 2. write
-        await PAF.writeIdsAndPref({proxyBase}, {
+        await PAF.writeIdsAndPref({proxyHostName}, {
             identifiers: pafData.identifiers,
             preferences: signedPreferences
         })

@@ -27,7 +27,7 @@ import {
     Get3PCResponseBuilder,
     GetIdsPrefsResponseBuilder,
     PostIdsPrefsResponseBuilder
-} from "@core/model/response-builders";
+} from "@core/model/operator-response-builders";
 
 const domainParser = require('tld-extract');
 
