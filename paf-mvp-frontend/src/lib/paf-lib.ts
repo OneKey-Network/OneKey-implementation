@@ -2,7 +2,7 @@ import UAParser from 'ua-parser-js';
 import {
   Error,
   Get3PcResponse,
-  GetIdsPrefsResponse,
+  GetIdsPrefsResponse, GetNewIdResponse, Identifier,
   IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostIdsPrefsRequest,
@@ -91,6 +91,8 @@ export interface RefreshIdsAndPrefsOptions extends Options {
 export type WriteIdsAndPrefsOptions = Options;
 
 export type SignPrefsOptions = Options;
+
+export type GetNewIdOptions = Options;
 
 /**
  * Ensure local cookies for PAF identifiers and preferences are up-to-date.
@@ -338,4 +340,22 @@ export const signPreferences = async ({proxyHostName}: SignPrefsOptions, input: 
     credentials: 'include',
   });
   return (await signedResponse.json()) as Preferences;
+};
+
+/**
+ * Sign preferences
+ * @param options:
+ * - proxyBase: base URL (scheme, servername) of operator proxy. ex: http://myproxy.com
+ * @param input the main identifier of the web user, and the optin value
+ * @return the signed Preferences
+ */
+export const getNewId = async ({proxyHostName}: GetNewIdOptions): Promise<Identifier> => {
+  const getUrl = getProxyUrl(proxyHostName);
+
+  const response = await fetch(getUrl(jsonProxyEndpoints.newId), {
+    method: 'GET',
+    credentials: 'include',
+  });
+  // Assume no error. FIXME should handle potential errors
+  return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
 };

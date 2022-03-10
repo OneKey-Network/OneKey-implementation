@@ -1,27 +1,39 @@
 // TODO refactor to group by operator / operator proxy
 
 // Endpoints exposed by the operator API
+const operatorPrefix = '/paf'
+const redirectRead = '/v1/redirect/get-ids-prefs';
+const redirectWrite = '/v1/redirect/post-ids-prefs';
 export const redirectEndpoints = {
-    read: '/v1/redirect/get-ids-prefs',
-    write: '/v1/redirect/post-ids-prefs'
+    read: `${operatorPrefix}${redirectRead}`,
+    write: `${operatorPrefix}${redirectWrite}`
 }
-export const jsonEndpoints = {
-    read: '/v1/ids-prefs',
-    write: '/v1/ids-prefs',
-    verify3PC: '/v1/3pc',
-    newId: '/v1/new-id',
-    identity: '/v1/identity'
+const jsonRead = '/v1/ids-prefs';
+const jsonWrite = '/v1/ids-prefs';
+const jsonVerify3PC = '/v1/3pc';
+const jsonNewId = '/v1/new-id';
+const identity = '/v1/identity';
+export const jsonOperatorEndpoints = {
+    read: `${operatorPrefix}${jsonRead}`,
+    write: `${operatorPrefix}${jsonWrite}`,
+    verify3PC: `${operatorPrefix}${jsonVerify3PC}`,
+    newId: `${operatorPrefix}${jsonNewId}`,
+    identity: `${operatorPrefix}${identity}`
 }
 
 // Endpoints exposed by the operator proxy
 const proxyPrefix = '/paf-proxy'
+const jsonVerifyRead = `/v1/verify/read`;
+const jsonSignWrite = `/v1/sign/write`;
+const jsonSignPrefs = `/v1/sign/prefs`;
 export const jsonProxyEndpoints = {
-    verifyRead: `${proxyPrefix}/v1/verify/read`,
-    signWrite: `${proxyPrefix}/v1/sign/write`,
-    signPrefs: `${proxyPrefix}/v1/sign/prefs`,
-    read: `${proxyPrefix}${jsonEndpoints.read}`,
-    write: `${proxyPrefix}${jsonEndpoints.write}`,
-    verify3PC: `${proxyPrefix}${jsonEndpoints.verify3PC}`,
+    verifyRead: `${proxyPrefix}${jsonVerifyRead}`,
+    signWrite: `${proxyPrefix}${jsonSignWrite}`,
+    signPrefs: `${proxyPrefix}${jsonSignPrefs}`,
+    read: `${proxyPrefix}${jsonRead}`,
+    write: `${proxyPrefix}${jsonWrite}`,
+    verify3PC: `${proxyPrefix}${jsonVerify3PC}`,
+    newId: `${proxyPrefix}${jsonNewId}`,
 }
 export const redirectProxyEndpoints = {
     read: `${proxyPrefix}${redirectEndpoints.read}`,

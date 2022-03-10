@@ -3,7 +3,7 @@ import {getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "
 import cors, {CorsOptions} from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
-    GetIdsPrefsRequest,
+    GetIdsPrefsRequest, GetNewIdRequest,
     Identifier,
     PostIdsPrefsRequest,
     RedirectGetIdsPrefsRequest,
@@ -22,10 +22,10 @@ import {
 } from "@core/cookies";
 import {IdSigner} from "@core/crypto/data-signature";
 import {PrivateKey, privateKeyFromString, PublicKeys} from "@core/crypto/keys";
-import {jsonEndpoints, redirectEndpoints} from "@core/endpoints";
+import {jsonOperatorEndpoints, redirectEndpoints} from "@core/endpoints";
 import {
     Get3PCResponseBuilder,
-    GetIdsPrefsResponseBuilder,
+    GetIdsPrefsResponseBuilder, GetNewIdResponseBuilder,
     PostIdsPrefsResponseBuilder
 } from "@core/model/operator-response-builders";
 
@@ -45,6 +45,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey)
     const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorHost, privateKey)
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey)
+    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey)
 
     const tld = domainParser(`https://${operatorHost}`).domain
 
@@ -118,7 +119,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, {domain: tld})
     }
 
-    app.get(jsonEndpoints.read, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.read, cors(corsOptions), (req, res) => {
         // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
         setTest3pcCookie(res);
 
@@ -129,7 +130,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         res.send(response)
     });
 
-    app.get(jsonEndpoints.verify3PC, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.verify3PC, cors(corsOptions), (req, res) => {
         // Note: no signature verification here
 
         const cookies = req.cookies;
@@ -143,7 +144,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         res.send(response)
     });
 
-    app.post(jsonEndpoints.write, cors(corsOptions), (req, res) => {
+    app.post(jsonOperatorEndpoints.write, cors(corsOptions), (req, res) => {
         const input = JSON.parse(req.body as string) as PostIdsPrefsRequest;
 
         try {
@@ -154,6 +155,14 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
             res.sendStatus(400)
             res.send(e)
         }
+    });
+
+    app.get(jsonOperatorEndpoints.newId, cors(corsOptions), (req, res) => {
+        const input = getPafDataFromQueryString<GetNewIdRequest>(req);
+
+        const response = getNewIdResponseBuilder.buildResponse(input.receiver, operatorApi.generateNewId())
+
+        res.send(response)
     });
 
     // *****************************************************************************************************************

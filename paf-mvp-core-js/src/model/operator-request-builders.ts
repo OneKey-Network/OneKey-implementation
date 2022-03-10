@@ -2,7 +2,7 @@ import {GetIdsPrefsRequest, PostIdsPrefsRequest, IdsAndPreferences, GetNewIdRequ
 import {UnsignedMessage} from "./model";
 import {GetIdsPrefsRequestSigner, PostIdsPrefsRequestSigner, GetNewIdRequestSigner} from "../crypto/message-signature";
 import {PrivateKey, privateKeyFromString} from "../crypto/keys";
-import {jsonEndpoints, redirectEndpoints} from "../endpoints";
+import {jsonOperatorEndpoints, redirectEndpoints} from "../endpoints";
 import {getTimeStampInSec} from "../timestamp";
 import {QSParam} from "../query-string";
 import {setInQueryString} from "../express";
@@ -51,7 +51,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
     private readonly signer = new GetIdsPrefsRequestSigner()
 
     constructor(operatorHost: string, host: string, privateKey: string) {
-        super(operatorHost, host, privateKey, jsonEndpoints.read, redirectEndpoints.read);
+        super(operatorHost, host, privateKey, jsonOperatorEndpoints.read, redirectEndpoints.read);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): GetIdsPrefsRequest {
@@ -71,7 +71,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
     private readonly signer = new PostIdsPrefsRequestSigner()
 
     constructor(operatorHost: string, host: string, privateKey: string) {
-        super(operatorHost, host, privateKey, jsonEndpoints.write, redirectEndpoints.write);
+        super(operatorHost, host, privateKey, jsonOperatorEndpoints.write, redirectEndpoints.write);
     }
 
     buildRequest(idsAndPreferences: IdsAndPreferences, timestamp = getTimeStampInSec()): PostIdsPrefsRequest {
@@ -99,7 +99,7 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
     private readonly signer = new GetNewIdRequestSigner()
 
     constructor(operatorHost: string, host: string, privateKey: string) {
-        super(operatorHost, host, privateKey, jsonEndpoints.newId);
+        super(operatorHost, host, privateKey, jsonOperatorEndpoints.newId);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): GetNewIdRequest {
@@ -117,7 +117,7 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
 
 export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
     constructor(operatorHost: string, host: string, privateKey: string) {
-        super(operatorHost, host, privateKey, jsonEndpoints.verify3PC);
+        super(operatorHost, host, privateKey, jsonOperatorEndpoints.verify3PC);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): undefined {
@@ -134,7 +134,7 @@ export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
 
 export class GetIdentityRequestBuilder extends RestRequestBuilder<undefined> {
     constructor(operatorHost: string, host: string, privateKey: string) {
-        super(operatorHost, host, privateKey, jsonEndpoints.identity);
+        super(operatorHost, host, privateKey, jsonOperatorEndpoints.identity);
     }
 
     buildRequest(timestamp = getTimeStampInSec()): undefined {

@@ -17,7 +17,7 @@ import {
     PostIdsPrefsResponseSigner
 } from "../crypto/message-signature";
 import {PrivateKey, privateKeyFromString} from "../crypto/keys";
-import {jsonEndpoints, redirectEndpoints} from "../endpoints";
+import {jsonOperatorEndpoints, redirectEndpoints} from "../endpoints";
 import {getTimeStampInSec} from "../timestamp";
 import {KeyInfo} from "../crypto/identity";
 import {setInQueryString} from "../express";
@@ -57,7 +57,7 @@ export class GetIdsPrefsResponseBuilder extends RestAndRedirectResponseBuilder<G
     private readonly signer = new GetIdsPrefsResponseSigner()
 
     constructor(host: string, privateKey: string) {
-        super(host, privateKey, jsonEndpoints.read, redirectEndpoints.read);
+        super(host, privateKey, jsonOperatorEndpoints.read, redirectEndpoints.read);
     }
 
     buildResponse(
@@ -86,7 +86,7 @@ export class PostIdsPrefsResponseBuilder extends RestAndRedirectResponseBuilder<
     private readonly signer = new PostIdsPrefsResponseSigner()
 
     constructor(host: string, privateKey: string) {
-        super(host, privateKey, jsonEndpoints.read, redirectEndpoints.read);
+        super(host, privateKey, jsonOperatorEndpoints.read, redirectEndpoints.read);
     }
 
     buildResponse(
@@ -115,7 +115,7 @@ export class GetNewIdResponseBuilder extends RestResponseBuilder<GetNewIdRespons
     private readonly signer = new GetNewIdResponseSigner()
 
     constructor(host: string, privateKey: string) {
-        super(host, privateKey, jsonEndpoints.newId);
+        super(host, privateKey, jsonOperatorEndpoints.newId);
     }
 
     buildResponse(receiver: string, newId: Identifier, timestampInSec = getTimeStampInSec()): GetNewIdResponse {
@@ -138,7 +138,7 @@ export class GetNewIdResponseBuilder extends RestResponseBuilder<GetNewIdRespons
 export class Get3PCResponseBuilder extends RestResponseBuilder<undefined> {
     // FIXME remove host and private key from constructor
     constructor(host: string, privateKey: string) {
-        super(host, privateKey, jsonEndpoints.verify3PC);
+        super(host, privateKey, jsonOperatorEndpoints.verify3PC);
     }
 
     buildResponse(cookieFound: Test3Pc | undefined): Get3PcResponse | Error {
@@ -151,7 +151,7 @@ export class Get3PCResponseBuilder extends RestResponseBuilder<undefined> {
 export class GetIdentityResponseBuilder extends RestResponseBuilder<undefined> {
     // FIXME remove private key from constructor
     constructor(host: string, privateKey: string, protected name: string, protected type: "vendor" | "operator") {
-        super(host, privateKey, jsonEndpoints.identity);
+        super(host, privateKey, jsonOperatorEndpoints.identity);
     }
 
     buildResponse(keys: KeyInfo[]): GetIdentityResponse {
