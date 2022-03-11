@@ -4,15 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run start --prefix paf-mvp-demo-express",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ts2js": "tsc -p .",
     "build-front": "npm run build --prefix paf-mvp-frontend",
     "build-cmp": "npm run build --prefix paf-mvp-demo-express",
     "start:watch": "nodemon --debug .",
     "###########": "FYI: Google cloud console automatically runs these scripts after deploy:",
     "gcp-build": "npm run build-front && npm run build-cmp",
-    "start": "cd paf-mvp-demo-express; npm run start"
+    "start": "npm run start --prefix paf-mvp-demo-express"
   },
   "repository": {
     "type": "git",

@@ -1,5 +1,8 @@
 # Ignore generated assets
 /public/assets/paf-lib.js
+/public/assets/app.bundle.js
+/public/assets/app.bundle.css
+/public/assets/images/
 /public/assets/cmp/cmp.js
 /public/assets/cmp/**/*.d.ts
 /public/assets/cmp/**/*.js.map
