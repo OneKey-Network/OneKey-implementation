@@ -24,7 +24,7 @@ export const cmpCheck = async () => {
     }
 
     const returnedId = pafData.identifiers?.[0]
-    const hasPersistedId = returnedId?.persisted === undefined || returnedId?.persisted
+    const hasPersistedId = returnedId && (returnedId.persisted !== false)
 
     if (!hasPersistedId || pafData.preferences === undefined) {
         const optIn = await window.__promptConsent();
