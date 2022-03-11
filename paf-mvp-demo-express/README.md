@@ -8,15 +8,20 @@ Served by ExpressJS web server.
 
 ## Usage
 
-1. Access the [publisher](https://publisher.com)'s website to be prompted for a new id & your preferences
-2. Access the [advertiser](https://advertiser.com)'s website to see ids and preferences **synced** automatically
+- The [config.ts](src/config.ts) file contains the server names of publisher, advertiser and portal websites.
+Refer to it to know to display these demo websites.
+
+1. Access the publisher's website to be prompted for a new id & your preferences
+2. Access the advertiser's website to see ids and preferences **synced** automatically
    1. this website is configured to only get existing ids and preferences, but not to prompt for consent.
 3. You can repeat this test with:
     1. a browser known to **not** support 3PC (Safari)
     2. a browser known to support 3PC, but explicitly **disable** it in settings
 4. In this context you will notice full page **redirects** to sync data with PAF
-5. You can adjust id and preferences in the technical "[portal](https://portal.pafdemo.com)"
-6. To start from scratch, delete all `paf_*` cookies both on pafdemo.com and on the websites' domains.
+   1. on the advertiser's website, the redirect is not triggered on page load:
+      1. you will need to **click on any of the menu items** (so that a redirect happens and ids and preferences are refreshed from operator)
+5. You can adjust id and preferences in the technical "portal"
+6. To start from scratch, delete all `paf_*` cookies both on the PAF top level "+1" domain and on the websites' domains.
 
 # PAF implemenation projects
 ```mermaid

@@ -2,8 +2,11 @@
 <html lang="html">
 <head>
     <!-- Prebid SSO integration -->
-    <script onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: true});" src="https://{{cdnHost}}/assets/paf-lib.js"></script>
+    <script onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: false});" src="https://{{cdnHost}}/assets/paf-lib.js"></script>
 
+    <script>
+        const redirectIfNeeded = () => PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: true})
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
     <meta name="viewport" content="width=device-width"/>
     <title>
@@ -48,10 +51,10 @@
                     </select>
                 </div> -->
                 <div class="top-social">
-                    <a href="#"><i class="ti-facebook"></i></a>
-                    <a href="#"><i class="ti-twitter-alt"></i></a>
-                    <a href="#"><i class="ti-linkedin"></i></a>
-                    <a href="#"><i class="ti-pinterest"></i></a>
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-facebook"></i></a>
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-twitter-alt"></i></a>
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-linkedin"></i></a>
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-pinterest"></i></a>
                 </div>
             </div>
         </div>
@@ -78,13 +81,13 @@
                 <div class="col-lg-3 text-right col-md-3">
                     <ul class="nav-right">
                         <li class="heart-icon">
-                            <a href="#">
+                            <a href="#" onclick="redirectIfNeeded()">
                                 <i class="icon_heart_alt"></i>
                                 <span>1</span>
                             </a>
                         </li>
                         <li class="cart-icon">
-                            <a href="#">
+                            <a href="#" onclick="redirectIfNeeded()">
                                 <i class="icon_bag_alt"></i>
                                 <span>3</span>
                             </a>
@@ -144,40 +147,40 @@
                     <i class="ti-menu"></i>
                     <span>All departments</span>
                     <ul class="depart-hover">
-                        <li class="active"><a href="#">Women’s Clothing</a></li>
-                        <li><a href="#">Men’s Clothing</a></li>
-                        <li><a href="#">Underwear</a></li>
-                        <li><a href="#">Kid's Clothing</a></li>
-                        <li><a href="#">Brand Fashion</a></li>
-                        <li><a href="#">Accessories/Shoes</a></li>
-                        <li><a href="#">Luxury Brands</a></li>
-                        <li><a href="#">Brand Outdoor Apparel</a></li>
+                        <li class="active"><a href="#" onclick="redirectIfNeeded()">Women’s Clothing</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Men’s Clothing</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Underwear</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Kid's Clothing</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Brand Fashion</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Accessories/Shoes</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Luxury Brands</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Brand Outdoor Apparel</a></li>
                     </ul>
                 </div>
             </div>
             <nav class="nav-menu mobile-menu">
                 <ul>
-                    <li class="active"><a href="./index.html">Home</a></li>
-                    <li><a href="#">Shop</a></li>
+                    <li class="active"><a href="./index.html" onclick="redirectIfNeeded()">Home</a></li>
+                    <li><a href="#" onclick="redirectIfNeeded()">Shop</a></li>
                     <li>
-                        <a href="#">Collection</a>
+                        <a href="#" onclick="redirectIfNeeded()">Collection</a>
                         <ul class="dropdown">
-                            <li><a href="#">Men's</a></li>
-                            <li><a href="#">Women's</a></li>
-                            <li><a href="#">Kid's</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Men's</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Women's</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Kid's</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">Blog</a></li>
-                    <li><a href="#">Contact</a></li>
+                    <li><a href="#" onclick="redirectIfNeeded()">Blog</a></li>
+                    <li><a href="#" onclick="redirectIfNeeded()">Contact</a></li>
                     <li>
-                        <a href="#">Pages</a>
+                        <a href="#" onclick="redirectIfNeeded()">Pages</a>
                         <ul class="dropdown">
-                            <li><a href="#">Blog Details</a></li>
-                            <li><a href="#">Shopping Cart</a></li>
-                            <li><a href="#">Checkout</a></li>
-                            <li><a href="#">Faq</a></li>
-                            <li><a href="#">Register</a></li>
-                            <li><a href="#">Login</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Blog Details</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Shopping Cart</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Checkout</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Faq</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Register</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Login</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -200,7 +203,7 @@
                                 With Black Friday around the corner, you can reserve your favorite items today.
                                 Don't miss out on this opportunity
                             </p>
-                            <a href="#" class="primary-btn">Shop Now</a>
+                            <a href="#" class="primary-btn" onclick="redirectIfNeeded()">Shop Now</a>
                         </div>
                     </div>
                     <div class="off-card">
@@ -218,7 +221,7 @@
                                 With Black Friday around the corner, you can reserve your favorite items today.
                                 Don't miss out on this opportunity
                             </p>
-                            <a href="#" class="primary-btn">Shop Now</a>
+                            <a href="#" class="primary-btn" onclick="redirectIfNeeded()">Shop Now</a>
                         </div>
                     </div>
                     <div class="off-card">
@@ -268,7 +271,7 @@
                 <div class="col-lg-3">
                     <div class="product-large set-bg" data-setbg="/assets/advertiser/img/products/women-large.jpg">
                         <h2>Women’s</h2>
-                        <a href="#">Discover More</a>
+                        <a href="#" onclick="redirectIfNeeded()">Discover More</a>
                     </div>
                 </div>
                 <div class="col-lg-8 offset-lg-1">
@@ -289,14 +292,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Coat</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Pure Pineapple</h5>
                                 </a>
                                 <div class="product-price">
@@ -312,14 +315,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Shoes</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Guangzhou sweater</h5>
                                 </a>
                                 <div class="product-price">
@@ -334,14 +337,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Towel</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Pure Pineapple</h5>
                                 </a>
                                 <div class="product-price">
@@ -356,14 +359,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Towel</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Converse Shoes</h5>
                                 </a>
                                 <div class="product-price">
@@ -410,7 +413,7 @@
                         <p>Secs</p>
                     </div>
                 </div>
-                <a href="#" class="primary-btn">Shop Now</a>
+                <a href="#" class="primary-btn" onclick="redirectIfNeeded()">Shop Now</a>
             </div>
         </div>
     </section>
@@ -437,14 +440,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Coat</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Pure Pineapple</h5>
                                 </a>
                                 <div class="product-price">
@@ -460,14 +463,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Shoes</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Guangzhou sweater</h5>
                                 </a>
                                 <div class="product-price">
@@ -482,14 +485,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Towel</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Pure Pineapple</h5>
                                 </a>
                                 <div class="product-price">
@@ -504,14 +507,14 @@
                                     <i class="icon_heart_alt"></i>
                                 </div>
                                 <ul>
-                                    <li class="w-icon active"><a href="#"><i class="icon_bag_alt"></i></a></li>
-                                    <li class="quick-view"><a href="#">+ Quick View</a></li>
-                                    <li class="w-icon"><a href="#"><i class="fa fa-random"></i></a></li>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
                                 </ul>
                             </div>
                             <div class="pi-text">
                                 <div class="catagory-name">Towel</div>
-                                <a href="#">
+                                <a href="#" onclick="redirectIfNeeded()">
                                     <h5>Converse Shoes</h5>
                                 </a>
                                 <div class="product-price">
@@ -525,7 +528,7 @@
                     <div class="product-large set-bg m-large"
                          data-setbg="/assets/advertiser/img/products/man-large.jpg">
                         <h2>Men’s</h2>
-                        <a href="#">Discover More</a>
+                        <a href="#" onclick="redirectIfNeeded()">Discover More</a>
                     </div>
                 </div>
             </div>
@@ -537,37 +540,37 @@
         <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-1.jpg">
             <div class="inside-text">
                 <i class="ti-instagram"></i>
-                <h5><a href="#">colorlib_Collection</a></h5>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
             </div>
         </div>
         <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-2.jpg">
             <div class="inside-text">
                 <i class="ti-instagram"></i>
-                <h5><a href="#">colorlib_Collection</a></h5>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
             </div>
         </div>
         <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-3.jpg">
             <div class="inside-text">
                 <i class="ti-instagram"></i>
-                <h5><a href="#">colorlib_Collection</a></h5>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
             </div>
         </div>
         <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-4.jpg">
             <div class="inside-text">
                 <i class="ti-instagram"></i>
-                <h5><a href="#">colorlib_Collection</a></h5>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
             </div>
         </div>
         <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-5.jpg">
             <div class="inside-text">
                 <i class="ti-instagram"></i>
-                <h5><a href="#">colorlib_Collection</a></h5>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
             </div>
         </div>
         <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-6.jpg">
             <div class="inside-text">
                 <i class="ti-instagram"></i>
-                <h5><a href="#">colorlib_Collection</a></h5>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
             </div>
         </div>
     </div>
@@ -597,7 +600,7 @@
                                     5
                                 </div>
                             </div>
-                            <a href="#">
+                            <a href="#" onclick="redirectIfNeeded()">
                                 <h4>The Best Street Style From London Fashion Week</h4>
                             </a>
                             <p>Street style is our speciality, give yourself a big-up and purchase mind-blowing
@@ -619,7 +622,7 @@
                                     5
                                 </div>
                             </div>
-                            <a href="#">
+                            <a href="#" onclick="redirectIfNeeded()">
                                 <h4>Vogue's Ultimate Guide To Autumn/Winter 2019 Shoes</h4>
                             </a>
                             <p>Winter is around the corner, get ready for the snow with our collection of coats </p>
@@ -640,7 +643,7 @@
                                     5
                                 </div>
                             </div>
-                            <a href="#">
+                            <a href="#" onclick="redirectIfNeeded()">
                                 <h4>How To Brighten Your Wardrobe With A Dash Of Lime</h4>
                             </a>
                             <p>Lime is a must-have this year. Purchase limy items and you will be cool and in</p>
@@ -728,7 +731,7 @@
             <div class="col-lg-3">
                 <div class="footer-left">
                     <div class="footer-logo">
-                        <a href="#"><img src="/assets/advertiser/img/footer-logo.png" alt=""></a>
+                        <a href="#" onclick="redirectIfNeeded()"><img src="/assets/advertiser/img/footer-logo.png" alt=""></a>
                     </div>
                     <ul>
                         <li>Address: 32 Rue Lafayette Paris</li>
@@ -736,10 +739,10 @@
                         <li>Email: info.advertiser@mail.com</li>
                     </ul>
                     <div class="footer-social">
-                        <a href="#"><i class="fa fa-facebook"></i></a>
-                        <a href="#"><i class="fa fa-instagram"></i></a>
-                        <a href="#"><i class="fa fa-twitter"></i></a>
-                        <a href="#"><i class="fa fa-pinterest"></i></a>
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-facebook"></i></a>
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-instagram"></i></a>
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-twitter"></i></a>
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-pinterest"></i></a>
                     </div>
                 </div>
             </div>
@@ -747,10 +750,10 @@
                 <div class="footer-widget">
                     <h5>Information</h5>
                     <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Checkout</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Serivius</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">About Us</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Checkout</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Contact</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Serivius</a></li>
                     </ul>
                 </div>
             </div>
@@ -758,10 +761,10 @@
                 <div class="footer-widget">
                     <h5>My Account</h5>
                     <ul>
-                        <li><a href="#">My Account</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Shopping Cart</a></li>
-                        <li><a href="#">Shop</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">My Account</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Contact</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Shopping Cart</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Shop</a></li>
                     </ul>
                 </div>
             </div>
