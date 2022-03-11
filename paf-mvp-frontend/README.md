@@ -83,6 +83,10 @@ Example usage:
   - write (persist) new preferences and ids to the PAF TLD+1 domain
   - see [the demo CMP](../paf-mvp-demo-express/src/cmp/js/cmp.ts) for example usage
 
+- `PAF.getNewId`
+  - calls the operator (via the operator proxy) to get a new PAF ID value
+  - note that this id is **not** yet persisted: to persist it, a subsequent call to `PAF.writeIdsAndPref` must be made
+
 All methods take at least a `proxyHostName` parameter to locate the operator backend proxy
 needed to sign and verify messages sent to and received from the operator.
 
