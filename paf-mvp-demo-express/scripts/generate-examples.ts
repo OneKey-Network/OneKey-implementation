@@ -46,12 +46,30 @@ import {
     ProxyRestSignPreferencesRequestBuilder,
     ProxyRestVerifyGetIdsPrefsRequestBuilder
 } from "@core/model/proxy-request-builders";
+import isEqual from 'lodash.isequal';
+import cloneDeep from 'lodash.clonedeep';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString))
 const getUrl = (method: "POST" | "GET", url: URL): string => `${method} ${url.pathname}${url.search}\nHost: ${url.host}`
 const getGETUrl = (url: URL): string => getUrl("GET", url)
 const getPOSTUrl = (url: URL): string => getUrl("POST", url)
 const getRedirect = (url: URL): string => `303 ${url}`
+
+const fileExists = async (path: string) => {
+    // the result can be either false (from the caught error) or it can be an fs.stats object
+    const result = await fs.promises.stat(path).catch(err => {
+        if (err.code === "ENOENT") {
+            return false;
+        }
+        throw err;
+    });
+
+    return result !== false
+};
+
+// Remove undefined properties
+// Other options are super verbose (ex: https://stackoverflow.com/questions/30812765/how-to-remove-undefined-and-null-values-from-an-object-using-lodash)
+const deepRemoveUndefined = <T>(object: T): T => JSON.parse(JSON.stringify(object))
 
 if (!(process.argv[2]?.length > 0)) {
     const scriptName = path.basename(__filename);
@@ -74,8 +92,9 @@ publisher.host = 'publisher.com'
 
 class Examples {
     // **************************** Main data
-    idJson: Identifier
-    preferencesJson: Preferences
+    unpersistedIdJson: Identifier = undefined
+    idJson: Identifier = undefined;
+    preferencesJson: Preferences = undefined;
 
     // **************************** Cookies
     // JSON version
@@ -94,71 +113,73 @@ class Examples {
     test_3pc_cookieTxt: string
 
     // **************************** Read
-    getIdsPrefsRequestJson: GetIdsPrefsRequest
+    getIdsPrefsRequestJson: GetIdsPrefsRequest = undefined;
     getIdsPrefsRequestHttp: string
 
-    getIdsPrefsResponse_knownJson: GetIdsPrefsResponse
-    getIdsPrefsResponse_unknownJson: GetIdsPrefsResponse
+    getIdsPrefsResponse_knownJson: GetIdsPrefsResponse = undefined;
+    getIdsPrefsResponse_unknownJson: GetIdsPrefsResponse = undefined;
 
-    redirectGetIdsPrefsRequestJson: RedirectGetIdsPrefsRequest
+    redirectGetIdsPrefsRequestJson: RedirectGetIdsPrefsRequest = undefined;
     redirectGetIdsPrefsRequestHttp: string
 
-    redirectGetIdsPrefsResponse_knownJson: RedirectGetIdsPrefsResponse
+    redirectGetIdsPrefsResponse_knownJson: RedirectGetIdsPrefsResponse = undefined;
     redirectGetIdsPrefsResponse_knownTxt: string
-    redirectGetIdsPrefsResponse_unknownJson: RedirectGetIdsPrefsResponse
+    redirectGetIdsPrefsResponse_unknownJson: RedirectGetIdsPrefsResponse = undefined;
     redirectGetIdsPrefsResponse_unknownTxt: string
 
     // **************************** Write
-    postIdsPrefsRequestJson: PostIdsPrefsRequest
+    postIdsPrefsRequestJson: PostIdsPrefsRequest = undefined;
     postIdsPrefsRequestHttp: string
 
-    postIdsPrefsResponseJson: PostIdsPrefsResponse
+    postIdsPrefsResponseJson: PostIdsPrefsResponse = undefined;
 
-    redirectPostIdsPrefsRequestJson: RedirectPostIdsPrefsRequest
+    redirectPostIdsPrefsRequestJson: RedirectPostIdsPrefsRequest = undefined;
     redirectPostIdsPrefsRequestHttp: string
-    redirectPostIdsPrefsResponseJson: RedirectPostIdsPrefsResponse
+    redirectPostIdsPrefsResponseJson: RedirectPostIdsPrefsResponse = undefined;
     redirectPostIdsPrefsResponseTxt: string
 
     // **************************** Get new ID
-    getNewIdRequestJson: GetNewIdRequest
+    getNewIdRequestJson: GetNewIdRequest = undefined;
     getNewIdRequestHttp: string
 
-    getNewIdResponseJson: GetNewIdResponse
+    getNewIdResponseJson: GetNewIdResponse = undefined;
 
     // **************************** Verify 3PC
     get3pcRequestHttp: string
-    get3pcResponse_supportedJson: Get3PcResponse
-    get3pcResponse_unsupportedJson: Error
+    get3pcResponse_supportedJson: Get3PcResponse = undefined;
+    get3pcResponse_unsupportedJson: Error = undefined;
 
     // **************************** Identity
     getIdentityRequest_operatorHttp: string
-    getIdentityResponse_operatorJson: GetIdentityResponse
+    getIdentityResponse_operatorJson: GetIdentityResponse = undefined;
 
     getIdentityRequest_cmpHttp: string
-    getIdentityResponse_cmpJson: GetIdentityResponse
+    getIdentityResponse_cmpJson: GetIdentityResponse = undefined;
 
     // **************************** Proxy
     signPreferencesHttp: string
-    signPreferencesJson: PostSignPreferencesRequest
+    signPreferencesJson: PostSignPreferencesRequest = undefined;
     signPostIdsPrefsHttp: string
-    signPostIdsPrefsJson: IdsAndPreferences
+    signPostIdsPrefsJson: IdsAndPreferences = undefined;
     verifyGetIdsPrefsHttp: string
-    verifyGetIdsPrefs_invalidJson: Error
+    verifyGetIdsPrefs_invalidJson: Error = undefined;
 
-    constructor() {
+    constructor(protected outputDir: string) {
+    }
+
+    protected buildExamples() {
         const operatorAPI = new OperatorApi(operator.host, operator.privateKey)
         const originalAdvertiserUrl = new URL(`https://${advertiser.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`)
 
-        const newId: Identifier = {
+        // **************************** Main data
+        this.setObject('unpersistedIdJson', {
             persisted: false,
             ...operatorAPI.signId("2e71121a-4feb-4a34-b7d1-839587d36390", getTimestamp("2022/01/24 17:19"))
-        }
-
-        // **************************** Main data
-        this.idJson = operatorAPI.signId("7435313e-caee-4889-8ad7-0acd0114ae3c", getTimestamp("2022/01/18 12:13"));
+        })
+        this.setObject('idJson', operatorAPI.signId("7435313e-caee-4889-8ad7-0acd0114ae3c", getTimestamp("2022/01/18 12:13")))
 
         const cmpClient = new OperatorClient(operator.host, cmp.host, cmp.privateKey, publicKeys)
-        this.preferencesJson = cmpClient.buildPreferences([this.idJson], {use_browsing_for_personalization: true}, getTimestamp("2022/01/18 12:16"))
+        this.setObject('preferencesJson', cmpClient.buildPreferences([this.idJson], {use_browsing_for_personalization: true}, getTimestamp("2022/01/18 12:16")));
 
         // **************************** Cookies
         this['ids_cookie-prettyJson'] = [this.idJson]
@@ -175,24 +196,25 @@ class Examples {
         // **************************** Read
         const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operator.host, cmp.host, cmp.privateKey)
         const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
-        this.getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.buildRequest(getTimestamp("2022/01/24 17:19"))
+        this.setRestMessage('getIdsPrefsRequestJson', getIdsPrefsRequestBuilder.buildRequest(getTimestamp("2022/01/24 17:19")))
         this.getIdsPrefsRequestHttp = getGETUrl(getIdsPrefsRequestBuilder.getRestUrl(this.getIdsPrefsRequestJson))
-        this.getIdsPrefsResponse_knownJson = getIdsPrefsResponseBuilder.buildResponse(
+        this.setRestMessage('getIdsPrefsResponse_knownJson', getIdsPrefsResponseBuilder.buildResponse(
             advertiser.host,
             {
                 identifiers: [this.idJson],
                 preferences: this.preferencesJson
             },
-            getTimestamp("2022/01/24 17:19:10"))
-        this.getIdsPrefsResponse_unknownJson = getIdsPrefsResponseBuilder.buildResponse(
+            getTimestamp("2022/01/24 17:19:10")
+        ))
+        this.setRestMessage('getIdsPrefsResponse_unknownJson', getIdsPrefsResponseBuilder.buildResponse(
             advertiser.host,
             {
-                identifiers: [newId]
+                identifiers: [this.unpersistedIdJson]
             },
             getTimestamp("2022/01/24 17:19:10")
-        )
+        ))
 
-        this.redirectGetIdsPrefsRequestJson = getIdsPrefsRequestBuilder.toRedirectRequest(this.getIdsPrefsRequestJson, originalAdvertiserUrl)
+        this.setRedirectRequest('redirectGetIdsPrefsRequestJson', getIdsPrefsRequestBuilder.toRedirectRequest(this.getIdsPrefsRequestJson, originalAdvertiserUrl))
         this.redirectGetIdsPrefsRequestHttp = getGETUrl(getIdsPrefsRequestBuilder.getRedirectUrl(this.redirectGetIdsPrefsRequestJson))
 
         this.redirectGetIdsPrefsResponse_knownJson = getIdsPrefsResponseBuilder.toRedirectResponse(this.getIdsPrefsResponse_knownJson, 200)
@@ -203,17 +225,19 @@ class Examples {
         // **************************** Write
         const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operator.host, cmp.host, cmp.privateKey)
         const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
-        this.postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRequest({
-            identifiers: [this.idJson],
-            preferences: this.preferencesJson
-        }, getTimestamp("2022/01/25 09:01"))
+        this.setRestMessage('postIdsPrefsRequestJson', postIdsPrefsRequestBuilder.buildRequest({
+                identifiers: [this.idJson],
+                preferences: this.preferencesJson
+            }, getTimestamp("2022/01/25 09:01"))
+        )
         this.postIdsPrefsRequestHttp = getPOSTUrl(postIdsPrefsRequestBuilder.getRestUrl()) // Notice is POST url
-        this.postIdsPrefsResponseJson = postIdsPrefsResponseBuilder.buildResponse(cmp.host, {
-            identifiers: [this.idJson],
-            preferences: this.preferencesJson
-        }, getTimestamp("2022/01/25 09:01:03"))
+        this.setRestMessage('postIdsPrefsResponseJson', postIdsPrefsResponseBuilder.buildResponse(cmp.host, {
+                identifiers: [this.idJson],
+                preferences: this.preferencesJson
+            }, getTimestamp("2022/01/25 09:01:03"))
+        )
 
-        this.redirectPostIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(this.postIdsPrefsRequestJson, originalAdvertiserUrl)
+        this.setRedirectRequest('redirectPostIdsPrefsRequestJson', postIdsPrefsRequestBuilder.toRedirectRequest(this.postIdsPrefsRequestJson, originalAdvertiserUrl))
         this.redirectPostIdsPrefsRequestHttp = getGETUrl(postIdsPrefsRequestBuilder.getRedirectUrl(this.redirectPostIdsPrefsRequestJson))
         this.redirectPostIdsPrefsResponseJson = postIdsPrefsResponseBuilder.toRedirectResponse(this.postIdsPrefsResponseJson, 200)
         this.redirectPostIdsPrefsResponseTxt = getRedirect(postIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectPostIdsPrefsResponseJson))
@@ -221,10 +245,10 @@ class Examples {
         // **************************** Get new ID
         const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operator.host, cmp.host, cmp.privateKey)
         const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operator.host, operator.privateKey)
-        this.getNewIdRequestJson = getNewIdRequestBuilder.buildRequest(getTimestamp("2022/03/01 19:04"))
+        this.setRestMessage('getNewIdRequestJson', getNewIdRequestBuilder.buildRequest(getTimestamp("2022/03/01 19:04")))
         this.getNewIdRequestHttp = getGETUrl(getNewIdRequestBuilder.getRestUrl(this.getNewIdRequestJson))
 
-        this.getNewIdResponseJson = getNewIdResponseBuilder.buildResponse(cmp.host, newId, getTimestamp("2022/03/01 19:04:47"))
+        this.setRestMessage('getNewIdResponseJson', getNewIdResponseBuilder.buildResponse(cmp.host, this.unpersistedIdJson, getTimestamp("2022/03/01 19:04:47")))
 
         // **************************** Verify 3PC
         const get3PCRequestBuilder = new Get3PCRequestBuilder(operator.host, cmp.host, cmp.privateKey)
@@ -270,6 +294,129 @@ class Examples {
         this.verifyGetIdsPrefsHttp = getPOSTUrl(verifyGetIdsPrefsRequestBuilder.getRestUrl(undefined)) // Notice is POST url
         this.verifyGetIdsPrefs_invalidJson = {message: 'Invalid signature'}
     }
+
+    private setObject<T extends { source: U }, U extends { signature: string }>(keyName: keyof Examples, newValue: T) {
+        const dict = this.getObjectAsDict();
+
+        const oldValue = dict[keyName] as T;
+        dict[keyName] = newValue;
+
+        (dict[keyName] as T).source.signature = Examples.getSignature(oldValue, newValue, Examples.extractSourceSignature);
+    }
+
+    private setRedirectRequest<T extends { request: U }, U extends { signature: string }>(keyName: keyof Examples, newValue: T) {
+        const dict = this.getObjectAsDict();
+
+        const oldValue = dict[keyName] as T;
+        dict[keyName] = newValue;
+
+        (dict[keyName] as T).request.signature = Examples.getSignature(oldValue, newValue, Examples.extractRequestSignature);
+    }
+
+    private setRestMessage<T extends { signature: string }>(keyName: keyof Examples, newValue: T) {
+        const dict = this.getObjectAsDict();
+
+        const oldValue = dict[keyName] as T;
+        dict[keyName] = newValue;
+
+        (dict[keyName] as T).signature = Examples.getSignature(oldValue, newValue, Examples.extractSignature);
+    }
+
+    private static extractSignature<T extends { signature: string }>(valueWithSignature: T) {
+        const value = cloneDeep(valueWithSignature)
+        const signature = value.signature
+        value.signature = undefined;
+
+        return {signature, value}
+    }
+
+    private static extractRequestSignature<T extends { request: U }, U extends { signature: string }>(valueWithSignature: T) {
+        const value = cloneDeep(valueWithSignature)
+        const signature = value.request.signature
+        value.request.signature = undefined;
+
+        return {signature, value}
+    }
+
+    private static extractSourceSignature<T extends { source: U }, U extends { signature: string }>(valueWithSignature: T) {
+        const value = cloneDeep(valueWithSignature)
+        const signature = value.source.signature
+        value.source.signature = undefined;
+
+        return {signature, value}
+    }
+
+    private static getSignature<T>(oldValue: T, newValue: T, extractSignature: (value: T) => { signature: string, value: T }) {
+        const newExtract = extractSignature(newValue)
+
+        if (oldValue !== undefined) {
+            const oldExtract = extractSignature(oldValue)
+
+            const equal = isEqual(deepRemoveUndefined(oldExtract.value), deepRemoveUndefined(newExtract.value));
+
+            if (equal) {
+                // Old and new value are equal, appart on the signature property
+                // This means we can keep the old signature
+                return oldExtract.signature;
+            } else {
+                console.log('objects are different:')
+                console.log(JSON.stringify(oldExtract.value, null, 2))
+                console.log(JSON.stringify(newExtract.value, null, 2))
+            }
+        }
+        // Keep new signature if data is different
+        return newExtract.signature;
+    }
+
+    async updateFiles() {
+
+        await this.loadExistingFiles();
+
+        this.buildExamples();
+
+        const dict = this.getObjectAsDict();
+        for (let key of Object.keys(this)) {
+            let baseName: string
+            let fileBody: string
+            if (key.endsWith('Json')) {
+                baseName = `${key.replace(/Json$/, '')}.json`;
+                fileBody = JSON.stringify(dict[key], null, 2);
+            } else if (key.endsWith('Txt')) {
+                baseName = `${key.replace(/Txt$/, '')}.txt`;
+                fileBody = dict[key] as string;
+            } else if (key.endsWith('Http')) {
+                baseName = `${key.replace(/Http$/, '')}.http`;
+                fileBody = dict[key] as string;
+            } else {
+                continue;
+            }
+
+            const fullPath = path.join(this.outputDir, baseName);
+            console.log(fullPath)
+            await fs.promises.writeFile(fullPath, fileBody);
+        }
+    }
+
+    private getObjectAsDict() {
+        return this as unknown as { [typeName: string]: unknown };
+    }
+
+    private async loadExistingFiles() {
+        const dict = this.getObjectAsDict();
+        for (let key of Object.keys(this)) {
+            // Search for a pre-existing file with the right name.
+            // If it exists, load its content into the corresponding key of this object
+            if (key.endsWith('Json')) {
+
+                const baseName = `${key.replace(/Json$/, '')}.json`;
+                const fullPath = path.join(this.outputDir, baseName)
+
+                if (await fileExists(fullPath)) {
+                    dict[key] = JSON.parse((await fs.promises.readFile(fullPath)).toString())
+                }
+            }
+        }
+    }
 }
 
 class SchemasValidator {
@@ -304,7 +451,7 @@ class SchemasValidator {
 }
 
 (async () => {
-    const examples = new Examples();
+    const examples = new Examples(outputDir);
 
     // TODO activate validation
     /*
@@ -312,23 +459,5 @@ class SchemasValidator {
     validator.validate(examples)
      */
 
-    const dict = examples as unknown as { [typeName: string]: unknown };
-    for (let key of Object.keys(examples)) {
-        let baseName: string
-        let fileBody: string
-        if (key.endsWith('Json')) {
-            baseName = `${key.replace(/Json$/, '')}.json`;
-            fileBody = JSON.stringify(dict[key], null, 2);
-        } else if (key.endsWith('Txt')) {
-            baseName = `${key.replace(/Txt$/, '')}.txt`;
-            fileBody = dict[key] as string;
-        } else if (key.endsWith('Http')) {
-            baseName = `${key.replace(/Http$/, '')}.http`;
-            fileBody = dict[key] as string;
-        }
-
-        const fullPath = path.join(outputDir, baseName);
-        console.log(fullPath)
-        await fs.promises.writeFile(fullPath, fileBody);
-    }
+    await examples.updateFiles();
 })()
