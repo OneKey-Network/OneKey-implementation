@@ -30,7 +30,7 @@ export default [
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
       name: 'PAF',
-      sourcemap: true
+      sourcemap: DEV
     },
     treeshake: 'smallest', // remove unused code
     plugins: [
@@ -48,7 +48,7 @@ export default [
       file: getDestFolder(`/app.bundle.js`),
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
-      sourcemap: true,
+      sourcemap: DEV,
     },
     treeshake: 'recommended', // remove unused code
     plugins: [ // a list of plugins we apply to the source code
