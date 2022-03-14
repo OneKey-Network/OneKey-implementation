@@ -1,9 +1,10 @@
 import {Express, Request, Response} from "express";
-import {getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "@core/express";
-import cors, {CorsOptions} from "cors";
+import {corsOptionsAcceptAll, getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "@core/express";
+import cors from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
-    GetIdsPrefsRequest, GetNewIdRequest,
+    GetIdsPrefsRequest,
+    GetNewIdRequest,
     Identifier,
     PostIdsPrefsRequest,
     RedirectGetIdsPrefsRequest,
@@ -13,21 +14,18 @@ import {
 import {UnsignedData} from "@core/model/model";
 import {getTimeStampInSec} from "@core/timestamp";
 import {GetIdsPrefsRequestSigner, PostIdsPrefsRequestSigner} from "@core/crypto/message-signature";
-import {
-    Cookies,
-    fromIdsCookie,
-    fromPrefsCookie,
-    fromTest3pcCookie,
-    toTest3pcCookie
-} from "@core/cookies";
+import {Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie} from "@core/cookies";
 import {IdSigner} from "@core/crypto/data-signature";
 import {PrivateKey, privateKeyFromString, PublicKeys} from "@core/crypto/keys";
 import {jsonOperatorEndpoints, redirectEndpoints} from "@core/endpoints";
 import {
     Get3PCResponseBuilder,
-    GetIdsPrefsResponseBuilder, GetNewIdResponseBuilder,
+    GetIdsPrefsResponseBuilder,
+    GetNewIdResponseBuilder,
     PostIdsPrefsResponseBuilder
 } from "@core/model/operator-response-builders";
+import {addIdentityEndpoint} from "@core/identity-endpoint";
+import {KeyInfo} from "@core/crypto/identity";
 
 const domainParser = require('tld-extract');
 
@@ -38,9 +36,15 @@ const getOperatorExpiration = (date: Date = new Date()) => {
     return expirationDate;
 }
 
+
 // TODO should be a proper ExpressJS middleware
 // TODO all received requests should be verified (signature)
-export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, publicKeyStore: PublicKeys) => {
+// Note that CORS is "disabled" here because the check is done via signature
+// So accept whatever the referer is
+export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, publicKeyStore: PublicKeys, name: string, keys: KeyInfo[]) => {
+
+    // Start by adding identity endpoint
+    addIdentityEndpoint(app, name, "operator", keys)
 
     const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey)
     const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorHost, privateKey)
@@ -99,15 +103,6 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
 
-    // Note that CORS is "disabled" here because the check is done via signature
-    // So accept whatever the referer is
-    const corsOptions = (req: Request, callback: (err: Error | null, options?: CorsOptions) => void) => {
-        callback(null, {
-            origin: req.header('Origin'),
-            optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
-            credentials: true
-        });
-    };
 
     const setTest3pcCookie = (res: Response) => {
         const now = new Date();
@@ -119,7 +114,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, {domain: tld})
     }
 
-    app.get(jsonOperatorEndpoints.read, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.read, cors(corsOptionsAcceptAll), (req, res) => {
         // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
         setTest3pcCookie(res);
 
@@ -130,7 +125,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         res.send(response)
     });
 
-    app.get(jsonOperatorEndpoints.verify3PC, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.verify3PC, cors(corsOptionsAcceptAll), (req, res) => {
         // Note: no signature verification here
 
         const cookies = req.cookies;
@@ -144,7 +139,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         res.send(response)
     });
 
-    app.post(jsonOperatorEndpoints.write, cors(corsOptions), (req, res) => {
+    app.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), (req, res) => {
         const input = JSON.parse(req.body as string) as PostIdsPrefsRequest;
 
         try {
@@ -157,7 +152,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         }
     });
 
-    app.get(jsonOperatorEndpoints.newId, cors(corsOptions), (req, res) => {
+    app.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), (req, res) => {
         const input = getPafDataFromQueryString<GetNewIdRequest>(req);
 
         const response = getNewIdResponseBuilder.buildResponse(input.receiver, operatorApi.generateNewId())

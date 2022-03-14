@@ -3,6 +3,9 @@ import {GetIdentityResponse} from "@core/model/generated-model";
 import {getTimeStampInSec} from "@core/timestamp";
 import {RestRequestBuilder} from "@core/model/request-builders";
 import {participantEndpoints} from "@core/endpoints";
+import {corsOptionsAcceptAll} from "@core/express";
+import cors from "cors";
+import {Express} from "express";
 
 export class GetIdentityResponseBuilder {
     constructor(protected name: string, protected type: "vendor" | "operator") {
@@ -30,4 +33,12 @@ export class GetIdentityRequestBuilder extends RestRequestBuilder<undefined> {
     buildRequest(): undefined {
         return undefined;
     }
+}
+
+export const addIdentityEndpoint = (app: Express, name: string, type: "vendor" | "operator", keys: KeyInfo[]) => {
+    const response = new GetIdentityResponseBuilder(name, type).buildResponse(keys)
+
+    app.get(participantEndpoints.identity, cors(corsOptionsAcceptAll), (req, res) => {
+        res.send(response)
+    })
 }

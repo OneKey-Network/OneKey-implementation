@@ -49,7 +49,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
      * Note: no request parameter as it is used as POST payload, not query string
      */
     getRestUrl(): URL {
-        return this.getOperatorUrl(this.restEndpoint)
+        return this.getUrl(this.restEndpoint)
     }
 }
 
@@ -86,7 +86,7 @@ export class Get3PCRequestBuilder extends SignedRestRequestBuilder<undefined> {
      * Note: no request parameter
      */
     getRestUrl(): URL {
-        return this.getOperatorUrl(this.restEndpoint)
+        return this.getUrl(this.restEndpoint)
     }
 }
 

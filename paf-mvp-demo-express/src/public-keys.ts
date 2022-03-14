@@ -2,9 +2,9 @@ import {publicKeyFromString} from "@core/crypto/keys";
 import {advertiser, cmp, operator, portal, publisher} from "./config";
 
 export const publicKeys = {
-    [advertiser.host]: publicKeyFromString(advertiser.publicKey),
-    [cmp.host]: publicKeyFromString(cmp.publicKey),
-    [publisher.host]: publicKeyFromString(publisher.publicKey),
-    [operator.host]: publicKeyFromString(operator.publicKey),
-    [portal.host]: publicKeyFromString(portal.publicKey),
+    [advertiser.host]: publicKeyFromString(advertiser.currentPublicKey.publicKey),
+    [cmp.host]: publicKeyFromString(cmp.currentPublicKey.publicKey),
+    [publisher.host]: publicKeyFromString(publisher.currentPublicKey.publicKey),
+    [operator.host]: publicKeyFromString(operator.currentPublicKey.publicKey),
+    [portal.host]: publicKeyFromString(portal.currentPublicKey.publicKey),
 }
