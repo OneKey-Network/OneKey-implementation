@@ -1,7 +1,6 @@
 import {
     Error,
     Get3PcResponse,
-    GetIdentityResponse,
     GetIdsPrefsResponse,
     GetNewIdResponse,
     Identifier,
@@ -16,19 +15,10 @@ import {
     GetNewIdResponseSigner,
     PostIdsPrefsResponseSigner
 } from "../crypto/message-signature";
-import {PrivateKey, privateKeyFromString} from "../crypto/keys";
 import {jsonOperatorEndpoints, redirectEndpoints} from "../endpoints";
 import {getTimeStampInSec} from "../timestamp";
-import {KeyInfo} from "../crypto/identity";
 import {setInQueryString} from "../express";
-
-export abstract class RestResponseBuilder<T> {
-    protected ecdsaKey: PrivateKey;
-
-    constructor(protected host: string, privateKey: string, protected restEndpoint: string) {
-        this.ecdsaKey = privateKeyFromString(privateKey);
-    }
-}
+import {RestResponseBuilder} from "@core/model/response-builders";
 
 export abstract class RestAndRedirectResponseBuilder<T> extends RestResponseBuilder<T> {
 
@@ -148,22 +138,3 @@ export class Get3PCResponseBuilder extends RestResponseBuilder<undefined> {
     }
 }
 
-export class GetIdentityResponseBuilder extends RestResponseBuilder<undefined> {
-    // FIXME remove private key from constructor
-    constructor(host: string, privateKey: string, protected name: string, protected type: "vendor" | "operator") {
-        super(host, privateKey, jsonOperatorEndpoints.identity);
-    }
-
-    buildResponse(keys: KeyInfo[]): GetIdentityResponse {
-        return {
-            name: this.name,
-            keys: keys.map(({start, end, publicKey}: KeyInfo) => ({
-                key: publicKey,
-                start: getTimeStampInSec(start),
-                end: end ? getTimeStampInSec(end) : undefined,
-            })),
-            type: this.type,
-            version: "0.1"
-        }
-    }
-}
