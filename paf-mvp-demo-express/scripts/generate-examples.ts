@@ -261,24 +261,13 @@ class Examples {
         const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operator.host, advertiser.host)
         const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(operator.name, operator.type)
         this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined))
-        this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([
-            {
-                publicKey: operator.publicKey,
-                start: new Date("2022/01/01 11:50"),
-                end: new Date("2022/03/01 12:00")
-            }
-        ])
+        this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([operator.currentPublicKey])
 
         // TODO add examples with multiple keys
         const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmp.host, advertiser.host)
         const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmp.name, cmp.type)
         this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined))
-        this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
-            {
-                publicKey: cmp.publicKey,
-                start: new Date("2022/01/15 11:50")
-            }
-        ])
+        this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([cmp.currentPublicKey])
 
         // **************************** Proxy
         const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(cmp.host)
