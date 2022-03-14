@@ -86,9 +86,12 @@ export interface Options {
 
 export interface RefreshIdsAndPrefsOptions extends Options {
   triggerRedirectIfNeeded: boolean;
+  redirectUrl?: URL;
 }
 
-export type WriteIdsAndPrefsOptions = Options;
+export interface WriteIdsAndPrefsOptions extends Options {
+  redirectUrl?: URL;
+}
 
 export type SignPrefsOptions = Options;
 
@@ -105,14 +108,15 @@ export type GetNewIdOptions = Options;
 export const refreshIdsAndPreferences = async ({
                                                  proxyHostName,
                                                  triggerRedirectIfNeeded,
+                                                 redirectUrl
                                                }: RefreshIdsAndPrefsOptions): Promise<IdsAndOptionalPreferences | undefined> => {
   const getUrl = getProxyUrl(proxyHostName);
 
   const redirectToRead = () => {
     logger.info('Redirect to operator');
-    const redirectUrl = new URL(getUrl(redirectProxyEndpoints.read));
-    redirectUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
-    redirect(redirectUrl.toString());
+    const url = redirectUrl ?? new URL(getUrl(redirectProxyEndpoints.read));
+    url.searchParams.set(proxyUriParams.returnUrl, location.href);
+    redirect(url.toString());
   };
 
   const processGetIdsAndPreferences = async (): Promise<IdsAndOptionalPreferences | undefined> => {
@@ -260,8 +264,11 @@ export const refreshIdsAndPreferences = async ({
  * @return the written identifiers and preferences
  */
 export const writeIdsAndPref = async (
-  {proxyHostName}: WriteIdsAndPrefsOptions,
-  input: IdsAndPreferences
+  {
+    proxyHostName,
+    redirectUrl
+  }: WriteIdsAndPrefsOptions,
+  input: IdsAndPreferences,
 ): Promise<IdsAndOptionalPreferences | undefined> => {
   const getUrl = getProxyUrl(proxyHostName);
 
@@ -305,11 +312,11 @@ export const writeIdsAndPref = async (
     console.log('3PC not supported: redirect');
 
     // Redirect. Signing of the request will happen on the backend proxy
-    const redirectUrl = new URL(getUrl(redirectProxyEndpoints.write));
-    redirectUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
-    redirectUrl.searchParams.set(proxyUriParams.message, JSON.stringify(input));
+    const returnUrl = redirectUrl ?? new URL(getUrl(redirectProxyEndpoints.write));
+    returnUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
+    returnUrl.searchParams.set(proxyUriParams.message, JSON.stringify(input));
 
-    const url = redirectUrl.toString();
+    const url = returnUrl.toString();
 
     console.log(`Redirecting to ${url}`);
 
