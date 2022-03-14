@@ -16,6 +16,8 @@ import {
     GetIdsPrefsRequestBuilder, GetNewIdRequestBuilder,
     PostIdsPrefsRequestBuilder
 } from "@core/model/operator-request-builders";
+import {addIdentityEndpoint} from "@core/identity-endpoint";
+import {KeyInfo} from "@core/crypto/identity";
 
 /**
  * Get return URL parameter, otherwise set response code 400
