@@ -7,18 +7,21 @@ import axios, {Axios, AxiosRequestConfig} from "axios";
 type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
 
 export class PublicKeyStore {
-    // FIXME should have a more elaborate cache with end date
     protected cache: { [domain: string]: PublicKeyInfo } = {};
     protected s2sClient: Axios;
-
 
     constructor(s2sOptions?: AxiosRequestConfig) {
         this.s2sClient = axios.create(s2sOptions)
     }
 
     async getPublicKey(domain: string): Promise<PublicKeyInfo> {
-        if (this.cache[domain]) {
-            return Promise.resolve(this.cache[domain])
+        const now = new Date().getTime();
+
+        const existingKey = this.cache[domain];
+
+        // Make sure this key is not out dated. If so, then consider no cache value and request it from identity endpoint
+        if (existingKey && now < existingKey.end.getTime()) {
+            return Promise.resolve(existingKey)
         }
 
         const queryBuilder = new GetIdentityRequestBuilder(domain)
@@ -29,8 +32,10 @@ export class PublicKeyStore {
         const response = await this.s2sClient.get(url.toString());
         const responseData = response.data as GetIdentityResponse;
 
-        // FIXME should find the key that is currently valid, based on dates + handle not found
-        const currentKey = responseData.keys[0]
+        const currentKey = responseData.keys
+            .filter(key => key.start <= now && (key.end === undefined || now < key.end)) // valid keys
+            .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
+            [0] // take the first one (the one that ends as far as possible from now)
 
         // Update cache
         const keyInfo = {
