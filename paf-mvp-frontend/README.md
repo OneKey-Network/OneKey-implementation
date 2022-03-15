@@ -87,8 +87,12 @@ Example usage:
   - calls the operator (via the operator proxy) to get a new PAF ID value
   - note that this id is **not** yet persisted: to persist it, a subsequent call to `PAF.writeIdsAndPref` must be made
 
-All methods take at least a `proxyHostName` parameter to locate the operator backend proxy
+All these methods take at least a `proxyHostName` parameter to locate the operator backend proxy
 needed to sign and verify messages sent to and received from the operator.
+
+- `PAF.getIdsAndPreferences`
+  - no parameter
+  - simply return the list of identifiers and the user preferences, if they exist as 1PC
 
 See:
 
