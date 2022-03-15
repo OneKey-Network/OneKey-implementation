@@ -17,7 +17,7 @@ import {
 } from "../crypto/message-signature";
 import {jsonOperatorEndpoints, redirectEndpoints} from "../endpoints";
 import {getTimeStampInSec} from "../timestamp";
-import {setInQueryString} from "../express";
+import {setInQueryString} from "../express/utils";
 import {RestResponseBuilder} from "@core/model/response-builders";
 
 export abstract class RestAndRedirectResponseBuilder<T> extends RestResponseBuilder<T> {

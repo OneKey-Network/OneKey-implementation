@@ -3,7 +3,7 @@ import {advertiser, cdn, operator} from "./config";
 import {OperatorBackendClient, RedirectType} from "@operator-client/operator-backend-client";
 import {addOperatorClientProxyEndpoints} from "@operator-client/operator-client-proxy";
 import {publicKeys} from "./public-keys";
-import {addIdentityEndpoint} from "@core/identity-endpoint";
+import {addIdentityEndpoint} from "@core/express/identity-endpoint";
 
 export const advertiserApp = express();
 

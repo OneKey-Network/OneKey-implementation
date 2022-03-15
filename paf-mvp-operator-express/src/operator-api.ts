@@ -1,5 +1,5 @@
 import {Express, Request, Response} from "express";
-import {corsOptionsAcceptAll, getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "@core/express";
+import {corsOptionsAcceptAll, getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "@core/express/utils";
 import cors from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
@@ -24,7 +24,7 @@ import {
     GetNewIdResponseBuilder,
     PostIdsPrefsResponseBuilder
 } from "@core/model/operator-response-builders";
-import {addIdentityEndpoint} from "@core/identity-endpoint";
+import {addIdentityEndpoint} from "@core/express/identity-endpoint";
 import {KeyInfo} from "@core/crypto/identity";
 
 const domainParser = require('tld-extract');
@@ -35,7 +35,6 @@ const getOperatorExpiration = (date: Date = new Date()) => {
     expirationDate.setMonth(expirationDate.getMonth() + 3);
     return expirationDate;
 }
-
 
 // TODO should be a proper ExpressJS middleware
 // TODO all received requests should be verified (signature)
