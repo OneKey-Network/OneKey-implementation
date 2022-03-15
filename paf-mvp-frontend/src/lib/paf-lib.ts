@@ -126,8 +126,8 @@ export const refreshIdsAndPreferences = async ({
     cleanUpUrL();
 
     // 1. Any Prebid 1st party cookie?
-    const rawIds = getCookieValue(Cookies.identifiers);
-    const rawPreferences = getCookieValue(Cookies.preferences);
+    const strIds = getCookieValue(Cookies.identifiers);
+    const strPreferences = getCookieValue(Cookies.preferences);
 
     // 2. Redirected from operator?
     if (uriData) {
@@ -161,7 +161,7 @@ export const refreshIdsAndPreferences = async ({
 
     logger.info('Redirected from operator: NO');
 
-    if (getPafStatus(rawIds, rawPreferences) === PafStatus.REDIRECT_NEEDED) {
+    if (getPafStatus(strIds, strPreferences) === PafStatus.REDIRECT_NEEDED) {
       logger.info('Redirect previously deferred');
 
       if (triggerRedirectIfNeeded) {
@@ -171,14 +171,14 @@ export const refreshIdsAndPreferences = async ({
       return undefined;
     }
 
-    if (rawIds && rawPreferences) {
+    if (strIds && strPreferences) {
       logger.info('Cookie found: YES');
 
-      if (getPafStatus(rawIds, rawPreferences) === PafStatus.NOT_PARTICIPATING) {
+      if (getPafStatus(strIds, strPreferences) === PafStatus.NOT_PARTICIPATING) {
         logger.info('User is not participating');
       }
 
-      return fromClientCookieValues(rawIds, rawPreferences);
+      return fromClientCookieValues(strIds, strPreferences);
     }
 
     logger.info('Cookie found: NO');
@@ -366,3 +366,26 @@ export const getNewId = async ({proxyHostName}: GetNewIdOptions): Promise<Identi
   // Assume no error. FIXME should handle potential errors
   return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
 };
+
+/**
+ * If at least one identifier and some preferences are present as a 1P cookie, return them
+ * Otherwise, return undefined
+ */
+export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
+  // Remove special string values
+  const cleanCookieValue = (rawValue: string) =>
+    rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING
+      ? undefined : rawValue
+
+  const strIds = cleanCookieValue(getCookieValue(Cookies.identifiers));
+  const strPreferences = cleanCookieValue(getCookieValue(Cookies.preferences));
+
+  const values = fromClientCookieValues(strIds, strPreferences);
+
+  // If the object is not complete (no identifier or no preferences), then consider no valid data
+  if (values.identifiers === undefined || values.identifiers.length === 0 || values.preferences === undefined) {
+    return undefined
+  }
+
+  return values as IdsAndPreferences;
+}
