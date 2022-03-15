@@ -3,7 +3,15 @@ import cookieParser from 'cookie-parser'
 import {operatorApp} from "./operator";
 import vhost from "vhost";
 import {advertiserApp} from "./advertiser";
-import {advertiser, cdn, cmp, Config, operator, portal, publisher} from "./config";
+import {
+    advertiser,
+    cdn,
+    cmp,
+    Config,
+    operator,
+    portal,
+    publisher
+} from "./config";
 import {join} from "path";
 import {cmpApp} from "./cmp";
 import {publisherApp} from "./publisher";
@@ -13,17 +21,11 @@ import bodyParser from "body-parser";
 import * as fs from "fs";
 import {readFileSync} from "fs";
 import {createServer} from "https";
+import https from "https";
+import {AxiosRequestConfig} from "axios";
+import {crtPath, isLocalDev, keyPath, sslOptions} from "./server-config";
 
 const relative = (path: string) => join(__dirname, path);
-
-/**
- * **When running locally**, use generated certificate and run HTTPs server
- * (on prod a reverse proxy handles it)
- * See README.md for instruction on how to generate it
- */
-const keyPath = relative('../paf.key');
-const crtPath = relative('../paf.crt');
-const isLocalDev = fs.existsSync(keyPath) && fs.existsSync(crtPath);
 
 const hbs = require('express-hbs');
 
@@ -87,9 +89,7 @@ mainApp.listen(port, () => {
 
 if (isLocalDev) {
     console.log(`Local dev: starting HTTPs (443) server`);
-    createServer({
-        key: readFileSync(keyPath),
-        cert: readFileSync(crtPath),
-        passphrase: 'prebid'
-    }, mainApp).listen(443)
+    createServer(sslOptions, mainApp).listen(443)
 }
+
+
