@@ -2,7 +2,7 @@ import {setInQueryString} from "@core/express/utils";
 import {PrivateKey, privateKeyFromString} from "@core/crypto/keys";
 
 export abstract class RestRequestBuilder<T extends object | undefined> {
-    protected constructor(public serverHost: string, protected clientHost: string, protected restEndpoint: string) {
+    constructor(public serverHost: string, protected restEndpoint: string) {
     }
 
     protected getUrl(endpoint: string, pafQuery: object | undefined = undefined): URL {
@@ -24,7 +24,7 @@ export abstract class SignedRestRequestBuilder<T extends object | undefined> ext
     protected ecdsaKey: PrivateKey;
 
     protected constructor(public serverHost: string, protected clientHost: string, protected restEndpoint: string, privateKey: string) {
-        super(serverHost, clientHost, restEndpoint);
+        super(serverHost, restEndpoint);
         this.ecdsaKey = privateKeyFromString(privateKey);
     }
 }
