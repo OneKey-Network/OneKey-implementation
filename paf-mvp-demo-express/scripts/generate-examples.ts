@@ -46,7 +46,8 @@ import {
 } from "@core/model/proxy-request-builders";
 import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
-import {GetIdentityRequestBuilder, GetIdentityResponseBuilder} from "@core/identity-endpoint";
+import {GetIdentityResponseBuilder} from "@core/model/identity-response-builder";
+import {GetIdentityRequestBuilder} from "@core/model/identity-request-builder";
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString))
 const getUrl = (method: "POST" | "GET", url: URL): string => `${method} ${url.pathname}${url.search}\nHost: ${url.host}`

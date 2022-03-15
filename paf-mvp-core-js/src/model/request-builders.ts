@@ -1,4 +1,4 @@
-import {setInQueryString} from "@core/express";
+import {setInQueryString} from "@core/express/utils";
 import {PrivateKey, privateKeyFromString} from "@core/crypto/keys";
 
 export abstract class RestRequestBuilder<T extends object | undefined> {

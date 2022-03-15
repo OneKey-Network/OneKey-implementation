@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
 import {CookieOptions} from "express-serve-static-core";
-import {encodeBase64, fromDataToObject, QSParam} from "./query-string";
+import {encodeBase64, fromDataToObject, QSParam} from "../query-string";
 import {CorsOptions} from "cors";
 
 export const setCookie = (res: Response, cookieName: string, cookieValue: any, expirationDate: Date, optionsOverride: CookieOptions = {}) => {
