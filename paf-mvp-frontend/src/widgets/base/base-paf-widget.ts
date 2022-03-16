@@ -30,7 +30,6 @@ export abstract class BasePafWidget {
   private renderWidget() {
     const stylesElement = createElement('link', { rel: 'stylesheet', href: this.styleHref });
     document.body.appendChild(this.element);
-    this.bindEvents();
     window.removeEventListener('load', this.renderWidget);
 
     // Add shadow root if the browser supports it
@@ -51,9 +50,6 @@ export abstract class BasePafWidget {
   private renderAsLegacy(stylesElement: VNode) {
     render(createElement(this.component, null), this.element);
     render(stylesElement, document.head);
-  }
-
-  protected bindEvents() {
   }
 
   protected checkLoaded() {

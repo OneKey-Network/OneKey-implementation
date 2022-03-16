@@ -12,19 +12,20 @@ import { Option } from '../../components/forms/option/Option';
 import { Tooltip } from '../../components/tooltip/Tooltip';
 import { SubPanel } from '../../components/sub-panel/SubPanel';
 import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
-import { globalEventManager } from '../../managers/event-manager';
 import { getCookieValue } from '../../utils/cookie';
 import { Cookies } from '@core/cookies';
 import { fromClientCookieValues } from '@core/operator-client-commons';
 import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
 
-interface WelcomeWidgetProps {
-  brandName: string;
-  brandLogoUrl: string;
+export interface IWelcomeWidgetProps {
+  brandName?: string;
+  brandLogoUrl?: string;
+  emitConsent?: (value: boolean) => void;
+  destroy?: () => void;
 }
 
-export const WelcomeWidget = (props: WelcomeWidgetProps) => {
+export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
 
@@ -38,12 +39,14 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);
 
   const onChooseOption = (consent: boolean) => {
-    globalEventManager.emitEvent({
-      type: 'grantConsent',
-      payload: consent
-    });
+    emitConsent(consent)
     setConsent(consent);
     setIsOpen(false);
+  }
+
+  const closeWidget = () => {
+    setIsOpen(false);
+    destroy();
   }
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export const WelcomeWidget = (props: WelcomeWidgetProps) => {
 
   return (
     <div class={style.container}>
-      <Modal maxWidth={385} onClose={() => setIsOpen(false)}>
+      <Modal maxWidth={385} onClose={() => closeWidget()}>
         <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Set up the best marketing preferences for you</h2>
 
         <p class={`${style.textCenter} ${style.textMuted}`}>
