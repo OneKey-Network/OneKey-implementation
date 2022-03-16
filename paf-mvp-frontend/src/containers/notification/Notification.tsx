@@ -3,9 +3,10 @@ import { Done } from '../../components/svg/done/Done';
 import { Attention } from '../../components/svg/attention/Attention';
 import { ISnackBarProps, SnackBar } from '../../components/snack-bar/SnackBar';
 import { useEffect } from 'react';
+import { NotificationEnum } from '../../enums/notification.enum';
 
 export interface INotificationProps {
-  type: string;
+  type: NotificationEnum;
   destroy?: () => void
 }
 
@@ -31,7 +32,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
   };
 
   switch (type) {
-    case 'personalized':
+    case NotificationEnum.personalized:
       notificationData = {
         icon: <Done />,
         title: `You chose to see personalized content and relevant ads on ${brandName}`,
@@ -41,7 +42,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
         </div>
       }
       break;
-    case 'default':
+    case NotificationEnum.default:
       notificationData = {
         icon: <Attention/>,
         title: `You chose to see standard content and ads on ${brandName}`,
