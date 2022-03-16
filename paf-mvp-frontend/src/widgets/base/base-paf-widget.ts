@@ -2,17 +2,19 @@ import { ComponentFactory, createElement, render, VNode } from 'preact';
 import { createHtmlElement } from '../../utils/create-html-element';
 import { env } from '../../config';
 
-export abstract class BasePafWidget {
-  protected element: HTMLElement;
+export abstract class BasePafWidget<T> {
+  private readonly element: HTMLElement;
+  private readonly elementNode: VNode;
 
   get styleHref() {
     return `${env.host}/${env.isDevelopment ? 'dist' : 'assets'}/app.bundle.css`;
   }
 
-  constructor(selector: string, private component: ComponentFactory<any>) {
-    this.preloadStyles();
+  constructor(component: ComponentFactory<any>, props: T | null = null) {
+    render(createElement('link', { rel: 'preload', href: this.styleHref, as: 'style' }), document.head);
     this.renderWidget = this.renderWidget.bind(this);
-    this.element = createHtmlElement('div', { [selector]: '' });
+    this.element = createHtmlElement('div', { 'paf-root': '' });
+    this.elementNode = createElement(component, props)
   }
 
   render() {
@@ -42,22 +44,16 @@ export abstract class BasePafWidget {
 
   private renderAsShadow(stylesElement: VNode) {
     const shadowRoot = this.element.attachShadow({ mode: 'open' });
-
-    render(createElement(this.component, null), shadowRoot);
-    render(stylesElement, shadowRoot.firstChild as Element);
+    const container = createElement('div', null, stylesElement, this.elementNode);
+    render(container, shadowRoot);
   }
 
   private renderAsLegacy(stylesElement: VNode) {
-    render(createElement(this.component, null), this.element);
+    render(this.elementNode, this.element);
     render(stylesElement, document.head);
   }
 
   protected checkLoaded() {
     return document.readyState === 'complete';
-  }
-
-  private preloadStyles() {
-    const preloadElement = createElement('link', { rel: 'preload', href: this.styleHref, as: 'style' });
-    render(preloadElement, document.head);
   }
 }
