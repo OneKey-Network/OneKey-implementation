@@ -17,7 +17,8 @@ import { Cookies } from '@core/cookies';
 import { fromClientCookieValues } from '@core/operator-client-commons';
 import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
-import { NotificationWidget } from '../../widgets/notification';
+import { NotificationEnum } from '../../enums/notification.enum';
+import { notificationService } from '../../services/notification.service';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -43,8 +44,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
     emitConsent(consent)
     setConsent(consent);
     setIsOpen(false);
-    const widget = new NotificationWidget({ type: consent ? 'personalized' : 'default' });
-    widget.render();
+    notificationService.showNotification(consent ? NotificationEnum.personalized : NotificationEnum.default)
   }
 
   const closeWidget = () => {
