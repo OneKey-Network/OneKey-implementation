@@ -12,9 +12,6 @@ import { Option } from '../../components/forms/option/Option';
 import { Tooltip } from '../../components/tooltip/Tooltip';
 import { SubPanel } from '../../components/sub-panel/SubPanel';
 import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
-import { getCookieValue } from '../../utils/cookie';
-import { Cookies } from '@core/cookies';
-import { fromClientCookieValues } from '@core/operator-client-commons';
 import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
 import { NotificationEnum } from '../../enums/notification.enum';
@@ -31,12 +28,9 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
 
-  const pafCookies = fromClientCookieValues(
-    getCookieValue(Cookies.identifiers) || undefined,
-    getCookieValue(Cookies.preferences) || undefined
-  );
-  const pafIdentifier = pafCookies.identifiers?.[0]?.value;
-  const pafConsent = pafCookies.preferences?.data?.use_browsing_for_personalization;
+  const pafCookies = window.PAF.getIdsAndPreferences();
+  const pafIdentifier = pafCookies?.identifiers?.[0]?.value;
+  const pafConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
 
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);
 
@@ -44,7 +38,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
     emitConsent(consent)
     setConsent(consent);
     setIsOpen(false);
-    notificationService.showNotification(consent ? NotificationEnum.personalized : NotificationEnum.default)
+    notificationService.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent)
   }
 
   const closeWidget = () => {

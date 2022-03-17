@@ -10,7 +10,7 @@ class NotificationService {
       this.removeWidget();
     }
     this.displayAfterRedirect(type);
-    this.currentWidget = new NotificationWidget({ type });
+    this.currentWidget = new NotificationWidget({ type, destroy: () => this.removeWidget() });
     this.currentWidget.render();
   }
 
@@ -22,9 +22,12 @@ class NotificationService {
 
   displayDelayedNotification() {
     const type: NotificationEnum = localStorage.getItem(this.afterRedirectNotificationStorage) as NotificationEnum;
-    if (type) {
+    const localCookies = window.PAF.getIdsAndPreferences();
+    const userHash = localCookies?.identifiers?.[0]?.value;
+    if (type && userHash) {
       this.showNotification(type);
     }
+    localStorage.removeItem(this.afterRedirectNotificationStorage);
   }
 
   private displayAfterRedirect(type: NotificationEnum) {

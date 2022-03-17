@@ -1,4 +1,4 @@
 export enum NotificationEnum {
-  personalized = 'PERSONALIZED',
-  default = 'DEFAULT',
+  personalizedContent = 'PERSONALIZED',
+  generalContent = 'GENERAL',
 }
