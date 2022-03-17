@@ -21,7 +21,7 @@ import {
 } from "@core/model/generated-model";
 import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
 import {getTimeStampInSec} from "@core/timestamp";
-import {advertiser, cmp, operator, publisher} from "../src/config";
+import {advertiserConfig, cmpConfig, operatorConfig, publisherConfig} from "../src/config";
 import path from "path";
 import {OperatorClient} from "@operator-client/operator-client";
 import {
@@ -48,6 +48,8 @@ import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
 import {GetIdentityResponseBuilder} from "@core/model/identity-response-builder";
 import {GetIdentityRequestBuilder} from "@core/model/identity-request-builder";
+import {cmpPrivateConfig} from "../src/cmp";
+import {operatorPrivateConfig} from "../src/operator";
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString))
 const getUrl = (method: "POST" | "GET", url: URL): string => `${method} ${url.pathname}${url.search}\nHost: ${url.host}`
@@ -85,10 +87,10 @@ if (!fs.existsSync(outputDir)) {
 }
 
 // The examples are not supposed to look like a demo but a real environment
-operator.host = 'operator.paf-operation-domain.io'
-cmp.host = 'cmp.com'
-advertiser.host = 'advertiser.com'
-publisher.host = 'publisher.com'
+operatorConfig.host = 'operator.paf-operation-domain.io'
+cmpConfig.host = 'cmp.com'
+advertiserConfig.host = 'advertiser.com'
+publisherConfig.host = 'publisher.com'
 
 class Examples {
     // **************************** Main data
@@ -168,8 +170,8 @@ class Examples {
     }
 
     protected buildExamples() {
-        const operatorAPI = new OperatorApi(operator.host, operator.privateKey)
-        const originalAdvertiserUrl = new URL(`https://${advertiser.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`)
+        const operatorAPI = new OperatorApi(operatorConfig.host, operatorPrivateConfig.privateKey)
+        const originalAdvertiserUrl = new URL(`https://${advertiserConfig.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`)
 
         // **************************** Main data
         this.setObject('unpersistedIdJson', {
@@ -178,7 +180,7 @@ class Examples {
         })
         this.setObject('idJson', operatorAPI.signId("7435313e-caee-4889-8ad7-0acd0114ae3c", getTimestamp("2022/01/18 12:13")))
 
-        const cmpClient = new OperatorClient(cmp.host, cmp.privateKey)
+        const cmpClient = new OperatorClient(cmpConfig.host, cmpPrivateConfig.privateKey)
         this.setObject('preferencesJson', cmpClient.buildPreferences([this.idJson], {use_browsing_for_personalization: true}, getTimestamp("2022/01/18 12:16")));
 
         // **************************** Cookies
@@ -194,12 +196,12 @@ class Examples {
         this.test_3pc_cookieTxt = toTest3pcCookie(this['test_3pc_cookie-prettyJson'])
 
         // **************************** Read
-        const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operator.host, cmp.host, cmp.privateKey)
-        const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
+        const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey)
+        const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorConfig.host, cmpPrivateConfig.privateKey)
         this.setRestMessage('getIdsPrefsRequestJson', getIdsPrefsRequestBuilder.buildRequest(getTimestamp("2022/01/24 17:19")))
         this.getIdsPrefsRequestHttp = getGETUrl(getIdsPrefsRequestBuilder.getRestUrl(this.getIdsPrefsRequestJson))
         this.setRestMessage('getIdsPrefsResponse_knownJson', getIdsPrefsResponseBuilder.buildResponse(
-            advertiser.host,
+            advertiserConfig.host,
             {
                 identifiers: [this.idJson],
                 preferences: this.preferencesJson
@@ -207,7 +209,7 @@ class Examples {
             getTimestamp("2022/01/24 17:19:10")
         ))
         this.setRestMessage('getIdsPrefsResponse_unknownJson', getIdsPrefsResponseBuilder.buildResponse(
-            advertiser.host,
+            advertiserConfig.host,
             {
                 identifiers: [this.unpersistedIdJson]
             },
@@ -223,15 +225,15 @@ class Examples {
         this.redirectGetIdsPrefsResponse_unknownTxt = getRedirect(getIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectGetIdsPrefsResponse_unknownJson))
 
         // **************************** Write
-        const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operator.host, cmp.host, cmp.privateKey)
-        const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operator.host, cmp.privateKey)
+        const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey)
+        const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorConfig.host, cmpPrivateConfig.privateKey)
         this.setRestMessage('postIdsPrefsRequestJson', postIdsPrefsRequestBuilder.buildRequest({
                 identifiers: [this.idJson],
                 preferences: this.preferencesJson
             }, getTimestamp("2022/01/25 09:01"))
         )
         this.postIdsPrefsRequestHttp = getPOSTUrl(postIdsPrefsRequestBuilder.getRestUrl()) // Notice is POST url
-        this.setRestMessage('postIdsPrefsResponseJson', postIdsPrefsResponseBuilder.buildResponse(cmp.host, {
+        this.setRestMessage('postIdsPrefsResponseJson', postIdsPrefsResponseBuilder.buildResponse(cmpConfig.host, {
                 identifiers: [this.idJson],
                 preferences: this.preferencesJson
             }, getTimestamp("2022/01/25 09:01:03"))
@@ -243,43 +245,43 @@ class Examples {
         this.redirectPostIdsPrefsResponseTxt = getRedirect(postIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectPostIdsPrefsResponseJson))
 
         // **************************** Get new ID
-        const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operator.host, cmp.host, cmp.privateKey)
-        const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operator.host, operator.privateKey)
+        const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey)
+        const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorConfig.host, operatorPrivateConfig.privateKey)
         this.setRestMessage('getNewIdRequestJson', getNewIdRequestBuilder.buildRequest(getTimestamp("2022/03/01 19:04")))
         this.getNewIdRequestHttp = getGETUrl(getNewIdRequestBuilder.getRestUrl(this.getNewIdRequestJson))
 
-        this.setRestMessage('getNewIdResponseJson', getNewIdResponseBuilder.buildResponse(cmp.host, this.unpersistedIdJson, getTimestamp("2022/03/01 19:04:47")))
+        this.setRestMessage('getNewIdResponseJson', getNewIdResponseBuilder.buildResponse(cmpConfig.host, this.unpersistedIdJson, getTimestamp("2022/03/01 19:04:47")))
 
         // **************************** Verify 3PC
-        const get3PCRequestBuilder = new Get3PCRequestBuilder(operator.host, cmp.host, cmp.privateKey)
-        const get3PCResponseBuilder = new Get3PCResponseBuilder(operator.host, operator.privateKey)
+        const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey)
+        const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorConfig.host, operatorPrivateConfig.privateKey)
         this.get3pcRequestHttp = getGETUrl(get3PCRequestBuilder.getRestUrl())
 
         this.get3pcResponse_supportedJson = get3PCResponseBuilder.buildResponse(this["test_3pc_cookie-prettyJson"]) as Get3PcResponse
         this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(undefined) as Error
 
         // **************************** Identity
-        const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operator.host)
-        const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(operator.name, operator.type)
+        const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operatorConfig.host)
+        const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(operatorConfig.name, operatorPrivateConfig.type)
         this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined))
-        this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([operator.currentPublicKey])
+        this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([operatorPrivateConfig.currentPublicKey])
 
         // TODO add examples with multiple keys
-        const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmp.host)
-        const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmp.name, cmp.type)
+        const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmpConfig.host)
+        const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmpConfig.name, cmpPrivateConfig.type)
         this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined))
-        this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([cmp.currentPublicKey])
+        this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([cmpPrivateConfig.currentPublicKey])
 
         // **************************** Proxy
-        const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(cmp.host)
+        const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(cmpConfig.host)
         this.signPreferencesHttp = getPOSTUrl(signPreferencesRequestBuilder.getRestUrl(undefined)) // Notice is POST url
         this.signPreferencesJson = signPreferencesRequestBuilder.buildRequest([this.idJson], {use_browsing_for_personalization: true})
 
-        const signPostIdsPrefsRequestBuilder = new ProxyRestSignPostIdsPrefsRequestBuilder(cmp.host)
+        const signPostIdsPrefsRequestBuilder = new ProxyRestSignPostIdsPrefsRequestBuilder(cmpConfig.host)
         this.signPostIdsPrefsHttp = getPOSTUrl(signPostIdsPrefsRequestBuilder.getRestUrl(undefined)) // Notice is POST url
         this.signPostIdsPrefsJson = signPostIdsPrefsRequestBuilder.buildRequest([this.idJson], this.preferencesJson)
 
-        const verifyGetIdsPrefsRequestBuilder = new ProxyRestVerifyGetIdsPrefsRequestBuilder(cmp.host)
+        const verifyGetIdsPrefsRequestBuilder = new ProxyRestVerifyGetIdsPrefsRequestBuilder(cmpConfig.host)
         this.verifyGetIdsPrefsHttp = getPOSTUrl(verifyGetIdsPrefsRequestBuilder.getRestUrl(undefined)) // Notice is POST url
         this.verifyGetIdsPrefs_invalidJson = {message: 'Invalid signature'}
     }

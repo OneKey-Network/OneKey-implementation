@@ -1,5 +1,5 @@
 import express from "express";
-import {operator, portal} from "./config";
+import {operatorConfig, portalConfig, PrebidConfig, PrivateConfig} from "./config";
 import {OperatorClient} from "@operator-client/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
@@ -8,14 +8,31 @@ import {GetIdsPrefsRequestBuilder, PostIdsPrefsRequestBuilder} from "@core/model
 import {s2sOptions} from "./server-config";
 import {addIdentityEndpoint} from "@core/express/identity-endpoint";
 
+const portalPrivateConfig: PrivateConfig = {
+    type: "vendor",
+    currentPublicKey: {
+        start: new Date("2022-01-01T12:00:00.000Z"),
+        end: new Date("2022-12-31T12:00:00.000Z"),
+        publicKey: `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEasA7VcBrU8fs2P+Z4xmcZ8bhnj3Q
+Ku3ypZLhzircDPwCeqAUye/pd62OX3zSWZFQQdz7fR93Bztwc7ZodYe8UQ==
+-----END PUBLIC KEY-----`
+    },
+    privateKey: `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiDfb74JY+vBjdEmr
+hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
+7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
+-----END PRIVATE KEY-----`
+}
+
 const domainParser = require('tld-extract');
 
 export const portalApp = express();
 
 // The portal is a client of the operator API
-const client = new OperatorClient(portal.host, portal.privateKey, s2sOptions)
-const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operator.host, portal.host, portal.privateKey)
-const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operator.host, portal.host, portal.privateKey)
+const client = new OperatorClient(portalConfig.host, portalPrivateConfig.privateKey, s2sOptions)
+const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey)
+const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey)
 
 const removeIdUrl = '/remove-id';
 const removePrefsUrl = '/remove-prefs';
@@ -39,7 +56,7 @@ const getWritePrefsUrlFromOptin = (identifiers: any, optIn: boolean, returnUrl: 
 };
 
 
-const tld = domainParser(`https://${portal.host}`).domain
+const tld = domainParser(`https://${portalConfig.host}`).domain
 
 portalApp.get('/', (req, res) => {
     const cookies = req.cookies;
@@ -98,4 +115,4 @@ portalApp.get(writeNewId, (req, res) => {
     httpRedirect(res, getWritePrefsUrl(identifiers, preferences, getRequestUrl(req, '/')).toString());
 });
 
-addIdentityEndpoint(portalApp, portal.name, "vendor", [portal.currentPublicKey])
+addIdentityEndpoint(portalApp, portalConfig.name, "vendor", [portalPrivateConfig.currentPublicKey])

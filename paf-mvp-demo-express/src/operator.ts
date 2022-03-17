@@ -1,21 +1,39 @@
 import express from "express";
-import {advertiser, cmp, operator, portal, publisher} from "./config";
+import {advertiserConfig, cmpConfig, operatorConfig, portalConfig, PrivateConfig} from "./config";
 import {addOperatorApi} from "@operator/operator-api";
 import {s2sOptions} from "./server-config";
+
+// Only exported for generate-examples.ts
+export const operatorPrivateConfig: PrivateConfig = {
+    type: "operator",
+    currentPublicKey: {
+        start: new Date("2022-01-01T10:50:00.000Z"),
+        end: new Date("2022-12-31T12:00:00.000Z"),
+        publicKey: `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
+jmcW7W3x9wvlX4YXqJUQKR2c0lveqVDj4hwO0kTZDuNRUhgxk4irwV3fzw==
+-----END PUBLIC KEY-----`
+    },
+    privateKey: `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxK7RQm5KP1g62SQn
+oyeE+rrDPJzpZxIyCCTHDvd1TRShRANCAAQSJkhGEbE118biXou5jZB+PJ/rRHSO
+ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
+-----END PRIVATE KEY-----`,
+}
 
 export const operatorApp = express();
 
 // This host supports the Operator API
 addOperatorApi(
     operatorApp,
-    operator.host,
-    operator.privateKey,
-    operator.name,
-    [operator.currentPublicKey],
+    operatorConfig.host,
+    operatorPrivateConfig.privateKey,
+    operatorConfig.name,
+    [operatorPrivateConfig.currentPublicKey],
     [
-        cmp.host,
-        advertiser.host,
-        portal.host
+        cmpConfig.host,
+        advertiserConfig.host,
+        portalConfig.host
     ],
     s2sOptions
 )

@@ -4,13 +4,13 @@ import {operatorApp} from "./operator";
 import vhost from "vhost";
 import {advertiserApp} from "./advertiser";
 import {
-    advertiser,
+    advertiserConfig,
     cdn,
-    cmp,
-    Config,
-    operator,
-    portal,
-    publisher
+    cmpConfig,
+    PublicConfig,
+    operatorConfig,
+    portalConfig,
+    publisherConfig
 } from "./config";
 import {join} from "path";
 import {cmpApp} from "./cmp";
@@ -54,19 +54,19 @@ const addMiddleware = (app: Express) => {
 
 addMiddleware(mainApp)
 
-const apps: Config[] = []
+const apps: PublicConfig[] = []
 
-const addApp = (config: Config, app: Express) => {
+const addApp = (config: PublicConfig, app: Express) => {
     addMiddleware(app)
     mainApp.use(vhost(config.host, app));
     apps.push(config)
 }
 
-addApp(operator, operatorApp);
-addApp(portal, portalApp);
-addApp(advertiser, advertiserApp);
-addApp(publisher, publisherApp);
-addApp(cmp, cmpApp);
+addApp(operatorConfig, operatorApp);
+addApp(portalConfig, portalApp);
+addApp(advertiserConfig, advertiserApp);
+addApp(publisherConfig, publisherApp);
+addApp(cmpConfig, cmpApp);
 addApp(cdn, cdnApp);
 
 // start the Express server
