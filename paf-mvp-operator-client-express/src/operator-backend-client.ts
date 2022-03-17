@@ -12,7 +12,7 @@ import {
     httpRedirect,
     metaRedirect,
     setCookie
-} from "@core/express";
+} from "@core/express/utils";
 import {isBrowserKnownToSupport3PC} from "@core/user-agent";
 import {PublicKeys} from "@core/crypto/keys";
 import {GetIdsPrefsRequestBuilder} from "@core/model/operator-request-builders";

@@ -8,12 +8,13 @@ import {
     RedirectGetIdsPrefsResponse
 } from "@core/model/generated-model";
 import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from "@core/endpoints";
-import {httpRedirect} from "@core/express";
+import {httpRedirect} from "@core/express/utils";
 import {PublicKeys} from "@core/crypto/keys";
 import {fromDataToObject} from "@core/query-string";
 import {
     Get3PCRequestBuilder,
-    GetIdsPrefsRequestBuilder, GetNewIdRequestBuilder,
+    GetIdsPrefsRequestBuilder,
+    GetNewIdRequestBuilder,
     PostIdsPrefsRequestBuilder
 } from "@core/model/operator-request-builders";
 

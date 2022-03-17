@@ -3,6 +3,7 @@ import {advertiser, cdn, operator} from "./config";
 import {OperatorBackendClient, RedirectType} from "@operator-client/operator-backend-client";
 import {addOperatorClientProxyEndpoints} from "@operator-client/operator-client-proxy";
 import {publicKeys} from "./public-keys";
+import {addIdentityEndpoint} from "@core/express/identity-endpoint";
 
 export const advertiserApp = express();
 
@@ -19,3 +20,6 @@ advertiserApp.get('/', (req: Request, res: Response) => {
 
 // ...and also as a JS proxy
 addOperatorClientProxyEndpoints(advertiserApp, operator.host, advertiser.host, advertiser.privateKey, [`https://${advertiser.host}`], publicKeys)
+
+// Add identity endpoint
+addIdentityEndpoint(advertiserApp, advertiser.name, advertiser.type, [advertiser.currentPublicKey])

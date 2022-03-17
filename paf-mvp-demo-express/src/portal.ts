@@ -3,7 +3,7 @@ import {operator, portal} from "./config";
 import {OperatorClient} from "@operator-client/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
-import {getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie} from "@core/express";
+import {getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie} from "@core/express/utils";
 import {GetIdsPrefsRequestBuilder, PostIdsPrefsRequestBuilder} from "@core/model/operator-request-builders";
 import {publicKeys} from "./public-keys";
 

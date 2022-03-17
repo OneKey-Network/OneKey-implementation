@@ -7,7 +7,7 @@ import {
     PreferencesData
 } from "./generated-model";
 import {jsonProxyEndpoints} from "../endpoints";
-import {setInQueryString} from "../express";
+import {setInQueryString} from "../express/utils";
 
 export abstract class ProxyRestRequestBuilder<T extends object | undefined> {
     constructor(public proxyHost: string, protected restEndpoint: string) {

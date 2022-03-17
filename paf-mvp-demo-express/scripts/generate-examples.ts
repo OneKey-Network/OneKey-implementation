@@ -25,7 +25,6 @@ import path from "path";
 import {OperatorClient} from "@operator-client/operator-client";
 import {
     Get3PCRequestBuilder,
-    GetIdentityRequestBuilder,
     GetIdsPrefsRequestBuilder,
     GetNewIdRequestBuilder,
     PostIdsPrefsRequestBuilder
@@ -33,7 +32,6 @@ import {
 import {OperatorApi} from "@operator/operator-api";
 import {
     Get3PCResponseBuilder,
-    GetIdentityResponseBuilder,
     GetIdsPrefsResponseBuilder,
     GetNewIdResponseBuilder,
     PostIdsPrefsResponseBuilder
@@ -48,6 +46,8 @@ import {
 } from "@core/model/proxy-request-builders";
 import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
+import {GetIdentityResponseBuilder} from "@core/model/identity-response-builder";
+import {GetIdentityRequestBuilder} from "@core/model/identity-request-builder";
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString))
 const getUrl = (method: "POST" | "GET", url: URL): string => `${method} ${url.pathname}${url.search}\nHost: ${url.host}`
@@ -259,27 +259,16 @@ class Examples {
         this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(undefined) as Error
 
         // **************************** Identity
-        const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operator.host, advertiser.host, cmp.privateKey)
-        const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(operator.host, operator.privateKey, operator.name, operator.type)
+        const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operator.host, advertiser.host)
+        const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(operator.name, operator.type)
         this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined))
-        this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([
-            {
-                publicKey: operator.publicKey,
-                start: new Date("2022/01/01 11:50"),
-                end: new Date("2022/03/01 12:00")
-            }
-        ])
+        this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([operator.currentPublicKey])
 
         // TODO add examples with multiple keys
-        const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmp.host, advertiser.host, cmp.privateKey)
-        const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmp.host, cmp.privateKey, cmp.name, cmp.type)
+        const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmp.host, advertiser.host)
+        const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmp.name, cmp.type)
         this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined))
-        this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
-            {
-                publicKey: cmp.publicKey,
-                start: new Date("2022/01/15 11:50")
-            }
-        ])
+        this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([cmp.currentPublicKey])
 
         // **************************** Proxy
         const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(cmp.host)

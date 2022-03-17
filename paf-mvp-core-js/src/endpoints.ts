@@ -1,24 +1,28 @@
 // TODO refactor to group by operator / operator proxy
 
 // Endpoints exposed by the operator API
-const operatorPrefix = '/paf'
+const pafPrefix = '/paf'
 const redirectRead = '/v1/redirect/get-ids-prefs';
 const redirectWrite = '/v1/redirect/post-ids-prefs';
 export const redirectEndpoints = {
-    read: `${operatorPrefix}${redirectRead}`,
-    write: `${operatorPrefix}${redirectWrite}`
+    read: `${pafPrefix}${redirectRead}`,
+    write: `${pafPrefix}${redirectWrite}`
 }
 const jsonRead = '/v1/ids-prefs';
 const jsonWrite = '/v1/ids-prefs';
 const jsonVerify3PC = '/v1/3pc';
 const jsonNewId = '/v1/new-id';
 const identity = '/v1/identity';
+
 export const jsonOperatorEndpoints = {
-    read: `${operatorPrefix}${jsonRead}`,
-    write: `${operatorPrefix}${jsonWrite}`,
-    verify3PC: `${operatorPrefix}${jsonVerify3PC}`,
-    newId: `${operatorPrefix}${jsonNewId}`,
-    identity: `${operatorPrefix}${identity}`
+    read: `${pafPrefix}${jsonRead}`,
+    write: `${pafPrefix}${jsonWrite}`,
+    verify3PC: `${pafPrefix}${jsonVerify3PC}`,
+    newId: `${pafPrefix}${jsonNewId}`
+}
+
+export const participantEndpoints = {
+    identity: `${pafPrefix}${identity}`
 }
 
 // Endpoints exposed by the operator proxy

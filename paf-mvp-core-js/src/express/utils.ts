@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {CookieOptions} from "express-serve-static-core";
-import {encodeBase64, fromDataToObject, QSParam} from "./query-string";
+import {encodeBase64, fromDataToObject, QSParam} from "../query-string";
+import {CorsOptions} from "cors";
 
 export const setCookie = (res: Response, cookieName: string, cookieValue: any, expirationDate: Date, optionsOverride: CookieOptions = {}) => {
     const options: CookieOptions = {
@@ -47,7 +48,14 @@ export const setInQueryString = <T>(url: URL, requestOrResponse: T): URL => {
     return url
 }
 
-
 export const getCookies = (req: Request) => req.cookies ?? {}
 
 export const getRequestUrl = (req: Request, path = req.url) => new URL(path, `${req.protocol}://${req.get('host')}`)
+
+export const corsOptionsAcceptAll = (req: Request, callback: (err: Error | null, options?: CorsOptions) => void) => {
+    callback(null, {
+        origin: req.header('Origin'),
+        optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+        credentials: true
+    });
+};
