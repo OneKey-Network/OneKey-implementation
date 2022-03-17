@@ -14,16 +14,24 @@ const TIME_TO_DISPLAY = 10_000;
 
 export const Notification = ({ type, destroy }: INotificationProps) => {
   const brandName = window.location.hostname;
+  let timer: number;
+
   useEffect(() => {
-    setTimeout(() => destroy(), TIME_TO_DISPLAY);
+    timer = window.setTimeout(() => destroy(), TIME_TO_DISPLAY);
   }, []);
 
   const launchPrompt = (event: MouseEvent) => {
     event.preventDefault();
     // TODO: launch paf-lib function with callback
     window.__promptConsent();
+    window.clearTimeout(timer);
     destroy();
   };
+
+  const onDestroy = () => {
+    window.clearTimeout(timer);
+    destroy();
+  }
 
   let notificationData: Pick<ISnackBarProps, 'icon' | 'title' | 'message'>;
 
@@ -60,7 +68,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
   return (
     <SnackBar
       {...notificationData}
-      onClose={() => destroy()}
+      onClose={() => onDestroy()}
     />
   );
 };
