@@ -48,7 +48,7 @@ const getOperatorExpiration = (date: Date = new Date()) => {
 // TODO all received requests should be verified (signature)
 // Note that CORS is "disabled" here because the check is done via signature
 // So accept whatever the referer is
-export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, name: string, keys: KeyInfo[], s2sOptions?: AxiosRequestConfig) => {
+export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, name: string, keys: KeyInfo[], allowedDomains: string[], s2sOptions?: AxiosRequestConfig) => {
 
     const keyStore = new PublicKeyStore(s2sOptions)
 
@@ -75,7 +75,13 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     const operatorApi = new OperatorApi(operatorHost, privateKey)
 
     const getReadResponse = async (request: GetIdsPrefsRequest, req: Request) => {
-        const verifyKey = await keyStore.getPublicKey(request.sender);
+        const sender = request.sender;
+
+        if (!allowedDomains.includes(sender)) {
+            throw `Domain not allowed: ${sender}`
+        }
+
+        const verifyKey = await keyStore.getPublicKey(sender);
 
         if (!operatorApi.getIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, request)) {
             throw 'Read request verification failed'
@@ -90,13 +96,19 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         }
 
         return getIdsPrefsResponseBuilder.buildResponse(
-            request.sender,
+            sender,
             {identifiers, preferences}
         );
     };
 
     const getWriteResponse = async (input: PostIdsPrefsRequest, res: Response) => {
-        const verifyKey = await keyStore.getPublicKey(input.sender);
+        const sender = input.sender;
+
+        if (!allowedDomains.includes(sender)) {
+            throw `Domain not allowed: ${sender}`
+        }
+
+        const verifyKey = await keyStore.getPublicKey(sender);
 
         if (!operatorApi.postIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, input)) {
             throw 'Write request verification failed'
@@ -109,14 +121,12 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const {identifiers, preferences} = input.body
 
-        return postIdsPrefsResponseBuilder.buildResponse(input.sender, {identifiers, preferences});
+        return postIdsPrefsResponseBuilder.buildResponse(sender, {identifiers, preferences});
     };
 
     // *****************************************************************************************************************
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
-
-
     const setTest3pcCookie = (res: Response) => {
         const now = new Date();
         const expirationDate = new Date(now)
@@ -167,6 +177,14 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
     app.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), (req, res) => {
         const input = getPafDataFromQueryString<GetNewIdRequest>(req);
+
+        const sender = input.sender;
+
+        if (!allowedDomains.includes(sender)) {
+            throw `Domain not allowed: ${sender}`
+        }
+
+        // FIXME verify signature
 
         const response = getNewIdResponseBuilder.buildResponse(input.receiver, operatorApi.generateNewId())
 
