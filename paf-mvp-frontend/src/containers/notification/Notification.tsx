@@ -25,14 +25,10 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
     destroy();
   };
 
-  let notificationData: Pick<ISnackBarProps, 'icon' | 'title' | 'message'> = {
-    icon: <i/>,
-    title: `You chose to see personalized content and relevant ads on ${brandName}`,
-    message: <div/>
-  };
+  let notificationData: Pick<ISnackBarProps, 'icon' | 'title' | 'message'>;
 
   switch (type) {
-    case NotificationEnum.personalized:
+    case NotificationEnum.personalizedContent:
       notificationData = {
         icon: <Done />,
         title: `You chose to see personalized content and relevant ads on ${brandName}`,
@@ -42,7 +38,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
         </div>
       }
       break;
-    case NotificationEnum.default:
+    case NotificationEnum.generalContent:
       notificationData = {
         icon: <Attention/>,
         title: `You chose to see standard content and ads on ${brandName}`,
@@ -53,7 +49,12 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
       }
       break;
     default:
-      break;
+      console.error('Unexpected function call. The parameter "type" is invalid');
+      notificationData = {
+        icon: <Attention />,
+        title: 'Unexpected function call',
+        message: <div/>
+      }
   }
 
   return (
