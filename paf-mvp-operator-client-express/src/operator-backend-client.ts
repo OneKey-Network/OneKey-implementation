@@ -4,7 +4,7 @@ import winston from "winston";
 import UAParser from "ua-parser-js";
 import {IdsAndOptionalPreferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
 import {Cookies, getPrebidDataCacheExpiration} from "@core/cookies";
-import {fromClientCookieValues, PafStatus, getPafStatus} from "@core/operator-client-commons";
+import {fromClientCookieValues, getPafStatus, PafStatus} from "@core/operator-client-commons";
 import {
     getCookies,
     getPafDataFromQueryString,
@@ -14,8 +14,8 @@ import {
     setCookie
 } from "@core/express/utils";
 import {isBrowserKnownToSupport3PC} from "@core/user-agent";
-import {PublicKeys} from "@core/crypto/keys";
 import {GetIdsPrefsRequestBuilder} from "@core/model/operator-request-builders";
+import {AxiosRequestConfig} from "axios";
 
 export enum RedirectType {
     http = "http",
@@ -51,23 +51,23 @@ const saveCookieValue = <T>(res: Response, cookieName: string, cookieValue: T | 
 }
 
 export class OperatorBackendClient {
-    client: OperatorClient;
-    private getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
+    private readonly client: OperatorClient;
+    private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
 
-    constructor(host: string, sender: string, privateKey: string, protected publicKeys: PublicKeys, private redirectType: RedirectType = RedirectType.http) {
+    constructor(host: string, sender: string, privateKey: string, private redirectType: RedirectType = RedirectType.http, s2sOptions?: AxiosRequestConfig) {
         if (![RedirectType.http, RedirectType.meta].includes(redirectType)) {
             throw "Only backend redirect types are supported"
         }
 
         this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(host, sender, privateKey)
 
-        this.client = new OperatorClient(host, sender, privateKey, publicKeys)
+        this.client = new OperatorClient(sender, privateKey, s2sOptions)
     }
 
-    getIdsAndPreferencesOrRedirect(req: Request, res: Response, view: string): IdsAndOptionalPreferences | undefined {
+    async getIdsAndPreferencesOrRedirect(req: Request, res: Response, view: string): Promise<IdsAndOptionalPreferences | undefined> {
         const uriData = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req);
 
-        const foundData = this.processGetIdsAndPreferencesOrRedirect(req, uriData, res, view);
+        const foundData = await this.processGetIdsAndPreferencesOrRedirect(req, uriData, res, view);
 
         if (foundData) {
             logger.info('Serve HTML', foundData)
@@ -78,7 +78,7 @@ export class OperatorBackendClient {
         return foundData;
     }
 
-    private processGetIdsAndPreferencesOrRedirect(req: Request, uriData: RedirectGetIdsPrefsResponse | undefined, res: Response, view: string): IdsAndOptionalPreferences | undefined {
+    private async processGetIdsAndPreferencesOrRedirect(req: Request, uriData: RedirectGetIdsPrefsResponse | undefined, res: Response, view: string): Promise<IdsAndOptionalPreferences | undefined> {
         // 1. Any Prebid 1st party cookie?
         const cookies = getCookies(req);
 
@@ -98,7 +98,7 @@ export class OperatorBackendClient {
 
             const operatorData = uriData.response
 
-            if (!this.client.verifyReadResponseSignature(operatorData)) {
+            if (!await this.client.verifyReadResponseSignature(operatorData)) {
                 throw 'Verification failed'
             }
 

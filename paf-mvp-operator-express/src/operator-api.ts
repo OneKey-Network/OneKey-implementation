@@ -1,5 +1,11 @@
 import {Express, Request, Response} from "express";
-import {corsOptionsAcceptAll, getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "@core/express/utils";
+import {
+    corsOptionsAcceptAll,
+    getPafDataFromQueryString,
+    httpRedirect,
+    removeCookie,
+    setCookie
+} from "@core/express/utils";
 import cors from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
@@ -26,6 +32,8 @@ import {
 } from "@core/model/operator-response-builders";
 import {addIdentityEndpoint} from "@core/express/identity-endpoint";
 import {KeyInfo} from "@core/crypto/identity";
+import {PublicKeyStore} from "@core/express/key-store";
+import {AxiosRequestConfig} from "axios";
 
 const domainParser = require('tld-extract');
 
@@ -40,7 +48,9 @@ const getOperatorExpiration = (date: Date = new Date()) => {
 // TODO all received requests should be verified (signature)
 // Note that CORS is "disabled" here because the check is done via signature
 // So accept whatever the referer is
-export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, publicKeyStore: PublicKeys, name: string, keys: KeyInfo[]) => {
+export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, name: string, keys: KeyInfo[], s2sOptions?: AxiosRequestConfig) => {
+
+    const keyStore = new PublicKeyStore(s2sOptions)
 
     // Start by adding identity endpoint
     addIdentityEndpoint(app, name, "operator", keys)
@@ -64,8 +74,10 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
     const operatorApi = new OperatorApi(operatorHost, privateKey)
 
-    const getReadResponse = (request: GetIdsPrefsRequest, req: Request) => {
-        if (!operatorApi.getIdsPrefsRequestVerifier.verify(publicKeyStore[request.sender], request)) {
+    const getReadResponse = async (request: GetIdsPrefsRequest, req: Request) => {
+        const verifyKey = await keyStore.getPublicKey(request.sender);
+
+        if (!operatorApi.getIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, request)) {
             throw 'Read request verification failed'
         }
 
@@ -83,8 +95,10 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         );
     };
 
-    const getWriteResponse = (input: PostIdsPrefsRequest, res: Response) => {
-        if (!operatorApi.postIdsPrefsRequestVerifier.verify(publicKeyStore[input.sender], input)) {
+    const getWriteResponse = async (input: PostIdsPrefsRequest, res: Response) => {
+        const verifyKey = await keyStore.getPublicKey(input.sender);
+
+        if (!operatorApi.postIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, input)) {
             throw 'Write request verification failed'
         }
 
@@ -113,13 +127,13 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, {domain: tld})
     }
 
-    app.get(jsonOperatorEndpoints.read, cors(corsOptionsAcceptAll), (req, res) => {
+    app.get(jsonOperatorEndpoints.read, cors(corsOptionsAcceptAll), async (req, res) => {
         // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
         setTest3pcCookie(res);
 
         const request = getPafDataFromQueryString<GetIdsPrefsRequest>(req)
 
-        const response = getReadResponse(request, req);
+        const response = await getReadResponse(request, req);
 
         res.send(response)
     });
@@ -138,11 +152,11 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         res.send(response)
     });
 
-    app.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), (req, res) => {
+    app.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), async (req, res) => {
         const input = JSON.parse(req.body as string) as PostIdsPrefsRequest;
 
         try {
-            const signedData = getWriteResponse(input, res);
+            const signedData = await getWriteResponse(input, res);
 
             res.send(signedData)
         } catch (e) {
@@ -163,13 +177,13 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
 
-    app.get(redirectEndpoints.read, (req, res) => {
+    app.get(redirectEndpoints.read, async (req, res) => {
         const {request, returnUrl} = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
 
         if (returnUrl) {
             // FIXME verify returnUrl is HTTPs
 
-            const response = getReadResponse(request, req);
+            const response = await getReadResponse(request, req);
 
             const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200)
             const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(returnUrl), redirectResponse);
@@ -180,13 +194,13 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         }
     });
 
-    app.get(redirectEndpoints.write, (req, res) => {
+    app.get(redirectEndpoints.write, async (req, res) => {
         const {request, returnUrl} = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
 
         if (returnUrl) {
             // FIXME verify returnUrl is HTTPs
 
-            const response = getWriteResponse(request, res);
+            const response = await getWriteResponse(request, res);
 
             const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200)
             const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(returnUrl), redirectResponse);

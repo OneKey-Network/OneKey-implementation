@@ -17,6 +17,7 @@ import {
     GetNewIdRequestBuilder,
     PostIdsPrefsRequestBuilder
 } from "@core/model/operator-request-builders";
+import {AxiosRequestConfig} from "axios";
 
 /**
  * Get return URL parameter, otherwise set response code 400
@@ -47,8 +48,8 @@ export const getMessageObject = <T>(req: Request, res: Response): T => {
     return requestStr ? JSON.parse(requestStr) as T : undefined
 }
 
-export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: string, sender: string, privateKey: string, allowedOrigins: string[], publicKeys: PublicKeys) => {
-    const client = new OperatorClient(operatorHost, sender, privateKey, publicKeys)
+export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: string, sender: string, privateKey: string, allowedOrigins: string[], s2sOptions?: AxiosRequestConfig) => {
+    const client = new OperatorClient(sender, privateKey, s2sOptions)
 
     const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, sender, privateKey)
     const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey)

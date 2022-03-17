@@ -8,15 +8,16 @@ import {
     GetNewIdResponse,
     Identifier,
     Identifiers,
-    PostSignPreferencesRequest,
+    IdsAndPreferences,
     PostIdsPrefsRequest,
     PostIdsPrefsResponse,
+    PostSignPreferencesRequest,
     Preferences,
     RedirectGetIdsPrefsRequest,
     RedirectGetIdsPrefsResponse,
     RedirectPostIdsPrefsRequest,
     RedirectPostIdsPrefsResponse,
-    Test3Pc, IdsAndPreferences
+    Test3Pc
 } from "@core/model/generated-model";
 import {toIdsCookie, toPrefsCookie, toTest3pcCookie} from "@core/cookies";
 import {getTimeStampInSec} from "@core/timestamp";
@@ -37,7 +38,6 @@ import {
     PostIdsPrefsResponseBuilder
 } from "@core/model/operator-response-builders";
 import {Validator} from "jsonschema";
-import {publicKeys} from "../src/public-keys";
 import * as fs from "fs";
 import {
     ProxyRestSignPostIdsPrefsRequestBuilder,
@@ -178,7 +178,7 @@ class Examples {
         })
         this.setObject('idJson', operatorAPI.signId("7435313e-caee-4889-8ad7-0acd0114ae3c", getTimestamp("2022/01/18 12:13")))
 
-        const cmpClient = new OperatorClient(operator.host, cmp.host, cmp.privateKey, publicKeys)
+        const cmpClient = new OperatorClient(cmp.host, cmp.privateKey)
         this.setObject('preferencesJson', cmpClient.buildPreferences([this.idJson], {use_browsing_for_personalization: true}, getTimestamp("2022/01/18 12:16")));
 
         // **************************** Cookies
@@ -259,13 +259,13 @@ class Examples {
         this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(undefined) as Error
 
         // **************************** Identity
-        const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operator.host, advertiser.host)
+        const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operator.host)
         const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(operator.name, operator.type)
         this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined))
         this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([operator.currentPublicKey])
 
         // TODO add examples with multiple keys
-        const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmp.host, advertiser.host)
+        const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmp.host)
         const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmp.name, cmp.type)
         this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined))
         this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([cmp.currentPublicKey])

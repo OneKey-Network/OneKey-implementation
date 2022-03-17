@@ -5,14 +5,15 @@ import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";
 import {getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie} from "@core/express/utils";
 import {GetIdsPrefsRequestBuilder, PostIdsPrefsRequestBuilder} from "@core/model/operator-request-builders";
-import {publicKeys} from "./public-keys";
+import {s2sOptions} from "./server-config";
+import {addIdentityEndpoint} from "@core/express/identity-endpoint";
 
 const domainParser = require('tld-extract');
 
 export const portalApp = express();
 
 // The portal is a client of the operator API
-const client = new OperatorClient(operator.host, portal.host, portal.privateKey, publicKeys)
+const client = new OperatorClient(portal.host, portal.privateKey, s2sOptions)
 const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operator.host, portal.host, portal.privateKey)
 const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operator.host, portal.host, portal.privateKey)
 
@@ -97,3 +98,4 @@ portalApp.get(writeNewId, (req, res) => {
     httpRedirect(res, getWritePrefsUrl(identifiers, preferences, getRequestUrl(req, '/')).toString());
 });
 
+addIdentityEndpoint(portalApp, portal.name, "vendor", [portal.currentPublicKey])
