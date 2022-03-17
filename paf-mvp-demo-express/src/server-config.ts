@@ -14,16 +14,16 @@ export const crtPath = relative('../paf.crt');
 
 export const isLocalDev = fs.existsSync(keyPath) && fs.existsSync(crtPath);
 
-export const sslOptions = {
-    key: readFileSync(keyPath),
-    cert: readFileSync(crtPath),
-    passphrase: 'prebid'
-};
-
+export let sslOptions: { key: Buffer, cert: Buffer, passphrase: string };
 
 export const s2sOptions: AxiosRequestConfig = {}
 
 if (isLocalDev) {
+    sslOptions = {
+        key: readFileSync(keyPath),
+        cert: readFileSync(crtPath),
+        passphrase: 'prebid'
+    };
     // If running locally, then the certificate must be trusted for S2S calls
     s2sOptions.httpsAgent = new https.Agent({
         rejectUnauthorized: false,
