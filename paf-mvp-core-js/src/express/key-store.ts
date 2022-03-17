@@ -15,12 +15,12 @@ export class PublicKeyStore {
     }
 
     async getPublicKey(domain: string): Promise<PublicKeyInfo> {
-        const now = new Date().getTime();
+        const nowTimestampSeconds = new Date().getTime() / 1000;
 
         const existingKey = this.cache[domain];
 
         // Make sure this key is not out dated. If so, then consider no cache value and request it from identity endpoint
-        if (existingKey && now < existingKey.end.getTime()) {
+        if (existingKey && nowTimestampSeconds < existingKey.end.getTime()) {
             return Promise.resolve(existingKey)
         }
 
@@ -33,9 +33,13 @@ export class PublicKeyStore {
         const responseData = response.data as GetIdentityResponse;
 
         const currentKey = responseData.keys
-            .filter(key => key.start <= now && (key.end === undefined || now < key.end)) // valid keys
+            .filter(key => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)) // valid keys
             .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
             [0] // take the first one (the one that ends as far as possible from now)
+
+        if (currentKey === undefined) {
+            throw `No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`
+        }
 
         // Update cache
         const keyInfo = {
