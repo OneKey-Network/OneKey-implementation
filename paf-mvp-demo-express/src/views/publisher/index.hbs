@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="html">
 <head>
+    <!-- Prebid SSO integration -->
+    <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
+    <script src="https://{{cdnDomain}}/assets/app.bundle.js"></script>
+
     <!-- CMP -->
     <script src="https://{{cdnDomain}}/assets/cmp/cmp.js"></script>
-
-    <!-- Prebid SSO integration -->
-    <script src="https://{{cdnDomain}}/assets/app.bundle.js"></script>
-    <script onload="CMP.cmpCheck()" src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
+    <script>CMP.cmpCheck();</script>
 
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
     <meta name="viewport" content="width=device-width"/>

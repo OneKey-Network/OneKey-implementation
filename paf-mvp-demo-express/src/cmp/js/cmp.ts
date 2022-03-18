@@ -1,4 +1,4 @@
-import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from '@frontend/lib/paf-lib';
+import {refreshIdsAndPreferences, signPreferences, writeIdsAndPref} from '@frontend/lib/paf-lib';
 import {cmpConfig} from "../../config";
 
 declare const PAF: {

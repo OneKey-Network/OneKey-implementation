@@ -44,11 +44,18 @@ const getOperatorExpiration = (date: Date = new Date()) => {
     return expirationDate;
 }
 
+export enum Permission {
+    READ = "READ",
+    WRITE = "WRITE"
+}
+
+export type AllowedDomains = { [domain: string]: Permission[] }
+
 // TODO should be a proper ExpressJS middleware
 // TODO all received requests should be verified (signature)
 // Note that CORS is "disabled" here because the check is done via signature
 // So accept whatever the referer is
-export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, name: string, keys: KeyInfo[], allowedDomains: string[], s2sOptions?: AxiosRequestConfig) => {
+export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, name: string, keys: KeyInfo[], allowedDomains: AllowedDomains, s2sOptions?: AxiosRequestConfig) => {
 
     const keyStore = new PublicKeyStore(s2sOptions)
 
@@ -77,8 +84,8 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     const getReadResponse = async (request: GetIdsPrefsRequest, req: Request) => {
         const sender = request.sender;
 
-        if (!allowedDomains.includes(sender)) {
-            throw `Domain not allowed: ${sender}`
+        if (!allowedDomains[sender]?.includes(Permission.READ)) {
+            throw `Domain not allowed to read data: ${sender}`
         }
 
         const verifyKey = await keyStore.getPublicKey(sender);
@@ -104,8 +111,8 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     const getWriteResponse = async (input: PostIdsPrefsRequest, res: Response) => {
         const sender = input.sender;
 
-        if (!allowedDomains.includes(sender)) {
-            throw `Domain not allowed: ${sender}`
+        if (!allowedDomains[sender]?.includes(Permission.WRITE)) {
+            throw `Domain not allowed to write data: ${sender}`
         }
 
         const verifyKey = await keyStore.getPublicKey(sender);
@@ -180,8 +187,8 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const sender = input.sender;
 
-        if (!allowedDomains.includes(sender)) {
-            throw `Domain not allowed: ${sender}`
+        if (!allowedDomains[sender]?.includes(Permission.READ)) {
+            throw `Domain not allowed to read data: ${sender}`
         }
 
         // FIXME verify signature
