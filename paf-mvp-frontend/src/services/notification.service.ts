@@ -27,7 +27,6 @@ class NotificationService {
     if (type && userHash) {
       this.showNotification(type);
     }
-    localStorage.removeItem(this.afterRedirectNotificationStorage);
   }
 
   private displayAfterRedirect(type: NotificationEnum) {

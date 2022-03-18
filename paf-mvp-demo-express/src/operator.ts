@@ -1,6 +1,5 @@
 import express from "express";
-import {advertiserConfig, cmpConfig, operatorConfig, portalConfig, PrivateConfig} from "./config";
-import {addOperatorApi} from "@operator/operator-api";
+import {addOperatorApi, Permission} from "@operator/operator-api";
 import {s2sOptions} from "./server-config";
 
 // Only exported for generate-examples.ts
@@ -30,10 +29,10 @@ addOperatorApi(
     operatorPrivateConfig.privateKey,
     operatorConfig.name,
     [operatorPrivateConfig.currentPublicKey],
-    [
-        cmpConfig.host,
-        advertiserConfig.host,
-        portalConfig.host
-    ],
+    {
+        [cmpConfig.host]: [Permission.READ, Permission.WRITE],
+        [portalConfig.host]: [Permission.READ, Permission.WRITE],
+        [advertiserConfig.host]: [Permission.READ]
+    },
     s2sOptions
 )
