@@ -3,6 +3,7 @@ import classes from './style.scss';
 
 interface IButtonProps {
   wide?: boolean;
+  small?: boolean;
   accent?: boolean;
   outline?: boolean;
   primary?: boolean;
@@ -16,6 +17,7 @@ interface IButtonProps {
 export const Button = ({
   disabled = false,
   children,
+  small,
   wide,
   primary,
   action,
@@ -26,6 +28,7 @@ export const Button = ({
   const classNames = [
     classList,
     classes.btn,
+    small && classes.small,
     primary && classes.primary,
     wide && classes.wide,
     accent && classes.accent,

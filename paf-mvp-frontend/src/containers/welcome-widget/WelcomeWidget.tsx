@@ -16,6 +16,7 @@ import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
 import { NotificationEnum } from '../../enums/notification.enum';
 import { notificationService } from '../../services/notification.service';
+import { env } from '../../config';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -33,10 +34,14 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
   const pafConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
 
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);
+  const [appIdentifier, setAppIdentifier] = useState(pafIdentifier);
 
   const onChooseOption = (consent: boolean) => {
-    emitConsent(consent)
     setConsent(consent);
+    if (pafIdentifier) {
+      return; // Change settings flow
+    }
+    emitConsent(consent)
     setIsOpen(false);
     notificationService.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent)
   }
@@ -44,6 +49,24 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
   const closeWidget = () => {
     setIsOpen(false);
     destroy();
+  }
+
+  const updateSettings = async () => {
+    const proxyHostName = env.operatorHost;
+    const unsignedPreferences = {
+      version: "0.1",
+      data: { use_browsing_for_personalization: consent }
+    };
+    const signedPreferences = await window.PAF.signPreferences({proxyHostName}, {
+      identifiers: pafCookies.identifiers,
+      unsignedPreferences
+    });
+    await window.PAF.writeIdsAndPref({proxyHostName}, {
+      identifiers: pafCookies.identifiers,
+      preferences: signedPreferences
+    });
+    notificationService.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent)
+    closeWidget();
   }
 
   useEffect(() => {
@@ -65,7 +88,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
           Personalize your marketing to make content and ads more relevant to you on participating websites.
         </p>
 
-        <div class={grid['my-5']}>
+        <div class={[grid['mt-6'], grid['mb-5']].join(' ')}>
           {!!pafIdentifier && <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-2']}`}>
             <div className={`${layout.alignCenter}`}>
               <Tooltip>
@@ -77,7 +100,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
 
             <div>
               <button class={style.refreshBtn}>
-                {pafIdentifier.split('-')?.[0]} <Refresh/>
+                {appIdentifier.split('-')?.[0]} <Refresh/>
               </button>
             </div>
           </div>
@@ -102,11 +125,22 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
           </OptionsGroup>
         </div>
 
+        {!!pafIdentifier && (
+          <div class={grid['my-5']}>
+            <Button
+              wide
+              primary
+              action={() => updateSettings()}>
+              Confirm settings
+            </Button>
+          </div>
+        )}
+
         <p class={`${style.textCenter} ${style.textMuted}`}>
           By choosing one of these options, you agree to our site's terms and conditions.
         </p>
         <div class={`${layout.justifyCenter} ${layout.alignCenter}`}>
-          <Button action={() => setIsDetailsPanelOpen(true)} accent outline>
+          <Button action={() => setIsDetailsPanelOpen(true)} accent outline small>
             Learn more about Onekey
           </Button>
         </div>
