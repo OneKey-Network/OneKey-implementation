@@ -35,7 +35,7 @@ export const cmp: PrebidConfig = {
     host: 'www.crto-poc-2.com',
     type: "vendor",
     currentPublicKey: {
-        start: new Date("2022-01-01T12:00:00.000Z"),
+        start: new Date("2022-01-15T10:50:00.000Z"),
         // Notice: no end date
         publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEl0278pcupaxUfiqHJ9AG9gVMyIO+
@@ -54,7 +54,7 @@ export const operator: PrebidConfig = {
     host: 'crto-poc-1.com',
     type: "operator",
     currentPublicKey: {
-        start: new Date("2022-01-01T12:00:00.000Z"),
+        start: new Date("2022-01-01T10:50:00.000Z"),
         end: new Date("2022-12-31T12:00:00.000Z"),
         publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
