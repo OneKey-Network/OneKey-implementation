@@ -3,27 +3,15 @@ import cookieParser from 'cookie-parser'
 import {operatorApp} from "./operator";
 import vhost from "vhost";
 import {advertiserApp} from "./advertiser";
-import {
-    advertiser,
-    cdn,
-    cmp,
-    Config,
-    operator,
-    portal,
-    publisher
-} from "./config";
+import {advertiserConfig, cdn, cmpConfig, operatorConfig, portalConfig, PublicConfig, publisherConfig} from "./config";
 import {join} from "path";
 import {cmpApp} from "./cmp";
 import {publisherApp} from "./publisher";
 import {portalApp} from "./portal";
 import {cdnApp} from "./paf-cdn";
 import bodyParser from "body-parser";
-import * as fs from "fs";
-import {readFileSync} from "fs";
 import {createServer} from "https";
-import https from "https";
-import {AxiosRequestConfig} from "axios";
-import {crtPath, isLocalDev, keyPath, sslOptions} from "./server-config";
+import {isLocalDev, sslOptions} from "./server-config";
 
 const relative = (path: string) => join(__dirname, path);
 
@@ -54,19 +42,19 @@ const addMiddleware = (app: Express) => {
 
 addMiddleware(mainApp)
 
-const apps: Config[] = []
+const apps: PublicConfig[] = []
 
-const addApp = (config: Config, app: Express) => {
+const addApp = (config: PublicConfig, app: Express) => {
     addMiddleware(app)
     mainApp.use(vhost(config.host, app));
     apps.push(config)
 }
 
-addApp(operator, operatorApp);
-addApp(portal, portalApp);
-addApp(advertiser, advertiserApp);
-addApp(publisher, publisherApp);
-addApp(cmp, cmpApp);
+addApp(operatorConfig, operatorApp);
+addApp(portalConfig, portalApp);
+addApp(advertiserConfig, advertiserApp);
+addApp(publisherConfig, publisherApp);
+addApp(cmpConfig, cmpApp);
 addApp(cdn, cdnApp);
 
 // start the Express server

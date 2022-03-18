@@ -1,5 +1,5 @@
-import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from '@frontend/lib/paf-lib';
-import {cmp} from "../../config";
+import {refreshIdsAndPreferences, signPreferences, writeIdsAndPref} from '@frontend/lib/paf-lib';
+import {cmpConfig} from "../../config";
 
 declare const PAF: {
     refreshIdsAndPreferences: typeof refreshIdsAndPreferences,
@@ -13,7 +13,7 @@ declare global {
 }
 
 // Using the CMP backend as a PAF operator proxy
-const proxyHostName = cmp.host;
+const proxyHostName = cmpConfig.host;
 
 export const cmpCheck = async () => {
     const pafData = await PAF.refreshIdsAndPreferences({proxyHostName, triggerRedirectIfNeeded: true});
