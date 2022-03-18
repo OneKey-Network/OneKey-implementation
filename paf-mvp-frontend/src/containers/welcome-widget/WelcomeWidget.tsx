@@ -1,22 +1,22 @@
-import { h } from 'preact';
-import { Modal } from '../../components/modal/Modal';
-import { useEffect, useState } from 'preact/compat';
+import {h} from 'preact';
+import {Modal} from '../../components/modal/Modal';
+import {useEffect, useState} from 'preact/compat';
 
 import style from './style.scss';
 import grid from '../../styles/grid.scss';
 import layout from '../../styles/layouts.scss';
 import typography from '../../styles/typography.scss';
 
-import { Button } from '../../components/button/Button';
-import { Option } from '../../components/forms/option/Option';
-import { Tooltip } from '../../components/tooltip/Tooltip';
-import { SubPanel } from '../../components/sub-panel/SubPanel';
-import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
-import { Arrow } from '../../components/svg/arrow/Arrow';
-import { Refresh } from '../../components/svg/refresh/Refresh';
-import { NotificationEnum } from '../../enums/notification.enum';
-import { notificationService } from '../../services/notification.service';
-import { env } from '../../config';
+import {Button} from '../../components/button/Button';
+import {Option} from '../../components/forms/option/Option';
+import {Tooltip} from '../../components/tooltip/Tooltip';
+import {SubPanel} from '../../components/sub-panel/SubPanel';
+import {OptionsGroup} from '../../components/forms/options-group/OptionsGroup';
+import {Arrow} from '../../components/svg/arrow/Arrow';
+import {Refresh} from '../../components/svg/refresh/Refresh';
+import {NotificationEnum} from '../../enums/notification.enum';
+import {notificationService} from '../../services/notification.service';
+import {env} from '../../config';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -25,7 +25,7 @@ export interface IWelcomeWidgetProps {
   destroy?: () => void;
 }
 
-export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => {
+export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
 
@@ -52,10 +52,10 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
   }
 
   const updateSettings = async () => {
-    const proxyHostName = env.operatorHost;
+    const proxyHostName = env.operatorProxyHost;
     const unsignedPreferences = {
       version: "0.1",
-      data: { use_browsing_for_personalization: consent }
+      data: {use_browsing_for_personalization: consent}
     };
     const signedPreferences = await window.PAF.signPreferences({proxyHostName}, {
       identifiers: pafCookies.identifiers,
@@ -101,7 +101,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
 
             <div>
               <button class={style.refreshBtn}>
-                {appIdentifier.split('-')?.[0]} <Refresh/>
+                {appIdentifier.split('-')?.[0]} <Refresh />
               </button>
             </div>
           </div>
@@ -110,7 +110,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
             <Option value="on">
               <div class={style.optionTitle}>
                 <h3>Turn on personalized marketing</h3>
-                <Arrow/>
+                <Arrow />
               </div>
               <p class={style.optionDescription}>
                 👉 See more relevant content and ads.
@@ -119,7 +119,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
             <Option value="off">
               <div className={style.optionTitle}>
                 <h3>Turn on standard marketing</h3>
-                <Arrow/>
+                <Arrow />
               </div>
               <p class={style.optionDescription}>
                 👉 See generic content and ads.
