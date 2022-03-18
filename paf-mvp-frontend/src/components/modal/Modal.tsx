@@ -17,7 +17,7 @@ export const Modal = (props: ModalProps) => {
       <div class={style.modal} style={{ maxWidth: props.maxWidth || defaultMaxWidth }}>
         <div class={layout.justifyEnd}>
           <button class={style.closeBtn} onClick={() => props.onClose()}>
-            <span class={`${style.btnText} ${typography.textBold}`}>Close this dialog</span>&times;
+            <span class={`${style.btnText} ${typography.textBold}`}>Close dialog</span>&times;
           </button>
         </div>
         {props.children}

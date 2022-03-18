@@ -1,19 +1,25 @@
 import { h } from 'preact';
 import style from './style.scss';
 import { Cross } from '../svg/cross/Cross';
+import { useState } from 'preact/hooks';
 
 export interface ISnackBarProps {
   icon: JSX.Element,
   title: string | JSX.Element,
   message: string | JSX.Element,
-  isOpen?: boolean,
   onClose: () => void,
 }
 
 export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const animateAndClose = () => {
+    setIsOpen(false);
+    setTimeout(() => onClose(), 1000);
+  }
 
   return (
-    <div class={`${style.container} ${style.open}`}>
+    <div class={`${style.container} ${isOpen ? style.open : ''}`}>
       <div class={style.body}>
         <div class={style.icon}>
           {icon}
@@ -25,7 +31,7 @@ export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
           {message}
         </div>
         <div class={style.closeBtnWrapper}>
-          <button onClick={() => onClose()} class={style.closeBtn}>
+          <button onClick={() => animateAndClose()} class={style.closeBtn}>
             <Cross />
           </button>
         </div>

@@ -4,17 +4,17 @@
   position: fixed;
   width: 100%;
   max-width: 685px;
-  top: 100%;
   left: 0;
   right: 0;
+  bottom: calc(-8rem);
   margin: auto;
   border-radius: .5rem;
   overflow: hidden;
   box-shadow: 0 8px 18px 8px rgb(0 0 0 / 16%);
+  transition: transform .25s ease;
 
   &.open {
-    top: auto;
-    bottom: 2rem;
+    transform: translateY(-10rem);
   }
 }
 
