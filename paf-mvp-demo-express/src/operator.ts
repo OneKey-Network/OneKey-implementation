@@ -1,6 +1,7 @@
 import express from "express";
 import {addOperatorApi, Permission} from "@operator/operator-api";
 import {s2sOptions} from "./server-config";
+import {advertiserConfig, cmpConfig, operatorConfig, portalConfig, PrivateConfig} from "./config";
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {

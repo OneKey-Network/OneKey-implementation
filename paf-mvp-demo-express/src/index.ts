@@ -3,27 +3,15 @@ import cookieParser from 'cookie-parser'
 import {operatorApp} from "./operator";
 import vhost from "vhost";
 import {advertiserApp} from "./advertiser";
-import {
-    advertiserConfig,
-    cdn,
-    cmpConfig,
-    PublicConfig,
-    operatorConfig,
-    portalConfig,
-    publisherConfig
-} from "./config";
+import {advertiserConfig, cdn, cmpConfig, operatorConfig, portalConfig, PublicConfig, publisherConfig} from "./config";
 import {join} from "path";
 import {cmpApp} from "./cmp";
 import {publisherApp} from "./publisher";
 import {portalApp} from "./portal";
 import {cdnApp} from "./paf-cdn";
 import bodyParser from "body-parser";
-import * as fs from "fs";
-import {readFileSync} from "fs";
 import {createServer} from "https";
-import https from "https";
-import {AxiosRequestConfig} from "axios";
-import {crtPath, isLocalDev, keyPath, sslOptions} from "./server-config";
+import {isLocalDev, sslOptions} from "./server-config";
 
 const relative = (path: string) => join(__dirname, path);
 

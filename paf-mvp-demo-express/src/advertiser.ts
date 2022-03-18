@@ -1,5 +1,5 @@
 import express, {Request, Response} from "express";
-import {advertiserConfig, cdn, operatorConfig, PrebidConfig, PrivateConfig} from "./config";
+import {advertiserConfig, cdn, operatorConfig, PrivateConfig} from "./config";
 import {OperatorBackendClient, RedirectType} from "@operator-client/operator-backend-client";
 import {addOperatorClientProxyEndpoints} from "@operator-client/operator-client-proxy";
 import {addIdentityEndpoint} from "@core/express/identity-endpoint";

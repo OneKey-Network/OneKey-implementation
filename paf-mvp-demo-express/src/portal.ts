@@ -1,5 +1,5 @@
 import express from "express";
-import {operatorConfig, portalConfig, PrebidConfig, PrivateConfig} from "./config";
+import {operatorConfig, portalConfig, PrivateConfig} from "./config";
 import {OperatorClient} from "@operator-client/operator-client";
 import {Cookies, fromIdsCookie, fromPrefsCookie} from "@core/cookies";
 import {Preferences, RedirectGetIdsPrefsResponse} from "@core/model/generated-model";

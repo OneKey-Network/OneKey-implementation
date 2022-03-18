@@ -1,5 +1,5 @@
 import express from "express";
-import {cmpConfig, operatorConfig, PrebidConfig, PrivateConfig, publisherConfig} from "./config";
+import {cmpConfig, operatorConfig, PrivateConfig, publisherConfig} from "./config";
 import {addOperatorClientProxyEndpoints} from "@operator-client/operator-client-proxy";
 import {addIdentityEndpoint} from "@core/express/identity-endpoint";
 import {s2sOptions} from "./server-config";
