@@ -1,8 +1,9 @@
 import {KeyInfo} from "@core/crypto/identity";
 
 export interface PublicConfig {
-    host: string;
     name: string;
+    host: string;
+    cdnHost?: string;
 }
 
 export interface PrivateConfig {
@@ -13,27 +14,29 @@ export interface PrivateConfig {
 
 export const advertiserConfig: PublicConfig = {
     name: 'The advertiser CORP',
-    host: 'www.pafmarket.shop'
-}
-
-export const cmpConfig: PublicConfig = {
-    name: 'The CMP CORP',
-    host: 'www.crto-poc-2.com',
-}
-
-export const operatorConfig: PublicConfig = {
-    name: 'Some PAF operator',
-    host: 'crto-poc-1.com'
+    host: 'www.pafmarket.shop',
+    cdnHost: 'cdn.pafmarket.shop'
 }
 
 export const publisherConfig: PublicConfig = {
     name: 'The publisher CORP',
-    host: 'www.pafdemopublisher.com'
+    host: 'www.pafdemopublisher.com',
+    cdnHost: 'cdn.pafdemopublisher.com'
+}
+
+export const cmpConfig: PublicConfig = {
+    name: 'The CMP used by the publisher',
+    host: 'cmp.pafdemopublisher.com',
+}
+
+export const operatorConfig: PublicConfig = {
+    name: 'Some PAF operator',
+    host: 'crto-poc-1.onekey.network'
 }
 
 export const portalConfig: PublicConfig = {
     name: 'A PAF portal',
-    host: `www.crto-poc-1.com`
+    host: `portal.onekey.network`
 }
 
 export const cdn: PublicConfig = {

@@ -31,7 +31,7 @@ advertiserApp.get('/', async (req: Request, res: Response) => {
 
     // Act as an HTTP middleware
     if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
-        res.render(view, {host: advertiserConfig.host, cdnHost: cdn.host});
+        res.render(view, {host: advertiserConfig.host, cdnHost: advertiserConfig.cdnHost});
     }
 });
 

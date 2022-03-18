@@ -24,7 +24,12 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 
 export const cmpApp = express();
 
-addOperatorClientProxyEndpoints(cmpApp, operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey, [`https://${publisherConfig.host}`], s2sOptions)
+// This CMP only allows calls from publisher
+const allowedOrigins = [
+    `https://${publisherConfig.host}`
+];
+
+addOperatorClientProxyEndpoints(cmpApp, operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey, allowedOrigins, s2sOptions)
 
 // Add identity endpoint
 addIdentityEndpoint(cmpApp, cmpConfig.name, cmpPrivateConfig.type, [cmpPrivateConfig.currentPublicKey])
