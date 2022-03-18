@@ -82,20 +82,21 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
   return (
     <div class={style.container}>
       <Modal maxWidth={385} onClose={() => closeWidget()}>
-        <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Set up the best marketing preferences for you</h2>
+        <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Choose your marketing preferences</h2>
 
         <p class={`${style.textCenter} ${style.textMuted}`}>
-          Personalize your marketing to make content and ads more relevant to you on participating websites.
+          Onekey respects your preferences to offer you a better experience across partner websites, without needing to
+          bother you with additional prompts.
         </p>
 
-        <div class={[grid['mt-6'], grid['mb-5']].join(' ')}>
-          {!!pafIdentifier && <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-2']}`}>
+        <div class={grid['my-5']}>
+          {!!pafIdentifier && <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-3']}`}>
             <div className={`${layout.alignCenter}`}>
               <Tooltip>
                 OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time
                 by refreshing your Browsing ID.
               </Tooltip>
-              <b className={typography.textSmall}>Your browsing ID</b>
+              <i className={typography.textExtraSmall}>Your browsing ID</i>
             </div>
 
             <div>
@@ -112,7 +113,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
                 <Arrow/>
               </div>
               <p class={style.optionDescription}>
-                👉 Get relevant content and ads with total control on your settings.
+                👉 See more relevant content and ads.
               </p>
             </Option>
             <Option value="off">
@@ -120,7 +121,9 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
                 <h3>Turn on standard marketing</h3>
                 <Arrow/>
               </div>
-              <p class={style.optionDescription}>👉 See generic content and ads without setting preferences.</p>
+              <p class={style.optionDescription}>
+                👉 See generic content and ads.
+              </p>
             </Option>
           </OptionsGroup>
         </div>
