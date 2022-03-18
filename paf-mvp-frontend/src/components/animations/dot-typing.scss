@@ -1,0 +1,48 @@
+@use 'src/styles/variables' as variables;
+
+$dot-size: 3px;
+$left-dot: 9992px;
+$center-dot: 9999px;
+$right-dot: 10006px;
+
+@mixin render-dots($left-shift, $middle-shift, $right-shift) {
+  box-shadow: $left-dot #{$left-shift} 0 0 variables.$primary-color,
+  $center-dot #{$middle-shift} 0 0 variables.$primary-color,
+  $right-dot #{$right-shift} 0 0 variables.$primary-color;
+}
+
+.dotTyping {
+  position: relative;
+  left: -$center-dot;
+  width: $dot-size;
+  height: $dot-size;
+  border-radius: $dot-size / 2;
+  background-color: variables.$primary-color;
+  color: variables.$primary-color;
+  @include render-dots(0, 0, 0);
+  animation: dotTyping 1.5s infinite linear;
+}
+
+@keyframes dotTyping {
+  0% {
+    @include render-dots(0, 0, 0);
+  }
+  16.667% {
+    @include render-dots(-$dot-size, 0, 0);
+  }
+  33.333% {
+    @include render-dots(0, 0, 0);
+  }
+  50% {
+    @include render-dots(0, -$dot-size, 0);
+  }
+  66.667% {
+    @include render-dots(0, 0, 0);
+  }
+  83.333% {
+    @include render-dots(0, 0, -$dot-size);
+  }
+  100% {
+    @include render-dots(0, 0, 0);
+  }
+}
