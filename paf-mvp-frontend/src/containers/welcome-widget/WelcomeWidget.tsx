@@ -7,16 +7,17 @@ import grid from '../../styles/grid.scss';
 import layout from '../../styles/layouts.scss';
 import typography from '../../styles/typography.scss';
 
-import {Button} from '../../components/button/Button';
-import {Option} from '../../components/forms/option/Option';
-import {Tooltip} from '../../components/tooltip/Tooltip';
-import {SubPanel} from '../../components/sub-panel/SubPanel';
-import {OptionsGroup} from '../../components/forms/options-group/OptionsGroup';
-import {Arrow} from '../../components/svg/arrow/Arrow';
-import {Refresh} from '../../components/svg/refresh/Refresh';
-import {NotificationEnum} from '../../enums/notification.enum';
-import {notificationService} from '../../services/notification.service';
-import {env} from '../../config';
+import { Button } from '../../components/button/Button';
+import { Option } from '../../components/forms/option/Option';
+import { Tooltip } from '../../components/tooltip/Tooltip';
+import { SubPanel } from '../../components/sub-panel/SubPanel';
+import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
+import { Arrow } from '../../components/svg/arrow/Arrow';
+import { Refresh } from '../../components/svg/refresh/Refresh';
+import { NotificationEnum } from '../../enums/notification.enum';
+import { notificationService } from '../../services/notification.service';
+import { env } from '../../config';
+import { DotTyping } from '../../components/animations/DotTyping';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -28,10 +29,11 @@ export interface IWelcomeWidgetProps {
 export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+  const [pafCookies, setPafCookies] = useState(window.PAF.getIdsAndPreferences());
 
-  const pafCookies = window.PAF.getIdsAndPreferences();
   const pafIdentifier = pafCookies?.identifiers?.[0]?.value;
   const pafConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
+  const proxyHostName = env.operatorProxyHost;
 
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);
   const [appIdentifier, setAppIdentifier] = useState(pafIdentifier);
@@ -49,10 +51,19 @@ export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
   const closeWidget = () => {
     setIsOpen(false);
     destroy();
+  };
+
+  const updateIdentifier = async () => {
+    setAppIdentifier('');
+    const newIdentifier = await window.PAF.getNewId({proxyHostName});
+    setAppIdentifier(newIdentifier.value);
+    setPafCookies({
+      ...pafCookies,
+      identifiers: [newIdentifier]
+    });
   }
 
   const updateSettings = async () => {
-    const proxyHostName = env.operatorProxyHost;
     const unsignedPreferences = {
       version: "0.1",
       data: {use_browsing_for_personalization: consent}
@@ -100,8 +111,8 @@ export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
             </div>
 
             <div>
-              <button class={style.refreshBtn}>
-                {appIdentifier.split('-')?.[0]} <Refresh />
+              <button class={`${style.refreshBtn} ${appIdentifier ? '' : style.loading}`} onClick={() => updateIdentifier()}>
+                {appIdentifier.split('-')?.[0]} {appIdentifier ? <Refresh/> : <DotTyping/>}
               </button>
             </div>
           </div>
