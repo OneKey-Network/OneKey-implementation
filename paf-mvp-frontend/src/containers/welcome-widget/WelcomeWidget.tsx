@@ -1,6 +1,6 @@
-import { h } from 'preact';
-import { Modal } from '../../components/modal/Modal';
-import { useEffect, useState } from 'preact/compat';
+import {h} from 'preact';
+import {Modal} from '../../components/modal/Modal';
+import {useEffect, useState} from 'preact/compat';
 
 import style from './style.scss';
 import grid from '../../styles/grid.scss';
@@ -17,6 +17,7 @@ import { Refresh } from '../../components/svg/refresh/Refresh';
 import { NotificationEnum } from '../../enums/notification.enum';
 import { notificationService } from '../../services/notification.service';
 import { env } from '../../config';
+import { DotTyping } from '../../components/animations/DotTyping';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -25,13 +26,14 @@ export interface IWelcomeWidgetProps {
   destroy?: () => void;
 }
 
-export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => {
+export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+  const [pafCookies, setPafCookies] = useState(window.PAF.getIdsAndPreferences());
 
-  const pafCookies = window.PAF.getIdsAndPreferences();
   const pafIdentifier = pafCookies?.identifiers?.[0]?.value;
   const pafConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
+  const proxyHostName = env.operatorProxyHost;
 
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);
   const [appIdentifier, setAppIdentifier] = useState(pafIdentifier);
@@ -49,13 +51,22 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
   const closeWidget = () => {
     setIsOpen(false);
     destroy();
+  };
+
+  const updateIdentifier = async () => {
+    setAppIdentifier('');
+    const newIdentifier = await window.PAF.getNewId({proxyHostName});
+    setAppIdentifier(newIdentifier.value);
+    setPafCookies({
+      ...pafCookies,
+      identifiers: [newIdentifier]
+    });
   }
 
   const updateSettings = async () => {
-    const proxyHostName = env.operatorHost;
     const unsignedPreferences = {
       version: "0.1",
-      data: { use_browsing_for_personalization: consent }
+      data: {use_browsing_for_personalization: consent}
     };
     const signedPreferences = await window.PAF.signPreferences({proxyHostName}, {
       identifiers: pafCookies.identifiers,
@@ -100,8 +111,8 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
             </div>
 
             <div>
-              <button class={style.refreshBtn}>
-                {appIdentifier.split('-')?.[0]} <Refresh/>
+              <button class={`${style.refreshBtn} ${appIdentifier ? '' : style.loading}`} onClick={() => updateIdentifier()}>
+                {appIdentifier.split('-')?.[0]} {appIdentifier ? <Refresh/> : <DotTyping/>}
               </button>
             </div>
           </div>
@@ -110,7 +121,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
             <Option value="on">
               <div class={style.optionTitle}>
                 <h3>Turn on personalized marketing</h3>
-                <Arrow/>
+                <Arrow />
               </div>
               <p class={style.optionDescription}>
                 👉 See more relevant content and ads.
@@ -119,7 +130,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
             <Option value="off">
               <div className={style.optionTitle}>
                 <h3>Turn on standard marketing</h3>
-                <Arrow/>
+                <Arrow />
               </div>
               <p class={style.optionDescription}>
                 👉 See generic content and ads.
