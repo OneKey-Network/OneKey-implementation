@@ -2,7 +2,7 @@
 <html lang="html">
 <head>
     <!-- Prebid SSO integration -->
-    <script onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: false});" src="https://{{cdnHost}}/assets/paf-lib.js"></script>
+    <script onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: true});" src="https://{{cdnHost}}/assets/paf-lib.js"></script>
 
     <script>
         const redirectIfNeeded = () => PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: true})
