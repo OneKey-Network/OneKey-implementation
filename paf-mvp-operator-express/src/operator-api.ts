@@ -21,7 +21,7 @@ import {UnsignedData} from "@core/model/model";
 import {getTimeStampInSec} from "@core/timestamp";
 import {GetIdsPrefsRequestSigner, PostIdsPrefsRequestSigner} from "@core/crypto/message-signature";
 import {Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie} from "@core/cookies";
-import {IdSigner} from "@core/crypto/data-signature";
+import {IdSigner, PrefsSigner} from "@core/crypto/data-signature";
 import {PrivateKey, privateKeyFromString, PublicKeys} from "@core/crypto/keys";
 import {jsonOperatorEndpoints, redirectEndpoints} from "@core/endpoints";
 import {
@@ -56,7 +56,6 @@ export type AllowedDomains = { [domain: string]: Permission[] }
 // Note that CORS is "disabled" here because the check is done via signature
 // So accept whatever the referer is
 export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, name: string, keys: KeyInfo[], allowedDomains: AllowedDomains, s2sOptions?: AxiosRequestConfig) => {
-
     const keyStore = new PublicKeyStore(s2sOptions)
 
     // Start by adding identity endpoint
@@ -66,11 +65,12 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorHost, privateKey)
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey)
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey)
+    const idsSigner = new IdSigner();
+    const prefsSigner = new PrefsSigner();
 
     const tld = domainParser(`https://${operatorHost}`).domain
 
     const writeAsCookies = (input: PostIdsPrefsRequest, res: Response) => {
-        // FIXME here we should verify signatures
         if (input.body.identifiers !== undefined) {
             setCookie(res, Cookies.identifiers, JSON.stringify(input.body.identifiers), getOperatorExpiration(), {domain: tld})
         }
@@ -117,16 +117,32 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const verifyKey = await keyStore.getPublicKey(sender);
 
+        // Verify message
         if (!operatorApi.postIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, input)) {
             throw 'Write request verification failed'
         }
 
+        const {identifiers, preferences} = input.body
+
         // because default value is true, we just remove it to save space
-        input.body.identifiers[0].persisted = undefined;
+        identifiers[0].persisted = undefined;
+
+        // Verify ids
+        for (let i = 0; i < identifiers.length; i ++) {
+            const id = identifiers[i];
+            const verifyKey = await keyStore.getPublicKey(id.source.domain);
+            if (!idsSigner.verify(verifyKey.publicKeyObj, id)) {
+                throw `Identifier verification failed for ${id.value}`
+            }
+        }
+
+        // Verify preferences
+        const prefsVerifyKey = await keyStore.getPublicKey(preferences.source.domain)
+        if (!prefsSigner.verify(prefsVerifyKey.publicKeyObj, input.body)) {
+            throw `Preferences verification failed`
+        }
 
         writeAsCookies(input, res);
-
-        const {identifiers, preferences} = input.body
 
         return postIdsPrefsResponseBuilder.buildResponse(sender, {identifiers, preferences});
     };
