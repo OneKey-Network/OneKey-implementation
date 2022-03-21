@@ -6,7 +6,7 @@ export const SIGN_SEP = '\u2063';
 
 /**
  * U = Unsigned type (used for getting signature input)
- * S = Signed type (used
+ * S = Signed type (used to verify signature)
  */
 export abstract class DataSigner<U, S> {
     protected abstract signatureString(data: U): string;
