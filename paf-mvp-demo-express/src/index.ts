@@ -78,9 +78,9 @@ mainApp.listen(port, () => {
     if (isLocalDev) {
         console.log(`Make sure you have added these lines to your /etc/hosts file or equivalent:`);
         for (let app of apps) {
-            console.log(`127.0.0.1 ${app.host} # ${app.name}`)
+            console.log(`127.0.0.1 ${app.host} # [PAF] ${app.name}`)
             if (app.cdnHost) {
-                console.log(`127.0.0.1 ${app.cdnHost} # ${app.name} (CDN)`)
+                console.log(`127.0.0.1 ${app.cdnHost} # [PAF] ${app.name} (CDN)`)
             }
         }
     }
