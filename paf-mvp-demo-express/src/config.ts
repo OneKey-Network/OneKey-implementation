@@ -38,8 +38,3 @@ export const portalConfig: PublicConfig = {
     name: 'A PAF portal',
     host: `portal.onekey.network`
 }
-
-export const cdn: PublicConfig = {
-    host: `www.crto-poc-2.com`, // /!\ is the same as CMP
-    name: 'CDN'
-}
