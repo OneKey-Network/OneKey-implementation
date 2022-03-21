@@ -2,19 +2,21 @@ import UAParser from 'ua-parser-js';
 import {
   Error,
   Get3PcResponse,
-  GetIdsPrefsResponse, GetNewIdResponse, Identifier,
+  GetIdsPrefsResponse,
+  GetNewIdResponse,
+  Identifier,
   IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostIdsPrefsRequest,
   PostSignPreferencesRequest,
   Preferences,
 } from '@core/model/generated-model';
-import {Cookies, getPrebidDataCacheExpiration} from '@core/cookies';
-import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from '@core/endpoints';
-import {isBrowserKnownToSupport3PC} from '@core/user-agent';
-import {QSParam} from '@core/query-string';
-import {fromClientCookieValues, getPafStatus, PafStatus} from '@core/operator-client-commons';
-import {getCookieValue} from '../utils/cookie';
+import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
+import { isBrowserKnownToSupport3PC } from '@core/user-agent';
+import { QSParam } from '@core/query-string';
+import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
+import { getCookieValue } from '../utils/cookie';
 
 const logger = console;
 
@@ -39,7 +41,7 @@ const removeUrlParameter = (url: string, parameter: string) => {
     const parts = queryString.split(/[&;]/g);
 
     // Reverse iteration as may be destructive
-    for (let i = parts.length; i-- > 0;) {
+    for (let i = parts.length; i-- > 0; ) {
       // Idiom for string.startsWith
       if (parts[i].lastIndexOf(prefix, 0) !== -1) {
         parts.splice(i, 1);
@@ -59,7 +61,10 @@ const setCookie = (name: string, value: string, expiration: Date) => {
 // Update the URL shown in the address bar, without PAF data
 const cleanUpUrL = () => history.pushState(null, '', removeUrlParameter(location.href, QSParam.paf));
 
-const getProxyUrl = (proxyHost: string) => (endpoint: string): string => `https://${proxyHost}${endpoint}`;
+const getProxyUrl =
+  (proxyHost: string) =>
+  (endpoint: string): string =>
+    `https://${proxyHost}${endpoint}`;
 
 const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
   logger.info(`Operator returned value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
@@ -98,18 +103,27 @@ export type SignPrefsOptions = Options;
 export type GetNewIdOptions = Options;
 
 /**
+ * Refresh result
+ */
+export interface RefreshResult {
+  status: PafStatus;
+  data?: IdsAndOptionalPreferences;
+}
+
+/**
  * Ensure local cookies for PAF identifiers and preferences are up-to-date.
  * If they aren't, contact the operator to get fresh values.
  * @param options:
- * - proxyBase: base URL (scheme, servername) of operator proxy. ex: http://myproxy.com
+ * - proxyHostName: servername of operator proxy. ex: www.myproxy.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
- * @return ids and preferences or undefined if user is not participating or if values can't be refreshed
+ * - redirectUrl: the redirectUrl that must be called in return when no 3PC are available. Default = current page
+ * @return a status and optional data
  */
 export const refreshIdsAndPreferences = async ({
-                                                 proxyHostName,
-                                                 triggerRedirectIfNeeded,
-                                                 redirectUrl
-                                               }: RefreshIdsAndPrefsOptions): Promise<IdsAndOptionalPreferences | undefined> => {
+  proxyHostName,
+  triggerRedirectIfNeeded,
+  redirectUrl,
+}: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
   const getUrl = getProxyUrl(proxyHostName);
 
   const redirectToRead = () => {
@@ -119,7 +133,7 @@ export const refreshIdsAndPreferences = async ({
     redirect(url.toString());
   };
 
-  const processGetIdsAndPreferences = async (): Promise<IdsAndOptionalPreferences | undefined> => {
+  const processGetIdsAndPreferences = async (): Promise<RefreshResult> => {
     const urlParams = new URLSearchParams(window.location.search);
     const uriData = urlParams.get(QSParam.paf);
 
@@ -156,7 +170,10 @@ export const refreshIdsAndPreferences = async ({
       saveCookieValue(Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
       saveCookieValue(Cookies.preferences, operatorData.body.preferences);
 
-      return operatorData.body;
+      return {
+        status: PafStatus.UP_TO_DATE,
+        data: operatorData.body,
+      };
     }
 
     logger.info('Redirected from operator: NO');
@@ -168,17 +185,24 @@ export const refreshIdsAndPreferences = async ({
         redirectToRead();
       }
 
-      return undefined;
+      return {
+        status: PafStatus.REDIRECT_NEEDED,
+      };
     }
 
     if (strIds && strPreferences) {
       logger.info('Cookie found: YES');
 
-      if (getPafStatus(strIds, strPreferences) === PafStatus.NOT_PARTICIPATING) {
+      const pafStatus = getPafStatus(strIds, strPreferences);
+
+      if (pafStatus === PafStatus.NOT_PARTICIPATING) {
         logger.info('User is not participating');
       }
 
-      return fromClientCookieValues(strIds, strPreferences);
+      return {
+        status: pafStatus,
+        data: fromClientCookieValues(strIds, strPreferences),
+      };
     }
 
     logger.info('Cookie found: NO');
@@ -190,7 +214,7 @@ export const refreshIdsAndPreferences = async ({
       logger.info('Browser known to support 3PC: YES');
 
       logger.info('Attempt to read from JSON');
-      const readResponse = await fetch(getUrl(jsonProxyEndpoints.read), {credentials: 'include'});
+      const readResponse = await fetch(getUrl(jsonProxyEndpoints.read), { credentials: 'include' });
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -207,17 +231,20 @@ export const refreshIdsAndPreferences = async ({
         saveCookieValue(Cookies.identifiers, persistedIds);
         saveCookieValue(Cookies.preferences, operatorData.body.preferences);
 
-        return operatorData.body;
+        return {
+          status: PafStatus.UP_TO_DATE,
+          data: operatorData.body,
+        };
       }
       logger.info('Operator returned id & prefs: NO');
 
       logger.info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
-      const verifyResponse = await fetch(getUrl(jsonProxyEndpoints.verify3PC), {credentials: 'include'});
-      const testOk: Get3PcResponse | Error = (await verifyResponse.json());
+      const verifyResponse = await fetch(getUrl(jsonProxyEndpoints.verify3PC), { credentials: 'include' });
+      const testOk: Get3PcResponse | Error = await verifyResponse.json();
 
       // 4. 3d party cookie ok?
-      if ((testOk as Get3PcResponse)?.["3pc"]) {
+      if ((testOk as Get3PcResponse)?.['3pc']) {
         // TODO might want to do more verification
         logger.info('3PC verification OK: YES');
 
@@ -227,7 +254,12 @@ export const refreshIdsAndPreferences = async ({
         setCookie(Cookies.identifiers, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
         setCookie(Cookies.preferences, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
 
-        return {identifiers: operatorData.body.identifiers};
+        return {
+          status: PafStatus.UP_TO_DATE,
+          data: {
+            identifiers: operatorData.body.identifiers,
+          },
+        };
       }
       logger.info('3PC verification OK: NO');
       thirdPartyCookiesSupported = false;
@@ -246,7 +278,9 @@ export const refreshIdsAndPreferences = async ({
       setCookie(Cookies.preferences, PafStatus.REDIRECT_NEEDED, getPrebidDataCacheExpiration());
     }
 
-    return undefined;
+    return {
+      status: PafStatus.REDIRECT_NEEDED,
+    };
   };
 
   const idsAndPreferences = await processGetIdsAndPreferences();
@@ -264,11 +298,8 @@ export const refreshIdsAndPreferences = async ({
  * @return the written identifiers and preferences
  */
 export const writeIdsAndPref = async (
-  {
-    proxyHostName,
-    redirectUrl
-  }: WriteIdsAndPrefsOptions,
-  input: IdsAndPreferences,
+  { proxyHostName, redirectUrl }: WriteIdsAndPrefsOptions,
+  input: IdsAndPreferences
 ): Promise<IdsAndOptionalPreferences | undefined> => {
   const getUrl = getProxyUrl(proxyHostName);
 
@@ -337,7 +368,10 @@ export const writeIdsAndPref = async (
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
-export const signPreferences = async ({proxyHostName}: SignPrefsOptions, input: PostSignPreferencesRequest): Promise<Preferences> => {
+export const signPreferences = async (
+  { proxyHostName }: SignPrefsOptions,
+  input: PostSignPreferencesRequest
+): Promise<Preferences> => {
   const getUrl = getProxyUrl(proxyHostName);
 
   // TODO use ProxyRestSignPreferencesRequestBuilder
@@ -356,7 +390,7 @@ export const signPreferences = async ({proxyHostName}: SignPrefsOptions, input: 
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
-export const getNewId = async ({proxyHostName}: GetNewIdOptions): Promise<Identifier> => {
+export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Identifier> => {
   const getUrl = getProxyUrl(proxyHostName);
 
   const response = await fetch(getUrl(jsonProxyEndpoints.newId), {
@@ -374,8 +408,7 @@ export const getNewId = async ({proxyHostName}: GetNewIdOptions): Promise<Identi
 export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
   // Remove special string values
   const cleanCookieValue = (rawValue: string) =>
-    rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING
-      ? undefined : rawValue
+    rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;
 
   const strIds = cleanCookieValue(getCookieValue(Cookies.identifiers));
   const strPreferences = cleanCookieValue(getCookieValue(Cookies.preferences));
@@ -384,8 +417,8 @@ export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
 
   // If the object is not complete (no identifier or no preferences), then consider no valid data
   if (values.identifiers === undefined || values.identifiers.length === 0 || values.preferences === undefined) {
-    return undefined
+    return undefined;
   }
 
   return values as IdsAndPreferences;
-}
+};
