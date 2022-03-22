@@ -4,6 +4,7 @@ import { Attention } from '../../components/svg/attention/Attention';
 import { ISnackBarProps, SnackBar } from '../../components/snack-bar/SnackBar';
 import { useEffect } from 'react';
 import { NotificationEnum } from '../../enums/notification.enum';
+import { useRef } from 'preact/hooks';
 
 export interface INotificationProps {
   type: NotificationEnum;
@@ -14,22 +15,22 @@ const TIME_TO_DISPLAY = 10_000;
 
 export const Notification = ({ type, destroy }: INotificationProps) => {
   const brandName = window.location.hostname;
-  let timer: number;
+  const timerRef = useRef<number>();
 
   useEffect(() => {
-    timer = window.setTimeout(() => destroy(), TIME_TO_DISPLAY);
-  }, []);
+    timerRef.current = window.setTimeout(() => destroy(), TIME_TO_DISPLAY);
+  });
 
   const launchPrompt = (event: MouseEvent) => {
     event.preventDefault();
     // TODO: launch paf-lib function with callback
     window.__promptConsent();
-    window.clearTimeout(timer);
+    window.clearTimeout(timerRef.current);
     destroy();
   };
 
   const onDestroy = () => {
-    window.clearTimeout(timer);
+    window.clearTimeout(timerRef.current);
     destroy();
   }
 
@@ -48,7 +49,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
       break;
     case NotificationEnum.generalContent:
       notificationData = {
-        icon: <Attention/>,
+        icon: <Attention />,
         title: `You chose to see standard content and ads on ${brandName}`,
         message: <div>
           Turn on <a href="#" onClick={launchPrompt}>personalized marketing</a> at any time to make your content and
@@ -61,7 +62,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
       notificationData = {
         icon: <Attention />,
         title: 'Unexpected function call',
-        message: <div/>
+        message: <div />
       }
   }
 

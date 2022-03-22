@@ -112,7 +112,7 @@ export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
 
             <div>
               <button class={`${style.refreshBtn} ${appIdentifier ? '' : style.loading}`} onClick={() => updateIdentifier()}>
-                {appIdentifier.split('-')?.[0]} {appIdentifier ? <Refresh/> : <DotTyping/>}
+                {appIdentifier.split('-')?.[0]} {appIdentifier ? <Refresh /> : <DotTyping />}
               </button>
             </div>
           </div>
