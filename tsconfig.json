@@ -11,6 +11,7 @@
     "skipLibCheck": true,
     "rootDir": ".",
     "baseUrl": ".",
+    "typeRoots": ["paf-mvp-core-js/@types"],
     "paths": {
       "@core/*": ["paf-mvp-core-js/src/*"],
       "@operator/*": ["paf-mvp-operator-express/src/*"],

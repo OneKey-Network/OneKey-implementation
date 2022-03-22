@@ -1,4 +1,4 @@
-import {PrivateKey, privateKeyFromString} from "@core/crypto/keys";
+import {PrivateKey, privateKeyFromString} from '@core/crypto/keys';
 
 export abstract class RestResponseBuilder<T> {
     protected ecdsaKey: PrivateKey;

@@ -1,4 +1,4 @@
-import {Timestamp} from "@core/model/generated-model";
+import {Timestamp} from '@core/model/generated-model';
 
 export interface KeyInfo {
     start: Date;
@@ -10,4 +10,4 @@ export const fromIdentityResponse = (identityKey: { key: string; start: Timestam
     publicKey: identityKey.key,
     start: new Date(identityKey.start),
     end: new Date(identityKey.end),
-})
+});

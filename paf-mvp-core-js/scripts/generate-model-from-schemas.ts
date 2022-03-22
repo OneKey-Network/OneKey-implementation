@@ -1,38 +1,38 @@
-import {compile} from 'json-schema-to-typescript'
-import {JSONSchema4} from "json-schema";
-import * as path from "path";
-import * as fs from "fs";
-import {ResolverOptions} from "@apidevtools/json-schema-ref-parser";
+import {compile} from 'json-schema-to-typescript';
+import {JSONSchema4} from 'json-schema';
+import * as path from 'path';
+import * as fs from 'fs';
+import {ResolverOptions} from '@apidevtools/json-schema-ref-parser';
 
 if (!(process.argv[2]?.length > 0)) {
     const scriptName = path.basename(__filename);
     console.error(`Usage: ts-node ${scriptName} <inputDir>
-Example: ts-node ${scriptName} ../../../addressable-network-proposals/mvp-spec/json-schemas`)
-    process.exit(1)
+Example: ts-node ${scriptName} ../../../addressable-network-proposals/mvp-spec/json-schemas`);
+    process.exit(1);
 }
 
 const inputDir = path.join(process.cwd(), process.argv[2]);
 
 if (!fs.existsSync(inputDir)) {
-    throw `Input dir not found: "${inputDir}"`
+    throw `Input dir not found: "${inputDir}"`;
 }
 
 const outputFile = path.join(__dirname, '..', 'src', 'model', 'generated-model.ts');
 
 const removeRefDescription = (schema: JSONSchema4): JSONSchema4 => {
     if (schema.$ref) {
-        schema.description = undefined
+        schema.description = undefined;
     }
     if (schema.properties) {
         Object.keys(schema.properties).forEach(currentKey => {
-            schema.properties![currentKey] = removeRefDescription(schema.properties![currentKey])
-        })
+            schema.properties![currentKey] = removeRefDescription(schema.properties![currentKey]);
+        });
     } else if (schema.items) {
-        schema.items = removeRefDescription(schema.items)
+        schema.items = removeRefDescription(schema.items);
     }
 
-    return schema
-}
+    return schema;
+};
 
 const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
     // Remove the title attribute that is used to generate interface names (makes very long and ugly names)
@@ -45,33 +45,33 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
         description: description ?? title,
         // Automatically add an "id" field that seems to be needed to get a consistent data model
         id: schema.$id
-    }
-}
+    };
+};
 
 (async () => {
     // Construct a "fake" object that references ALL schemas in the directory,
     // to make sure we generate all types in one output file
     // (json-schema-to-typescript doesn't support to take a _list_ of schemas)
     const files = await fs.promises.readdir(inputDir);
-    const schemas = await Promise.all(files.map(async (f) => JSON.parse(await fs.promises.readFile(path.join(inputDir, f), 'utf-8'))))
+    const schemas = await Promise.all(files.map(async (f) => JSON.parse(await fs.promises.readFile(path.join(inputDir, f), 'utf-8'))));
     const initialValue: JSONSchema4 = {
-        id: "root",
+        id: 'root',
         title: '_',
-        type: "object",
+        type: 'object',
         properties: {},
         additionalProperties: false,
         description: '** Please ignore **\nOnly needed to have an entry point for generating all interfaces together'
     };
 
     const rootSchema = schemas.reduce((accumulator: JSONSchema4, current: JSONSchema4) => {
-        accumulator.properties![current.$id!] = {$ref: `${current.$id}.json`}
-        return accumulator
-    }, initialValue)
+        accumulator.properties![current.$id!] = {$ref: `${current.$id}.json`};
+        return accumulator;
+    }, initialValue);
 
     const schemaStore = schemas.reduce((accumulator: JSONSchema4, current: JSONSchema4) => {
-        accumulator[`${current.$id}.json`] = cleanSchema(current)
-        return accumulator
-    }, {})
+        accumulator[`${current.$id}.json`] = cleanSchema(current);
+        return accumulator;
+    }, {});
 
     // Define a custom resolver that will look "*.json" files in the same repo
     // This is required to be able to use id properties without ".json" at the end
@@ -79,7 +79,7 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
         order: 1, // Will be executed first
         canRead: true,
         read(file) {
-            return JSON.stringify(schemaStore[path.basename(file.url)])
+            return JSON.stringify(schemaStore[path.basename(file.url)]);
         }
     };
 
@@ -89,9 +89,9 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
                 resolve: {localFile: resolver}
             },
             strictIndexSignatures: true
-        })
+        });
 
-    await fs.promises.writeFile(outputFile, ts)
+    await fs.promises.writeFile(outputFile, ts);
 
-    console.log(`Updated: ${outputFile}`)
-})()
+    console.log(`Updated: ${outputFile}`);
+})();

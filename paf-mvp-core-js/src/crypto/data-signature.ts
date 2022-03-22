@@ -1,6 +1,6 @@
-import {Identifier, Identifiers, IdsAndPreferences, Preferences, Source} from "../model/generated-model";
-import {UnsignedData} from "../model/model";
-import {PrivateKey, PublicKey} from "./keys";
+import {Identifier, Identifiers, IdsAndPreferences, Preferences, Source} from '../model/generated-model';
+import {UnsignedData} from '../model/model';
+import {PrivateKey, PublicKey} from './keys';
 
 export const SIGN_SEP = '\u2063';
 
@@ -64,9 +64,9 @@ export class PrefsSigner extends DataSigner<IdsAndUnsignedPreferences, IdsAndPre
 
         const data = idsAndPreferences.preferences.data as unknown as {[key: string]: unknown};
 
-        for (let key in data) {
-            dataToSign.push(key)
-            dataToSign.push(JSON.stringify(data[key]))
+        for (const key in data) {
+            dataToSign.push(key);
+            dataToSign.push(JSON.stringify(data[key]));
         }
 
         return dataToSign.join(SIGN_SEP);

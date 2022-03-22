@@ -1,12 +1,12 @@
-import {GetIdsPrefsRequest, GetNewIdRequest, IdsAndPreferences, PostIdsPrefsRequest} from "./generated-model";
-import {UnsignedMessage} from "./model";
-import {GetIdsPrefsRequestSigner, GetNewIdRequestSigner, PostIdsPrefsRequestSigner} from "../crypto/message-signature";
-import {jsonOperatorEndpoints, redirectEndpoints} from "../endpoints";
-import {getTimeStampInSec} from "../timestamp";
-import {RestAndRedirectRequestBuilder, SignedRestRequestBuilder} from "@core/model/request-builders";
+import {GetIdsPrefsRequest, GetNewIdRequest, IdsAndPreferences, PostIdsPrefsRequest} from './generated-model';
+import {UnsignedMessage} from './model';
+import {GetIdsPrefsRequestSigner, GetNewIdRequestSigner, PostIdsPrefsRequestSigner} from '../crypto/message-signature';
+import {jsonOperatorEndpoints, redirectEndpoints} from '../endpoints';
+import {getTimeStampInSec} from '../timestamp';
+import {RestAndRedirectRequestBuilder, SignedRestRequestBuilder} from '@core/model/request-builders';
 
 export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<GetIdsPrefsRequest> {
-    private readonly signer = new GetIdsPrefsRequestSigner()
+    private readonly signer = new GetIdsPrefsRequestSigner();
 
     constructor(operatorHost: string, clientHost: string, privateKey: string) {
         super(operatorHost, clientHost, jsonOperatorEndpoints.read, redirectEndpoints.read, privateKey);
@@ -17,7 +17,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
             sender: this.clientHost,
             receiver: this.serverHost,
             timestamp
-        }
+        };
         return {
             ...request,
             signature: this.signer.sign(this.ecdsaKey, request)
@@ -26,7 +26,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
 }
 
 export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<PostIdsPrefsRequest> {
-    private readonly signer = new PostIdsPrefsRequestSigner()
+    private readonly signer = new PostIdsPrefsRequestSigner();
 
     constructor(operatorHost: string, clientHost: string, privateKey: string) {
         super(operatorHost, clientHost, jsonOperatorEndpoints.write, redirectEndpoints.write, privateKey);
@@ -38,7 +38,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
             sender: this.clientHost,
             receiver: this.serverHost,
             timestamp
-        }
+        };
         return {
             ...request,
             signature: this.signer.sign(this.ecdsaKey, request)
@@ -49,12 +49,12 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
      * Note: no request parameter as it is used as POST payload, not query string
      */
     getRestUrl(): URL {
-        return this.getUrl(this.restEndpoint)
+        return this.getUrl(this.restEndpoint);
     }
 }
 
 export class GetNewIdRequestBuilder extends SignedRestRequestBuilder<GetNewIdRequest> {
-    private readonly signer = new GetNewIdRequestSigner()
+    private readonly signer = new GetNewIdRequestSigner();
 
     constructor(operatorHost: string, clientHost: string, privateKey: string) {
         super(operatorHost, clientHost, jsonOperatorEndpoints.newId, privateKey);
@@ -65,7 +65,7 @@ export class GetNewIdRequestBuilder extends SignedRestRequestBuilder<GetNewIdReq
             sender: this.clientHost,
             receiver: this.serverHost,
             timestamp
-        }
+        };
         return {
             ...request,
             signature: this.signer.sign(this.ecdsaKey, request)
@@ -86,7 +86,7 @@ export class Get3PCRequestBuilder extends SignedRestRequestBuilder<undefined> {
      * Note: no request parameter
      */
     getRestUrl(): URL {
-        return this.getUrl(this.restEndpoint)
+        return this.getUrl(this.restEndpoint);
     }
 }
 

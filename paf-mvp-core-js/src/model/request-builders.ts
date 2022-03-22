@@ -1,5 +1,5 @@
-import {setInQueryString} from "@core/express/utils";
-import {PrivateKey, privateKeyFromString} from "@core/crypto/keys";
+import {setInQueryString} from '@core/express/utils';
+import {PrivateKey, privateKeyFromString} from '@core/crypto/keys';
 
 export abstract class RestRequestBuilder<T extends object | undefined> {
     constructor(public serverHost: string, protected restEndpoint: string) {
@@ -9,14 +9,14 @@ export abstract class RestRequestBuilder<T extends object | undefined> {
         let url = new URL(`https://${this.serverHost}${endpoint}`);
 
         if (pafQuery) {
-            url = setInQueryString(url, pafQuery)
+            url = setInQueryString(url, pafQuery);
         }
 
-        return url
+        return url;
     }
 
     getRestUrl(request: T): URL {
-        return this.getUrl(this.restEndpoint, request)
+        return this.getUrl(this.restEndpoint, request);
     }
 }
 
@@ -36,13 +36,13 @@ export abstract class RestAndRedirectRequestBuilder<T extends object | undefined
     }
 
     getRedirectUrl(redirectRequest: { request: T, returnUrl: string }): URL {
-        return this.getUrl(this.redirectEndpoint, redirectRequest)
+        return this.getUrl(this.redirectEndpoint, redirectRequest);
     }
 
     toRedirectRequest(request: T, returnUrl: URL) {
         return {
             request,
             returnUrl: returnUrl.toString()
-        }
+        };
     }
 }
