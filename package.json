@@ -8,6 +8,12 @@
     "build-front": "npm run build --prefix paf-mvp-frontend",
     "build-cmp": "npm run build --prefix paf-mvp-demo-express",
     "start:watch": "nodemon --debug .",
+    "lint": "eslint .",
+    "lint:staged": "lint-staged",
+    "lint:fix": "eslint . --fix",
+    "lint:frontend": "npm run lint --prefix paf-mvp-frontend",
+    "lint:all:fix": "npm run lint:fix && npm run lint:fix --prefix paf-mvp-frontend",
+    "prepare": "husky install",
     "###########": "FYI: Google cloud console automatically runs these scripts after deploy:",
     "gcp-build": "npm run build-front && npm run build-cmp",
     "start": "npm run start --prefix paf-mvp-demo-express"
@@ -83,6 +89,7 @@
     "eslint-plugin-react-hooks": "^4.3.0",
     "json-schema-to-typescript": "^10.1.5",
     "jsonschema": "^1.4.0",
+    "lint-staged": "^10.5.4",
     "postcss": "^8.3.11",
     "postcss-initial": "^3.0.4",
     "prettier": "^2.4.1",
@@ -103,12 +110,16 @@
     "typescript": "^4.5.4",
     "typescript-plugin-css-modules": "^3.4.0",
     "webpack": "^5.65.0",
-    "webpack-cli": "^4.9.1"
+    "webpack-cli": "^4.9.1",
+    "husky": "^7.0.0"
   },
   "_moduleAliases": {
     "@core": "paf-mvp-core-js/src",
     "@operator": "paf-mvp-operator-express/src",
     "@operator-client": "paf-mvp-operator-client-express/src",
     "@frontend": "paf-mvp-frontend/src"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "npm run lint:all:fix"
   }
 }

@@ -8,7 +8,7 @@
     "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ./src --c src/.eslintrc --no-eslintrc",
-    "lint:fix": "eslint ./src --fix",
+    "lint:fix": "eslint ./src --fix --c src/.eslintrc --no-eslintrc",
     "lint:prettier": "prettier --list-different \"./src/**/*.{tsx,ts}\"",
     "prettier": "prettier --write \"./src/**/*.{tsx,ts}\" --loglevel silent",
     "prepare": "npm run build"
