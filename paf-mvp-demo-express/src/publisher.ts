@@ -1,5 +1,5 @@
-import express from "express";
-import {publisherConfig} from "./config";
+import express from 'express';
+import { publisherConfig} from './config';
 
 export const publisherApp = express();
 

@@ -21,6 +21,7 @@
     "quotes": ["warn", "single"]
   },
   "ignorePatterns": [
-    "paf-mvp-frontend/*"
+    "paf-mvp-frontend/*",
+    "paf-mvp-demo-express/public/assets/*"
   ]
 }

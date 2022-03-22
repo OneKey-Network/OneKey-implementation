@@ -1,12 +1,12 @@
 import {refreshIdsAndPreferences, signPreferences, writeIdsAndPref} from '@frontend/lib/paf-lib';
-import {cmpConfig} from "../../config";
-import {PafStatus} from "@core/operator-client-commons";
+import {cmpConfig} from '../../config';
+import {PafStatus} from '@core/operator-client-commons';
 
 declare const PAF: {
     refreshIdsAndPreferences: typeof refreshIdsAndPreferences,
     signPreferences: typeof signPreferences,
     writeIdsAndPref: typeof writeIdsAndPref,
-}
+};
 declare global {
     interface Window {
         __promptConsent: () => Promise<boolean>
@@ -24,14 +24,14 @@ export const cmpCheck = async () => {
         return;
     }
 
-    const returnedId = data.identifiers?.[0]
-    const hasPersistedId = returnedId && (returnedId.persisted !== false)
+    const returnedId = data.identifiers?.[0];
+    const hasPersistedId = returnedId && (returnedId.persisted !== false);
 
     if (!hasPersistedId || data.preferences === undefined) {
         const optIn = await window.__promptConsent();
         // 1. sign preferences
         const unsignedPreferences = {
-            version: "0.1",
+            version: '0.1',
             data: {
                 use_browsing_for_personalization: optIn
             }
@@ -39,13 +39,13 @@ export const cmpCheck = async () => {
         const signedPreferences = await PAF.signPreferences({proxyHostName}, {
             identifiers: data.identifiers,
             unsignedPreferences
-        })
+        });
 
         // 2. write
         await PAF.writeIdsAndPref({proxyHostName}, {
             identifiers: data.identifiers,
             preferences: signedPreferences
-        })
+        });
     }
 
-}
+};
