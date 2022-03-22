@@ -38,8 +38,7 @@ export class OperatorClient {
             ...rest,
             source: {
                 ...source,
-                // FIXME use identifiers to sign preferences!
-                signature: this.prefsSigner.sign(this.ecdsaKey, unsignedPreferences)
+                signature: this.prefsSigner.sign(this.ecdsaKey, {identifiers, preferences: unsignedPreferences})
             }
         };
     }
