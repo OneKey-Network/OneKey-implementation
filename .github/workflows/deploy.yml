@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  job_id:
+  deploy_to_cloud:
     runs-on: ubuntu-latest
     steps:
       - uses: 'actions/checkout@v2' # work in the sandbox
