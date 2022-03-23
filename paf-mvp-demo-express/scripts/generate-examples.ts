@@ -454,11 +454,10 @@ class Examples {
         // Old and new value are equal, appart on the signature property
         // This means we can keep the old signature
         return oldExtract.signature;
-      } 
-        console.log('objects are different:');
-        console.log(JSON.stringify(oldExtract.value, null, 2));
-        console.log(JSON.stringify(newExtract.value, null, 2));
-      
+      }
+      console.log('objects are different:');
+      console.log(JSON.stringify(oldExtract.value, null, 2));
+      console.log(JSON.stringify(newExtract.value, null, 2));
     }
     // Keep new signature if data is different
     return newExtract.signature;

@@ -32,7 +32,7 @@ const addMiddleware = (app: Express) => {
   // Systematically redirect to HTTPs
   app.enable('trust proxy');
   app.use((req, res, next) => {
-    req.secure ? next() : res.redirect(`https://${  req.headers.host  }${req.url}`);
+    req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
   });
 };
 

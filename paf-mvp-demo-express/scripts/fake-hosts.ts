@@ -34,9 +34,9 @@ const hostsFile = '/etc/hosts';
     // The content is already cleaned
   } else if (action == 'add') {
     const addConfig = (config: PublicConfig) => {
-      content += `127.0.0.1 ${config.host} ${pattern} ${config.name}${  EOL}`;
+      content += `127.0.0.1 ${config.host} ${pattern} ${config.name}${EOL}`;
       if (config.cdnHost) {
-        content += `127.0.0.1 ${config.cdnHost} ${pattern} ${config.name} (CDN)${  EOL}`;
+        content += `127.0.0.1 ${config.cdnHost} ${pattern} ${config.name} (CDN)${EOL}`;
       }
     };
     addConfig(operatorConfig);

@@ -146,13 +146,12 @@ export class OperatorBackendClient {
       logger.info('Browser known to support 3PC: YES');
 
       return fromClientCookieValues(undefined, undefined);
-    } 
-      logger.info('Browser known to support 3PC: NO');
+    }
+    logger.info('Browser known to support 3PC: NO');
 
-      this.redirectToRead(req, res, view);
+    this.redirectToRead(req, res, view);
 
-      return undefined;
-    
+    return undefined;
   }
 
   private redirectToRead(req: Request, res: Response, view: string) {
