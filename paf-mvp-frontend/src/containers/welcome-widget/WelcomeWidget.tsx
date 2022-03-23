@@ -1,6 +1,6 @@
-import {h} from 'preact';
-import {Modal} from '../../components/modal/Modal';
-import {useEffect, useState} from 'preact/compat';
+import { h } from 'preact';
+import { Modal } from '../../components/modal/Modal';
+import { useEffect, useState } from 'preact/compat';
 
 import style from './style.scss';
 import grid from '../../styles/grid.scss';
@@ -26,7 +26,7 @@ export interface IWelcomeWidgetProps {
   destroy?: () => void;
 }
 
-export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
+export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
   const [pafCookies, setPafCookies] = useState(window.PAF.getIdsAndPreferences());
@@ -43,10 +43,12 @@ export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
     if (pafIdentifier) {
       return; // Change settings flow
     }
-    emitConsent(consent)
+    emitConsent(consent);
     setIsOpen(false);
-    notificationService.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent)
-  }
+    notificationService.showNotification(
+      consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent
+    );
+  };
 
   const closeWidget = () => {
     setIsOpen(false);
@@ -55,30 +57,38 @@ export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
 
   const updateIdentifier = async () => {
     setAppIdentifier('');
-    const newIdentifier = await window.PAF.getNewId({proxyHostName});
+    const newIdentifier = await window.PAF.getNewId({ proxyHostName });
     setAppIdentifier(newIdentifier.value);
     setPafCookies({
       ...pafCookies,
-      identifiers: [newIdentifier]
+      identifiers: [newIdentifier],
     });
-  }
+  };
 
   const updateSettings = async () => {
     const unsignedPreferences = {
-      version: "0.1",
-      data: {use_browsing_for_personalization: consent}
+      version: '0.1',
+      data: { use_browsing_for_personalization: consent },
     };
-    const signedPreferences = await window.PAF.signPreferences({proxyHostName}, {
-      identifiers: pafCookies.identifiers,
-      unsignedPreferences
-    });
-    await window.PAF.writeIdsAndPref({proxyHostName}, {
-      identifiers: pafCookies.identifiers,
-      preferences: signedPreferences
-    });
-    notificationService.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent)
+    const signedPreferences = await window.PAF.signPreferences(
+      { proxyHostName },
+      {
+        identifiers: pafCookies.identifiers,
+        unsignedPreferences,
+      }
+    );
+    await window.PAF.writeIdsAndPref(
+      { proxyHostName },
+      {
+        identifiers: pafCookies.identifiers,
+        preferences: signedPreferences,
+      }
+    );
+    notificationService.showNotification(
+      consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent
+    );
     closeWidget();
-  }
+  };
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'visible';
@@ -101,50 +111,47 @@ export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
         </p>
 
         <div class={grid['my-5']}>
-          {!!pafIdentifier && <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-3']}`}>
-            <div className={`${layout.alignCenter}`}>
-              <Tooltip>
-                OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time
-                by refreshing your Browsing ID.
-              </Tooltip>
-              <i className={typography.textExtraSmall}>Your browsing ID</i>
-            </div>
+          {!!pafIdentifier && (
+            <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-3']}`}>
+              <div className={`${layout.alignCenter}`}>
+                <Tooltip>
+                  OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time
+                  by refreshing your Browsing ID.
+                </Tooltip>
+                <i className={typography.textExtraSmall}>Your browsing ID</i>
+              </div>
 
-            <div>
-              <button class={`${style.refreshBtn} ${appIdentifier ? '' : style.loading}`} onClick={() => updateIdentifier()}>
-                {appIdentifier.split('-')?.[0]} {appIdentifier ? <Refresh /> : <DotTyping />}
-              </button>
+              <div>
+                <button
+                  class={`${style.refreshBtn} ${appIdentifier ? '' : style.loading}`}
+                  onClick={() => updateIdentifier()}
+                >
+                  {appIdentifier.split('-')?.[0]} {appIdentifier ? <Refresh /> : <DotTyping />}
+                </button>
+              </div>
             </div>
-          </div>
-          }
+          )}
           <OptionsGroup selected={getConsentValue()} onSelectOption={(value) => onChooseOption(value === 'on')}>
             <Option value="on">
               <div class={style.optionTitle}>
                 <h3>Turn on personalized marketing</h3>
                 <Arrow />
               </div>
-              <p class={style.optionDescription}>
-                👉 See more relevant content and ads.
-              </p>
+              <p class={style.optionDescription}>👉 See more relevant content and ads.</p>
             </Option>
             <Option value="off">
               <div className={style.optionTitle}>
                 <h3>Turn on standard marketing</h3>
                 <Arrow />
               </div>
-              <p class={style.optionDescription}>
-                👉 See generic content and ads.
-              </p>
+              <p class={style.optionDescription}>👉 See generic content and ads.</p>
             </Option>
           </OptionsGroup>
         </div>
 
         {!!pafIdentifier && (
           <div class={grid['my-5']}>
-            <Button
-              wide
-              primary
-              action={() => updateSettings()}>
+            <Button wide primary action={() => updateSettings()}>
               Confirm settings
             </Button>
           </div>
@@ -186,8 +193,7 @@ export const WelcomeWidget = ({emitConsent, destroy}: IWelcomeWidgetProps) => {
             </p>
             <p class={style.textMuted}>
               You can learn more and manage your choices at any time by going to "Privacy settings" at the bottom of any
-              page.
-              See our Privacy Policy and Privacy Notice.
+              page. See our Privacy Policy and Privacy Notice.
             </p>
           </div>
         </SubPanel>

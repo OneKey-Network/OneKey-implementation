@@ -14,7 +14,7 @@ export abstract class BasePafWidget<T> {
     render(createElement('link', { rel: 'preload', href: this.styleHref, as: 'style' }), document.head);
     this.renderWidget = this.renderWidget.bind(this);
     this.element = createHtmlElement('div', { 'paf-root': '' });
-    this.elementNode = createElement(component, props)
+    this.elementNode = createElement(component, props);
   }
 
   render() {
