@@ -21,11 +21,12 @@ class NotificationService {
   }
 
   displayDelayedNotification() {
-    const type: NotificationEnum = localStorage.getItem(this.afterRedirectNotificationStorage) as NotificationEnum;
-    const localCookies = window.PAF.getIdsAndPreferences();
-    const userHash = localCookies?.identifiers?.[0]?.value;
-    if (type && userHash) {
-      this.showNotification(type);
+    const delayedNotificationType: NotificationEnum = localStorage.getItem(
+      this.afterRedirectNotificationStorage
+    ) as NotificationEnum;
+
+    if (delayedNotificationType) {
+      this.showNotification(delayedNotificationType);
     }
   }
 
