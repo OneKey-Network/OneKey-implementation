@@ -23,3 +23,6 @@ jobs:
 
       - name: Run linters
         run: npm run lint:all
+
+      - name: Run prettier
+        run: npm run lint:prettier
