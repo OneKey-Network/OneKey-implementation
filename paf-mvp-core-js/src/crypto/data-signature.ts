@@ -37,7 +37,7 @@ export class IdSigner extends DataSigner<UnsignedData<Identifier>, Identifier> {
     }
 
     verify(ecdsaPublicKey: PublicKey, inputData: Identifier): boolean {
-        return super.verifyWithSignature(ecdsaPublicKey, inputData, inputData.source.signature)
+        return super.verifyWithSignature(ecdsaPublicKey, inputData, inputData.source.signature);
     }
 }
 
@@ -50,10 +50,10 @@ export class PrefsSigner extends DataSigner<IdsAndUnsignedPreferences, IdsAndPre
     protected signatureString(idsAndPreferences: IdsAndUnsignedPreferences): string {
 
         // Find the "Prebid ID"
-        const identifiersSource = idsAndPreferences.identifiers.find(i => i.type === "paf_browser_id")
+        const identifiersSource = idsAndPreferences.identifiers.find(i => i.type === 'paf_browser_id');
 
         if (!identifiersSource) {
-            throw `Invalid input for preferences signature: "paf_browser_id" identifier not found`
+            throw 'Invalid input for preferences signature: "paf_browser_id" identifier not found';
         }
 
         const dataToSign = [
@@ -73,6 +73,6 @@ export class PrefsSigner extends DataSigner<IdsAndUnsignedPreferences, IdsAndPre
     }
 
     verify(ecdsaPublicKey: PublicKey, signedData: IdsAndPreferences): boolean {
-        return super.verifyWithSignature(ecdsaPublicKey, signedData, signedData.preferences.source.signature)
+        return super.verifyWithSignature(ecdsaPublicKey, signedData, signedData.preferences.source.signature);
     }
 }

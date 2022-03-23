@@ -131,14 +131,14 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
             const id = identifiers[i];
             const verifyKey = await keyStore.getPublicKey(id.source.domain);
             if (!idsSigner.verify(verifyKey.publicKeyObj, id)) {
-                throw `Identifier verification failed for ${id.value}`
+                throw `Identifier verification failed for ${id.value}`;
             }
         }
 
         // Verify preferences
-        const prefsVerifyKey = await keyStore.getPublicKey(preferences.source.domain)
+        const prefsVerifyKey = await keyStore.getPublicKey(preferences.source.domain);
         if (!prefsSigner.verify(prefsVerifyKey.publicKeyObj, input.body)) {
-            throw `Preferences verification failed`
+            throw 'Preferences verification failed';
         }
 
         writeAsCookies(input, res);
