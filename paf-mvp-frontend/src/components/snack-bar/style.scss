@@ -26,8 +26,23 @@
 }
 
 .footer {
-  height: 2rem;
+  padding: .5rem 1rem;
   background: #f7f7f7;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  color: variables.$text-color;
+
+  i {
+    font-size: 10px;
+    font-weight: lighter;
+    margin-right: .5rem;
+  }
+
+  svg {
+    width: 72px;
+    height: 16px;
+  }
 }
 
 .icon {
@@ -37,7 +52,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: rgba(7, 111, 138, 0.12);
+  background: rgba(24, 169, 225, 0.12);
+  color: variables.$primary-color;
 }
 
 .content {

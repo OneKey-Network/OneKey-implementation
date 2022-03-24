@@ -2,6 +2,8 @@ import { h } from 'preact';
 import style from './style.scss';
 import { Cross } from '../svg/cross/Cross';
 import { useState } from 'preact/hooks';
+import { OnekeyLogo } from '../svg/onekey-logo/OnekeyLogo';
+import { Button } from '../button/Button';
 
 export interface ISnackBarProps {
   icon: JSX.Element;
@@ -27,12 +29,15 @@ export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
           {message}
         </div>
         <div class={style.closeBtnWrapper}>
-          <button onClick={() => animateAndClose()} class={style.closeBtn}>
+          <Button accent action={() => animateAndClose()}>
             <Cross />
-          </button>
+          </Button>
         </div>
       </div>
-      <div class={style.footer} />
+      <div class={style.footer}>
+        <i>Better advertising experience by</i>
+        <OnekeyLogo />
+      </div>
     </div>
   );
 };
