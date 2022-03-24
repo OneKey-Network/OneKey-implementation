@@ -1,13 +1,13 @@
 // TODO refactor to group by operator / operator proxy
 
 // Endpoints exposed by the operator API
-const pafPrefix = '/paf'
+const pafPrefix = '/paf';
 const redirectRead = '/v1/redirect/get-ids-prefs';
 const redirectWrite = '/v1/redirect/post-ids-prefs';
 export const redirectEndpoints = {
-    read: `${pafPrefix}${redirectRead}`,
-    write: `${pafPrefix}${redirectWrite}`
-}
+  read: `${pafPrefix}${redirectRead}`,
+  write: `${pafPrefix}${redirectWrite}`,
+};
 const jsonRead = '/v1/ids-prefs';
 const jsonWrite = '/v1/ids-prefs';
 const jsonVerify3PC = '/v1/3pc';
@@ -15,36 +15,36 @@ const jsonNewId = '/v1/new-id';
 const identity = '/v1/identity';
 
 export const jsonOperatorEndpoints = {
-    read: `${pafPrefix}${jsonRead}`,
-    write: `${pafPrefix}${jsonWrite}`,
-    verify3PC: `${pafPrefix}${jsonVerify3PC}`,
-    newId: `${pafPrefix}${jsonNewId}`
-}
+  read: `${pafPrefix}${jsonRead}`,
+  write: `${pafPrefix}${jsonWrite}`,
+  verify3PC: `${pafPrefix}${jsonVerify3PC}`,
+  newId: `${pafPrefix}${jsonNewId}`,
+};
 
 export const participantEndpoints = {
-    identity: `${pafPrefix}${identity}`
-}
+  identity: `${pafPrefix}${identity}`,
+};
 
 // Endpoints exposed by the operator proxy
-const proxyPrefix = '/paf-proxy'
-const jsonVerifyRead = `/v1/verify/read`;
-const jsonSignWrite = `/v1/sign/write`;
-const jsonSignPrefs = `/v1/sign/prefs`;
+const proxyPrefix = '/paf-proxy';
+const jsonVerifyRead = '/v1/verify/read';
+const jsonSignWrite = '/v1/sign/write';
+const jsonSignPrefs = '/v1/sign/prefs';
 export const jsonProxyEndpoints = {
-    verifyRead: `${proxyPrefix}${jsonVerifyRead}`,
-    signWrite: `${proxyPrefix}${jsonSignWrite}`,
-    signPrefs: `${proxyPrefix}${jsonSignPrefs}`,
-    read: `${proxyPrefix}${jsonRead}`,
-    write: `${proxyPrefix}${jsonWrite}`,
-    verify3PC: `${proxyPrefix}${jsonVerify3PC}`,
-    newId: `${proxyPrefix}${jsonNewId}`,
-}
+  verifyRead: `${proxyPrefix}${jsonVerifyRead}`,
+  signWrite: `${proxyPrefix}${jsonSignWrite}`,
+  signPrefs: `${proxyPrefix}${jsonSignPrefs}`,
+  read: `${proxyPrefix}${jsonRead}`,
+  write: `${proxyPrefix}${jsonWrite}`,
+  verify3PC: `${proxyPrefix}${jsonVerify3PC}`,
+  newId: `${proxyPrefix}${jsonNewId}`,
+};
 export const redirectProxyEndpoints = {
-    read: `${proxyPrefix}${redirectEndpoints.read}`,
-    write: `${proxyPrefix}${redirectEndpoints.write}`,
-}
+  read: `${proxyPrefix}${redirectEndpoints.read}`,
+  write: `${proxyPrefix}${redirectEndpoints.write}`,
+};
 
 export const proxyUriParams = {
-    returnUrl: 'returnUrl',
-    message: 'message'
-}
+  returnUrl: 'returnUrl',
+  message: 'message',
+};

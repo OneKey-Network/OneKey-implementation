@@ -4,7 +4,7 @@ import { PromptConsent } from './widgets/prompt-consent';
 import { notificationService } from './services/notification.service';
 
 const promptConsent = () => {
-  return new Promise<boolean>(resolve => new PromptConsent({ emitConsent: value => resolve(value), }).render());
+  return new Promise<boolean>((resolve) => new PromptConsent({ emitConsent: (value) => resolve(value) }).render());
 };
 
 notificationService.displayDelayedNotification();

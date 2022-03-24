@@ -21,9 +21,7 @@ export const SubPanel = ({ children, onClose, isOpen }: ISubPanelProps) => {
             &#x203A;
           </Button>
         </div>
-        <div class={classes.scroll}>
-          {children}
-        </div>
+        <div class={classes.scroll}>{children}</div>
       </div>
     </Fragment>
   );

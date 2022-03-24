@@ -27,6 +27,10 @@ export abstract class MessageValidation<T extends MessageBase> {
         const toSign = this.signatureString(message);
         return ecdsaPrivateKey.sign(toSign)
     }
+  sign(ecdsaPrivateKey: PrivateKey, message: UnsignedMessage<T>): string {
+    const toSign = this.signatureString(message);
+    return ecdsaPrivateKey.sign(toSign);
+  }
 
     /**
      * Verify message signature, timestamp, sender and receiver
@@ -57,18 +61,18 @@ export class PostIdsPrefsRequestValidation extends MessageValidation<PostIdsPref
             postIdsPrefsRequest.receiver,
         ];
 
-        if (postIdsPrefsRequest.body.preferences) {
-            dataToSign.push(postIdsPrefsRequest.body.preferences.source.signature)
-        }
-
-        for (let id of postIdsPrefsRequest.body.identifiers ?? []) {
-            dataToSign.push(id.source.signature)
-        }
-
-        dataToSign.push(postIdsPrefsRequest.timestamp.toString())
-
-        return dataToSign.join(SIGN_SEP);
+    if (postIdsPrefsRequest.body.preferences) {
+      dataToSign.push(postIdsPrefsRequest.body.preferences.source.signature);
     }
+
+    for (const id of postIdsPrefsRequest.body.identifiers ?? []) {
+      dataToSign.push(id.source.signature);
+    }
+
+    dataToSign.push(postIdsPrefsRequest.timestamp.toString());
+
+    return dataToSign.join(SIGN_SEP);
+  }
 }
 
 export class GetIdsPrefsRequestValidation extends MessageValidation<GetIdsPrefsRequest> {
@@ -92,22 +96,19 @@ export class GetNewIdRequestValidation extends MessageValidation<GetNewIdRequest
 }
 
 const getIdsPrefSignatureInput = (getIdsPrefsResponse: UnsignedMessage<GetIdsPrefsResponse>) => {
-    const dataToSign = [
-        getIdsPrefsResponse.sender,
-        getIdsPrefsResponse.receiver,
-    ];
+  const dataToSign = [getIdsPrefsResponse.sender, getIdsPrefsResponse.receiver];
 
-    if (getIdsPrefsResponse.body.preferences) {
-        dataToSign.push(getIdsPrefsResponse.body.preferences.source.signature)
-    }
+  if (getIdsPrefsResponse.body.preferences) {
+    dataToSign.push(getIdsPrefsResponse.body.preferences.source.signature);
+  }
 
-    for (let id of getIdsPrefsResponse.body.identifiers ?? []) {
-        dataToSign.push(id.source.signature)
-    }
+  for (const id of getIdsPrefsResponse.body.identifiers ?? []) {
+    dataToSign.push(id.source.signature);
+  }
 
-    dataToSign.push(getIdsPrefsResponse.timestamp.toString())
+  dataToSign.push(getIdsPrefsResponse.timestamp.toString());
 
-    return dataToSign.join(SIGN_SEP)
+  return dataToSign.join(SIGN_SEP);
 };
 
 export class GetIdsPrefsResponseValidation extends MessageValidation<GetIdsPrefsResponse> {

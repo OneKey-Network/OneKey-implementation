@@ -27,7 +27,7 @@
     "@types/vhost": "^3.0.4",
     "cookie-parser": "^1.4.6",
     "express": "^4.17.2",
-    "express-hbs": "^2.4.0",
+    "express-handlebars": "^6.0.3",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isequal": "^4.5.0",
     "nodemon": "^2.0.15",

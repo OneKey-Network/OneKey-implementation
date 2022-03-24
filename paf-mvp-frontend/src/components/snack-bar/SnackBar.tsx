@@ -4,10 +4,10 @@ import { Cross } from '../svg/cross/Cross';
 import { useState } from 'preact/hooks';
 
 export interface ISnackBarProps {
-  icon: JSX.Element,
-  title: string | JSX.Element,
-  message: string | JSX.Element,
-  onClose: () => void,
+  icon: JSX.Element;
+  title: string | JSX.Element;
+  message: string | JSX.Element;
+  onClose: () => void;
 }
 
 export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
@@ -16,18 +16,14 @@ export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
   const animateAndClose = () => {
     setIsOpen(false);
     setTimeout(() => onClose(), 1000);
-  }
+  };
 
   return (
     <div class={`${style.container} ${isOpen ? style.open : ''}`}>
       <div class={style.body}>
-        <div class={style.icon}>
-          {icon}
-        </div>
+        <div class={style.icon}>{icon}</div>
         <div class={style.content}>
-          <h2 class={style.title}>
-            {title}
-          </h2>
+          <h2 class={style.title}>{title}</h2>
           {message}
         </div>
         <div class={style.closeBtnWrapper}>
@@ -36,7 +32,7 @@ export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
           </button>
         </div>
       </div>
-      <div class={style.footer}/>
+      <div class={style.footer} />
     </div>
   );
 };

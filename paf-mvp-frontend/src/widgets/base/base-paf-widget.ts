@@ -10,11 +10,11 @@ export abstract class BasePafWidget<T> {
     return `${env.host}/${env.isDevelopment ? 'dist' : 'assets'}/app.bundle.css`;
   }
 
-  constructor(component: ComponentFactory<any>, props: T | null = null) {
+  constructor(component: ComponentFactory<T>, props: T | null = null) {
     render(createElement('link', { rel: 'preload', href: this.styleHref, as: 'style' }), document.head);
     this.renderWidget = this.renderWidget.bind(this);
     this.element = createHtmlElement('div', { 'paf-root': '' });
-    this.elementNode = createElement(component, props)
+    this.elementNode = createElement(component, props);
   }
 
   render() {

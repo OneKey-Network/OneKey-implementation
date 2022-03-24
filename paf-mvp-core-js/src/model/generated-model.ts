@@ -51,35 +51,35 @@ export type ResponseCode = number;
 export interface _ {
   domain?: Domain;
   error?: Error;
-  "get-3pc-request"?: Get3PcRequest;
-  "get-3pc-response"?: Get3PcResponse;
-  "get-identity-request"?: GetIdentityRequest;
-  "get-identity-response"?: GetIdentityResponse;
-  "get-ids-prefs-request"?: GetIdsPrefsRequest;
-  "get-ids-prefs-response"?: GetIdsPrefsResponse;
-  "get-new-id-request"?: GetNewIdRequest;
-  "get-new-id-response"?: GetNewIdResponse;
+  'get-3pc-request'?: Get3PcRequest;
+  'get-3pc-response'?: Get3PcResponse;
+  'get-identity-request'?: GetIdentityRequest;
+  'get-identity-response'?: GetIdentityResponse;
+  'get-ids-prefs-request'?: GetIdsPrefsRequest;
+  'get-ids-prefs-response'?: GetIdsPrefsResponse;
+  'get-new-id-request'?: GetNewIdRequest;
+  'get-new-id-response'?: GetNewIdResponse;
   identifier?: Identifier;
   identifiers?: Identifiers;
-  "ids-and-optional-preferences"?: IdsAndOptionalPreferences;
-  "ids-and-preferences"?: IdsAndPreferences;
-  "message-base"?: MessageBase;
-  "post-ids-prefs-request"?: PostIdsPrefsRequest;
-  "post-ids-prefs-response"?: PostIdsPrefsResponse;
-  "post-sign-preferences-request"?: PostSignPreferencesRequest;
-  "preferences-data"?: PreferencesData;
+  'ids-and-optional-preferences'?: IdsAndOptionalPreferences;
+  'ids-and-preferences'?: IdsAndPreferences;
+  'message-base'?: MessageBase;
+  'post-ids-prefs-request'?: PostIdsPrefsRequest;
+  'post-ids-prefs-response'?: PostIdsPrefsResponse;
+  'post-sign-preferences-request'?: PostSignPreferencesRequest;
+  'preferences-data'?: PreferencesData;
   preferences?: Preferences;
-  "redirect-get-ids-prefs-request"?: RedirectGetIdsPrefsRequest;
-  "redirect-get-ids-prefs-response"?: RedirectGetIdsPrefsResponse;
-  "redirect-post-ids-prefs-request"?: RedirectPostIdsPrefsRequest;
-  "redirect-post-ids-prefs-response"?: RedirectPostIdsPrefsResponse;
-  "response-code"?: ResponseCode;
-  "return-url"?: ReturnUrl;
+  'redirect-get-ids-prefs-request'?: RedirectGetIdsPrefsRequest;
+  'redirect-get-ids-prefs-response'?: RedirectGetIdsPrefsResponse;
+  'redirect-post-ids-prefs-request'?: RedirectPostIdsPrefsRequest;
+  'redirect-post-ids-prefs-response'?: RedirectPostIdsPrefsResponse;
+  'response-code'?: ResponseCode;
+  'return-url'?: ReturnUrl;
   signature?: Signature;
   source?: Source;
-  "test-3pc"?: Test3Pc;
+  'test-3pc'?: Test3Pc;
   timestamp?: Timestamp;
-  "unsigned-preferences"?: UnsignedPreferences;
+  'unsigned-preferences'?: UnsignedPreferences;
   version?: Version;
 }
 /**
@@ -95,7 +95,7 @@ export interface Error {
  * GET /v1/3pc response
  */
 export interface Get3PcResponse {
-  "3pc": Test3Pc;
+  '3pc': Test3Pc;
 }
 /**
  * A cookie temporarily set to test support of 3d party cookies
@@ -115,7 +115,7 @@ export interface GetIdentityResponse {
   /**
    * The type of contracting party in the PAF ecosystem
    */
-  type: "vendor" | "operator";
+  type: 'vendor' | 'operator';
   version: Version;
   /**
    * List of public keys the contracting party used or is using for signing data and messages
@@ -188,7 +188,7 @@ export interface Identifier {
   /**
    * The identifier type, identifier of type `paf_browser_id` is mandatory and is "pivot"
    */
-  type: "paf_browser_id";
+  type: 'paf_browser_id';
   /**
    * If set to `false`, means the identifier has not yet been persisted as a cookie.<br>Otherwise, means this identifier is persisted as a PAF cookie<br>(default value = `true` meaning if the property is omitted the identifier *is* persisted)
    */
