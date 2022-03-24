@@ -9,6 +9,106 @@
     <script src="https://{{cdnDomain}}/assets/cmp/cmp.js"></script>
     <script>CMP.cmpCheck();</script>
 
+    <!-- Prebid.js -->
+    <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
+    <script async src="/assets/publisher/prebid/prebid.js"></script>
+
+    <script>
+
+        var div_1_sizes = [
+            [728, 90],
+            [970, 250]
+        ];
+        var div_2_sizes = [
+            [300, 250],
+            [300, 600]
+        ];
+
+        var PREBID_TIMEOUT = 1000;
+        var FAILSAFE_TIMEOUT = 3000;
+
+        var adUnits = [
+            {
+                code: 'div-1',
+                mediaTypes: {
+                    banner: {
+                        sizes: div_1_sizes
+                    }
+                },
+                bids: [{
+                    bidder: 'openx',
+                    params: {
+                        delDomain: 'sademo-d.openx.net',
+                        unit: '540096529',
+                        test: true
+                    }
+                }]
+            },
+            {
+                code: 'div-2',
+                mediaTypes: {
+                    banner: {
+                        sizes: div_2_sizes
+                    }
+                },
+                bids: [{
+                    bidder: 'openx',
+                    params: {
+                        delDomain: 'sademo-d.openx.net',
+                        unit: '540096529',
+                        test: true
+                    }
+                }]
+            }
+        ];
+
+
+        var googletag = googletag || {};
+        googletag.cmd = googletag.cmd || [];
+        googletag.cmd.push(function() {
+            googletag.pubads().disableInitialLoad();
+        });
+
+        var pbjs = pbjs || {};
+        pbjs.que = pbjs.que || [];
+
+        pbjs.que.push(function() {
+            pbjs.addAdUnits(adUnits);
+            pbjs.setConfig({debug: true})
+            pbjs.requestBids({
+                bidsBackHandler: initAdserver,
+                timeout: PREBID_TIMEOUT
+            });
+        });
+
+        function initAdserver() {
+            if (pbjs.initAdserverSet) return;
+            pbjs.initAdserverSet = true;
+            googletag.cmd.push(function() {
+                pbjs.que.push(function() {
+                    pbjs.setTargetingForGPTAsync();
+                    googletag.pubads().refresh();
+                });
+            });
+        }
+        // in case PBJS doesn't load
+        setTimeout(function() {
+            initAdserver();
+        }, FAILSAFE_TIMEOUT);
+
+        googletag.cmd.push(function() {
+            googletag.defineSlot('/90577858/prebid_auid', div_1_sizes, 'div-1').addService(googletag.pubads());
+            googletag.pubads().enableSingleRequest();
+            googletag.enableServices();
+        });
+        googletag.cmd.push(function() {
+            googletag.defineSlot('/90577858/prebid_auid', div_2_sizes, 'div-2').addService(googletag.pubads());
+            googletag.pubads().enableSingleRequest();
+            googletag.enableServices();
+        });
+
+    </script>
+
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
     <meta name="viewport" content="width=device-width"/>
     <title>
@@ -303,6 +403,14 @@
                 </div>
             </div>
         </div>
+        <div id="div-1" style="border:1px solid black;">
+            <script type='text/javascript'>
+                googletag.cmd.push(function() {
+                    googletag.display('div-1');
+                });
+
+            </script>
+        </div>
         <div class="world-news">
             <div class="row">
                 <div class="col-sm-12">
@@ -342,7 +450,12 @@
                     </p>
                     <a href="#" class="font-weight-bold text-dark pt-2">Read Article</a>
                 </div>
-                <div class="col-lg-4 col-sm-6 mb-5 mb-sm-2">
+                <div class="col-lg-4 col-sm-6 mb-5 mb-sm-2" id="div-2" style="border:1px solid black;">
+                    <script type='text/javascript'>
+                        googletag.cmd.push(function() {
+                            googletag.display('div-1');
+                        });
+                    </script>
                 </div>
             </div>
         </div>
