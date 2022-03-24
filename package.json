@@ -9,6 +9,7 @@
     "build-cmp": "npm run build --prefix paf-mvp-demo-express",
     "start:watch": "nodemon --debug .",
     "lint": "eslint .",
+    "lint:all": "npm run lint && npm run lint:frontend",
     "lint:staged": "lint-staged",
     "lint:fix": "eslint . --fix",
     "lint:frontend": "npm run lint --prefix paf-mvp-frontend",
