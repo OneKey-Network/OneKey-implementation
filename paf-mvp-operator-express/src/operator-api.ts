@@ -19,10 +19,10 @@ import {
 } from "@core/model/generated-model";
 import {UnsignedData} from "@core/model/model";
 import {getTimeStampInSec} from "@core/timestamp";
-import {GetIdsPrefsRequestSigner, PostIdsPrefsRequestSigner} from "@core/crypto/message-signature";
+import {GetIdsPrefsRequestValidation, PostIdsPrefsRequestValidation} from "@core/crypto/message-validation";
 import {Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie} from "@core/cookies";
 import {IdSigner, PrefsSigner} from "@core/crypto/data-signature";
-import {PrivateKey, privateKeyFromString, PublicKeys} from "@core/crypto/keys";
+import {PrivateKey, privateKeyFromString} from "@core/crypto/keys";
 import {jsonOperatorEndpoints, redirectEndpoints} from "@core/endpoints";
 import {
     Get3PCResponseBuilder,
@@ -49,6 +49,8 @@ export enum Permission {
     WRITE = "WRITE"
 }
 
+export const messageTTLSeconds = 30;
+
 export type AllowedDomains = { [domain: string]: Permission[] }
 
 // TODO should be a proper ExpressJS middleware
@@ -62,7 +64,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     addIdentityEndpoint(app, name, "operator", keys)
 
     const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey)
-    const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorHost, privateKey)
+    const get3PCResponseBuilder = new Get3PCResponseBuilder()
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey)
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey)
     const idsSigner = new IdSigner();
@@ -90,7 +92,13 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const verifyKey = await keyStore.getPublicKey(sender);
 
-        if (!operatorApi.getIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, request)) {
+        if (!operatorApi.getIdsPrefsRequestVerifier.verify(
+            verifyKey.publicKeyObj,
+            request,
+            sender, // sender will always be ok
+            operatorHost // but operator needs to be verified
+        )) {
+            // TODO [errors] finer error feedback
             throw 'Read request verification failed'
         }
 
@@ -118,7 +126,13 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         const verifyKey = await keyStore.getPublicKey(sender);
 
         // Verify message
-        if (!operatorApi.postIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, input)) {
+        if (!operatorApi.postIdsPrefsRequestVerifier.verify(
+            verifyKey.publicKeyObj,
+            input,
+            sender, // sender will always be ok
+            operatorHost // but operator needs to be verified
+        )) {
+            // TODO [errors] finer error feedback
             throw 'Write request verification failed'
         }
 
@@ -128,7 +142,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         identifiers[0].persisted = undefined;
 
         // Verify ids
-        for (let i = 0; i < identifiers.length; i ++) {
+        for (let i = 0; i < identifiers.length; i++) {
             const id = identifiers[i];
             const verifyKey = await keyStore.getPublicKey(id.source.domain);
             if (!idsSigner.verify(verifyKey.publicKeyObj, id)) {
@@ -258,8 +272,8 @@ export class OperatorApi {
     private readonly idSigner = new IdSigner()
     private readonly ecdsaKey: PrivateKey
 
-    readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestSigner();
-    readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestSigner();
+    readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestValidation();
+    readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestValidation();
 
     constructor(public host: string, privateKey: string) {
         this.ecdsaKey = privateKeyFromString(privateKey)

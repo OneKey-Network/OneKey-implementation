@@ -30,8 +30,7 @@ const domainParser = require('tld-extract');
 export const portalApp = express();
 
 // The portal is a client of the operator API
-const client = new OperatorClient(portalConfig.host, portalPrivateConfig.privateKey, s2sOptions)
-const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey)
+const client = new OperatorClient(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey, s2sOptions)
 const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey)
 
 const removeIdUrl = '/remove-id';
@@ -63,9 +62,8 @@ portalApp.get('/', (req, res) => {
 
     const formatCookie = (value: string | undefined) => value ? JSON.stringify(JSON.parse(value), null, 2) : undefined
 
-    const request = getIdsPrefsRequestBuilder.buildRequest()
-    const redirectRequest = getIdsPrefsRequestBuilder.toRedirectRequest(request, new URL(writeNewId, `${req.protocol}://${req.get('host')}`))
-    const readUrl = getIdsPrefsRequestBuilder.getRedirectUrl(redirectRequest)
+    const returnUrl = new URL(writeNewId, `${req.protocol}://${req.get('host')}`);
+    const readUrl = client.getReadRedirectUrl(returnUrl)
 
     const options: any = {
         cookies: {

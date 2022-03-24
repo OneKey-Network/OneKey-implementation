@@ -52,16 +52,13 @@ const saveCookieValue = <T>(res: Response, cookieName: string, cookieValue: T | 
 
 export class OperatorBackendClient {
     private readonly client: OperatorClient;
-    private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
 
-    constructor(host: string, sender: string, privateKey: string, private redirectType: RedirectType = RedirectType.http, s2sOptions?: AxiosRequestConfig) {
+    constructor(operatorHost: string, sender: string, privateKey: string, private redirectType: RedirectType = RedirectType.http, s2sOptions?: AxiosRequestConfig) {
         if (![RedirectType.http, RedirectType.meta].includes(redirectType)) {
             throw "Only backend redirect types are supported"
         }
 
-        this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(host, sender, privateKey)
-
-        this.client = new OperatorClient(sender, privateKey, s2sOptions)
+        this.client = new OperatorClient(operatorHost, sender, privateKey, s2sOptions)
     }
 
     async getIdsAndPreferencesOrRedirect(req: Request, res: Response, view: string): Promise<IdsAndOptionalPreferences | undefined> {
@@ -98,7 +95,8 @@ export class OperatorBackendClient {
 
             const operatorData = uriData.response
 
-            if (!await this.client.verifyReadResponseSignature(operatorData)) {
+            if (!await this.client.verifyReadResponse(operatorData)) {
+                // TODO [errors] finer error feedback
                 throw 'Verification failed'
             }
 
@@ -143,10 +141,7 @@ export class OperatorBackendClient {
     }
 
     private redirectToRead(req: Request, res: Response, view: string) {
-        const request = this.getIdsPrefsRequestBuilder.buildRequest()
-        const redirectRequest = this.getIdsPrefsRequestBuilder.toRedirectRequest(request, getRequestUrl(req))
-
-        const redirectUrl = this.getIdsPrefsRequestBuilder.getRedirectUrl(redirectRequest).toString()
+        const redirectUrl = this.client.getReadRedirectUrl(getRequestUrl(req)).toString();
         switch (this.redirectType) {
             case RedirectType.http:
                 httpRedirect(res, redirectUrl)

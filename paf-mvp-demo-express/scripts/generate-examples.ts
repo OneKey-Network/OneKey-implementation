@@ -180,7 +180,7 @@ class Examples {
         })
         this.setObject('idJson', operatorAPI.signId("7435313e-caee-4889-8ad7-0acd0114ae3c", getTimestamp("2022/01/18 12:13")))
 
-        const cmpClient = new OperatorClient(cmpConfig.host, cmpPrivateConfig.privateKey)
+        const cmpClient = new OperatorClient(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey, undefined)
         this.setObject('preferencesJson', cmpClient.buildPreferences([this.idJson], {use_browsing_for_personalization: true}, getTimestamp("2022/01/18 12:16")));
 
         // **************************** Cookies
@@ -254,7 +254,7 @@ class Examples {
 
         // **************************** Verify 3PC
         const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey)
-        const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorConfig.host, operatorPrivateConfig.privateKey)
+        const get3PCResponseBuilder = new Get3PCResponseBuilder()
         this.get3pcRequestHttp = getGETUrl(get3PCRequestBuilder.getRestUrl())
 
         this.get3pcResponse_supportedJson = get3PCResponseBuilder.buildResponse(this["test_3pc_cookie-prettyJson"]) as Get3PcResponse
