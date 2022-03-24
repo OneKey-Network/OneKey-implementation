@@ -1,7 +1,7 @@
-import {join} from "path";
-import fs, {readFileSync} from "fs";
-import {AxiosRequestConfig} from "axios";
-import https from "https";
+import {join} from 'path';
+import fs, {readFileSync} from 'fs';
+import {AxiosRequestConfig} from 'axios';
+import https from 'https';
 
 const relative = (path: string) => join(__dirname, path);
 /**
@@ -16,7 +16,7 @@ export const isLocalDev = fs.existsSync(keyPath) && fs.existsSync(crtPath);
 
 export let sslOptions: { key: Buffer, cert: Buffer, passphrase: string };
 
-export const s2sOptions: AxiosRequestConfig = {}
+export const s2sOptions: AxiosRequestConfig = {};
 
 if (isLocalDev) {
     sslOptions = {
@@ -28,5 +28,5 @@ if (isLocalDev) {
     s2sOptions.httpsAgent = new https.Agent({
         rejectUnauthorized: false,
         ...sslOptions
-    })
+    });
 }

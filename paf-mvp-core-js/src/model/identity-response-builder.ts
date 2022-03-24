@@ -1,9 +1,9 @@
-import {KeyInfo} from "@core/crypto/identity";
-import {GetIdentityResponse} from "@core/model/generated-model";
-import {getTimeStampInSec} from "@core/timestamp";
+import {KeyInfo} from '@core/crypto/identity';
+import {GetIdentityResponse} from '@core/model/generated-model';
+import {getTimeStampInSec} from '@core/timestamp';
 
 export class GetIdentityResponseBuilder {
-    constructor(protected name: string, protected type: "vendor" | "operator") {
+    constructor(protected name: string, protected type: 'vendor' | 'operator') {
     }
 
     buildResponse(keys: KeyInfo[]): GetIdentityResponse {
@@ -15,7 +15,7 @@ export class GetIdentityResponseBuilder {
                 end: end ? getTimeStampInSec(end) : undefined,
             })),
             type: this.type,
-            version: "0.1"
-        }
+            version: '0.1'
+        };
     }
 }

@@ -5,9 +5,9 @@ import {
     PostSignPreferencesRequest,
     Preferences,
     PreferencesData
-} from "./generated-model";
-import {jsonProxyEndpoints} from "../endpoints";
-import {setInQueryString} from "../express/utils";
+} from './generated-model';
+import {jsonProxyEndpoints} from '../endpoints';
+import {setInQueryString} from '../express/utils';
 
 export abstract class ProxyRestRequestBuilder<T extends object | undefined> {
     constructor(public proxyHost: string, protected restEndpoint: string) {
@@ -17,14 +17,14 @@ export abstract class ProxyRestRequestBuilder<T extends object | undefined> {
         let url = new URL(`https://${this.proxyHost}${endpoint}`);
 
         if (pafQuery) {
-            url = setInQueryString(url, pafQuery)
+            url = setInQueryString(url, pafQuery);
         }
 
-        return url
+        return url;
     }
 
     getRestUrl(request: T): URL {
-        return this.getProxyUrl(this.restEndpoint, request)
+        return this.getProxyUrl(this.restEndpoint, request);
     }
 }
 
@@ -38,10 +38,10 @@ export class ProxyRestSignPreferencesRequestBuilder extends ProxyRestRequestBuil
         return {
             identifiers,
             unsignedPreferences: {
-                version: "0.1",
+                version: '0.1',
                 data
             }
-        }
+        };
     }
 }
 
@@ -55,7 +55,7 @@ export class ProxyRestSignPostIdsPrefsRequestBuilder extends ProxyRestRequestBui
         return {
             identifiers,
             preferences
-        }
+        };
     }
 }
 

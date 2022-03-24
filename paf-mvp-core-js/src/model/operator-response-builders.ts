@@ -8,17 +8,17 @@ import {
     IdsAndPreferences,
     PostIdsPrefsResponse,
     Test3Pc
-} from "./generated-model";
-import {UnsignedMessage} from "./model";
+} from './generated-model';
+import {UnsignedMessage} from './model';
 import {
     GetIdsPrefsResponseSigner,
     GetNewIdResponseSigner,
     PostIdsPrefsResponseSigner
-} from "../crypto/message-signature";
-import {jsonOperatorEndpoints, redirectEndpoints} from "../endpoints";
-import {getTimeStampInSec} from "../timestamp";
-import {setInQueryString} from "../express/utils";
-import {RestResponseBuilder} from "@core/model/response-builders";
+} from '../crypto/message-signature';
+import {jsonOperatorEndpoints, redirectEndpoints} from '../endpoints';
+import {getTimeStampInSec} from '../timestamp';
+import {setInQueryString} from '../express/utils';
+import {RestResponseBuilder} from '@core/model/response-builders';
 
 export abstract class RestAndRedirectResponseBuilder<T> extends RestResponseBuilder<T> {
 
@@ -29,22 +29,22 @@ export abstract class RestAndRedirectResponseBuilder<T> extends RestResponseBuil
     getRedirectUrl(returnUrl: URL, redirectResponse: { code: number, response?: T, error?: Error }): URL {
 
         if (redirectResponse) {
-            setInQueryString(returnUrl, redirectResponse)
+            setInQueryString(returnUrl, redirectResponse);
         }
 
-        return returnUrl
+        return returnUrl;
     }
 
     toRedirectResponse(response: T, code: number) {
         return {
             code,
             response
-        }
+        };
     }
 }
 
 export class GetIdsPrefsResponseBuilder extends RestAndRedirectResponseBuilder<GetIdsPrefsResponse> {
-    private readonly signer = new GetIdsPrefsResponseSigner()
+    private readonly signer = new GetIdsPrefsResponseSigner();
 
     constructor(host: string, privateKey: string) {
         super(host, privateKey, jsonOperatorEndpoints.read, redirectEndpoints.read);
@@ -68,12 +68,12 @@ export class GetIdsPrefsResponseBuilder extends RestAndRedirectResponseBuilder<G
         return {
             ...data,
             signature: this.signer.sign(this.ecdsaKey, data)
-        }
+        };
     }
 }
 
 export class PostIdsPrefsResponseBuilder extends RestAndRedirectResponseBuilder<PostIdsPrefsResponse> {
-    private readonly signer = new PostIdsPrefsResponseSigner()
+    private readonly signer = new PostIdsPrefsResponseSigner();
 
     constructor(host: string, privateKey: string) {
         super(host, privateKey, jsonOperatorEndpoints.read, redirectEndpoints.read);
@@ -97,12 +97,12 @@ export class PostIdsPrefsResponseBuilder extends RestAndRedirectResponseBuilder<
         return {
             ...data,
             signature: this.signer.sign(this.ecdsaKey, data)
-        }
+        };
     }
 }
 
 export class GetNewIdResponseBuilder extends RestResponseBuilder<GetNewIdResponse> {
-    private readonly signer = new GetNewIdResponseSigner()
+    private readonly signer = new GetNewIdResponseSigner();
 
     constructor(host: string, privateKey: string) {
         super(host, privateKey, jsonOperatorEndpoints.newId);
@@ -121,7 +121,7 @@ export class GetNewIdResponseBuilder extends RestResponseBuilder<GetNewIdRespons
         return {
             ...data,
             signature: this.signer.sign(this.ecdsaKey, data)
-        }
+        };
     }
 }
 
@@ -133,8 +133,8 @@ export class Get3PCResponseBuilder extends RestResponseBuilder<undefined> {
 
     buildResponse(cookieFound: Test3Pc | undefined): Get3PcResponse | Error {
         return cookieFound
-            ? {"3pc": cookieFound}
-            : {message: "3PC not supported"}
+            ? {'3pc': cookieFound}
+            : {message: '3PC not supported'};
     }
 }
 

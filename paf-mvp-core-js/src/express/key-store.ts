@@ -1,8 +1,8 @@
-import {fromIdentityResponse, KeyInfo} from "@core/crypto/identity";
-import {GetIdentityRequestBuilder} from "@core/model/identity-request-builder";
-import {GetIdentityResponse} from "@core/model/generated-model";
-import {PublicKey, publicKeyFromString} from "@core/crypto/keys";
-import axios, {Axios, AxiosRequestConfig} from "axios";
+import {fromIdentityResponse, KeyInfo} from '@core/crypto/identity';
+import {GetIdentityRequestBuilder} from '@core/model/identity-request-builder';
+import {GetIdentityResponse} from '@core/model/generated-model';
+import {PublicKey, publicKeyFromString} from '@core/crypto/keys';
+import axios, {Axios, AxiosRequestConfig} from 'axios';
 
 type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
 
@@ -11,7 +11,7 @@ export class PublicKeyStore {
     protected s2sClient: Axios;
 
     constructor(s2sOptions?: AxiosRequestConfig) {
-        this.s2sClient = axios.create(s2sOptions)
+        this.s2sClient = axios.create(s2sOptions);
     }
 
     async getPublicKey(domain: string): Promise<PublicKeyInfo> {
@@ -21,12 +21,12 @@ export class PublicKeyStore {
 
         // Make sure this key is not out dated. If so, then consider no cache value and request it from identity endpoint
         if (existingKey && nowTimestampSeconds < existingKey.end.getTime()) {
-            return Promise.resolve(existingKey)
+            return Promise.resolve(existingKey);
         }
 
-        const queryBuilder = new GetIdentityRequestBuilder(domain)
-        const request = queryBuilder.buildRequest()
-        const url = queryBuilder.getRestUrl(request)
+        const queryBuilder = new GetIdentityRequestBuilder(domain);
+        const request = queryBuilder.buildRequest();
+        const url = queryBuilder.getRestUrl(request);
 
         // Call identity endpoint
         const response = await this.s2sClient.get(url.toString());
@@ -35,10 +35,10 @@ export class PublicKeyStore {
         const currentKey = responseData.keys
             .filter(key => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)) // valid keys
             .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
-            [0] // take the first one (the one that ends as far as possible from now)
+            .at(0); // take the first one (the one that ends as far as possible from now)
 
         if (currentKey === undefined) {
-            throw `No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`
+            throw `No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`;
         }
 
         // Update cache
@@ -48,6 +48,6 @@ export class PublicKeyStore {
         };
         this.cache[domain] = keyInfo;
 
-        return keyInfo
+        return keyInfo;
     }
 }

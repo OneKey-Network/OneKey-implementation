@@ -36,7 +36,7 @@ export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
           </button>
         </div>
       </div>
-      <div class={style.footer}/>
+      <div class={style.footer} />
     </div>
   );
 };
