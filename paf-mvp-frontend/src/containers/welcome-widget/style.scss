@@ -1,8 +1,9 @@
 @use 'src/styles/variables' as variables;
 
 .container {
-  color: #120B45;
+  color: variables.$text-color;
   line-height: 1.3;
+  font-size: .75rem;
 
   * {
     box-sizing: border-box;
@@ -11,15 +12,11 @@
 
 .widgetHeading {
   font-size: .95rem;
+  color: variables.$neutral-dark;
 }
 
 .textCenter {
   text-align: center;
-}
-
-.textMuted {
-  color: variables.$muted-color;
-  font-size: 12px;
 }
 
 .optionTitle {
@@ -31,36 +28,45 @@
   h3 {
     font-size: 0.875rem;
     margin: 0;
-    color: variables.$accent-color;
+    color: variables.$neutral-dark-2;
   }
 }
 
 .optionDescription {
   font-size: .75rem;
   margin: 0;
-  color: variables.$muted-color;
+  color: variables.$text-color;
 }
 
-.refreshBtn {
-  padding: .25rem .5rem;
-  background: rgba(7, 111, 138, 0.12);
-  text-transform: uppercase;
-  color: variables.$primary-color;
-  appearance: none;
-  border: none;
-  border-radius: .5rem;
-  font-weight: 600;
-  font-size: .65rem;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  line-height: 1.6;
+.loading {
+  padding: 12.5px 1rem;
+}
 
-  svg {
-    margin-left: .25rem;
+.learnMoreTitle {
+  text-align: center;
+  color: variables.$neutral-dark;
+  margin: .5rem 0;
+}
+
+.learnMoreContent {
+  @extend .textCenter;
+
+  p:not(:first-child) {
+    margin-block-end: 1rem;
+    margin-block-start: 1rem;
   }
 
-  &.loading {
-    padding: 11px 1rem;
+  a {
+    color: variables.$primary-color;
+    text-decoration: none;
+    transition: color .15s;
+
+    &:hover {
+      color: variables.$primary-color-hover;
+    }
+
+    &:active {
+      color: variables.$primary-color-active;
+    }
   }
 }

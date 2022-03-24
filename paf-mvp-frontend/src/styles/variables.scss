@@ -1,3 +1,10 @@
-$primary-color: #076F8A;
-$accent-color: #505253;
-$muted-color: #828586;
+$primary-color: #18A9E1;
+$primary-color-hover: darken($primary-color, 12.5);
+$primary-color-active: darken($primary-color, 15);
+$primary-color-lighten: lighten($primary-color, 45);
+
+$neutral-dark: #252E38;
+$neutral-dark-2: #505253;
+
+$disabled-color: #c4c5c6;
+$text-color: #828586;

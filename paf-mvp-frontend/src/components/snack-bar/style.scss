@@ -44,12 +44,12 @@
   flex: 1;
   padding: 0 1rem;
   font-size: .75rem;
-  color: variables.$accent-color;
+  color: variables.$neutral-dark-2;
 
   h2 {
     margin: 0 0 .25rem;
     font-size: .85rem;
-    color: #120B45;
+    color: variables.$neutral-dark;
   }
 
   a {
@@ -73,6 +73,6 @@
   padding: .5rem;
 
   &:hover {
-    background: lighten(variables.$muted-color, 30);
+    background: lighten(variables.$text-color, 30);
   }
 }

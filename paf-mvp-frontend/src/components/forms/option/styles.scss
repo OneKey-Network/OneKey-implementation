@@ -1,3 +1,5 @@
+@use 'src/styles/variables';
+
 .option {
   background: #F7F7F7;
   border-radius: 8px;
@@ -10,10 +12,15 @@
 
   &:hover {
     background: #fff;
+    border: 1px solid #C4C6CA;
   }
 
-  &.active {
+  &.active, &:active {
     background: #fff;
-    border: 1px solid #076F8A;
+    border: 1px solid variables.$primary-color;
+  }
+
+  svg {
+    color: variables.$primary-color;
   }
 }
