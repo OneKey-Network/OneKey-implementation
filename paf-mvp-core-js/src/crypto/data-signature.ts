@@ -1,6 +1,6 @@
-import { Identifier, Identifiers, IdsAndPreferences, Preferences, Source } from '../model/generated-model';
-import { UnsignedData } from '../model/model';
-import { PrivateKey, PublicKey } from './keys';
+import {Identifier, Identifiers, IdsAndPreferences, Preferences} from '../model/generated-model';
+import {UnsignedData} from '../model/model';
+import {PrivateKey, PublicKey} from './keys';
 
 export const SIGN_SEP = '\u2063';
 

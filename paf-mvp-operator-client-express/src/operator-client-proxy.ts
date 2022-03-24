@@ -1,23 +1,21 @@
-import {Express, Request, Response} from "express";
-import cors, {CorsOptions} from "cors";
-import {OperatorClient} from "./operator-client";
+import {Express, Request, Response} from 'express';
+import cors, {CorsOptions} from 'cors';
+import {OperatorClient} from './operator-client';
 import {
     Error,
     IdsAndPreferences,
     PostSignPreferencesRequest,
     RedirectGetIdsPrefsResponse
-} from "@core/model/generated-model";
-import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from "@core/endpoints";
-import {httpRedirect} from "@core/express/utils";
-import {PublicKeys} from "@core/crypto/keys";
-import {fromDataToObject} from "@core/query-string";
+} from '@core/model/generated-model';
+import {jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints} from '@core/endpoints';
+import {httpRedirect} from '@core/express/utils';
+import {fromDataToObject} from '@core/query-string';
 import {
     Get3PCRequestBuilder,
-    GetIdsPrefsRequestBuilder,
     GetNewIdRequestBuilder,
     PostIdsPrefsRequestBuilder
-} from "@core/model/operator-request-builders";
-import {AxiosRequestConfig} from "axios";
+} from '@core/model/operator-request-builders';
+import {AxiosRequestConfig} from 'axios';
 
 /**
  * Get return URL parameter, otherwise set response code 400
@@ -25,18 +23,18 @@ import {AxiosRequestConfig} from "axios";
  * @param res
  */
 const getReturnUrl = (req: Request, res: Response): URL | undefined => {
-    const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl)
-    return redirectStr ? new URL(redirectStr) : undefined
-}
+    const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
+    return redirectStr ? new URL(redirectStr) : undefined;
+};
 
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
     const stringValue = req.query[paramName] as string;
     if (stringValue === undefined) {
-        res.sendStatus(400) // TODO add message
+        res.sendStatus(400); // TODO add message
         return undefined;
     }
-    return stringValue
-}
+    return stringValue;
+};
 
 /**
  * Get request parameter, otherwise set response code 400
@@ -44,16 +42,16 @@ const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: st
  * @param res
  */
 export const getMessageObject = <T>(req: Request, res: Response): T => {
-    const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message)
-    return requestStr ? JSON.parse(requestStr) as T : undefined
-}
+    const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
+    return requestStr ? JSON.parse(requestStr) as T : undefined;
+};
 
 export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: string, sender: string, privateKey: string, allowedOrigins: string[], s2sOptions?: AxiosRequestConfig) => {
-    const client = new OperatorClient(operatorHost, sender, privateKey, s2sOptions)
+    const client = new OperatorClient(operatorHost, sender, privateKey, s2sOptions);
 
-    const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey)
-    const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey)
-    const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, sender, privateKey)
+    const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey);
+    const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey);
+    const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, sender, privateKey);
 
     const corsOptions: CorsOptions = {
         origin: allowedOrigins,
@@ -69,21 +67,21 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
     app.get(jsonProxyEndpoints.read, cors(corsOptions), (req, res) => {
         const url = client.getReadRestUrl();
 
-        httpRedirect(res, url.toString(), 302)
+        httpRedirect(res, url.toString(), 302);
     });
 
     app.post(jsonProxyEndpoints.write, cors(corsOptions), (req, res) => {
-        const url = postIdsPrefsRequestBuilder.getRestUrl()
+        const url = postIdsPrefsRequestBuilder.getRestUrl();
 
         // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
         // /!\ Notice return code 307!
-        httpRedirect(res, url.toString(), 307)
+        httpRedirect(res, url.toString(), 307);
     });
 
     app.get(jsonProxyEndpoints.verify3PC, cors(corsOptions), (req, res) => {
-        const url = get3PCRequestBuilder.getRestUrl()
+        const url = get3PCRequestBuilder.getRestUrl();
 
-        httpRedirect(res, url.toString(), 302)
+        httpRedirect(res, url.toString(), 302);
     });
 
     // *****************************************************************************************************************
@@ -94,34 +92,34 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
 
         if (!message.response) {
             // FIXME do something smart in case of error
-            throw message.error
+            throw message.error;
         }
 
         const verification = client.verifyReadResponse(message.response);
         if (!verification) {
             // TODO [errors] finer error feedback
-            const error: Error = {message: 'verification failed'}
-            res.send(error)
+            const error: Error = {message: 'verification failed'};
+            res.send(error);
         } else {
-            res.send(message.response)
+            res.send(message.response);
         }
     });
 
     app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
         const {identifiers, unsignedPreferences} = JSON.parse(req.body as string) as PostSignPreferencesRequest;
-        res.send(client.buildPreferences(identifiers, unsignedPreferences.data))
+        res.send(client.buildPreferences(identifiers, unsignedPreferences.data));
     });
 
     app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
         const message = JSON.parse(req.body as string) as IdsAndPreferences;
-        res.send(postIdsPrefsRequestBuilder.buildRequest(message))
+        res.send(postIdsPrefsRequestBuilder.buildRequest(message));
     });
 
     app.get(jsonProxyEndpoints.newId, cors(corsOptions), (req, res) => {
-        const getNewIdRequestJson = getNewIdRequestBuilder.buildRequest()
-        const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson)
+        const getNewIdRequestJson = getNewIdRequestBuilder.buildRequest();
+        const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
-        httpRedirect(res, url.toString(), 302)
+        httpRedirect(res, url.toString(), 302);
     });
 
     // *****************************************************************************************************************
@@ -135,7 +133,7 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
         if (returnUrl) {
             const url = client.getReadRedirectUrl(returnUrl);
 
-            httpRedirect(res, url.toString(), 302)
+            httpRedirect(res, url.toString(), 302);
         }
 
     });
@@ -153,9 +151,9 @@ export const addOperatorClientProxyEndpoints = (app: Express, operatorHost: stri
                 returnUrl
             );
 
-            const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson)
+            const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
 
-            httpRedirect(res, url.toString(), 302)
+            httpRedirect(res, url.toString(), 302);
         }
     });
-}
+};

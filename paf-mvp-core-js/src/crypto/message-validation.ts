@@ -6,10 +6,10 @@ import {
     MessageBase,
     PostIdsPrefsRequest,
     PostIdsPrefsResponse
-} from "../model/generated-model";
-import {UnsignedMessage} from "../model/model";
-import {PrivateKey, PublicKey} from "./keys";
-import {getTimeStampInSec} from "@core/timestamp";
+} from '../model/generated-model';
+import {UnsignedMessage} from '../model/model';
+import {PrivateKey, PublicKey} from './keys';
+import {getTimeStampInSec} from '@core/timestamp';
 
 export const SIGN_SEP = '\u2063';
 
@@ -25,7 +25,7 @@ export abstract class MessageValidation<T extends MessageBase> {
 
     sign(ecdsaPrivateKey: PrivateKey, message: UnsignedMessage<T>): string {
         const toSign = this.signatureString(message);
-        return ecdsaPrivateKey.sign(toSign)
+        return ecdsaPrivateKey.sign(toSign);
     }
   sign(ecdsaPrivateKey: PrivateKey, message: UnsignedMessage<T>): string {
     const toSign = this.signatureString(message);
@@ -81,7 +81,7 @@ export class GetIdsPrefsRequestValidation extends MessageValidation<GetIdsPrefsR
             getIdsPrefsRequest.sender,
             getIdsPrefsRequest.receiver,
             getIdsPrefsRequest.timestamp
-        ].join(SIGN_SEP)
+        ].join(SIGN_SEP);
     }
 }
 
@@ -91,7 +91,7 @@ export class GetNewIdRequestValidation extends MessageValidation<GetNewIdRequest
             getNewIdRequest.sender,
             getNewIdRequest.receiver,
             getNewIdRequest.timestamp
-        ].join(SIGN_SEP)
+        ].join(SIGN_SEP);
     }
 }
 

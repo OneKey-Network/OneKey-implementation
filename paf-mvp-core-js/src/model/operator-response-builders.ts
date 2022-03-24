@@ -8,16 +8,16 @@ import {
     IdsAndPreferences,
     PostIdsPrefsResponse,
     Test3Pc
-} from "./generated-model";
-import {UnsignedMessage} from "./model";
+} from './generated-model';
+import {UnsignedMessage} from './model';
 import {
     GetIdsPrefsResponseValidation,
     GetNewIdResponseValidation,
     PostIdsPrefsResponseValidation
-} from "../crypto/message-validation";
-import {getTimeStampInSec} from "../timestamp";
-import {setInQueryString} from "../express/utils";
-import {PrivateKey, privateKeyFromString} from "@core/crypto/keys";
+} from '../crypto/message-validation';
+import {getTimeStampInSec} from '../timestamp';
+import {setInQueryString} from '../express/utils';
+import {PrivateKey, privateKeyFromString} from '@core/crypto/keys';
 
 export abstract class ResponseBuilderWithRedirect<T> {
     protected readonly ecdsaKey: PrivateKey;
@@ -28,21 +28,21 @@ export abstract class ResponseBuilderWithRedirect<T> {
 
     getRedirectUrl(returnUrl: URL, redirectResponse: { code: number, response?: T, error?: Error }): URL {
         if (redirectResponse) {
-            setInQueryString(returnUrl, redirectResponse)
+            setInQueryString(returnUrl, redirectResponse);
         }
-        return returnUrl
+        return returnUrl;
     }
 
     toRedirectResponse(response: T, code: number) {
         return {
             code,
             response
-        }
+        };
     }
 }
 
 export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetIdsPrefsResponse> {
-    private readonly signer = new GetIdsPrefsResponseValidation()
+    private readonly signer = new GetIdsPrefsResponseValidation();
 
     buildResponse(
         receiver: string,
@@ -62,7 +62,7 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
         return {
             ...data,
             signature: this.signer.sign(this.ecdsaKey, data)
-        }
+        };
     }
 }
 
@@ -87,12 +87,12 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
         return {
             ...data,
             signature: this.signer.sign(this.ecdsaKey, data)
-        }
+        };
     }
 }
 
 export class GetNewIdResponseBuilder {
-    private readonly signer = new GetNewIdResponseValidation()
+    private readonly signer = new GetNewIdResponseValidation();
     private readonly ecdsaKey: PrivateKey;
 
     constructor(protected host: string, privateKey: string) {
@@ -112,15 +112,15 @@ export class GetNewIdResponseBuilder {
         return {
             ...data,
             signature: this.signer.sign(this.ecdsaKey, data)
-        }
+        };
     }
 }
 
 export class Get3PCResponseBuilder {
     buildResponse(cookieFound: Test3Pc | undefined): Get3PcResponse | Error {
         return cookieFound
-            ? {"3pc": cookieFound}
-            : {message: "3PC not supported"}
+            ? {'3pc': cookieFound}
+            : {message: '3PC not supported'};
     }
 }
 
