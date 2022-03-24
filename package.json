@@ -14,6 +14,8 @@
     "lint:fix": "eslint . --fix",
     "lint:frontend": "npm run lint --prefix paf-mvp-frontend",
     "lint:all:fix": "npm run lint:fix && npm run lint:fix --prefix paf-mvp-frontend",
+    "lint:prettier": "prettier --list-different \"./paf-*/**/*.{tsx,ts}\"",
+    "prettier:fix": "prettier --write \"./paf-*/**/*.{tsx,ts}\" --loglevel silent",
     "prepare": "husky install",
     "###########": "FYI: Google cloud console automatically runs these scripts after deploy:",
     "gcp-build": "npm run build-front && npm run build-cmp",
@@ -121,6 +123,9 @@
     "@frontend": "paf-mvp-frontend/src"
   },
   "lint-staged": {
-    "*.{ts,tsx}": "npm run lint:all:fix"
+    "*.{ts,tsx}": [
+      "npm run lint:all:fix",
+      "npm run prettier:fix"
+    ]
   }
 }

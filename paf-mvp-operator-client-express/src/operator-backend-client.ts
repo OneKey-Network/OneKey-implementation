@@ -1,33 +1,31 @@
-import {Request, Response} from 'express';
-import {OperatorClient,} from './operator-client';
+import { Request, Response } from 'express';
+import { OperatorClient } from './operator-client';
 import winston from 'winston';
 import UAParser from 'ua-parser-js';
-import {IdsAndOptionalPreferences, RedirectGetIdsPrefsResponse} from '@core/model/generated-model';
-import {Cookies, getPrebidDataCacheExpiration} from '@core/cookies';
-import {fromClientCookieValues, getPafStatus, PafStatus} from '@core/operator-client-commons';
+import { IdsAndOptionalPreferences, RedirectGetIdsPrefsResponse } from '@core/model/generated-model';
+import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
 import {
-    getCookies,
-    getPafDataFromQueryString,
-    getRequestUrl,
-    httpRedirect,
-    metaRedirect,
-    setCookie
+  getCookies,
+  getPafDataFromQueryString,
+  getRequestUrl,
+  httpRedirect,
+  metaRedirect,
+  setCookie,
 } from '@core/express/utils';
-import {isBrowserKnownToSupport3PC} from '@core/user-agent';
-import {GetIdsPrefsRequestBuilder} from '@core/model/operator-request-builders';
-import {AxiosRequestConfig} from 'axios';
+import { isBrowserKnownToSupport3PC } from '@core/user-agent';
+import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
+import { AxiosRequestConfig } from 'axios';
 
 export enum RedirectType {
-    http = 'http',
-    meta = 'meta',
-    javascript = 'javascript',
+  http = 'http',
+  meta = 'meta',
+  javascript = 'javascript',
 }
 
 const logger = winston.createLogger({
-    format: winston.format.json(),
-    transports: [
-        new winston.transports.Console()
-    ],
+  format: winston.format.json(),
+  transports: [new winston.transports.Console()],
 });
 
 //
@@ -35,125 +33,139 @@ const logger = winston.createLogger({
 // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
 //
 if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console());
+  logger.add(new winston.transports.Console());
 }
 
 const saveCookieValue = <T>(res: Response, cookieName: string, cookieValue: T | undefined) => {
-    logger.info(`Operator returned value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
+  logger.info(`Operator returned value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
 
-    const valueToStore = cookieValue ? JSON.stringify(cookieValue) : PafStatus.NOT_PARTICIPATING;
+  const valueToStore = cookieValue ? JSON.stringify(cookieValue) : PafStatus.NOT_PARTICIPATING;
 
-    logger.info(`Save ${cookieName} value: ${valueToStore}`);
+  logger.info(`Save ${cookieName} value: ${valueToStore}`);
 
-    setCookie(res, cookieName, valueToStore, getPrebidDataCacheExpiration());
+  setCookie(res, cookieName, valueToStore, getPrebidDataCacheExpiration());
 
-    return valueToStore;
+  return valueToStore;
 };
 
 export class OperatorBackendClient {
-    private readonly client: OperatorClient;
-    private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
+  private readonly client: OperatorClient;
+  private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
 
-    constructor(host: string, sender: string, privateKey: string, private redirectType: RedirectType = RedirectType.http, s2sOptions?: AxiosRequestConfig) {
-        if (![RedirectType.http, RedirectType.meta].includes(redirectType)) {
-            throw 'Only backend redirect types are supported';
-        }
-
-        this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(host, sender, privateKey);
-
-        this.client = new OperatorClient(sender, privateKey, s2sOptions);
+  constructor(
+    host: string,
+    sender: string,
+    privateKey: string,
+    private redirectType: RedirectType = RedirectType.http,
+    s2sOptions?: AxiosRequestConfig
+  ) {
+    if (![RedirectType.http, RedirectType.meta].includes(redirectType)) {
+      throw 'Only backend redirect types are supported';
     }
 
-    async getIdsAndPreferencesOrRedirect(req: Request, res: Response, view: string): Promise<IdsAndOptionalPreferences | undefined> {
-        const uriData = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req);
+    this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(host, sender, privateKey);
 
-        const foundData = await this.processGetIdsAndPreferencesOrRedirect(req, uriData, res, view);
+    this.client = new OperatorClient(sender, privateKey, s2sOptions);
+  }
 
-        if (foundData) {
-            logger.info('Serve HTML', foundData);
-        } else {
-            logger.info('redirect');
-        }
+  async getIdsAndPreferencesOrRedirect(
+    req: Request,
+    res: Response,
+    view: string
+  ): Promise<IdsAndOptionalPreferences | undefined> {
+    const uriData = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req);
 
-        return foundData;
+    const foundData = await this.processGetIdsAndPreferencesOrRedirect(req, uriData, res, view);
+
+    if (foundData) {
+      logger.info('Serve HTML', foundData);
+    } else {
+      logger.info('redirect');
     }
 
-    private async processGetIdsAndPreferencesOrRedirect(req: Request, uriData: RedirectGetIdsPrefsResponse | undefined, res: Response, view: string): Promise<IdsAndOptionalPreferences | undefined> {
-        // 1. Any Prebid 1st party cookie?
-        const cookies = getCookies(req);
+    return foundData;
+  }
 
-        const rawIds = cookies[Cookies.identifiers];
-        const rawPreferences = cookies[Cookies.preferences];
+  private async processGetIdsAndPreferencesOrRedirect(
+    req: Request,
+    uriData: RedirectGetIdsPrefsResponse | undefined,
+    res: Response,
+    view: string
+  ): Promise<IdsAndOptionalPreferences | undefined> {
+    // 1. Any Prebid 1st party cookie?
+    const cookies = getCookies(req);
 
-        logger.info('Cookie found: NO');
+    const rawIds = cookies[Cookies.identifiers];
+    const rawPreferences = cookies[Cookies.preferences];
 
-        // 2. Redirected from operator?
-        if (uriData) {
-            logger.info('Redirected from operator: YES');
+    logger.info('Cookie found: NO');
 
-            if (!uriData.response) {
-                // FIXME do something smart in case of error
-                throw uriData.error;
-            }
+    // 2. Redirected from operator?
+    if (uriData) {
+      logger.info('Redirected from operator: YES');
 
-            const operatorData = uriData.response;
+      if (!uriData.response) {
+        // FIXME do something smart in case of error
+        throw uriData.error;
+      }
 
-            if (!await this.client.verifyReadResponseSignature(operatorData)) {
-                throw 'Verification failed';
-            }
+      const operatorData = uriData.response;
 
-            // 3. Received data?
-            const persistedIds = operatorData.body.identifiers.filter(identifier => identifier?.persisted !== false);
-            saveCookieValue(res, Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
-            saveCookieValue(res, Cookies.preferences, operatorData.body.preferences);
+      if (!(await this.client.verifyReadResponseSignature(operatorData))) {
+        throw 'Verification failed';
+      }
 
-            return operatorData.body;
-        }
+      // 3. Received data?
+      const persistedIds = operatorData.body.identifiers.filter((identifier) => identifier?.persisted !== false);
+      saveCookieValue(res, Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
+      saveCookieValue(res, Cookies.preferences, operatorData.body.preferences);
 
-        logger.info('Redirected from operator: NO');
-
-        if (getPafStatus(rawIds, rawPreferences) === PafStatus.REDIRECT_NEEDED) {
-            logger.info('Redirect previously deferred');
-
-            this.redirectToRead(req, res, view);
-
-            return undefined;
-        }
-
-        if (rawIds && rawPreferences) {
-            logger.info('Cookie found: YES');
-
-            return fromClientCookieValues(rawIds, rawPreferences);
-        }
-
-        // 4. Browser known to support 3PC?
-        const userAgent = new UAParser(req.header('user-agent'));
-
-        if (isBrowserKnownToSupport3PC(userAgent.getBrowser())) {
-            logger.info('Browser known to support 3PC: YES');
-
-            return fromClientCookieValues(undefined, undefined);
-        } else {
-            logger.info('Browser known to support 3PC: NO');
-
-            this.redirectToRead(req, res, view);
-
-            return undefined;
-        }
+      return operatorData.body;
     }
 
-    private redirectToRead(req: Request, res: Response, view: string) {
-        const request = this.getIdsPrefsRequestBuilder.buildRequest();
-        const redirectRequest = this.getIdsPrefsRequestBuilder.toRedirectRequest(request, getRequestUrl(req));
+    logger.info('Redirected from operator: NO');
 
-        const redirectUrl = this.getIdsPrefsRequestBuilder.getRedirectUrl(redirectRequest).toString();
-        switch (this.redirectType) {
-            case RedirectType.http:
-                httpRedirect(res, redirectUrl);
-                break;
-            case RedirectType.meta:
-                metaRedirect(res, redirectUrl, view);
-                break;
-        }
+    if (getPafStatus(rawIds, rawPreferences) === PafStatus.REDIRECT_NEEDED) {
+      logger.info('Redirect previously deferred');
+
+      this.redirectToRead(req, res, view);
+
+      return undefined;
     }
+
+    if (rawIds && rawPreferences) {
+      logger.info('Cookie found: YES');
+
+      return fromClientCookieValues(rawIds, rawPreferences);
+    }
+
+    // 4. Browser known to support 3PC?
+    const userAgent = new UAParser(req.header('user-agent'));
+
+    if (isBrowserKnownToSupport3PC(userAgent.getBrowser())) {
+      logger.info('Browser known to support 3PC: YES');
+
+      return fromClientCookieValues(undefined, undefined);
+    }
+    logger.info('Browser known to support 3PC: NO');
+
+    this.redirectToRead(req, res, view);
+
+    return undefined;
+  }
+
+  private redirectToRead(req: Request, res: Response, view: string) {
+    const request = this.getIdsPrefsRequestBuilder.buildRequest();
+    const redirectRequest = this.getIdsPrefsRequestBuilder.toRedirectRequest(request, getRequestUrl(req));
+
+    const redirectUrl = this.getIdsPrefsRequestBuilder.getRedirectUrl(redirectRequest).toString();
+    switch (this.redirectType) {
+      case RedirectType.http:
+        httpRedirect(res, redirectUrl);
+        break;
+      case RedirectType.meta:
+        metaRedirect(res, redirectUrl, view);
+        break;
+    }
+  }
 }
