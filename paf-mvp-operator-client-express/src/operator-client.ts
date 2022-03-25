@@ -11,7 +11,7 @@ import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
   private readonly readVerifier = new GetIdsPrefsResponseValidation();
-  private readonly prefsSigner = new PreferencesValidation();
+  private readonly prefsSigner: PreferencesValidation;
   private readonly ecdsaKey: PrivateKey;
   private readonly keyStore: PublicKeyStore;
 
@@ -24,6 +24,7 @@ export class OperatorClient {
     this.ecdsaKey = privateKeyFromString(privateKey);
     this.keyStore = new PublicKeyStore(s2sOptions);
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
+    this.prefsSigner = new PreferencesValidation(async (domain) => (await this.keyStore.getPublicKey(domain)).publicKeyObj);
   }
 
   async verifyReadResponse(message: GetIdsPrefsResponse): Promise<boolean> {

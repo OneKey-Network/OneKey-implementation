@@ -74,8 +74,8 @@ export const addOperatorApi = (
   const get3PCResponseBuilder = new Get3PCResponseBuilder();
   const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
   const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
-  const idsSigner = new IdValidation();
-  const prefsSigner = new PreferencesValidation();
+  const idsSigner = new IdValidation(async (domain) => (await keyStore.getPublicKey(domain)).publicKeyObj);
+  const prefsSigner = new PreferencesValidation(async (domain) => (await keyStore.getPublicKey(domain)).publicKeyObj);
 
   const tld = domainParser(`https://${operatorHost}`).domain;
 
@@ -92,7 +92,7 @@ export const addOperatorApi = (
     }
   };
 
-  const operatorApi = new OperatorApi(operatorHost, privateKey);
+  const operatorApi = new OperatorApi(operatorHost, privateKey, keyStore);
 
   const getReadResponse = async (request: GetIdsPrefsRequest, req: Request) => {
     const sender = request.sender;
@@ -156,15 +156,13 @@ export const addOperatorApi = (
     // Verify ids
     for (let i = 0; i < identifiers.length; i++) {
       const id = identifiers[i];
-      const verifyKey = await keyStore.getPublicKey(id.source.domain);
-      if (!idsSigner.verify(verifyKey.publicKeyObj, id)) {
+      if (!await idsSigner.verify(id)) {
         throw `Identifier verification failed for ${id.value}`;
       }
     }
 
     // Verify preferences
-    const prefsVerifyKey = await keyStore.getPublicKey(preferences.source.domain);
-    if (!prefsSigner.verify(prefsVerifyKey.publicKeyObj, input.body)) {
+    if (!await prefsSigner.verify(input.body)) {
       throw 'Preferences verification failed';
     }
 
@@ -281,14 +279,15 @@ export const addOperatorApi = (
 
 // FIXME should probably be moved to core library
 export class OperatorApi {
-  private readonly idSigner = new IdValidation();
+  private readonly idSigner: IdValidation;
   private readonly ecdsaKey: PrivateKey;
 
   readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestValidation();
   readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestValidation();
 
-  constructor(public host: string, privateKey: string) {
+  constructor(public host: string, privateKey: string, keyStore: PublicKeyStore) {
     this.ecdsaKey = privateKeyFromString(privateKey);
+    this.idSigner = new IdValidation(async (domain) => (await keyStore.getPublicKey(domain)).publicKeyObj);
   }
 
   generateNewId(timestamp = new Date().getTime()): Identifier {
