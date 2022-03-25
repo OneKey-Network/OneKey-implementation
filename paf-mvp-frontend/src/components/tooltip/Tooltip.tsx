@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import classes from './style.scss';
+import layout from '../../styles/layouts.scss';
 
 interface ITooltipProps {
   icon?: string | JSX.Element;
@@ -15,7 +16,7 @@ const defaultIcon = (
      4.12268 9.96257 1.73952 7.02828 1.72367C4.09399 1.70798 1.69813 4.06551 1.66659 6.99967V7.11434ZM8.33325
      10.333H6.33325V7.66634H5.66659V6.33301H7.66659V8.99967H8.33325V10.333ZM7.66659
      4.99967H6.33325V3.66634H7.66659V4.99967Z"
-      fill="#120B45"
+      fill="currentColor"
     />
   </svg>
 );
@@ -23,12 +24,9 @@ const defaultIcon = (
 export const Tooltip = ({ children, icon = defaultIcon }: ITooltipProps) => {
   return (
     <div class={classes.container}>
-      <span class={classes.icon}>{icon}</span>
+      <div class={[classes.icon, layout.alignCenter].join(' ')}>{icon}</div>
 
-      <div class={classes.tooltipContent}>
-        <div class={classes.icon}>{icon}</div>
-        {children}
-      </div>
+      <div class={classes.tooltipContent}>{children}</div>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 @use 'src/styles/variables' as variables;
+@use 'sass:math';
 
 $dot-size: 3px;
 $left-dot: 9992px;
@@ -16,7 +17,7 @@ $right-dot: 10006px;
   left: -$center-dot;
   width: $dot-size;
   height: $dot-size;
-  border-radius: $dot-size / 2;
+  border-radius: math.div($dot-size, 2);
   background-color: variables.$primary-color;
   color: variables.$primary-color;
   @include render-dots(0, 0, 0);

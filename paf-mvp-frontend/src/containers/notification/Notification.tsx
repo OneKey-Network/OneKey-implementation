@@ -11,7 +11,7 @@ export interface INotificationProps {
   destroy?: () => void;
 }
 
-const TIME_TO_DISPLAY = 10_000;
+const TIME_TO_DISPLAY = 15_000;
 
 export const Notification = ({ type, destroy }: INotificationProps) => {
   const brandName = window.location.hostname;
@@ -43,11 +43,11 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
         title: `You chose to see personalized content and relevant ads on ${brandName}`,
         message: (
           <div>
-            Turn on{' '}
+            Update your{' '}
             <a href="#" onClick={launchPrompt}>
-              personalized marketing
+              marketing preferences
             </a>{' '}
-            at any time to make your content and ads more relevant on this website.
+            at any time on this website.
           </div>
         ),
       };

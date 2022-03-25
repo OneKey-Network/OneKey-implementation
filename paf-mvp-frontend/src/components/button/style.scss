@@ -1,4 +1,4 @@
-$accent-color: #076F8A;
+@use 'src/styles/variables' as variables;
 
 .btn {
   appearance: none;
@@ -9,10 +9,13 @@ $accent-color: #076F8A;
   padding: .5rem .5rem;
   text-align: center;
   font-weight: 600;
+  font-size: .75rem;
+  transition: background-color .15s, color .15s;
 
   &.small {
     padding-top: .25rem;
     padding-bottom: .25rem;
+    border-radius: .75rem;
   }
 
   &.wide {
@@ -20,23 +23,43 @@ $accent-color: #076F8A;
   }
 
   &.primary {
-    background: #120B45;
+    background-color: variables.$primary-color;
     color: #fff;
     font-size: .75rem;
     line-height: 1rem;
+
+    &:hover {
+      background-color: variables.$primary-color-hover;
+    }
+
+    &:active {
+      background-color: variables.$primary-color-active;
+    }
   }
 
   &.accent {
-    color: $accent-color;
-    border-color: $accent-color;
+    color: variables.$primary-color;
+
+    &:hover {
+      color: variables.$primary-color-hover;
+    }
+
+    &:active {
+      background-color: variables.$primary-color-lighten;
+      color: variables.$primary-color-active;
+    }
+  }
+
+  &.highlight {
+    background-color: variables.$primary-color-lighten;
   }
 
   &.outline {
-    border: 1px solid;
+    border: 1px solid currentColor;
   }
 
   &:disabled {
-    background: #F7F7F7;
+    background: variables.$disabled-color;
     color: rgba(80, 82, 83, 0.24);
   }
 }

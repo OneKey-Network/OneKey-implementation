@@ -18,6 +18,7 @@ import { NotificationEnum } from '../../enums/notification.enum';
 import { notificationService } from '../../services/notification.service';
 import { env } from '../../config';
 import { DotTyping } from '../../components/animations/DotTyping';
+import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -34,6 +35,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
   const pafIdentifier = pafCookies?.identifiers?.[0]?.value;
   const pafConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
   const proxyHostName = env.operatorProxyHost;
+  const brandName = window.location.hostname;
 
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);
   const [appIdentifier, setAppIdentifier] = useState(pafIdentifier);
@@ -102,10 +104,10 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
 
   return (
     <div class={style.container}>
-      <Modal maxWidth={385} onClose={() => closeWidget()}>
+      <Modal closeBtnText={pafIdentifier ? 'Cancel' : 'Close dialog'} maxWidth={385} onClose={() => closeWidget()}>
         <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Choose your marketing preferences</h2>
 
-        <p class={`${style.textCenter} ${style.textMuted}`}>
+        <p class={style.textCenter}>
           Onekey respects your preferences to offer you a better experience across partner websites, without needing to
           bother you with additional prompts.
         </p>
@@ -114,20 +116,31 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
           {!!pafIdentifier && (
             <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-3']}`}>
               <div className={`${layout.alignCenter}`}>
+                <small className={[typography.textDark, grid['mr-1'], typography.textBold].join(' ')}>
+                  Your browsing ID
+                </small>
                 <Tooltip>
                   OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time
                   by refreshing your Browsing ID.
                 </Tooltip>
-                <i className={typography.textExtraSmall}>Your browsing ID</i>
               </div>
 
               <div>
-                <button
-                  class={`${style.refreshBtn} ${appIdentifier ? '' : style.loading}`}
-                  onClick={() => updateIdentifier()}
+                <Button
+                  accent
+                  highlight
+                  classList={appIdentifier ? '' : style.loading}
+                  action={() => updateIdentifier()}
                 >
-                  {appIdentifier.split('-')?.[0]} {appIdentifier ? <Refresh /> : <DotTyping />}
-                </button>
+                  <div class={layout.alignCenter}>
+                    {appIdentifier && (
+                      <small class={[grid['mr-2'], typography.textUpper].join(' ')}>
+                        {appIdentifier.split('-')?.[0]}
+                      </small>
+                    )}
+                    {appIdentifier ? <Refresh /> : <DotTyping />}
+                  </div>
+                </Button>
               </div>
             </div>
           )}
@@ -137,14 +150,14 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
                 <h3>Turn on personalized marketing</h3>
                 <Arrow />
               </div>
-              <p class={style.optionDescription}>👉 See more relevant content and ads.</p>
+              <p class={style.optionDescription}>See more relevant content and ads.</p>
             </Option>
             <Option value="off">
               <div className={style.optionTitle}>
                 <h3>Turn on standard marketing</h3>
                 <Arrow />
               </div>
-              <p class={style.optionDescription}>👉 See generic content and ads.</p>
+              <p class={style.optionDescription}>See generic content and ads.</p>
             </Option>
           </OptionsGroup>
         </div>
@@ -157,43 +170,43 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
           </div>
         )}
 
-        <p class={`${style.textCenter} ${style.textMuted}`}>
-          By choosing one of these options, you agree to our site's terms and conditions.
-        </p>
+        <p class={style.textCenter}>By choosing one of these options, you agree to our site's terms and conditions.</p>
         <div class={`${layout.justifyCenter} ${layout.alignCenter}`}>
           <Button action={() => setIsDetailsPanelOpen(true)} accent outline small>
             Learn more about Onekey
           </Button>
         </div>
 
-        <SubPanel isOpen={isDetailsPanelOpen} onClose={() => setIsDetailsPanelOpen(false)}>
-          <div class={style.textCenter}>
-            <h4>Learn more about Onekey</h4>
-            <p class={style.textMuted}>
-              We believe you should have transparency and control over how, where, and why your data is used.
+        <SubPanel
+          isOpen={isDetailsPanelOpen}
+          header={
+            <div>
+              <h4 class={style.learnMoreTitle}>Learn more about</h4>
+              <div class={[layout.justifyCenter, grid['mb-2']].join(' ')}>
+                <OnekeyLogo />
+              </div>
+            </div>
+          }
+          onClose={() => setIsDetailsPanelOpen(false)}
+        >
+          <div class={style.learnMoreContent}>
+            <p>We believe you should have transparency and control over how, where, and why your data is used.</p>
+            <p>
+              We partnered with OneKey, a non-profit technology, to manage your marketing preferences when accessing{' '}
+              {brandName}. OneKey relies on digital IDs to understand your activity and sends your preferences to our
+              partner websites in order to customize the ads you see. IDs like these are an essential part of how{' '}
+              {brandName}'s website operates and provides you with a more relevant experience.
             </p>
-            <p class={style.textMuted}>
-              We partnered with OneKey, a non-profit technology, to manage your standard marketing preferences when
-              accessing our website. OneKey relies on digital IDs to study your activity and interactions, send your
-              preferences to our participating websites and customize your ads.
-            </p>
-            <p class={style.textMuted}>
-              IDs like these are an essential part of how Brandname's website operates and provides you with a more
-              relevant experience. OneKey Network’s participating websites are direct marketing sites and only receive
-              your ID and your preferences if using OneKey when accessing them.
-            </p>
-            <p class={style.textMuted}>
+            <p>
               You may change your preferences at any time. Your consent will automatically expire 2 years after you
-              provide it. You have a right to be forgotten, which you can exercise at any time by resetting your ID. You
-              can also obtain a temporary ID by using the incognito/private browsing function of your browser.
+              provide it. You have the right to be forgotten, which you can exercise at any time, and on any OneKey
+              partner website simply by resetting your ID. You can also get a temporary ID by using the
+              incognito/private browsing function of your browser.
             </p>
-            <p class={style.textMuted}>
-              If you choose not to participate, you will still receive targeted content unrelated to your browsing
-              activity or interactions.
-            </p>
-            <p class={style.textMuted}>
+            <p>If you choose not to participate, you will still see ads unrelated to your browsing activity.</p>
+            <p>
               You can learn more and manage your choices at any time by going to "Privacy settings" at the bottom of any
-              page. See our Privacy Policy and Privacy Notice.
+              page. See our <a href="#">Privacy Policy</a> and <a href="#">Privacy Notice</a>.
             </p>
           </div>
         </SubPanel>

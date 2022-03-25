@@ -1,28 +1,38 @@
+@use 'src/styles/variables';
+
 .container {
   display: inline;
   position: relative;
-  font-size: .6rem;
-  color: #505253;
-  text-align: left;
+  text-align: center;
 
   &:hover {
     .tooltipContent {
       display: flex;
+    }
+
+    &::before {
+      content: '';
+      width: 0;
+      height: 0;
+      border-width: 6px 8px 0;
+      border-style: solid;
+      border-color: variables.$neutral-dark transparent transparent;
+      position: absolute;
+      transform: translate(-9px, -9px);
     }
   }
 }
 
 .tooltipContent {
   display: none;
-  max-width: 232px;
+  max-width: 282px;
   position: absolute;
   padding: .5rem;
-  background: #fff;
-  left: -8px;
-  top: -13px;
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.12);
+  background: variables.$neutral-dark;
+  color: #fff;
   border-radius: 8px;
   width: 200px;
+  transform: translate(-2rem, calc(-100% - 23px));
 
   @supports (width: max-content) {
     & {
@@ -31,8 +41,6 @@
   }
 }
 
-
 .icon {
-  margin-right: 4px;
   cursor: pointer;
 }

@@ -8,7 +8,8 @@ interface IButtonProps {
   outline?: boolean;
   primary?: boolean;
   disabled?: boolean;
-  children?: JSX.Element | Array<JSX.Element> | string;
+  highlight?: boolean;
+  children?: JSX.Element | Array<JSX.Element | string> | string;
   classList?: string;
 
   action: (event: Event) => void;
@@ -23,6 +24,7 @@ export const Button = ({
   action,
   accent,
   outline,
+  highlight,
   classList,
 }: IButtonProps) => {
   const classNames = [
@@ -32,6 +34,7 @@ export const Button = ({
     primary && classes.primary,
     wide && classes.wide,
     accent && classes.accent,
+    highlight && classes.highlight,
     outline && classes.outline,
   ]
     .filter(Boolean)
