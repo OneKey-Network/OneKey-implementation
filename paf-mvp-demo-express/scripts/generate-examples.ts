@@ -37,7 +37,7 @@ import {
   GetNewIdResponseBuilder,
   PostIdsPrefsResponseBuilder,
 } from '@core/model/operator-response-builders';
-import { Validator } from 'jsonschema';
+import {Schema, Validator} from 'jsonschema';
 import * as fs from 'fs';
 import {
   ProxyRestSignPostIdsPrefsRequestBuilder,
@@ -512,9 +512,10 @@ class Examples {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class SchemasValidator {
   private v = new Validator();
-  private schemas: { [id: string]: any } = {};
+  private schemas: { [id: string]: unknown } = {};
 
   async initValidator(): Promise<this> {
     // FIXME use a parameter to validate examples. Or ignore validation
@@ -524,7 +525,7 @@ class SchemasValidator {
       files.map(async (f: string) => JSON.parse(await fs.promises.readFile(path.join(inputDir, f), 'utf-8')))
     );
 
-    schemas.forEach((schema: any) => {
+    schemas.forEach((schema: Schema) => {
       this.v.addSchema(schema, schema.$id);
       this.schemas[schema.$id] = schema;
     });
