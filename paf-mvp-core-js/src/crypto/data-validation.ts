@@ -8,7 +8,7 @@ export const SIGN_SEP = '\u2063';
  * U = Unsigned type (used for getting signature input)
  * S = Signed type (used to verify signature)
  */
-export abstract class DataSigner<U, S> {
+export abstract class DataValidation<U, S> {
   protected abstract signatureString(data: U): string;
 
   abstract verify(ecdsaPublicKey: PublicKey, signedData: S): boolean;
@@ -26,7 +26,7 @@ export abstract class DataSigner<U, S> {
   }
 }
 
-export class IdSigner extends DataSigner<UnsignedData<Identifier>, Identifier> {
+export class IdValidation extends DataValidation<UnsignedData<Identifier>, Identifier> {
   protected signatureString(data: UnsignedData<Identifier>): string {
     return [data.source.domain, data.source.timestamp, data.type, data.value].join(SIGN_SEP);
   }
@@ -41,7 +41,7 @@ export interface IdsAndUnsignedPreferences {
   preferences: UnsignedData<Preferences>;
 }
 
-export class PrefsSigner extends DataSigner<IdsAndUnsignedPreferences, IdsAndPreferences> {
+export class PreferencesValidation extends DataValidation<IdsAndUnsignedPreferences, IdsAndPreferences> {
   protected signatureString(idsAndPreferences: IdsAndUnsignedPreferences): string {
     // Find the "Prebid ID"
     const identifiersSource = idsAndPreferences.identifiers.find((i) => i.type === 'paf_browser_id');

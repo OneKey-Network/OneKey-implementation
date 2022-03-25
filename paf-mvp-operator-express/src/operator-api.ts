@@ -21,7 +21,7 @@ import { UnsignedData } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
 import { GetIdsPrefsRequestValidation, PostIdsPrefsRequestValidation } from '@core/crypto/message-validation';
 import { Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie } from '@core/cookies';
-import { IdSigner, PrefsSigner } from '@core/crypto/data-signature';
+import { IdValidation, PreferencesValidation } from '@core/crypto/data-validation';
 import { PrivateKey, privateKeyFromString } from '@core/crypto/keys';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import {
@@ -74,8 +74,8 @@ export const addOperatorApi = (
   const get3PCResponseBuilder = new Get3PCResponseBuilder();
   const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
   const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
-  const idsSigner = new IdSigner();
-  const prefsSigner = new PrefsSigner();
+  const idsSigner = new IdValidation();
+  const prefsSigner = new PreferencesValidation();
 
   const tld = domainParser(`https://${operatorHost}`).domain;
 
@@ -281,7 +281,7 @@ export const addOperatorApi = (
 
 // FIXME should probably be moved to core library
 export class OperatorApi {
-  private readonly idSigner = new IdSigner();
+  private readonly idSigner = new IdValidation();
   private readonly ecdsaKey: PrivateKey;
 
   readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestValidation();

@@ -1,7 +1,7 @@
 import { GetIdsPrefsResponse, Identifiers, Preferences } from '@core/model/generated-model';
 import { UnsignedData } from '@core/model/model';
 import { GetIdsPrefsResponseValidation } from '@core/crypto/message-validation';
-import { PrefsSigner } from '@core/crypto/data-signature';
+import { PreferencesValidation } from '@core/crypto/data-validation';
 import { PrivateKey, privateKeyFromString } from '@core/crypto/keys';
 import { PublicKeyStore } from '@core/express/key-store';
 import { AxiosRequestConfig } from 'axios';
@@ -11,7 +11,7 @@ import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
   private readonly readVerifier = new GetIdsPrefsResponseValidation();
-  private readonly prefsSigner = new PrefsSigner();
+  private readonly prefsSigner = new PreferencesValidation();
   private readonly ecdsaKey: PrivateKey;
   private readonly keyStore: PublicKeyStore;
 
