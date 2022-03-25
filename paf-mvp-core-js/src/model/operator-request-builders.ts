@@ -1,16 +1,16 @@
 import { GetIdsPrefsRequest, GetNewIdRequest, IdsAndPreferences, PostIdsPrefsRequest } from './generated-model';
 import { UnsignedMessage } from './model';
 import {
-  GetIdsPrefsRequestSigner,
-  GetNewIdRequestSigner,
-  PostIdsPrefsRequestSigner,
-} from '../crypto/message-signature';
+  GetIdsPrefsRequestValidation,
+  GetNewIdRequestValidation,
+  PostIdsPrefsRequestValidation,
+} from '../crypto/message-validation';
 import { jsonOperatorEndpoints, redirectEndpoints } from '../endpoints';
 import { getTimeStampInSec } from '../timestamp';
 import { RestAndRedirectRequestBuilder, SignedRestRequestBuilder } from '@core/model/request-builders';
 
 export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<GetIdsPrefsRequest> {
-  private readonly signer = new GetIdsPrefsRequestSigner();
+  private readonly signer = new GetIdsPrefsRequestValidation();
 
   constructor(operatorHost: string, clientHost: string, privateKey: string) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.read, redirectEndpoints.read, privateKey);
@@ -30,7 +30,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
 }
 
 export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<PostIdsPrefsRequest> {
-  private readonly signer = new PostIdsPrefsRequestSigner();
+  private readonly signer = new PostIdsPrefsRequestValidation();
 
   constructor(operatorHost: string, clientHost: string, privateKey: string) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.write, redirectEndpoints.write, privateKey);
@@ -58,7 +58,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
 }
 
 export class GetNewIdRequestBuilder extends SignedRestRequestBuilder<GetNewIdRequest> {
-  private readonly signer = new GetNewIdRequestSigner();
+  private readonly signer = new GetNewIdRequestValidation();
 
   constructor(operatorHost: string, clientHost: string, privateKey: string) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.newId, privateKey);
@@ -82,7 +82,7 @@ export class Get3PCRequestBuilder extends SignedRestRequestBuilder<undefined> {
     super(operatorHost, clientHost, jsonOperatorEndpoints.verify3PC, privateKey);
   }
 
-  buildRequest(timestamp = getTimeStampInSec()): undefined {
+  buildRequest(): undefined {
     return undefined;
   }
 

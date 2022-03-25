@@ -14,7 +14,6 @@ import {
   setCookie,
 } from '@core/express/utils';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
-import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
 import { AxiosRequestConfig } from 'axios';
 
 export enum RedirectType {
@@ -50,10 +49,9 @@ const saveCookieValue = <T>(res: Response, cookieName: string, cookieValue: T | 
 
 export class OperatorBackendClient {
   private readonly client: OperatorClient;
-  private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
 
   constructor(
-    host: string,
+    operatorHost: string,
     sender: string,
     privateKey: string,
     private redirectType: RedirectType = RedirectType.http,
@@ -63,9 +61,7 @@ export class OperatorBackendClient {
       throw 'Only backend redirect types are supported';
     }
 
-    this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(host, sender, privateKey);
-
-    this.client = new OperatorClient(sender, privateKey, s2sOptions);
+    this.client = new OperatorClient(operatorHost, sender, privateKey, s2sOptions);
   }
 
   async getIdsAndPreferencesOrRedirect(
@@ -111,7 +107,8 @@ export class OperatorBackendClient {
 
       const operatorData = uriData.response;
 
-      if (!(await this.client.verifyReadResponseSignature(operatorData))) {
+      if (!(await this.client.verifyReadResponse(operatorData))) {
+        // TODO [errors] finer error feedback
         throw 'Verification failed';
       }
 
@@ -146,19 +143,17 @@ export class OperatorBackendClient {
       logger.info('Browser known to support 3PC: YES');
 
       return fromClientCookieValues(undefined, undefined);
+    } else {
+      logger.info('Browser known to support 3PC: NO');
+
+      this.redirectToRead(req, res, view);
+
+      return undefined;
     }
-    logger.info('Browser known to support 3PC: NO');
-
-    this.redirectToRead(req, res, view);
-
-    return undefined;
   }
 
   private redirectToRead(req: Request, res: Response, view: string) {
-    const request = this.getIdsPrefsRequestBuilder.buildRequest();
-    const redirectRequest = this.getIdsPrefsRequestBuilder.toRedirectRequest(request, getRequestUrl(req));
-
-    const redirectUrl = this.getIdsPrefsRequestBuilder.getRedirectUrl(redirectRequest).toString();
+    const redirectUrl = this.client.getReadRedirectUrl(getRequestUrl(req)).toString();
     switch (this.redirectType) {
       case RedirectType.http:
         httpRedirect(res, redirectUrl);

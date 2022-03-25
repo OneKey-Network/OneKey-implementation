@@ -19,7 +19,7 @@ import {
 } from '@core/model/generated-model';
 import { UnsignedData } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
-import { GetIdsPrefsRequestSigner, PostIdsPrefsRequestSigner } from '@core/crypto/message-signature';
+import { GetIdsPrefsRequestValidation, PostIdsPrefsRequestValidation } from '@core/crypto/message-validation';
 import { Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie } from '@core/cookies';
 import { IdSigner, PrefsSigner } from '@core/crypto/data-signature';
 import { PrivateKey, privateKeyFromString } from '@core/crypto/keys';
@@ -48,6 +48,8 @@ export enum Permission {
   WRITE = 'WRITE',
 }
 
+export const messageTTLSeconds = 30;
+
 export type AllowedDomains = { [domain: string]: Permission[] };
 
 // TODO should be a proper ExpressJS middleware
@@ -69,7 +71,7 @@ export const addOperatorApi = (
   addIdentityEndpoint(app, name, 'operator', keys);
 
   const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey);
-  const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorHost, privateKey);
+  const get3PCResponseBuilder = new Get3PCResponseBuilder();
   const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
   const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
   const idsSigner = new IdSigner();
@@ -101,7 +103,15 @@ export const addOperatorApi = (
 
     const verifyKey = await keyStore.getPublicKey(sender);
 
-    if (!operatorApi.getIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, request)) {
+    if (
+      !operatorApi.getIdsPrefsRequestVerifier.verify(
+        verifyKey.publicKeyObj,
+        request,
+        sender, // sender will always be ok
+        operatorHost // but operator needs to be verified
+      )
+    ) {
+      // TODO [errors] finer error feedback
       throw 'Read request verification failed';
     }
 
@@ -126,7 +136,15 @@ export const addOperatorApi = (
     const verifyKey = await keyStore.getPublicKey(sender);
 
     // Verify message
-    if (!operatorApi.postIdsPrefsRequestVerifier.verify(verifyKey.publicKeyObj, input)) {
+    if (
+      !operatorApi.postIdsPrefsRequestVerifier.verify(
+        verifyKey.publicKeyObj,
+        input,
+        sender, // sender will always be ok
+        operatorHost // but operator needs to be verified
+      )
+    ) {
+      // TODO [errors] finer error feedback
       throw 'Write request verification failed';
     }
 
@@ -266,8 +284,8 @@ export class OperatorApi {
   private readonly idSigner = new IdSigner();
   private readonly ecdsaKey: PrivateKey;
 
-  readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestSigner();
-  readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestSigner();
+  readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestValidation();
+  readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestValidation();
 
   constructor(public host: string, privateKey: string) {
     this.ecdsaKey = privateKeyFromString(privateKey);

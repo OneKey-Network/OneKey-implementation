@@ -12,7 +12,6 @@ import { httpRedirect } from '@core/express/utils';
 import { fromDataToObject } from '@core/query-string';
 import {
   Get3PCRequestBuilder,
-  GetIdsPrefsRequestBuilder,
   GetNewIdRequestBuilder,
   PostIdsPrefsRequestBuilder,
 } from '@core/model/operator-request-builders';
@@ -55,9 +54,8 @@ export const addOperatorClientProxyEndpoints = (
   allowedOrigins: string[],
   s2sOptions?: AxiosRequestConfig
 ) => {
-  const client = new OperatorClient(sender, privateKey, s2sOptions);
+  const client = new OperatorClient(operatorHost, sender, privateKey, s2sOptions);
 
-  const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, sender, privateKey);
   const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey);
   const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey);
   const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, sender, privateKey);
@@ -74,8 +72,7 @@ export const addOperatorClientProxyEndpoints = (
   // *****************************************************************************************************************
 
   app.get(jsonProxyEndpoints.read, cors(corsOptions), (req, res) => {
-    const getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.buildRequest();
-    const url = getIdsPrefsRequestBuilder.getRestUrl(getIdsPrefsRequestJson);
+    const url = client.getReadRestUrl();
 
     httpRedirect(res, url.toString(), 302);
   });
@@ -105,8 +102,9 @@ export const addOperatorClientProxyEndpoints = (
       throw message.error;
     }
 
-    const verification = client.verifyReadResponseSignature(message.response);
+    const verification = client.verifyReadResponse(message.response);
     if (!verification) {
+      // TODO [errors] finer error feedback
       const error: Error = { message: 'verification failed' };
       res.send(error);
     } else {
@@ -139,11 +137,7 @@ export const addOperatorClientProxyEndpoints = (
     const returnUrl = getReturnUrl(req, res);
 
     if (returnUrl) {
-      const getIdsPrefsRequestJson = getIdsPrefsRequestBuilder.toRedirectRequest(
-        getIdsPrefsRequestBuilder.buildRequest(),
-        returnUrl
-      );
-      const url = getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson);
+      const url = client.getReadRedirectUrl(returnUrl);
 
       httpRedirect(res, url.toString(), 302);
     }

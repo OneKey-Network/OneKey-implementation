@@ -185,7 +185,7 @@ class Examples {
       operatorAPI.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
     );
 
-    const cmpClient = new OperatorClient(cmpConfig.host, cmpPrivateConfig.privateKey);
+    const cmpClient = new OperatorClient(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey);
     this.setObject(
       'preferencesJson',
       cmpClient.buildPreferences(
@@ -333,7 +333,7 @@ class Examples {
       cmpConfig.host,
       cmpPrivateConfig.privateKey
     );
-    const get3PCResponseBuilder = new Get3PCResponseBuilder(operatorConfig.host, operatorPrivateConfig.privateKey);
+    const get3PCResponseBuilder = new Get3PCResponseBuilder();
     this.get3pcRequestHttp = getGETUrl(get3PCRequestBuilder.getRestUrl());
 
     this.get3pcResponse_supportedJson = get3PCResponseBuilder.buildResponse(
