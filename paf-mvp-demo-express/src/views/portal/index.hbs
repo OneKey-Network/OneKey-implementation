@@ -19,23 +19,35 @@
         .json {
             text-align: left;
         }
+
+        div {
+            text-align: center;
+        }
+
+        div.status {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding-bottom: 1em;
+        }
+
+        a {
+            font-weight: bold;
+            text-decoration: none;
+        }
     </style>
     <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@1.2/dist/pretty-print-json.css>
     <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@1.2/dist/pretty-print-json.min.js></script>
 </head>
 <body>
 
-{{#if cookies.paf_identifiers}}
-    <div style="text-align: center">
+
+<div class="status">
+    {{#if cookies.paf_identifiers}}
         You have an ID!
-        <br/><br/>
-    </div>
-{{else}}
-    <div style="text-align: center">
+    {{else}}
         You don't have ID yet!
-        <br><br>
-    </div>
-{{/if}}
+    {{/if}}
+</div>
 
 <div style="text-align: center">
     <table>
@@ -45,12 +57,12 @@
                 {{#if cookies.paf_identifiers}}
                     <pre id="ids" class="json-container"></pre>
                     <script>
-                        document.getElementById('ids').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_identifiers }}});
+                        document.getElementById('ids').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_identifiers }}}, {quoteKeys: true});
                     </script>
                 {{else}}
                     no ID cookie
                 {{/if}}</td>
-            <td>{{#if cookies.paf_identifiers}}<a href="{{removeIdUrl}}" style="color: red">remove ID</a>{{else}}
+            <td>{{#if cookies.paf_identifiers}}<a href="{{removeIdUrl}}" style="color: red">🗑 remove ID</a>{{else}}
                 <a href="{{createIdUrl}}">Generate ID cookie</a>{{/if}}</td>
         </tr>
         <tr>
@@ -60,14 +72,15 @@
 
                     <pre id="prefs" class="json-container"></pre>
                     <script>
-                        document.getElementById('prefs').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_preferences }}});
+                        document.getElementById('prefs').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_preferences }}}, {quoteKeys: true});
                     </script>
                 {{else}}
                     no preferences cookie
                 {{/if}}</td>
-            <td>{{#if optInUrl}}<a href="{{optInUrl}}" style="color: green">opt in</a>{{/if}}</td>
-            <td>{{#if optOutUrl}}<a href="{{optOutUrl}}" style="color: black">opt out</a>{{/if}}</td>
-            <td>{{#if cookies.paf_preferences}}<a href="{{removePrefsUrl}}" style="color: red">remove preferences</a>{{/if}}
+            <td>{{#if optInUrl}}<a href="{{optInUrl}}" style="color: green">✅ opt in</a>{{/if}}</td>
+            <td>{{#if optOutUrl}}<a href="{{optOutUrl}}" style="color: black">❌ opt out</a>{{/if}}</td>
+            <td>{{#if cookies.paf_preferences}}
+                <a href="{{removePrefsUrl}}" style="color: red">🗑 remove preferences</a>{{/if}}
             </td>
         </tr>
     </table>
