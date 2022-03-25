@@ -50,7 +50,6 @@ import { GetIdentityResponseBuilder } from '@core/model/identity-response-builde
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { cmpPrivateConfig } from '../src/cmp';
 import { operatorPrivateConfig } from '../src/operator';
-import {PublicKeyStore} from '@core/express/key-store';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>
@@ -171,8 +170,7 @@ class Examples {
   constructor(protected outputDir: string) {}
 
   protected buildExamples() {
-    const keyStore = new PublicKeyStore({});
-    const operatorAPI = new OperatorApi(operatorConfig.host, operatorPrivateConfig.privateKey, keyStore);
+    const operatorAPI = new OperatorApi(operatorConfig.host, operatorPrivateConfig.privateKey);
     const originalAdvertiserUrl = new URL(
       `https://${advertiserConfig.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
     );
