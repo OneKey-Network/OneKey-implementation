@@ -1,14 +1,17 @@
 import express from 'express';
-import { operatorConfig, portalConfig, PrivateConfig } from './config';
-import { OperatorClient } from '@operator-client/operator-client';
-import { Cookies, fromIdsCookie, fromPrefsCookie } from '@core/cookies';
-import { Identifiers, Preferences, RedirectGetIdsPrefsResponse } from '@core/model/generated-model';
+import {operatorConfig, portalConfig, PrivateConfig} from './config';
+import {OperatorClient} from '@operator-client/operator-client';
+import {Cookies, fromIdsCookie, fromPrefsCookie} from '@core/cookies';
+import {_ as Model, Identifiers, Preferences, RedirectGetIdsPrefsResponse,} from '@core/model/generated-model';
+import {getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie} from '@core/express/utils';
+import {PostIdsPrefsRequestBuilder} from '@core/model/operator-request-builders';
+import {s2sOptions} from './server-config';
+import {addIdentityEndpoint} from '@core/express/identity-endpoint';
 import domainParser from 'tld-extract';
-import { getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie } from '@core/express/utils';
-import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
-import { s2sOptions } from './server-config';
-import { PublicKeyStore } from '@core/express/key-store';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import {decodeBase64} from '@core/query-string';
+import {PublicKeyStore} from '@core/express/key-store';
+import {IdentifierDefinition, IdsAndPreferencesDefinition} from '@core/crypto/signing-definition';
+import {IdsAndPreferencesVerifier, Verifier} from '@core/crypto/verifier';
 
 const portalPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -38,12 +41,16 @@ const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
   portalPrivateConfig.privateKey
 );
 
-const removeIdUrl = '/remove-id';
-const removePrefsUrl = '/remove-prefs';
-const generateNewId = '/generate-new-id';
-const writeNewId = '/write-new-id';
-const optInUrl = '/opt-in';
-const optOutUrl = '/opt-out';
+// Portal API endpoints: redirect
+const removeIdUrl = '/redirect/remove-id';
+const removePrefsUrl = '/redirect/remove-prefs';
+const generateNewId = '/redirect/generate-new-id';
+const writeNewId = '/redirect/write-new-id';
+const optInUrl = '/redirect/opt-in';
+const optOutUrl = '/redirect/opt-out';
+
+// Portal API endpoints: REST
+const verify = '/rest/verify';
 
 const getWritePrefsUrl = (identifiers: Identifiers, preferences: Preferences, returnUrl: URL) => {
   const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
@@ -159,6 +166,60 @@ portalApp.get(optOutUrl, (req, res) => {
     // Shouldn't happen: redirect to home page
     httpRedirect(res, homeUrl.toString());
   }
+});
+
+const verifiers: { [name in keyof Model]?: Verifier<unknown> } = {
+  identifier: new Verifier(keyStore.provider, new IdentifierDefinition()),
+  ['ids-and-preferences']: new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
+};
+
+portalApp.use(express.json());
+
+portalApp.post(verify, async (req, res) => {
+  const rawData: {
+    type: keyof Model;
+    payload: string;
+  } = req.body;
+
+  const response: {
+    result: boolean;
+    payload: unknown;
+    details?: string;
+  } = {
+    result: false,
+    payload: {},
+  };
+
+  await (async () => {
+    try {
+      // Support JSON or base 64 encoded payload
+      try {
+        response.payload = JSON.parse(rawData.payload);
+      } catch (e) {
+        response.payload = JSON.parse(decodeBase64(rawData.payload));
+      }
+    } catch (e) {
+      response.details = `Error parsing payload: ${e.message}`;
+      return;
+    }
+
+    try {
+      switch (rawData.type) {
+        case 'identifier':
+        case 'ids-and-preferences':
+          response.result = await verifiers[rawData.type].verifySignature(response.payload);
+          break;
+        default:
+          throw `Unsupported verification: ${rawData.type}`;
+      }
+
+      response.details = response.result ? 'Valid signature' : 'Invalid signature';
+    } catch (e) {
+      response.details = `Error extracting signer domain or getting public key: ${e.message}`;
+    }
+  })();
+
+  res.send(response);
 });
 
 addIdentityEndpoint(portalApp, portalConfig.name, 'vendor', [portalPrivateConfig.currentPublicKey]);
