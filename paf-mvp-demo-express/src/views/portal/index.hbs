@@ -119,15 +119,56 @@
     const resetResult = () => {
         document.getElementById('result').innerHTML = '';
     }
+
+    const decodeBase64 = (data) => {
+        return atob(data);
+    };
+
+    const mappings = {{{mappings}}};
+
+    const extract = () => {
+        const url = new URL(document.getElementById('string-input').value);
+        const hostname = url.hostname;
+        const path = url.pathname;
+        let type;
+        if (mappings[hostname]?.[path]) {
+            type = mappings[hostname]?.[path];
+        } else {
+            type = mappings["default"]["default"];
+        }
+        const payload = decodeBase64(url.searchParams.get('paf'));
+        try {
+            const payloadObject = JSON.parse(payload);
+            // Set payload
+            document.getElementById("input").value = JSON.stringify(payloadObject, null, 2);
+            // Set type
+            document.getElementById("type").value = type;
+        } catch (e) {
+            alert(`Error parsing message: ${e}`)
+        }
+    }
 </script>
 
 <div>
     <table align="center">
         <tr>
             <td>
-                <label for="input">Enter the message or cookie value to validate (must be valid JSON):</label>
+                <label for="string-input">Enter a full operator URL</label>
                 <br>
-                <textarea id="input" rows="40" cols="120" oninput="resetResult()"></textarea>
+                <textarea id="string-input" rows="5" cols="120" oninput="resetResult()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button onclick="extract()">⬇️ extract message</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="input">...or directly import the message or cookie value to validate (must be valid
+                    JSON):</label>
+                <br>
+                <textarea id="input" rows="30" cols="120" oninput="resetResult()"></textarea>
             </td>
         </tr>
         <tr>
@@ -140,7 +181,7 @@
                         {{/each}}
                     </select>
                 </label>
-                <button onclick="validate()">Go</button>
+                <button onclick="validate()">☑️ validate</button>
             </td>
         </tr>
         <tr>
