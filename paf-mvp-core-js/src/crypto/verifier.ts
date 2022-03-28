@@ -2,7 +2,6 @@ import { PublicKey } from '@core/crypto/keys';
 import { IdentifierDefinition, IdsAndPreferencesDefinition, SigningDefinition } from '@core/crypto/signing-definition';
 import { Identifier, IdsAndPreferences, MessageBase } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
-import { UnsignedMessage } from '@core/model/model';
 
 export interface PublicKeyProvider {
   (domain: string): Promise<PublicKey>;
@@ -29,11 +28,12 @@ export class Verifier<T> {
 }
 
 export class IdsAndPreferencesVerifier extends Verifier<IdsAndPreferences> {
-  protected idVerifier: Verifier<Identifier>;
-
-  constructor(publicKeyProvider: PublicKeyProvider, protected definition: IdsAndPreferencesDefinition) {
+  constructor(
+    publicKeyProvider: PublicKeyProvider,
+    protected definition: IdsAndPreferencesDefinition,
+    protected idVerifier = new Verifier<Identifier>(publicKeyProvider, new IdentifierDefinition())
+  ) {
     super(publicKeyProvider, definition);
-    this.idVerifier = new Verifier<Identifier>(publicKeyProvider, new IdentifierDefinition());
   }
 
   async verifySignature(signedData: IdsAndPreferences): Promise<boolean> {
@@ -45,13 +45,13 @@ export class IdsAndPreferencesVerifier extends Verifier<IdsAndPreferences> {
   }
 }
 
-export class MessageVerifier<T extends MessageBase, U = UnsignedMessage<T>> extends Verifier<T> {
+export class MessageVerifier<T extends MessageBase> extends Verifier<T> {
   /**
    * @param publicKeyProvider
    * @param definition
    * @param messageTTLinSec acceptable time to live for a message to be received
    */
-  constructor(publicKeyProvider: PublicKeyProvider, definition: SigningDefinition<T, U>, public messageTTLinSec = 30) {
+  constructor(publicKeyProvider: PublicKeyProvider, definition: SigningDefinition<T>, public messageTTLinSec = 30) {
     super(publicKeyProvider, definition);
   }
 
