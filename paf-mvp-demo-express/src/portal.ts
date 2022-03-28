@@ -1,13 +1,14 @@
 import express from 'express';
-import { operatorConfig, portalConfig, PrivateConfig } from './config';
-import { OperatorClient } from '@operator-client/operator-client';
-import { Cookies, fromIdsCookie, fromPrefsCookie } from '@core/cookies';
-import { Identifiers, Preferences, RedirectGetIdsPrefsResponse } from '@core/model/generated-model';
-import { getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie } from '@core/express/utils';
-import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
-import { s2sOptions } from './server-config';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import {operatorConfig, portalConfig, PrivateConfig} from './config';
+import {OperatorClient} from '@operator-client/operator-client';
+import {Cookies, fromIdsCookie, fromPrefsCookie} from '@core/cookies';
+import {Identifiers, Preferences, RedirectGetIdsPrefsResponse} from '@core/model/generated-model';
 import domainParser from 'tld-extract';
+import {getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie} from '@core/express/utils';
+import {PostIdsPrefsRequestBuilder} from '@core/model/operator-request-builders';
+import {s2sOptions} from './server-config';
+import {PublicKeyStore} from '@core/express/key-store';
+import {addIdentityEndpoint} from '@core/express/identity-endpoint';
 
 const portalPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -27,8 +28,10 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 };
 export const portalApp = express();
 
+const keyStore = new PublicKeyStore(s2sOptions);
+
 // The portal is a client of the operator API
-const client = new OperatorClient(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey, s2sOptions);
+const client = new OperatorClient(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey, keyStore);
 const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
   operatorConfig.host,
   portalConfig.host,

@@ -1,5 +1,17 @@
-import { Identifier, Identifiers, IdsAndPreferences, MessageBase, Preferences } from '@core/model/generated-model';
-import { UnsignedData } from '@core/model/model';
+import {
+  GetIdsPrefsRequest,
+  GetIdsPrefsResponse,
+  GetNewIdRequest,
+  GetNewIdResponse,
+  Identifier,
+  Identifiers,
+  IdsAndPreferences,
+  MessageBase,
+  PostIdsPrefsRequest,
+  PostIdsPrefsResponse,
+  Preferences,
+} from '@core/model/generated-model';
+import { UnsignedData, UnsignedMessage } from '@core/model/model';
 
 /**
  * Definition of how to get signature, signature domain and input string to sign
@@ -93,16 +105,54 @@ export class IdsAndPreferencesDefinition implements SigningDefinition<IdsAndPref
 /**
  * Defines how to extract signature, signer domain and input string from any message to or from the operator
  */
-export abstract class MessageDefinition implements SigningDefinition<MessageBase> {
-  getSignature(data: MessageBase) {
+export abstract class MessageDefinition<T extends MessageBase, U = UnsignedMessage<T>>
+  implements SigningDefinition<T, U>
+{
+  getSignature(data: T) {
     return data.signature;
   }
 
-  getSignerDomain(data: MessageBase) {
+  getSignerDomain(data: T) {
     return data.sender;
   }
 
-  abstract getInputString(data: MessageBase): string;
+  abstract getInputString(data: U): string;
 }
 
-// TODO implement getInputString depending on the message
+/**
+ * Defines how to sign a message that doesn't have a "body" property.
+ * Examples: GetIdsPrefsRequest, GetNewIdRequest
+ */
+export class MessageWithoutBodyDefinition extends MessageDefinition<GetIdsPrefsRequest | GetNewIdRequest> {
+  getInputString(data: UnsignedMessage<GetIdsPrefsRequest>): string {
+    return [data.sender, data.receiver, data.timestamp].join(SIGN_SEP);
+  }
+}
+
+/**
+ * Defines how to sign a message with a "body" property.
+ * Examples: GetIdsPrefsResponse, PostIdsPrefsResponse, PostIdsPrefsRequest, GetNewIdResponse
+ */
+export class MessageWithBodyDefinition extends MessageDefinition<
+  GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest | GetNewIdResponse
+> {
+  getInputString(
+    data: UnsignedMessage<GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest | GetNewIdResponse>
+  ): string {
+    const dataToSign = [data.sender, data.receiver];
+
+    if ((data as GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest).body.preferences) {
+      dataToSign.push(
+        (data as GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest).body.preferences.source.signature
+      );
+    }
+
+    for (const id of data.body.identifiers ?? []) {
+      dataToSign.push(id.source.signature);
+    }
+
+    dataToSign.push(data.timestamp.toString());
+
+    return dataToSign.join(SIGN_SEP);
+  }
+}

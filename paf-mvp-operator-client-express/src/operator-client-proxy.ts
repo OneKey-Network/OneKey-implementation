@@ -16,6 +16,7 @@ import {
   PostIdsPrefsRequestBuilder,
 } from '@core/model/operator-request-builders';
 import { AxiosRequestConfig } from 'axios';
+import { PublicKeyStore } from '@core/express/key-store';
 
 /**
  * Get return URL parameter, otherwise set response code 400
@@ -54,7 +55,7 @@ export const addOperatorClientProxyEndpoints = (
   allowedOrigins: string[],
   s2sOptions?: AxiosRequestConfig
 ) => {
-  const client = new OperatorClient(operatorHost, sender, privateKey, s2sOptions);
+  const client = new OperatorClient(operatorHost, sender, privateKey, new PublicKeyStore(s2sOptions));
 
   const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey);
   const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey);

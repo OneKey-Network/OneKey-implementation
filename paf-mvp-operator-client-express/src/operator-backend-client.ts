@@ -14,7 +14,7 @@ import {
   setCookie,
 } from '@core/express/utils';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
-import { AxiosRequestConfig } from 'axios';
+import { PublicKeyStore } from '@core/express/key-store';
 
 export enum RedirectType {
   http = 'http',
@@ -55,13 +55,13 @@ export class OperatorBackendClient {
     sender: string,
     privateKey: string,
     private redirectType: RedirectType = RedirectType.http,
-    s2sOptions?: AxiosRequestConfig
+    keyStore: PublicKeyStore
   ) {
     if (![RedirectType.http, RedirectType.meta].includes(redirectType)) {
       throw 'Only backend redirect types are supported';
     }
 
-    this.client = new OperatorClient(operatorHost, sender, privateKey, s2sOptions);
+    this.client = new OperatorClient(operatorHost, sender, privateKey, keyStore);
   }
 
   async getIdsAndPreferencesOrRedirect(

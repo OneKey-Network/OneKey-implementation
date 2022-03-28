@@ -4,6 +4,7 @@ import { OperatorBackendClient, RedirectType } from '@operator-client/operator-b
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
+import { PublicKeyStore } from '@core/express/key-store';
 
 const advertiserPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -29,7 +30,7 @@ const client = new OperatorBackendClient(
   advertiserConfig.host,
   advertiserPrivateConfig.privateKey,
   RedirectType.http,
-  s2sOptions
+  new PublicKeyStore(s2sOptions)
 );
 
 advertiserApp.get('/', async (req: Request, res: Response) => {

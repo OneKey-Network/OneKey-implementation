@@ -29,6 +29,7 @@ export abstract class SignedRestRequestBuilder<T extends object | undefined> ext
     privateKey: string
   ) {
     super(serverHost, restEndpoint);
+    // FIXME could be removed?
     this.ecdsaKey = privateKeyFromString(privateKey);
   }
 }
