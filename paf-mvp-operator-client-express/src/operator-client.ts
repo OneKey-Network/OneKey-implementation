@@ -1,17 +1,18 @@
-import { GetIdsPrefsResponse, Identifiers, Preferences } from '@core/model/generated-model';
+import { GetIdsPrefsResponse, Identifiers, IdsAndPreferences, Preferences } from '@core/model/generated-model';
 import { UnsignedData } from '@core/model/model';
 import { GetIdsPrefsResponseValidation } from '@core/crypto/message-validation';
-import { PrefsSigner } from '@core/crypto/data-signature';
 import { PrivateKey, privateKeyFromString } from '@core/crypto/keys';
 import { PublicKeyStore } from '@core/express/key-store';
 import { AxiosRequestConfig } from 'axios';
 import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
+import { Signer } from '@core/crypto/signer';
+import { IdsAndPreferencesDefinition, IdsAndUnsignedPreferences } from '@core/crypto/signing-definition';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
   private readonly readVerifier = new GetIdsPrefsResponseValidation();
-  private readonly prefsSigner = new PrefsSigner();
+  private readonly prefsSigner: Signer<IdsAndPreferences, IdsAndUnsignedPreferences>;
   private readonly ecdsaKey: PrivateKey;
   private readonly keyStore: PublicKeyStore;
 
@@ -24,6 +25,7 @@ export class OperatorClient {
     this.ecdsaKey = privateKeyFromString(privateKey);
     this.keyStore = new PublicKeyStore(s2sOptions);
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
+    this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
   }
 
   async verifyReadResponse(message: GetIdsPrefsResponse): Promise<boolean> {
@@ -56,7 +58,7 @@ export class OperatorClient {
       ...rest,
       source: {
         ...source,
-        signature: this.prefsSigner.sign(this.ecdsaKey, { identifiers, preferences: unsignedPreferences }),
+        signature: this.prefsSigner.sign({ identifiers, preferences: unsignedPreferences }),
       },
     };
   }

@@ -21,8 +21,7 @@ import { UnsignedData } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
 import { GetIdsPrefsRequestValidation, PostIdsPrefsRequestValidation } from '@core/crypto/message-validation';
 import { Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie } from '@core/cookies';
-import { IdSigner, PrefsSigner } from '@core/crypto/data-signature';
-import { PrivateKey, privateKeyFromString } from '@core/crypto/keys';
+import { privateKeyFromString } from '@core/crypto/keys';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import {
   Get3PCResponseBuilder,
@@ -35,6 +34,9 @@ import { KeyInfo } from '@core/crypto/identity';
 import { PublicKeyStore } from '@core/express/key-store';
 import { AxiosRequestConfig } from 'axios';
 import domainParser from 'tld-extract';
+import { Signer } from '@core/crypto/signer';
+import { IdentifierDefinition, IdsAndPreferencesDefinition } from '@core/crypto/signing-definition';
+import { Verifier } from '@core/crypto/verifier';
 
 // Expiration: now + 3 months
 const getOperatorExpiration = (date: Date = new Date()) => {
@@ -74,8 +76,8 @@ export const addOperatorApi = (
   const get3PCResponseBuilder = new Get3PCResponseBuilder();
   const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
   const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
-  const idsSigner = new IdSigner();
-  const prefsSigner = new PrefsSigner();
+  const idVerifier = new Verifier(keyStore.provider, new IdentifierDefinition());
+  const prefsVerifier = new Verifier(keyStore.provider, new IdsAndPreferencesDefinition());
 
   const tld = domainParser(`https://${operatorHost}`).domain;
 
@@ -154,17 +156,14 @@ export const addOperatorApi = (
     identifiers[0].persisted = undefined;
 
     // Verify ids
-    for (let i = 0; i < identifiers.length; i++) {
-      const id = identifiers[i];
-      const verifyKey = await keyStore.getPublicKey(id.source.domain);
-      if (!idsSigner.verify(verifyKey.publicKeyObj, id)) {
+    for (const id of identifiers) {
+      if (!(await idVerifier.verifySignature(id))) {
         throw `Identifier verification failed for ${id.value}`;
       }
     }
 
-    // Verify preferences
-    const prefsVerifyKey = await keyStore.getPublicKey(preferences.source.domain);
-    if (!prefsSigner.verify(prefsVerifyKey.publicKeyObj, input.body)) {
+    // Verify preferences FIXME optimization here: PAF_ID has already been verified in previous step
+    if (!(await prefsVerifier.verifySignature(input.body))) {
       throw 'Preferences verification failed';
     }
 
@@ -281,14 +280,13 @@ export const addOperatorApi = (
 
 // FIXME should probably be moved to core library
 export class OperatorApi {
-  private readonly idSigner = new IdSigner();
-  private readonly ecdsaKey: PrivateKey;
+  private readonly idSigner: Signer<Identifier, UnsignedData<Identifier>>;
 
   readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestValidation();
   readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestValidation();
 
   constructor(public host: string, privateKey: string) {
-    this.ecdsaKey = privateKeyFromString(privateKey);
+    this.idSigner = new Signer(privateKeyFromString(privateKey), new IdentifierDefinition());
   }
 
   generateNewId(timestamp = new Date().getTime()): Identifier {
@@ -314,7 +312,7 @@ export class OperatorApi {
       ...rest,
       source: {
         ...source,
-        signature: this.idSigner.sign(this.ecdsaKey, unsignedId),
+        signature: this.idSigner.sign(unsignedId),
       },
     };
   }

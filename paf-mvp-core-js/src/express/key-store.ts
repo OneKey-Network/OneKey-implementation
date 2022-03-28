@@ -50,4 +50,10 @@ export class PublicKeyStore {
 
     return keyInfo;
   }
+
+  /**
+   * Helper method to get a simple "provider" (domain) => public Key
+   * @param domain
+   */
+  provider = async (domain: string) => (await this.getPublicKey(domain)).publicKeyObj;
 }
