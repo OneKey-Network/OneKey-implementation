@@ -11,7 +11,7 @@ import {
   PostIdsPrefsResponse,
   Preferences,
 } from '@core/model/generated-model';
-import {RedirectRequest, RedirectResponse, UnsignedData, UnsignedMessage} from '@core/model/model';
+import { RedirectRequest, RedirectResponse, UnsignedData, UnsignedMessage } from '@core/model/model';
 
 /**
  * Definition of how to get signature, signature domain and input string to sign
@@ -157,10 +157,10 @@ export class MessageWithBodyDefinition extends MessageDefinition<
   }
 }
 
-export class RedirectRequestDefinition<T,U = Partial<T>> implements SigningDefinition<RedirectRequest<T>, RedirectRequest<U>> {
-
-  constructor(protected requestDefinition: SigningDefinition<T, U>) {
-  }
+export class RedirectRequestDefinition<T, U = Partial<T>>
+  implements SigningDefinition<RedirectRequest<T>, RedirectRequest<U>>
+{
+  constructor(protected requestDefinition: SigningDefinition<T, U>) {}
 
   getInputString(data: RedirectRequest<U>): string {
     return this.requestDefinition.getInputString(data.request);
@@ -173,13 +173,12 @@ export class RedirectRequestDefinition<T,U = Partial<T>> implements SigningDefin
   getSignerDomain(data: RedirectRequest<T>): string {
     return this.requestDefinition.getSignerDomain(data.request);
   }
-
 }
 
-export class RedirectResponseDefinition<T,U = Partial<T>> implements SigningDefinition<RedirectResponse<T>, RedirectResponse<U>> {
-
-  constructor(protected requestDefinition: SigningDefinition<T, U>) {
-  }
+export class RedirectResponseDefinition<T, U = Partial<T>>
+  implements SigningDefinition<RedirectResponse<T>, RedirectResponse<U>>
+{
+  constructor(protected requestDefinition: SigningDefinition<T, U>) {}
 
   getInputString(data: RedirectResponse<U>): string {
     return this.requestDefinition.getInputString(data.response);

@@ -5,15 +5,10 @@ export type UnsignedData<T extends { source: Source }> = Omit<T, 'source'> & { s
 
 export const isEmptyListOfIds = (ids: (Identifier | undefined)[]) => ids.filter((n) => n !== undefined).length === 0;
 
-export interface NewPrefs {
-  identifier: Identifier;
-  optIn: boolean;
-}
-
 export interface RedirectResponse<T> {
-  response: T;
+  response?: T;
 }
 
 export interface RedirectRequest<T> {
-  request?: T;
+  request: T;
 }

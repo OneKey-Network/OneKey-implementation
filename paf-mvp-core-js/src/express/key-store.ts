@@ -2,7 +2,7 @@ import { fromIdentityResponse, KeyInfo } from '@core/crypto/identity';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse } from '@core/model/generated-model';
 import { PublicKey, publicKeyFromString } from '@core/crypto/keys';
-import axios, {Axios, AxiosRequestConfig, AxiosResponse} from 'axios';
+import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
 
@@ -40,9 +40,9 @@ export class PublicKeyStore {
     const responseData = response.data as GetIdentityResponse;
 
     const currentKey = responseData.keys
-        .filter((key) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)) // valid keys
-        .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
-        .at(0); // take the first one (the one that ends as far as possible from now)
+      .filter((key) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)) // valid keys
+      .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
+      .at(0); // take the first one (the one that ends as far as possible from now)
 
     if (currentKey === undefined) {
       throw new Error(`No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`);
