@@ -37,7 +37,7 @@ import {
   GetNewIdResponseBuilder,
   PostIdsPrefsResponseBuilder,
 } from '@core/model/operator-response-builders';
-import {Schema, Validator} from 'jsonschema';
+import { Schema, Validator } from 'jsonschema';
 import * as fs from 'fs';
 import {
   ProxyRestSignPostIdsPrefsRequestBuilder,
