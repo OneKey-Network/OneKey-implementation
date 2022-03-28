@@ -9,3 +9,11 @@ export interface NewPrefs {
   identifier: Identifier;
   optIn: boolean;
 }
+
+export interface RedirectResponse<T> {
+  response: T;
+}
+
+export interface RedirectRequest<T> {
+  request?: T;
+}
