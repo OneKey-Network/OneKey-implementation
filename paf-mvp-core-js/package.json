@@ -5,6 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
+    "generate-model": "ts-node scripts/generate-model-from-schemas.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "npm run build"
   },
