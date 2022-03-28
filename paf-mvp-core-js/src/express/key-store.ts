@@ -2,7 +2,7 @@ import { fromIdentityResponse, KeyInfo } from '@core/crypto/identity';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse } from '@core/model/generated-model';
 import { PublicKey, publicKeyFromString } from '@core/crypto/keys';
-import axios, { Axios, AxiosRequestConfig } from 'axios';
+import axios, {Axios, AxiosRequestConfig, AxiosResponse} from 'axios';
 
 type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
 
@@ -28,17 +28,24 @@ export class PublicKeyStore {
     const request = queryBuilder.buildRequest();
     const url = queryBuilder.getRestUrl(request);
 
+    let response: AxiosResponse;
+
     // Call identity endpoint
-    const response = await this.s2sClient.get(url.toString());
+    try {
+      response = await this.s2sClient.get(url.toString());
+    } catch (e) {
+      throw new Error(`Error calling Identity endpoint on ${domain}: ${e?.message}`);
+    }
+
     const responseData = response.data as GetIdentityResponse;
 
     const currentKey = responseData.keys
-      .filter((key) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)) // valid keys
-      .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
-      .at(0); // take the first one (the one that ends as far as possible from now)
+        .filter((key) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)) // valid keys
+        .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
+        .at(0); // take the first one (the one that ends as far as possible from now)
 
     if (currentKey === undefined) {
-      throw `No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`;
+      throw new Error(`No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`);
     }
 
     // Update cache
@@ -46,6 +53,7 @@ export class PublicKeyStore {
       ...fromIdentityResponse(currentKey),
       publicKeyObj: publicKeyFromString(fromIdentityResponse(currentKey).publicKey),
     };
+
     this.cache[domain] = keyInfo;
 
     return keyInfo;
@@ -55,5 +63,7 @@ export class PublicKeyStore {
    * Helper method to get a simple "provider" (domain) => public Key
    * @param domain
    */
-  provider = async (domain: string) => (await this.getPublicKey(domain)).publicKeyObj;
+  provider = async (domain: string) => {
+    return (await this.getPublicKey(domain)).publicKeyObj;
+  };
 }
