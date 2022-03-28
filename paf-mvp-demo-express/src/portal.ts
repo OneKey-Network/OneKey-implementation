@@ -87,42 +87,6 @@ const getWritePrefsUrlFromOptin = (identifiers: Identifiers, optIn: boolean, ret
 
 const tld = domainParser(`https://${portalConfig.host}`).domain;
 
-portalApp.get('/', (req, res) => {
-  const cookies = req.cookies;
-
-  const formatCookie = (value: string | undefined) => (value ? JSON.stringify(JSON.parse(value), null, 2) : undefined);
-
-  const options: {
-    removeIdUrl: string;
-    cookies: {
-      [Cookies.identifiers]: string;
-      [Cookies.preferences]: string;
-    };
-    removePrefsUrl: string;
-    createIdUrl: string;
-    optInUrl?: string;
-    optOutUrl?: string;
-  } = {
-    cookies: {
-      [Cookies.identifiers]: formatCookie(cookies[Cookies.identifiers]),
-      [Cookies.preferences]: formatCookie(cookies[Cookies.preferences]),
-    },
-    createIdUrl: generateNewId,
-    removeIdUrl,
-    removePrefsUrl,
-  };
-
-  // little trick because we know the cookie is available in the same TLD+1
-  const identifiers = fromIdsCookie(cookies[Cookies.identifiers]);
-
-  if (identifiers) {
-    options.optInUrl = optInUrl;
-    options.optOutUrl = optOutUrl;
-  }
-
-  res.render('portal/index', options);
-});
-
 portalApp.get(removeIdUrl, (req, res) => {
   removeCookie(req, res, Cookies.identifiers, { domain: tld });
   const homeUrl = getRequestUrl(req, '/');
@@ -251,6 +215,46 @@ portalApp.post(verify, async (req, res) => {
   })();
 
   res.send(response);
+});
+
+portalApp.get('/', (req, res) => {
+  const cookies = req.cookies;
+
+  const formatCookie = (value: string | undefined) => (value ? JSON.stringify(JSON.parse(value), null, 2) : undefined);
+
+  const options: {
+    removeIdUrl: string;
+    cookies: {
+      [Cookies.identifiers]: string;
+      [Cookies.preferences]: string;
+    };
+    removePrefsUrl: string;
+    createIdUrl: string;
+    optInUrl?: string;
+    optOutUrl?: string;
+    verifyUrl: string;
+    dataTypes: string[];
+  } = {
+    cookies: {
+      [Cookies.identifiers]: formatCookie(cookies[Cookies.identifiers]),
+      [Cookies.preferences]: formatCookie(cookies[Cookies.preferences]),
+    },
+    createIdUrl: generateNewId,
+    removeIdUrl,
+    removePrefsUrl,
+    dataTypes: Object.keys(verifiers),
+    verifyUrl: verify,
+  };
+
+  // little trick because we know the cookie is available in the same TLD+1
+  const identifiers = fromIdsCookie(cookies[Cookies.identifiers]);
+
+  if (identifiers) {
+    options.optInUrl = optInUrl;
+    options.optOutUrl = optOutUrl;
+  }
+
+  res.render('portal/index', options);
 });
 
 addIdentityEndpoint(portalApp, portalConfig.name, 'vendor', [portalPrivateConfig.currentPublicKey]);

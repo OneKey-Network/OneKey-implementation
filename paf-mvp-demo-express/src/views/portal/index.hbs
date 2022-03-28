@@ -49,8 +49,8 @@
     {{/if}}
 </div>
 
-<div style="text-align: center">
-    <table>
+<div>
+    <table align="center">
         <tr>
             <th>ID</th>
             <td colspan="3" class="json">
@@ -84,6 +84,73 @@
             </td>
         </tr>
     </table>
+</div>
+
+<script>
+    const verifyUrl = "{{verifyUrl}}";
+    const validate = async () => {
+
+        resetResult();
+
+        const payload = JSON.parse(document.getElementById("input").value);
+        const type = document.getElementById("type").value;
+
+        const response = await fetch(verifyUrl, {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(
+                    {
+                        payload,
+                        type
+                    }
+            )
+        });
+
+        document.getElementById('result').innerHTML = prettyPrintJson.toHtml(await response.json());
+    }
+
+    const resetResult = () => {
+        document.getElementById('result').innerHTML = '';
+    }
+</script>
+
+<div>
+    <table align="center">
+        <tr>
+            <td>
+                <label for="input">Enter the message or cookie value to validate (must be valid JSON):</label>
+                <br>
+                <textarea id="input" rows="40" cols="120" oninput="resetResult()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>
+                    Type
+                    <select id="type">
+                        {{#each dataTypes}}
+                            <option value="{{this}}">{{this}}</option>
+                        {{/each}}
+                    </select>
+                </label>
+                <button onclick="validate()">Go</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="json">
+                <pre id="result" class="json-container"></pre>
+            </td>
+        </tr>
+    </table>
+
+
 </div>
 
 </body>
