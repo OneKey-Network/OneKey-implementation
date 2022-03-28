@@ -48,6 +48,7 @@
     "eslint-plugin-react": "^7.27.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "jest": "^27.5.1",
+    "jest-fetch-mock": "^3.0.3",
     "postcss": "^8.3.11",
     "postcss-initial": "^3.0.4",
     "prettier": "^2.4.1",

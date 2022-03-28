@@ -12,4 +12,9 @@ module.exports = {
       tsconfig: './tsconfig.test.json',
     },
   },
+  "automock": false,
+  "resetMocks": false,
+  setupFiles: [
+    '<rootDir>/tests/jest-setup.js'
+  ]
 };

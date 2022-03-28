@@ -9,8 +9,14 @@ import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpe
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
 import { Identifier } from '@core/model/generated-model';
+import fetch from 'jest-fetch-mock';
 
 const proxyHostName = 'http://localhost';
+
+afterEach(() => {
+  // cleaning up the mess left behind the previous test
+  fetch.resetMocks();
+});
 
 describe('Function getIdsAndPreferences', () => {
   beforeEach(() => {
@@ -49,19 +55,13 @@ describe('Function getIdsAndPreferences', () => {
 describe('Function getNewId', () => {
   const FAKE_ID = 'A-B-TEST-ID';
 
-  beforeEach(() => {
-    const identifiers = getFakeIdentifiers(FAKE_ID);
-    global.fetch = jest.fn((input: RequestInfo, init?: RequestInit): Promise<Response> => {
-      return Promise.resolve({
-        json: () => Promise.resolve({ body: { identifiers } }),
-      } as Response);
-    });
-  });
-
   test('should return new ID', async () => {
+    const identifiers = getFakeIdentifiers(FAKE_ID);
+    fetch.mockResponseOnce(JSON.stringify({ body: { identifiers } }));
     try {
       const identifier: Identifier = await getNewId({ proxyHostName });
       expect(identifier.value).toBe(FAKE_ID);
+      expect(fetch.mock.calls.length).toEqual(1);
     } catch (error) {
       throw new Error(error);
     }
