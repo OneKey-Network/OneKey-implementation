@@ -24,9 +24,9 @@ const removeRefDescription = (schema: JSONSchema4): JSONSchema4 => {
     schema.description = undefined;
     schema.examples = undefined;
   }
-  if (schema.properties) {
+  if (schema.properties !== undefined) {
     Object.keys(schema.properties).forEach((currentKey) => {
-      schema.properties![currentKey] = removeRefDescription(schema.properties![currentKey]);
+      schema.properties[currentKey] = removeRefDescription(schema.properties[currentKey]);
     });
   } else if (schema.items) {
     schema.items = removeRefDescription(schema.items);
@@ -67,7 +67,7 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
   };
 
   const rootSchema = schemas.reduce((accumulator: JSONSchema4, current: JSONSchema4) => {
-    accumulator.properties![current.$id!] = { $ref: `${current.$id}.json` };
+    accumulator.properties[current.$id] = { $ref: `${current.$id}.json` };
     return accumulator;
   }, initialValue);
 
