@@ -1,4 +1,5 @@
 import { Cookies } from '@core/cookies';
+import { Identifiers } from '@core/model/generated-model';
 
 const timestamp = Date.now();
 
@@ -14,7 +15,7 @@ export const getFakePreferences = (consent = true) => ({
   },
 });
 
-export const getFakeIdentifiers = (fakeId = '0c7966db-9e6a-4060-be81-824a9ce671d3') => [
+export const getFakeIdentifiers = (fakeId = '0c7966db-9e6a-4060-be81-824a9ce671d3'): Identifiers => [
   {
     version: '0.1',
     type: 'paf_browser_id',

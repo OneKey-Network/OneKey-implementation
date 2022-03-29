@@ -21,7 +21,7 @@ import { getCookieValue } from '../utils/cookie';
 const logger = console;
 
 const redirect = (url: string): void => {
-  document.location = url;
+  location.replace(url);
 };
 
 // Remove any "paf data" param from the query string

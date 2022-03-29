@@ -8,7 +8,7 @@ import {
 import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
-import { Identifier } from '@core/model/generated-model';
+import { Identifier, IdsAndPreferences } from '@core/model/generated-model';
 import fetch from 'jest-fetch-mock';
 
 const proxyHostName = 'http://localhost';
@@ -65,5 +65,38 @@ describe('Function getNewId', () => {
     } catch (error) {
       throw new Error(error);
     }
+  });
+});
+
+describe('Function writeIdsAndPref', () => {
+  const idAndPreferences: IdsAndPreferences = {
+    preferences: getFakePreferences(true),
+    identifiers: getFakeIdentifiers(),
+  };
+
+  describe('without 3PC', () => {
+    const redirectUrl = new URL('http://redirect-url.fake');
+    const redirectMock = jest.fn();
+    const realLocation = location;
+
+    beforeEach(() => {
+      delete global.location;
+      global.location = {
+        replace: redirectMock,
+      } as unknown as Location;
+    });
+
+    afterEach(() => {
+      redirectMock.mockClear();
+      global.location = realLocation;
+    });
+
+    test('should redirect to operator', async () => {
+      await writeIdsAndPref({ proxyHostName, redirectUrl }, idAndPreferences);
+
+      expect(redirectMock.mock.calls.length).toBe(1);
+      // FIXME: redirect Url is changed inside writeIdsAndPref
+      expect(redirectMock.mock.calls[0][0]).toBe(redirectUrl.toString());
+    });
   });
 });
