@@ -32,6 +32,6 @@
   "exclude": [
     "paf-mvp-frontend/src",
     "paf-mvp-frontend/cypress",
-    "paf-mvp-frontend/tests"
+    "**/tests"
   ]
 }

@@ -1,9 +1,8 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
     "typeRoots": [
-      "../node_modules/@types"
+      "node_modules/@types"
     ],
     "paths": {
       "@core/*": ["paf-mvp-core-js/src/*"]
@@ -11,8 +10,7 @@
   },
   "include":
   [
-    "tests/**/*",
-    "paf-mvp-core-js/src/**/*",
+    "**/tests/**/*",
     "node_modules/@types/jest/index.d.ts"
   ],
 }
