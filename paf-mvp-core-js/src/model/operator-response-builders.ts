@@ -10,21 +10,14 @@ import {
   Test3Pc,
 } from './generated-model';
 import { UnsignedMessage } from './model';
-import {
-  GetIdsPrefsResponseValidation,
-  GetNewIdResponseValidation,
-  PostIdsPrefsResponseValidation,
-} from '../crypto/message-validation';
 import { getTimeStampInSec } from '../timestamp';
 import { setInQueryString } from '../express/utils';
-import { PrivateKey, privateKeyFromString } from '@core/crypto/keys';
+import { privateKeyFromString } from '@core/crypto/keys';
+import { MessageWithBodyDefinition } from '@core/crypto/signing-definition';
+import { Signer } from '@core/crypto/signer';
 
 export abstract class ResponseBuilderWithRedirect<T> {
-  protected readonly ecdsaKey: PrivateKey;
-
-  constructor(protected host: string, privateKey: string) {
-    this.ecdsaKey = privateKeyFromString(privateKey);
-  }
+  protected constructor(protected host: string) {}
 
   getRedirectUrl(returnUrl: URL, redirectResponse: { code: number; response?: T; error?: Error }): URL {
     if (redirectResponse) {
@@ -42,7 +35,13 @@ export abstract class ResponseBuilderWithRedirect<T> {
 }
 
 export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetIdsPrefsResponse> {
-  private readonly signer = new GetIdsPrefsResponseValidation();
+  constructor(
+    host: string,
+    privateKey: string,
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithBodyDefinition())
+  ) {
+    super(host);
+  }
 
   buildResponse(
     receiver: string,
@@ -61,13 +60,19 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
 
     return {
       ...data,
-      signature: this.signer.sign(this.ecdsaKey, data),
+      signature: this.signer.sign(data),
     };
   }
 }
 
 export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<PostIdsPrefsResponse> {
-  private readonly signer = new PostIdsPrefsResponseValidation();
+  constructor(
+    host: string,
+    privateKey: string,
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithBodyDefinition())
+  ) {
+    super(host);
+  }
 
   buildResponse(
     receiver: string,
@@ -86,18 +91,17 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
 
     return {
       ...data,
-      signature: this.signer.sign(this.ecdsaKey, data),
+      signature: this.signer.sign(data),
     };
   }
 }
 
 export class GetNewIdResponseBuilder {
-  private readonly signer = new GetNewIdResponseValidation();
-  private readonly ecdsaKey: PrivateKey;
-
-  constructor(protected host: string, privateKey: string) {
-    this.ecdsaKey = privateKeyFromString(privateKey);
-  }
+  constructor(
+    protected host: string,
+    privateKey: string,
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithBodyDefinition())
+  ) {}
 
   buildResponse(receiver: string, newId: Identifier, timestampInSec = getTimeStampInSec()): GetNewIdResponse {
     const data: UnsignedMessage<GetNewIdResponse> = {
@@ -111,7 +115,7 @@ export class GetNewIdResponseBuilder {
 
     return {
       ...data,
-      signature: this.signer.sign(this.ecdsaKey, data),
+      signature: this.signer.sign(data),
     };
   }
 }

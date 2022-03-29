@@ -19,7 +19,6 @@ import {
 } from '@core/model/generated-model';
 import { UnsignedData } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
-import { GetIdsPrefsRequestValidation, PostIdsPrefsRequestValidation } from '@core/crypto/message-validation';
 import { Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie } from '@core/cookies';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
@@ -35,8 +34,13 @@ import { PublicKeyStore } from '@core/express/key-store';
 import { AxiosRequestConfig } from 'axios';
 import domainParser from 'tld-extract';
 import { Signer } from '@core/crypto/signer';
-import { IdentifierDefinition, IdsAndPreferencesDefinition } from '@core/crypto/signing-definition';
-import { Verifier } from '@core/crypto/verifier';
+import {
+  IdentifierDefinition,
+  IdsAndPreferencesDefinition,
+  MessageWithBodyDefinition,
+  MessageWithoutBodyDefinition,
+} from '@core/crypto/signing-definition';
+import { MessageVerifier, Verifier } from '@core/crypto/verifier';
 
 // Expiration: now + 3 months
 const getOperatorExpiration = (date: Date = new Date()) => {
@@ -94,7 +98,7 @@ export const addOperatorApi = (
     }
   };
 
-  const operatorApi = new OperatorApi(operatorHost, privateKey);
+  const operatorApi = new OperatorApi(operatorHost, privateKey, keyStore);
 
   const getReadResponse = async (request: GetIdsPrefsRequest, req: Request) => {
     const sender = request.sender;
@@ -103,15 +107,12 @@ export const addOperatorApi = (
       throw `Domain not allowed to read data: ${sender}`;
     }
 
-    const verifyKey = await keyStore.getPublicKey(sender);
-
     if (
-      !operatorApi.getIdsPrefsRequestVerifier.verify(
-        verifyKey.publicKeyObj,
+      !(await operatorApi.getIdsPrefsRequestVerifier.verifySignatureAndContent(
         request,
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
-      )
+      ))
     ) {
       // TODO [errors] finer error feedback
       throw 'Read request verification failed';
@@ -135,16 +136,13 @@ export const addOperatorApi = (
       throw `Domain not allowed to write data: ${sender}`;
     }
 
-    const verifyKey = await keyStore.getPublicKey(sender);
-
     // Verify message
     if (
-      !operatorApi.postIdsPrefsRequestVerifier.verify(
-        verifyKey.publicKeyObj,
+      !(await operatorApi.postIdsPrefsRequestVerifier.verifySignatureAndContent(
         input,
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
-      )
+      ))
     ) {
       // TODO [errors] finer error feedback
       throw 'Write request verification failed';
@@ -280,14 +278,20 @@ export const addOperatorApi = (
 
 // FIXME should probably be moved to core library
 export class OperatorApi {
-  private readonly idSigner: Signer<Identifier, UnsignedData<Identifier>>;
-
-  readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestValidation();
-  readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestValidation();
-
-  constructor(public host: string, privateKey: string) {
-    this.idSigner = new Signer(privateKeyFromString(privateKey), new IdentifierDefinition());
-  }
+  constructor(
+    public host: string,
+    privateKey: string,
+    keyStore: PublicKeyStore,
+    private readonly idSigner = new Signer(privateKeyFromString(privateKey), new IdentifierDefinition()),
+    public readonly postIdsPrefsRequestVerifier = new MessageVerifier(
+      keyStore.provider,
+      new MessageWithBodyDefinition() // POST ids and prefs has body property
+    ),
+    public readonly getIdsPrefsRequestVerifier = new MessageVerifier(
+      keyStore.provider,
+      new MessageWithoutBodyDefinition()
+    )
+  ) {}
 
   generateNewId(timestamp = new Date().getTime()): Identifier {
     return {
