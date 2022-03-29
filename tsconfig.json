@@ -30,6 +30,8 @@
     "./paf-mvp-demo-express"
   ],
   "exclude": [
-    "paf-mvp-frontend/src"
+    "paf-mvp-frontend/src",
+    "paf-mvp-frontend/cypress",
+    "paf-mvp-frontend/tests"
   ]
 }
