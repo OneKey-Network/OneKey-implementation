@@ -22,6 +22,7 @@ const outputFile = path.join(__dirname, '..', 'src', 'model', 'generated-model.t
 const removeRefDescription = (schema: JSONSchema4): JSONSchema4 => {
   if (schema.$ref) {
     schema.description = undefined;
+    schema.examples = undefined;
   }
   if (schema.properties) {
     Object.keys(schema.properties).forEach((currentKey) => {
@@ -81,7 +82,12 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
     order: 1, // Will be executed first
     canRead: true,
     read(file) {
-      return JSON.stringify(schemaStore[path.basename(file.url)]);
+      const fileName = path.basename(file.url);
+      const schema = schemaStore[fileName];
+      if (!schema) {
+        console.error(`Unable to locate referenced file ${fileName}`);
+      }
+      return JSON.stringify(schema);
     },
   };
 
