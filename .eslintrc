@@ -21,6 +21,7 @@
     "quotes": ["warn", "single"]
   },
   "ignorePatterns": [
+    "**/jest.config.js",
     "paf-mvp-frontend/*",
     "paf-mvp-demo-express/public/assets/*"
   ]

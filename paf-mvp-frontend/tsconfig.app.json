@@ -1,23 +1,16 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": "dist",
     "module": "esnext",
     "jsx": "react",
     "jsxFactory": "h",
-    "plugins": [{ "name": "typescript-plugin-css-modules" }],
-    "paths": {
-      "@core/*": ["../paf-mvp-core-js/src/*"],
-      "*": ["node_modules/*"]
-    }
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
   "include":
   [
-    "./src/**/*",
+    "./src",
     "../paf-mvp-core-js/src/**/*"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": []
 }
