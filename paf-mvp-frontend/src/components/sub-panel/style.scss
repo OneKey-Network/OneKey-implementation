@@ -9,6 +9,7 @@
   transform: translateY(100%);
   transition: transform .2s ease;
   height: 70%;
+  display: none;
 
   .scroll {
     height: 70%;
@@ -18,6 +19,10 @@
 
   &.open {
     transform: translateY(0);
+  }
+
+  &.isVisible {
+    display: block;
   }
 }
 

@@ -5,6 +5,7 @@ interface IButtonProps {
   wide?: boolean;
   small?: boolean;
   accent?: boolean;
+  testid?: string;
   outline?: boolean;
   primary?: boolean;
   disabled?: boolean;
@@ -26,6 +27,7 @@ export const Button = ({
   outline,
   highlight,
   classList,
+  testid,
 }: IButtonProps) => {
   const classNames = [
     classList,
@@ -41,7 +43,7 @@ export const Button = ({
     .join(' ');
 
   return (
-    <button class={classNames} disabled={disabled} onClick={(event) => action(event)}>
+    <button class={classNames} disabled={disabled} data-testid={testid} onClick={(event) => action(event)}>
       {children}
     </button>
   );
