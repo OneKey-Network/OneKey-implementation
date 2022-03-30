@@ -3,6 +3,7 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es5",
+    "lib": ["esnext", "dom"],
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
@@ -16,10 +17,10 @@
       "paf-mvp-demo-express/@types"
     ],
     "paths": {
-      "@core/*": ["paf-mvp-core-js/src/*"],
-      "@operator/*": ["paf-mvp-operator-express/src/*"],
-      "@operator-client/*": ["paf-mvp-operator-client-express/src/*"],
-      "@frontend/*": ["paf-mvp-frontend/src/*"]
+      "@core/*": ["./paf-mvp-core-js/src/*"],
+      "@operator/*": ["./paf-mvp-operator-express/src/*"],
+      "@operator-client/*": ["./paf-mvp-operator-client-express/src/*"],
+      "@frontend/*": ["./paf-mvp-frontend/src/*"]
     }
   },
   "include": [

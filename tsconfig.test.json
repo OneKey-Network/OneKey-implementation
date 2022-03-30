@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "module": "esnext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
     "typeRoots": [
       "node_modules/@types"
     ],
