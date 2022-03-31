@@ -24,10 +24,9 @@ export interface IWelcomeWidgetProps {
   brandName?: string;
   brandLogoUrl?: string;
   emitConsent?: (value: boolean) => void;
-  destroy?: () => void;
 }
 
-export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => {
+export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
   const [pafCookies, setPafCookies] = useState(window.PAF.getIdsAndPreferences());
@@ -54,7 +53,7 @@ export const WelcomeWidget = ({ emitConsent, destroy }: IWelcomeWidgetProps) => 
 
   const closeWidget = () => {
     setIsOpen(false);
-    destroy();
+    emitConsent(undefined);
   };
 
   const updateIdentifier = async () => {
