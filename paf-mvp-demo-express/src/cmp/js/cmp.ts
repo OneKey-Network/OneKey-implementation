@@ -3,7 +3,7 @@ import {
   removeCookie,
   saveCookieValue,
   signPreferences,
-  writeIdsAndPref
+  writeIdsAndPref,
 } from '@frontend/lib/paf-lib';
 import { cmpConfig } from '../../config';
 import { PafStatus } from '@core/operator-client-commons';
@@ -47,19 +47,18 @@ export const cmpCheck = async () => {
       saveCookieValue(Cookies.identifiers, undefined);
       saveCookieValue(Cookies.preferences, undefined);
     } else {
-
       // 1. sign preferences
       const unsignedPreferences = {
         version: '0.1',
         data: {
-          use_browsing_for_personalization: optIn
-        }
+          use_browsing_for_personalization: optIn,
+        },
       };
       const signedPreferences = await PAF.signPreferences(
         { proxyHostName },
         {
           identifiers: data.identifiers,
-          unsignedPreferences
+          unsignedPreferences,
         }
       );
 
@@ -68,7 +67,7 @@ export const cmpCheck = async () => {
         { proxyHostName },
         {
           identifiers: data.identifiers,
-          preferences: signedPreferences
+          preferences: signedPreferences,
         }
       );
     }
