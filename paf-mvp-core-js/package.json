@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "generate-model": "ts-node scripts/generate-model-from-schemas.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "prepare": "npm run build"
   },
   "repository": {
