@@ -19,38 +19,50 @@
         .json {
             text-align: left;
         }
+
+        div {
+            text-align: center;
+        }
+
+        div.status {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding-bottom: 1em;
+        }
+
+        a {
+            font-weight: bold;
+            text-decoration: none;
+        }
     </style>
     <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@1.2/dist/pretty-print-json.css>
     <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@1.2/dist/pretty-print-json.min.js></script>
 </head>
 <body>
 
-{{#if cookies.paf_identifiers}}
-    <div style="text-align: center">
-        You have an ID!
-        <br/><br/>
-    </div>
-{{else}}
-    <div style="text-align: center">
-        You don't have ID yet!
-        <br><br>
-    </div>
-{{/if}}
 
-<div style="text-align: center">
-    <table>
+<div class="status">
+    {{#if cookies.paf_identifiers}}
+        You have an ID!
+    {{else}}
+        You don't have ID yet!
+    {{/if}}
+</div>
+
+<div>
+    <table align="center">
         <tr>
             <th>ID</th>
             <td colspan="3" class="json">
                 {{#if cookies.paf_identifiers}}
                     <pre id="ids" class="json-container"></pre>
                     <script>
-                        document.getElementById('ids').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_identifiers }}});
+                        document.getElementById('ids').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_identifiers }}}, {quoteKeys: true});
                     </script>
                 {{else}}
                     no ID cookie
                 {{/if}}</td>
-            <td>{{#if cookies.paf_identifiers}}<a href="{{removeIdUrl}}" style="color: red">remove ID</a>{{else}}
+            <td>{{#if cookies.paf_identifiers}}<a href="{{removeIdUrl}}" style="color: red">🗑 remove ID</a>{{else}}
                 <a href="{{createIdUrl}}">Generate ID cookie</a>{{/if}}</td>
         </tr>
         <tr>
@@ -60,17 +72,126 @@
 
                     <pre id="prefs" class="json-container"></pre>
                     <script>
-                        document.getElementById('prefs').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_preferences }}});
+                        document.getElementById('prefs').innerHTML = prettyPrintJson.toHtml({{{ cookies.paf_preferences }}}, {quoteKeys: true});
                     </script>
                 {{else}}
                     no preferences cookie
                 {{/if}}</td>
-            <td>{{#if optInUrl}}<a href="{{optInUrl}}" style="color: green">opt in</a>{{/if}}</td>
-            <td>{{#if optOutUrl}}<a href="{{optOutUrl}}" style="color: black">opt out</a>{{/if}}</td>
-            <td>{{#if cookies.paf_preferences}}<a href="{{removePrefsUrl}}" style="color: red">remove preferences</a>{{/if}}
+            <td>{{#if optInUrl}}<a href="{{optInUrl}}" style="color: green">✅ opt in</a>{{/if}}</td>
+            <td>{{#if optOutUrl}}<a href="{{optOutUrl}}" style="color: black">❌ opt out</a>{{/if}}</td>
+            <td>{{#if cookies.paf_preferences}}
+                <a href="{{removePrefsUrl}}" style="color: red">🗑 remove preferences</a>{{/if}}
             </td>
         </tr>
     </table>
+</div>
+
+<script>
+    const verifyUrl = "{{verifyUrl}}";
+    const validate = async () => {
+
+        resetResult();
+
+        const payload = JSON.parse(document.getElementById("input").value);
+        const type = document.getElementById("type").value;
+
+        const response = await fetch(verifyUrl, {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(
+                    {
+                        payload,
+                        type
+                    }
+            )
+        });
+
+        document.getElementById('result').innerHTML = prettyPrintJson.toHtml(await response.json());
+    }
+
+    const resetResult = () => {
+        document.getElementById('result').innerHTML = '';
+    }
+
+    const decodeBase64 = (data) => {
+        return atob(data);
+    };
+
+    const mappings = {{{mappings}}};
+
+    const extract = () => {
+        const url = new URL(document.getElementById('string-input').value);
+        const hostname = url.hostname;
+        const path = url.pathname;
+        let type;
+        if (mappings[hostname]?.[path]) {
+            type = mappings[hostname]?.[path];
+        } else {
+            type = mappings["default"]["default"];
+        }
+        const payload = decodeBase64(url.searchParams.get('paf'));
+        try {
+            const payloadObject = JSON.parse(payload);
+            // Set payload
+            document.getElementById("input").value = JSON.stringify(payloadObject, null, 2);
+            // Set type
+            document.getElementById("type").value = type;
+        } catch (e) {
+            alert(`Error parsing message: ${e}`)
+        }
+    }
+</script>
+
+<div>
+    <table align="center">
+        <tr>
+            <td>
+                <label for="string-input">Enter a full operator URL</label>
+                <br>
+                <textarea id="string-input" rows="5" cols="120" oninput="resetResult()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button onclick="extract()">⬇️ extract message</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="input">...or directly import the message or cookie value to validate (must be valid
+                    JSON):</label>
+                <br>
+                <textarea id="input" rows="30" cols="120" oninput="resetResult()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>
+                    Type
+                    <select id="type">
+                        {{#each dataTypes}}
+                            <option value="{{this}}">{{this}}</option>
+                        {{/each}}
+                    </select>
+                </label>
+                <button onclick="validate()">☑️ validate</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="json">
+                <pre id="result" class="json-container"></pre>
+            </td>
+        </tr>
+    </table>
+
+
 </div>
 
 </body>
