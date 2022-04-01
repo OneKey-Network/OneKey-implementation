@@ -14,8 +14,6 @@ import { SubPanel } from '../../components/sub-panel/SubPanel';
 import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
 import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
-import { NotificationEnum } from '../../enums/notification.enum';
-import { notificationService } from '../../services/notification.service';
 import { env } from '../../config';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
@@ -46,9 +44,6 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
     }
     emitConsent(consent);
     setIsOpen(false);
-    notificationService.showNotification(
-      consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent
-    );
   };
 
   const closeWidget = () => {
@@ -84,9 +79,6 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
         identifiers: pafCookies.identifiers,
         preferences: signedPreferences,
       }
-    );
-    notificationService.showNotification(
-      consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent
     );
     closeWidget();
   };
