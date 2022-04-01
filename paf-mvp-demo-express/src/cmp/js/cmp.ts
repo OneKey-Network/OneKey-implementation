@@ -8,17 +8,17 @@ import {
 import { cmpConfig } from '../../config';
 import { PafStatus } from '@core/operator-client-commons';
 import { Cookies } from '@core/cookies';
+import { NotificationEnum } from '@frontend/enums/notification.enum';
 
 declare const PAF: {
   refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
   signPreferences: typeof signPreferences;
   writeIdsAndPref: typeof writeIdsAndPref;
 };
-declare global {
-  interface Window {
-    __promptConsent: () => Promise<boolean>;
-  }
-}
+declare const PAFUI: {
+  promptConsent: () => Promise<boolean>;
+  showNotification: (notificationType: NotificationEnum) => void;
+};
 
 // Using the CMP backend as a PAF operator proxy
 const proxyHostName = cmpConfig.host;
@@ -39,7 +39,7 @@ export const cmpCheck = async () => {
     removeCookie(Cookies.identifiers);
     removeCookie(Cookies.preferences);
 
-    const optIn = await window.__promptConsent();
+    const optIn = await PAFUI.promptConsent();
 
     if (optIn === undefined) {
       // User closed the prompt consent without defining their preferences

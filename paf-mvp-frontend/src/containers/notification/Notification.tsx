@@ -24,7 +24,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
   const launchPrompt = (event: MouseEvent) => {
     event.preventDefault();
     // TODO: launch paf-lib function with callback
-    window.__promptConsent();
+    window.PAFUI.promptConsent();
     window.clearTimeout(timerRef.current);
     destroy();
   };

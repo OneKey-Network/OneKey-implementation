@@ -5,6 +5,7 @@ import {
   writeIdsAndPref,
   getNewId,
 } from './lib/paf-lib';
+import { NotificationEnum } from './enums/notification.enum';
 
 declare global {
   interface Window {
@@ -14,6 +15,10 @@ declare global {
       writeIdsAndPref: typeof writeIdsAndPref;
       getIdsAndPreferences: typeof getIdsAndPreferences;
       refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
+    };
+    PAFUI: {
+      promptConsent: () => Promise<boolean>;
+      showNotification: (notificationType: NotificationEnum) => void;
     };
   }
 }
