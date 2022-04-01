@@ -7,10 +7,6 @@ export class PromptConsent extends BasePafWidget<IWelcomeWidgetProps> {
       this.remove();
       props.emitConsent(value);
     };
-    const destroy = () => {
-      this.remove();
-      props.destroy?.();
-    };
-    super(WelcomeWidget, { ...props, emitConsent, destroy });
+    super(WelcomeWidget, { ...props, emitConsent });
   }
 }

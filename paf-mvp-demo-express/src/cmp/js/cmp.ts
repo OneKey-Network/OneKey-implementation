@@ -1,6 +1,13 @@
-import { refreshIdsAndPreferences, signPreferences, writeIdsAndPref } from '@frontend/lib/paf-lib';
+import {
+  refreshIdsAndPreferences,
+  removeCookie,
+  saveCookieValue,
+  signPreferences,
+  writeIdsAndPref,
+} from '@frontend/lib/paf-lib';
 import { cmpConfig } from '../../config';
 import { PafStatus } from '@core/operator-client-commons';
+import { Cookies } from '@core/cookies';
 
 declare const PAF: {
   refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
@@ -28,29 +35,41 @@ export const cmpCheck = async () => {
   const hasPersistedId = returnedId && returnedId.persisted !== false;
 
   if (!hasPersistedId || data.preferences === undefined) {
-    const optIn = await window.__promptConsent();
-    // 1. sign preferences
-    const unsignedPreferences = {
-      version: '0.1',
-      data: {
-        use_browsing_for_personalization: optIn,
-      },
-    };
-    const signedPreferences = await PAF.signPreferences(
-      { proxyHostName },
-      {
-        identifiers: data.identifiers,
-        unsignedPreferences,
-      }
-    );
+    // Reset cookies before to show the prompt to make sure we set the appropriate value only after user action
+    removeCookie(Cookies.identifiers);
+    removeCookie(Cookies.preferences);
 
-    // 2. write
-    await PAF.writeIdsAndPref(
-      { proxyHostName },
-      {
-        identifiers: data.identifiers,
-        preferences: signedPreferences,
-      }
-    );
+    const optIn = await window.__promptConsent();
+
+    if (optIn === undefined) {
+      // User closed the prompt consent without defining their preferences
+      // => means they are not participating
+      saveCookieValue(Cookies.identifiers, undefined);
+      saveCookieValue(Cookies.preferences, undefined);
+    } else {
+      // 1. sign preferences
+      const unsignedPreferences = {
+        version: '0.1',
+        data: {
+          use_browsing_for_personalization: optIn,
+        },
+      };
+      const signedPreferences = await PAF.signPreferences(
+        { proxyHostName },
+        {
+          identifiers: data.identifiers,
+          unsignedPreferences,
+        }
+      );
+
+      // 2. write
+      await PAF.writeIdsAndPref(
+        { proxyHostName },
+        {
+          identifiers: data.identifiers,
+          preferences: signedPreferences,
+        }
+      );
+    }
   }
 };

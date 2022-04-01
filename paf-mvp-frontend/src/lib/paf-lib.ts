@@ -54,8 +54,12 @@ const removeUrlParameter = (url: string, parameter: string) => {
   return url;
 };
 
-const setCookie = (name: string, value: string, expiration: Date) => {
-  document.cookie = `${name}=${value};expires=${expiration.toUTCString()}`;
+const setCookie = (cookieName: string, value: string, expiration: Date) => {
+  document.cookie = `${cookieName}=${value};expires=${expiration.toUTCString()}`;
+};
+
+export const removeCookie = (cookieName: string) => {
+  setCookie(cookieName, null, new Date(0));
 };
 
 // Update the URL shown in the address bar, without PAF data
@@ -66,8 +70,8 @@ const getProxyUrl =
   (endpoint: string): string =>
     `https://${proxyHost}${endpoint}`;
 
-const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
-  logger.info(`Operator returned value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
+export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
+  logger.info(`Value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
 
   const valueToStore = cookieValue === undefined ? PafStatus.NOT_PARTICIPATING : JSON.stringify(cookieValue);
 
@@ -77,10 +81,6 @@ const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): str
   setCookie(cookieName, valueToStore, getPrebidDataCacheExpiration());
 
   return valueToStore;
-};
-
-const removeCookie = (cookieName: string) => {
-  setCookie(cookieName, null, new Date(0));
 };
 
 let thirdPartyCookiesSupported: boolean | undefined;
