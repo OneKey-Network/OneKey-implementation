@@ -4,7 +4,7 @@ export class WidgetPage extends BasePage {
   open() {
     super.open();
     cy.window().then((win) => {
-      win.__promptConsent();
+      win.PAFUI.promptConsent();
     });
   }
 
