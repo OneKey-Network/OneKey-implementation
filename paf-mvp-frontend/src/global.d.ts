@@ -15,6 +15,7 @@ declare global {
       getIdsAndPreferences: typeof getIdsAndPreferences;
       refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
     };
+    __promptConsent: () => Promise<boolean>;
   }
 }
 

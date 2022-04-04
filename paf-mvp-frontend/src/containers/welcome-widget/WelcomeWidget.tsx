@@ -128,6 +128,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
                 <Button
                   accent
                   highlight
+                  testid="refresh-id-btn"
                   classList={appIdentifier ? '' : style.loading}
                   action={() => updateIdentifier()}
                 >
@@ -144,14 +145,14 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
             </div>
           )}
           <OptionsGroup selected={getConsentValue()} onSelectOption={(value) => onChooseOption(value === 'on')}>
-            <Option value="on">
+            <Option value="on" testid="consent-option">
               <div class={style.optionTitle}>
                 <h3>Turn on personalized marketing</h3>
                 <Arrow />
               </div>
               <p class={style.optionDescription}>See more relevant content and ads.</p>
             </Option>
-            <Option value="off">
+            <Option value="off" testid="consent-option">
               <div className={style.optionTitle}>
                 <h3>Turn on standard marketing</h3>
                 <Arrow />
@@ -179,7 +180,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
         <SubPanel
           isOpen={isDetailsPanelOpen}
           header={
-            <div>
+            <div data-testid="learn-more-header">
               <h4 class={style.learnMoreTitle}>Learn more about</h4>
               <div class={[layout.justifyCenter, grid['mb-2']].join(' ')}>
                 <OnekeyLogo />
