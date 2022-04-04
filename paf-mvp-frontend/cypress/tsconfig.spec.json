@@ -3,6 +3,9 @@
     "module": "commonjs",
     "target": "esnext",
     "esModuleInterop": true,
-    "types": ["@testing-library/cypress", "cypress"]
+    "types": ["@testing-library/cypress", "cypress"],
+    "paths": {
+      "@core/*": ["./paf-mvp-core-js/src/*"]
+    }
   }
 }

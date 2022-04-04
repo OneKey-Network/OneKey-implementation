@@ -27,7 +27,7 @@ import '@testing-library/cypress/add-commands';
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 Cypress.Commands.add('shouldContainClass', { prevSubject: true }, (subject, className) => {
-  return subject.invoke('attr', 'class').should('contain', className);
+  return cy.wrap(subject).invoke('attr', 'class').should('contain', className);
 })
 
 Cypress.Commands.add('shouldNotContainClass', { prevSubject: true }, (subject, className) => {

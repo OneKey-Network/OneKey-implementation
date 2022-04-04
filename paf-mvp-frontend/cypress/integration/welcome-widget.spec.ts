@@ -1,4 +1,6 @@
 import { WidgetPage } from '../pages/widget.page';
+import { Cookies } from '@core/cookies';
+import { getFakeIdentifiers, getFakePreferences } from '../../tests/helpers/cookies';
 
 describe('Welcome widget view', () => {
   let page: WidgetPage;
@@ -34,6 +36,66 @@ describe('Welcome widget view', () => {
       getPanel().should('be.visible');
       page.widget.findByTestId('close-panel-btn').click();
       getPanel().should('not.be.visible');
+    });
+  });
+
+  context('With cookies', () => {
+    const FAKE_ID = 'FAKE-ID-PAF';
+    const consent = false;
+
+    before(() => {
+      cy.setCookie(Cookies.identifiers, JSON.stringify(getFakeIdentifiers(FAKE_ID)));
+      cy.setCookie(Cookies.preferences, JSON.stringify(getFakePreferences(consent)));
+      page = new WidgetPage();
+      page.open();
+    });
+
+    it('should have cancel button', () => {
+      page.widget.findByText(/Cancel/).should('exist');
+    });
+
+    it('should have "Refresh ID" button', () => {
+      page.refreshBtn.should('exist');
+    });
+
+    it('should display a part of identifier', () => {
+      page.refreshBtn.should('contain', FAKE_ID.split('-')[0]);
+    });
+
+    it('should call the "new id" endpoint', () => {
+      cy.window().then((win) => {
+        const NEW_ID = 'NEW-USER-ID';
+        const getNewIdSpy = cy.stub(win.PAF, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
+        page.refreshBtn.click();
+        cy.wrap(getNewIdSpy).should('have.been.called');
+        page.refreshBtn.should('contain', NEW_ID.split('-')[0]);
+      });
+    });
+
+    it('should have selected consent option', () => {
+      const selectedConsentIndex = consent ? 0 : 1;
+      const oppositeOptionIndex = Math.abs(selectedConsentIndex - 1);
+      page.consentOptions.eq(selectedConsentIndex).shouldContainClass('active');
+      page.consentOptions.eq(oppositeOptionIndex).shouldNotContainClass('active');
+
+      page.consentOptions.eq(oppositeOptionIndex).click();
+
+      page.consentOptions.eq(selectedConsentIndex).shouldNotContainClass('active');
+      page.consentOptions.eq(oppositeOptionIndex).shouldContainClass('active');
+
+      page.consentOptions.eq(selectedConsentIndex).click();
+    });
+
+    it('should save preferences', () => {
+      cy.window().then((win) => {
+        const signStub = cy.stub(win.PAF, 'signPreferences');
+        const writeStub = cy.stub(win.PAF, 'writeIdsAndPref');
+        page.saveButton.click();
+        cy.wrap(signStub).should('be.called');
+        cy.wrap(writeStub).should('be.called');
+
+        page.widget.findByText(/Choose your marketing preferences/).should('not.exist');
+      });
     });
   });
 });

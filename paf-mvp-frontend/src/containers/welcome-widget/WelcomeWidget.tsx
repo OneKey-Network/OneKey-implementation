@@ -164,7 +164,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
 
         {!!pafIdentifier && (
           <div class={grid['my-5']}>
-            <Button wide primary action={() => updateSettings()}>
+            <Button testid="save-btn" wide primary action={() => updateSettings()}>
               Confirm settings
             </Button>
           </div>
