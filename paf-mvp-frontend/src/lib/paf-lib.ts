@@ -240,10 +240,6 @@ export const refreshIdsAndPreferences = async ({
         // If we got data, it means 3PC are supported
         thirdPartyCookiesSupported = true;
 
-        if (!getCookieValue(Cookies.preferences)) {
-          showNotification(operatorData?.body?.preferences?.data?.use_browsing_for_personalization);
-        }
-
         // /!\ Note: we don't need to verify the message here as it is a REST call
 
         saveCookieValue(Cookies.identifiers, persistedIds);
