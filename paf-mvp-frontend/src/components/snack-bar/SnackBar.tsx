@@ -21,15 +21,15 @@ export const SnackBar = ({ icon, title, message, onClose }: ISnackBarProps) => {
   };
 
   return (
-    <div class={`${style.container} ${isOpen ? style.open : ''}`}>
+    <div class={`${style.container} ${isOpen ? style.open : ''}`} data-testid="notification-container">
       <div class={style.body}>
         <div class={style.icon}>{icon}</div>
-        <div class={style.content}>
+        <div class={style.content} data-testid="notification-content">
           <h2 class={style.title}>{title}</h2>
           {message}
         </div>
         <div class={style.closeBtnWrapper}>
-          <Button accent action={() => animateAndClose()}>
+          <Button testid="notification-close-btn" accent action={() => animateAndClose()}>
             <Cross />
           </Button>
         </div>
