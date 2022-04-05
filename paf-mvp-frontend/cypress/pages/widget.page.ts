@@ -15,4 +15,8 @@ export class WidgetPage extends BasePage {
   get refreshBtn() {
     return this.widget.findByTestId('refresh-id-btn');
   }
+
+  get saveButton() {
+    return this.widget.findByTestId('save-btn');
+  }
 }
