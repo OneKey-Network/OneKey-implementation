@@ -1,46 +1,95 @@
 import { PublicKey } from '@core/crypto/keys';
 import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
 import { PublicKeyProvider, Verifier } from '@core/crypto/verifier';
+import SpyInstance = jest.SpyInstance;
 
 describe('Verifier', () => {
-  test('should verify based on definition', async () => {
-    const mockPublicKey: PublicKey = {
-      verify: (toVerify: string, signature: string) => signature === `SIGNED[${toVerify}]`,
-    };
+  const publicKeyA: PublicKey = {
+    verify: (toVerify: string, signature: string) => signature === `SIGNED[${toVerify}]`,
+  };
+  const publicKeyB: PublicKey = {
+    verify: (toVerify: string, signature: string) => signature === `SIGNED_B[${toVerify}]`,
+  };
 
-    const mockPublicKeyProvider: PublicKeyProvider = (domain: string) => {
-      if (domain === 'theDomain.com') {
-        return Promise.resolve(mockPublicKey);
-      }
-      throw new Error(`Certificate not found for ${domain}`);
-    };
+  const mockPublicKeyProvider: PublicKeyProvider = (domain: string) => {
+    if (domain === 'domainA.com') {
+      return Promise.resolve(publicKeyA);
+    } else if (domain === 'domainB.com') {
+      return Promise.resolve(publicKeyB);
+    }
+    throw new Error(`Certificate not found for ${domain}`);
+  };
 
-    const mockData: FooType = {
-      bar: 'bar',
-      foo: 'foo',
-      domain: 'theDomain.com',
-    };
+  const mockData: FooType = {
+    bar: 'bar',
+    foo: 'foo',
+    domain: 'domainA.com',
+    signature: 'SIGNED[foo.bar]',
+  };
 
-    const verifier = new Verifier(mockPublicKeyProvider, new FooSigningDefinition());
+  const verifier = new Verifier(mockPublicKeyProvider, new FooSigningDefinition());
 
-    const getSignerDomain = jest.spyOn(FooSigningDefinition.prototype, 'getSignerDomain');
-    const getInputString = jest.spyOn(FooSigningDefinition.prototype, 'getInputString');
-    const getSignature = jest.spyOn(FooSigningDefinition.prototype, 'getSignature');
+  const spies: { [name in keyof FooSigningDefinition]?: SpyInstance } = {
+    getSignerDomain: jest.spyOn(FooSigningDefinition.prototype, 'getSignerDomain'),
+    getInputString: jest.spyOn(FooSigningDefinition.prototype, 'getInputString'),
+    getSignature: jest.spyOn(FooSigningDefinition.prototype, 'getSignature'),
+  };
 
-    const checkCalls = () => {
-      expect(getSignerDomain).toHaveBeenCalledTimes(1);
-      getSignerDomain.mockClear();
-      expect(getInputString).toHaveBeenCalledTimes(1);
-      getInputString.mockClear();
-      expect(getSignature).toHaveBeenCalledTimes(1);
-      getSignature.mockClear();
-    };
+  const verifyCalls = (calls: { [name in keyof FooSigningDefinition]?: number }) => {
+    Object.keys(calls).forEach((key) => {
+      const mock = spies[key];
+      expect(mock).toHaveBeenCalledTimes(calls[key]);
+      mock.mockClear();
+    });
+  };
 
-    expect(await verifier.verifySignature({ ...mockData, signature: 'WRONG_SIGNATURE[foo.bar]' })).toEqual(false);
-    checkCalls();
-    expect(await verifier.verifySignature({ ...mockData, signature: 'SIGNED[foo_bar]' })).toEqual(false);
-    checkCalls();
-    expect(await verifier.verifySignature({ ...mockData, signature: 'SIGNED[foo.bar]' })).toEqual(true);
-    checkCalls();
+  const cases = [
+    {
+      data: { ...mockData, signature: 'WRONG_SIGNATURE[foo.bar]' },
+      expectedVerification: false,
+    },
+    {
+      data: { ...mockData, signature: 'SIGNED[foo_bar]' },
+      expectedVerification: false,
+    },
+    {
+      data: mockData,
+      expectedVerification: true,
+    },
+    {
+      data: { ...mockData, domain: 'domainB.com' },
+      expectedVerification: false,
+    },
+    {
+      data: { ...mockData, domain: 'domainB.com', signature: 'SIGNED_B[foo.bar]' },
+      expectedVerification: true,
+    },
+  ];
+
+  test.each(cases)('should verify "$data" as $expectedVerification', async ({ data, expectedVerification }) => {
+    expect(await verifier.verifySignature(data)).toEqual(expectedVerification);
+
+    verifyCalls({
+      getSignerDomain: 1,
+      getInputString: 1,
+      getSignature: 1,
+    });
+  });
+
+  const exceptionCases = [
+    {
+      data: { ...mockData, domain: 'anotherDomain.com' },
+    },
+  ];
+
+  test.each(exceptionCases)('should throw exception for domain "$data.domain"', async ({ data }) => {
+    await expect(verifier.verifySignature(data)).rejects.toThrow();
+
+    verifyCalls({
+      getSignerDomain: 1,
+      // Notice only first method is called
+      getInputString: 0,
+      getSignature: 0,
+    });
   });
 });
