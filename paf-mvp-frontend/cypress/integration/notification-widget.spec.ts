@@ -10,16 +10,14 @@ describe('Notification widget', () => {
       page.open(NotificationEnum.generalContent);
     });
 
-    it('should exist', () => {
-      page.container.should('be.visible');
-    });
-
     it('should be able to close snack-bar', () => {
+      page.container.should('be.visible');
       page.closeBtn.click();
       page.container.should('not.be.visible');
     });
 
     it('should be closed after timeout', () => {
+      page.container.should('be.visible');
       const timeout = 15_000;
       cy.clock();
       cy.tick(timeout);
