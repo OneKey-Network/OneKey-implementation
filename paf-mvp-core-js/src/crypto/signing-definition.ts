@@ -10,13 +10,15 @@ import {
   PostIdsPrefsRequest,
   PostIdsPrefsResponse,
   Preferences,
+  Seed,
 } from '@core/model/generated-model';
 import { RedirectRequest, RedirectResponse, UnsignedData, UnsignedMessage } from '@core/model/model';
+import { SignatureStringBuilder } from './signer';
 
 /**
  * Definition of how to get signature, signature domain and input string to sign
  */
-export interface SigningDefinition<T, U = Partial<T>> {
+export interface SigningDefinition<T, U = Partial<T>> extends SignatureStringBuilder<U> {
   /**
    * How to get signature from signed data
    * @param data
@@ -28,15 +30,31 @@ export interface SigningDefinition<T, U = Partial<T>> {
    * @param data
    */
   getSignerDomain(data: T): string;
-
-  /**
-   * How to get input string from unsigned data
-   * @param data
-   */
-  getInputString(data: U): string;
 }
 
 export const SIGN_SEP = '\u2063';
+
+export interface SeedSignatureContainer {
+  seed: UnsignedData<Seed>;
+  idsAndPreferences: IdsAndPreferences;
+}
+
+export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatureContainer> {
+  getInputString(data: SeedSignatureContainer): string {
+    const seed = data.seed;
+    const ids = data.idsAndPreferences.identifiers;
+    const prefs = data.idsAndPreferences.preferences;
+
+    const array = new Array<string>();
+    array.push(seed.source.domain, seed.source.timestamp.toString());
+    array.push(...seed.transaction_ids);
+    array.push(seed.publisher);
+    array.push(...ids.map((i) => i.source.signature));
+    array.push(prefs.source.signature);
+
+    return array.join(SIGN_SEP);
+  }
+}
 
 /**
  * Defines how to extract signature, signer domain and input string from an Identifier

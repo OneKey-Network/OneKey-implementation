@@ -9,6 +9,9 @@
  * A domain name
  */
 export type Domain = string;
+export type TransmissionReceiver = Domain;
+export type TransmissionContentId = string;
+export type TransactionId = string;
 /**
  * No parameter expected to call this endpoint
  */
@@ -31,10 +34,22 @@ export type Version = string;
  * The base64 representation of a data signature
  */
 export type Signature = string;
+export type TransmissionContents = {
+  content_id: TransmissionContentId;
+  transaction_id: TransactionId;
+}[];
+/**
+ * The details of the status. It can be empty for "success" but it should detail the reason(s) in case of an error.
+ */
+export type TransmissionDetails = string;
 /**
  * List of identifiers
  */
 export type Identifiers = Identifier[];
+/**
+ * Equals "success" if the DSP signed the Transmission and returns it to the sender.<br /> Equals "error_bad_request" if the receiver doesn't understand or see inconsistency in the Transmission Request.<br /> Equals "error_cannot_process" if the receiver failed to use the data of the Transmission Request properly.
+ */
+export type TransmissionStatus = 'success' | 'error_bad_request' | 'error_cannot_process';
 /**
  * The URL that the user should be be redirected to, to provide response data
  */
@@ -49,6 +64,7 @@ export type ResponseCode = number;
  * Only needed to have an entry point for generating all interfaces together
  */
 export interface _ {
+  'audit-log'?: AuditLog;
   domain?: Domain;
   error?: Error;
   'get-3pc-request'?: Get3PcRequest;
@@ -66,6 +82,8 @@ export interface _ {
   'message-base'?: MessageBase;
   'post-ids-prefs-request'?: PostIdsPrefsRequest;
   'post-ids-prefs-response'?: PostIdsPrefsResponse;
+  'post-seed-request'?: PostSeedRequest;
+  'post-seed-response'?: PostSeedResponse;
   'post-sign-preferences-request'?: PostSignPreferencesRequest;
   'preferences-data'?: PreferencesData;
   preferences?: Preferences;
@@ -75,12 +93,47 @@ export interface _ {
   'redirect-post-ids-prefs-response'?: RedirectPostIdsPrefsResponse;
   'response-code'?: ResponseCode;
   'return-url'?: ReturnUrl;
+  seed?: Seed;
   signature?: Signature;
   source?: Source;
   'test-3pc'?: Test3Pc;
   timestamp?: Timestamp;
   'unsigned-preferences'?: UnsignedPreferences;
+  transaction_id?: TransactionId;
+  'transmission-content_id'?: TransmissionContentId;
+  'transmission-contents'?: TransmissionContents;
+  'transmission-details'?: TransmissionDetails;
+  'transmission-receiver'?: TransmissionReceiver;
+  'transmission-request'?: TransmissionRequest;
+  'transmission-result'?: TransmissionResult;
+  'transmission-status'?: TransmissionStatus;
   version?: Version;
+}
+/**
+ * An Audit Log gathers the necessary data to audit a Transaction (via Transmission) for a given Addressable Content
+ */
+export interface AuditLog {
+  data: IdsAndPreferences;
+  seed: Seed;
+  transaction_id: TransactionId;
+  transmissions: TransmissionResult[];
+}
+/**
+ * The Seed gathers data related to the Addressable Content and sign them.
+ */
+export interface Seed {
+  version: Version;
+  transaction_ids: TransactionId[];
+  publisher: Domain;
+  source: Source;
+}
+export interface TransmissionResult {
+  version: Version;
+  receiver: TransmissionReceiver;
+  contents: TransmissionContents;
+  status: TransmissionStatus;
+  details: TransmissionDetails;
+  source: Source;
 }
 /**
  * The description of an error
@@ -257,6 +310,22 @@ export interface PostIdsPrefsResponse {
   body: IdsAndPreferences;
 }
 /**
+ * POST /v1/seed request
+ */
+export interface PostSeedRequest {
+  data: IdsAndPreferences;
+  transaction_ids: TransactionId[];
+}
+/**
+ * POST /v1/seed request
+ */
+export interface PostSeedResponse {
+  version: Version;
+  transaction_ids: TransactionId[];
+  publisher: Domain;
+  source: Source;
+}
+/**
  * POST /paf-proxy/v1/sign/prefs request
  */
 export interface PostSignPreferencesRequest {
@@ -299,4 +368,21 @@ export interface RedirectPostIdsPrefsResponse {
   code: ResponseCode;
   response?: PostIdsPrefsResponse;
   error?: Error;
+}
+/**
+ * The request sent from a Sender to a Receiver for sharing PAF data for a set of Addressable Content
+ */
+export interface TransmissionRequest {
+  version: Version;
+  seed: Seed;
+  data: IdsAndPreferences;
+  receiver: TransmissionReceiver;
+  status: TransmissionStatus;
+  details: TransmissionDetails;
+  contents: TransmissionContents;
+  source: Source;
+  /**
+   * The list of Transmission Result before this Transmission Request for the given Seed.
+   */
+  parents: TransmissionResult[];
 }

@@ -4,6 +4,8 @@ import { OperatorClient } from './operator-client';
 import {
   Error,
   IdsAndPreferences,
+  PostSeedRequest,
+  PostSeedResponse,
   PostSignPreferencesRequest,
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
@@ -128,6 +130,13 @@ export const addOperatorClientProxyEndpoints = (
     const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
     httpRedirect(res, url.toString(), 302);
+  });
+
+  app.post(jsonProxyEndpoints.seed, cors(corsOptions), (req, res) => {
+    const request = JSON.parse(req.body as string) as PostSeedRequest;
+    const seed = client.buildSeed(request.transaction_ids, request.data);
+    const response = seed as PostSeedResponse; // For now, the response is only a Seed.
+    res.send(response);
   });
 
   // *****************************************************************************************************************
