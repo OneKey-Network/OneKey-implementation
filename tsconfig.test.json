@@ -3,12 +3,15 @@
     "module": "esnext",
     "moduleResolution": "Node",
     "esModuleInterop": true,
+    "jsx": "react",
+    "jsxFactory": "h",
     "typeRoots": [
       "node_modules/@types"
     ],
     "paths": {
       "@core/*": ["paf-mvp-core-js/src/*"]
-    }
+    },
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
   "include":
   [

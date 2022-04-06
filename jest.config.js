@@ -12,6 +12,9 @@ module.exports = {
       tsconfig: path.join(__dirname, 'tsconfig.test.json'),
     },
   },
+  testPathIgnorePatterns: [
+    "/paf-mvp-frontend/"
+  ],
   'automock': false,
   'resetMocks': false,
 };
