@@ -45,12 +45,14 @@ export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatur
     const ids = data.idsAndPreferences.identifiers;
     const prefs = data.idsAndPreferences.preferences;
 
-    const array = new Array<string>();
-    array.push(seed.source.domain, seed.source.timestamp.toString());
-    array.push(...seed.transaction_ids);
-    array.push(seed.publisher);
-    array.push(...ids.map((i) => i.source.signature));
-    array.push(prefs.source.signature);
+    const array: string[] = [
+      seed.source.domain,
+      seed.source.timestamp.toString(),
+      ...seed.transaction_ids,
+      seed.publisher,
+      ...ids.map((i) => i.source.signature),
+      prefs.source.signature,
+    ];
 
     return array.join(SIGN_SEP);
   }
