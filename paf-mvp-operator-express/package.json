@@ -5,8 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "npm run build"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
