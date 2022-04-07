@@ -4,11 +4,13 @@ import { OperatorClient } from './operator-client';
 import {
   Error,
   IdsAndPreferences,
+  PostSeedRequest,
+  PostSeedResponse,
   PostSignPreferencesRequest,
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import { httpRedirect } from '@core/express/utils';
+import { getPayload, httpRedirect } from '@core/express/utils';
 import { fromDataToObject } from '@core/query-string';
 import {
   Get3PCRequestBuilder,
@@ -114,12 +116,12 @@ export const addOperatorClientProxyEndpoints = (
   });
 
   app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
-    const { identifiers, unsignedPreferences } = JSON.parse(req.body as string) as PostSignPreferencesRequest;
+    const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
     res.send(client.buildPreferences(identifiers, unsignedPreferences.data));
   });
 
   app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
-    const message = JSON.parse(req.body as string) as IdsAndPreferences;
+    const message = getPayload<IdsAndPreferences>(req);
     res.send(postIdsPrefsRequestBuilder.buildRequest(message));
   });
 
@@ -128,6 +130,13 @@ export const addOperatorClientProxyEndpoints = (
     const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
     httpRedirect(res, url.toString(), 302);
+  });
+
+  app.post(jsonProxyEndpoints.createSeed, cors(corsOptions), (req, res) => {
+    const request = JSON.parse(req.body as string) as PostSeedRequest;
+    const seed = client.buildSeed(request.transaction_ids, request.data);
+    const response = seed as PostSeedResponse; // For now, the response is only a Seed.
+    res.send(response);
   });
 
   // *****************************************************************************************************************

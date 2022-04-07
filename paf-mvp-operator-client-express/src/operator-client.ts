@@ -1,5 +1,13 @@
-import { GetIdsPrefsResponse, Identifiers, IdsAndPreferences, Preferences } from '@core/model/generated-model';
-import { UnsignedData } from '@core/model/model';
+import {
+  GetIdsPrefsResponse,
+  Identifiers,
+  IdsAndPreferences,
+  Preferences,
+  Seed,
+  Signature,
+  TransactionId,
+} from '@core/model/generated-model';
+import { CurrentModelVersion, UnsignedData } from '@core/model/model';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { PublicKeyStore } from '@core/express/key-store';
 import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
@@ -8,13 +16,17 @@ import {
   MessageWithBodyDefinition,
   IdsAndPreferencesDefinition,
   IdsAndUnsignedPreferences,
+  SeedSignatureBuilder,
+  SeedSignatureContainer,
 } from '@core/crypto/signing-definition';
 import { MessageVerifier } from '@core/crypto/verifier';
+import { getTimeStampInSec } from '@core/timestamp';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
-  private readonly prefsSigner: Signer<IdsAndPreferences, IdsAndUnsignedPreferences>;
+  private readonly prefsSigner: Signer<IdsAndUnsignedPreferences>;
+  private readonly seedSigner: Signer<SeedSignatureContainer>;
 
   constructor(
     protected operatorHost: string,
@@ -25,6 +37,7 @@ export class OperatorClient {
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
+    this.seedSigner = new Signer(privateKeyFromString(privateKey), new SeedSignatureBuilder());
   }
 
   async verifyReadResponse(message: GetIdsPrefsResponse): Promise<boolean> {
@@ -57,6 +70,13 @@ export class OperatorClient {
     };
   }
 
+  buildSeed(transactionIds: TransactionId[], idsAndPreferences: IdsAndPreferences): Seed {
+    const unsigned = this.createUnsignedSeed(transactionIds);
+    const signature = this.seedSigner.sign({ seed: unsigned, idsAndPreferences });
+    const seed = this.addSignatureToSeed(unsigned, signature);
+    return seed;
+  }
+
   getReadRestUrl(): URL {
     const getIdsPrefsRequestJson = this.getIdsPrefsRequestBuilder.buildRequest();
     return this.getIdsPrefsRequestBuilder.getRestUrl(getIdsPrefsRequestJson);
@@ -68,5 +88,27 @@ export class OperatorClient {
       returnUrl
     );
     return this.getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson);
+  }
+
+  private createUnsignedSeed(transactionIds: TransactionId[], timestamp = getTimeStampInSec()): UnsignedData<Seed> {
+    return {
+      version: CurrentModelVersion,
+      transaction_ids: transactionIds,
+      publisher: this.clientHost,
+      source: {
+        domain: this.clientHost,
+        timestamp,
+      },
+    };
+  }
+
+  private addSignatureToSeed(unsigned: UnsignedData<Seed>, signature: Signature): Seed {
+    return {
+      ...unsigned,
+      source: {
+        ...unsigned.source,
+        signature,
+      },
+    };
   }
 }

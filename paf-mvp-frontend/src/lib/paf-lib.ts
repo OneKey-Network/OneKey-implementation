@@ -8,8 +8,12 @@ import {
   IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostIdsPrefsRequest,
+  PostSeedRequest,
+  PostSeedResponse,
   PostSignPreferencesRequest,
   Preferences,
+  Seed,
+  TransactionId,
 } from '@core/model/generated-model';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
@@ -23,6 +27,28 @@ const logger = console;
 const redirect = (url: string): void => {
   location.replace(url);
 };
+
+// Note: we don't use Content-type JSON to avoid having to trigger OPTIONS pre-flight.
+// See https://stackoverflow.com/questions/37668282/unable-to-fetch-post-without-no-cors-in-header
+const postJson = (url: string, input: object) =>
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(input),
+    credentials: 'include',
+  });
+
+const postText = (url: string, input: string) =>
+  fetch(url, {
+    method: 'POST',
+    body: input,
+    credentials: 'include',
+  });
+
+const get = (url: string) =>
+  fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+  });
 
 // Remove any "paf data" param from the query string
 // From https://stackoverflow.com/questions/1634748/how-can-i-delete-a-query-string-parameter-in-javascript/25214672#25214672
@@ -102,6 +128,8 @@ export type SignPrefsOptions = Options;
 
 export type GetNewIdOptions = Options;
 
+export type CreateSeedOptions = Options;
+
 /**
  * Refresh result
  */
@@ -151,11 +179,7 @@ export const refreshIdsAndPreferences = async ({
       thirdPartyCookiesSupported = false;
 
       // Verify message
-      const response = await fetch(getUrl(jsonProxyEndpoints.verifyRead), {
-        method: 'POST',
-        body: uriData,
-        credentials: 'include',
-      });
+      const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriData);
       const operatorData = (await response.json()) as GetIdsPrefsResponse;
 
       if (!operatorData) {
@@ -214,7 +238,7 @@ export const refreshIdsAndPreferences = async ({
       logger.info('Browser known to support 3PC: YES');
 
       logger.info('Attempt to read from JSON');
-      const readResponse = await fetch(getUrl(jsonProxyEndpoints.read), { credentials: 'include' });
+      const readResponse = await get(getUrl(jsonProxyEndpoints.read));
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -240,7 +264,7 @@ export const refreshIdsAndPreferences = async ({
 
       logger.info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
-      const verifyResponse = await fetch(getUrl(jsonProxyEndpoints.verify3PC), { credentials: 'include' });
+      const verifyResponse = await get(getUrl(jsonProxyEndpoints.verify3PC));
       const testOk: Get3PcResponse | Error = await verifyResponse.json();
 
       // 4. 3d party cookie ok?
@@ -317,19 +341,11 @@ export const writeIdsAndPref = async (
       console.log('3PC supported');
 
       // 1) sign the request
-      const signedResponse = await fetch(getUrl(jsonProxyEndpoints.signWrite), {
-        method: 'POST',
-        body: JSON.stringify(input),
-        credentials: 'include',
-      });
+      const signedResponse = await postJson(getUrl(jsonProxyEndpoints.signWrite), input);
       const signedData = (await signedResponse.json()) as PostIdsPrefsRequest;
 
       // 2) send
-      const response = await fetch(getUrl(jsonProxyEndpoints.write), {
-        method: 'POST',
-        body: JSON.stringify(signedData),
-        credentials: 'include',
-      });
+      const response = await postJson(getUrl(jsonProxyEndpoints.write), signedData);
       const operatorData = (await response.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData.body.identifiers.filter((identifier) => identifier?.persisted !== false);
@@ -375,11 +391,7 @@ export const signPreferences = async (
   const getUrl = getProxyUrl(proxyHostName);
 
   // TODO use ProxyRestSignPreferencesRequestBuilder
-  const signedResponse = await fetch(getUrl(jsonProxyEndpoints.signPrefs), {
-    method: 'POST',
-    body: JSON.stringify(input),
-    credentials: 'include',
-  });
+  const signedResponse = await postJson(getUrl(jsonProxyEndpoints.signPrefs), input);
   return (await signedResponse.json()) as Preferences;
 };
 
@@ -393,10 +405,7 @@ export const signPreferences = async (
 export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Identifier> => {
   const getUrl = getProxyUrl(proxyHostName);
 
-  const response = await fetch(getUrl(jsonProxyEndpoints.newId), {
-    method: 'GET',
-    credentials: 'include',
-  });
+  const response = await get(getUrl(jsonProxyEndpoints.newId));
   // Assume no error. FIXME should handle potential errors
   return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
 };
@@ -421,4 +430,24 @@ export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
   }
 
   return values as IdsAndPreferences;
+};
+
+export const createSeed = async (
+  { proxyHostName }: CreateSeedOptions,
+  transactionIds: TransactionId[]
+): Promise<Seed | undefined> => {
+  const getUrl = getProxyUrl(proxyHostName);
+  const url = getUrl(jsonProxyEndpoints.createSeed);
+  const idsAndPrefs = getIdsAndPreferences();
+  if (idsAndPrefs === undefined) {
+    return undefined;
+  }
+
+  const requestContent: PostSeedRequest = {
+    transaction_ids: transactionIds,
+    data: idsAndPrefs,
+  };
+  const response = await postJson(url, requestContent);
+
+  return await response.json();
 };
