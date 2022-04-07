@@ -2,6 +2,7 @@ import { Express, Request, Response } from 'express';
 import {
   corsOptionsAcceptAll,
   getPafDataFromQueryString,
+  getPayload,
   httpRedirect,
   removeCookie,
   setCookie,
@@ -209,7 +210,7 @@ export const addOperatorApi = (
   });
 
   app.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), async (req, res) => {
-    const input = JSON.parse(req.body as string) as PostIdsPrefsRequest;
+    const input = getPayload<PostIdsPrefsRequest>(req);
 
     try {
       const signedData = await getWriteResponse(input, res);

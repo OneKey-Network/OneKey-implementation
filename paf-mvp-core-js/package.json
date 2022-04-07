@@ -6,8 +6,7 @@
   "scripts": {
     "build": "tsc",
     "generate-model": "ts-node scripts/generate-model-from-schemas.ts",
-    "test": "jest",
-    "prepare": "npm run build"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
