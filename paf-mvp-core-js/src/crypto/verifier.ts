@@ -18,10 +18,11 @@ export class Verifier<T> {
   constructor(protected publicKeyProvider: PublicKeyProvider, protected definition: SigningDefinition<T, unknown>) {}
 
   async verifySignature(signedData: T): Promise<boolean> {
-    const toVerify = this.definition.getInputString(signedData);
-    const signature = this.definition.getSignature(signedData);
     const signingDomain = this.definition.getSignerDomain(signedData);
     const publicKey = await this.publicKeyProvider(signingDomain);
+
+    const signature = this.definition.getSignature(signedData);
+    const toVerify = this.definition.getInputString(signedData);
 
     return publicKey.verify(toVerify, signature);
   }
