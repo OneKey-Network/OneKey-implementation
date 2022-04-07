@@ -8,8 +8,12 @@ import {
   IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostIdsPrefsRequest,
+  PostSeedRequest,
+  PostSeedResponse,
   PostSignPreferencesRequest,
   Preferences,
+  Seed,
+  TransactionId,
 } from '@core/model/generated-model';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
@@ -421,4 +425,34 @@ export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
   }
 
   return values as IdsAndPreferences;
+};
+
+export const createSeed = async (
+  { proxyHostName }: GetNewIdOptions,
+  transactionIds: TransactionId[]
+): Promise<Seed | undefined> => {
+  const getUrl = getProxyUrl(proxyHostName);
+  const url = getUrl(jsonProxyEndpoints.seed);
+  const idsAndPrefs = getIdsAndPreferences();
+  if (idsAndPrefs === undefined) {
+    return undefined;
+  }
+
+  const requestContent: PostSeedRequest = {
+    transaction_ids: transactionIds,
+    data: idsAndPrefs,
+  };
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(requestContent),
+    credentials: 'include',
+  });
+
+  const json = (await response.json()) as PostSeedResponse;
+  if (!json) {
+    return undefined;
+  }
+  const seed = json as Seed;
+
+  return seed;
 };
