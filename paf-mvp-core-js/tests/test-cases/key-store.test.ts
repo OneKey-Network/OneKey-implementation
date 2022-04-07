@@ -1,8 +1,10 @@
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyInfo, PublicKeyStore } from '@core/express/key-store';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
-import mockAxios from 'jest-mock-axios';
 import { publicKeyFromString } from '@core/crypto/keys';
 import { getTimeStampInSec } from '@core/timestamp';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+import { MockTimer } from '../helpers/timestamp.helper';
 
 interface KeyInfo {
   key: string;
@@ -11,8 +13,11 @@ interface KeyInfo {
 }
 
 describe('key store', () => {
+  // This sets the mock adapter on the default instance
+  const mock = new MockAdapter(axios);
+
   beforeEach(() => {
-    mockAxios.reset();
+    mock.reset();
   });
 
   const nowTimestampSeconds = getTimeStampInSec();
@@ -43,27 +48,24 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       keys: [oldKey, currentKey],
     };
 
-    const keyStore = new PublicKeyStore({});
-    const call = keyStore.getPublicKey('domain.com');
+    const keyStore = new PublicKeyStore({}, axios.create({}));
 
-    mockAxios.mockResponse({ data: mockIdentity });
+    mock.onGet().reply(200, mockIdentity);
 
-    const expectedKey = {
-      start: new Date(currentKey.start * 1000),
-      end: new Date(currentKey.end * 1000),
+    const expectedKey: PublicKeyInfo = {
+      startTimestampInSec: currentKey.start,
+      endTimestampInSec: currentKey.end,
       publicKey: currentKey.key,
       publicKeyObj: publicKeyFromString(currentKey.key),
     };
 
-    expect(await call).toEqual(expectedKey);
+    // Two consecutive calls
+    expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedKey);
+    expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedKey);
 
-    expect(mockAxios.get).toHaveBeenCalledWith('https://domain.com/paf/v1/identity');
-
-    expect(await call).toEqual(expectedKey);
-
-    mockAxios.reset();
-
-    expect(mockAxios.get).toHaveBeenCalledTimes(0);
+    // Only one HTTP refresh
+    expect(mock.history.get.length).toBe(1);
+    expect(mock.history.get[0].url).toEqual('https://domain.com/paf/v1/identity');
   });
 
   test('returns key with no end date', async () => {
@@ -81,17 +83,61 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
     };
 
     const keyStore = new PublicKeyStore({});
-    const call = keyStore.getPublicKey('domain.com');
 
-    mockAxios.mockResponse({ data: mockIdentity });
+    mock.onGet().reply(200, mockIdentity);
 
-    const expectedKey = {
-      start: new Date(currentKey.start * 1000),
+    const expectedKey: PublicKeyInfo = {
+      startTimestampInSec: currentKey.start,
+      // No end date
       publicKey: currentKey.key,
       publicKeyObj: publicKeyFromString(currentKey.key),
     };
 
-    expect(await call).toEqual(expectedKey);
+    // Two consecutive calls
+    expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedKey);
+    expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedKey);
+
+    // Only one HTTP refresh
+    expect(mock.history.get.length).toBe(1);
+  });
+
+  test('will refresh keys that expire', async () => {
+    const mockIdentity: GetIdentityResponse = {
+      version: '1.0',
+      type: 'vendor',
+      name: 'My domain',
+      keys: [oldKey, currentKey],
+    };
+
+    // Provide mock timer
+    const mockTimer = new MockTimer(nowTimestampSeconds - 2 * 3600); // happens 2 hours in the past
+    const keyStore = new PublicKeyStore({}, axios.create(), () => mockTimer.timestamp);
+
+    mock.onGet().reply(200, mockIdentity);
+
+    const expectedOldKey: PublicKeyInfo = {
+      startTimestampInSec: oldKey.start,
+      endTimestampInSec: oldKey.end,
+      publicKey: oldKey.key,
+      publicKeyObj: publicKeyFromString(oldKey.key),
+    };
+
+    // First call will query it
+    expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedOldKey);
+    expect(mock.history.get.length).toBe(1);
+
+    // Second call later => key is out of date and will be refreshed
+    mockTimer.timestamp = nowTimestampSeconds;
+
+    const expectedNewKey: PublicKeyInfo = {
+      startTimestampInSec: currentKey.start,
+      endTimestampInSec: currentKey.end,
+      publicKey: currentKey.key,
+      publicKeyObj: publicKeyFromString(currentKey.key),
+    };
+
+    expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedNewKey);
+    expect(mock.history.get.length).toBe(2);
   });
 
   test('throws if no key matches', async () => {
@@ -105,7 +151,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
     const keyStore = new PublicKeyStore({});
     const call = keyStore.getPublicKey('domain.com');
 
-    mockAxios.mockResponse({ data: mockIdentity });
+    mock.onGet().reply(200, mockIdentity);
 
     await expect(call).rejects.toThrow();
   });
@@ -114,7 +160,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
     const keyStore = new PublicKeyStore({});
     const call = keyStore.getPublicKey('domain.com');
 
-    mockAxios.mockError(new Error('Network error'));
+    mock.onGet().networkError();
 
     await expect(call).rejects.toThrow();
   });
@@ -123,13 +169,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
     const keyStore = new PublicKeyStore({});
     const call = keyStore.getPublicKey('domain.com');
 
-    mockAxios.mockResponse({
-      data: {},
-      status: 404,
-      statusText: 'Not found',
-      headers: {},
-      config: {},
-    });
+    mock.onGet().reply(404);
 
     await expect(call).rejects.toThrow();
   });

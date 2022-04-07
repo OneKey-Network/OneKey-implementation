@@ -1,24 +1,31 @@
 import { fromIdentityResponse, KeyInfo } from '@core/crypto/identity';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
-import { GetIdentityResponse } from '@core/model/generated-model';
+import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { PublicKey, publicKeyFromString } from '@core/crypto/keys';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { getTimeStampInSec } from '@core/timestamp';
 
-type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
+export type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
 
 export class PublicKeyStore {
   protected cache: { [domain: string]: PublicKeyInfo } = {};
 
-  constructor(s2sOptions?: AxiosRequestConfig, protected s2sClient = axios.create(s2sOptions)) {}
+  constructor(
+    s2sOptions?: AxiosRequestConfig,
+    protected s2sClient = axios.create(s2sOptions),
+    protected timestampProvider: () => Timestamp = getTimeStampInSec
+  ) {}
 
   async getPublicKey(domain: string): Promise<PublicKeyInfo> {
-    const nowTimestampSeconds = getTimeStampInSec();
+    const nowTimestampSeconds = this.timestampProvider();
 
     const existingKey = this.cache[domain];
 
     // Make sure this key is not out dated. If so, then consider no cache value and request it from identity endpoint
-    if (existingKey && nowTimestampSeconds < existingKey.end.getTime()) {
+    if (
+      existingKey &&
+      (existingKey.endTimestampInSec === undefined || nowTimestampSeconds < existingKey.endTimestampInSec)
+    ) {
       return Promise.resolve(existingKey);
     }
 
