@@ -432,7 +432,7 @@ export const createSeed = async (
   transactionIds: TransactionId[]
 ): Promise<Seed | undefined> => {
   const getUrl = getProxyUrl(proxyHostName);
-  const url = getUrl(jsonProxyEndpoints.seed);
+  const url = getUrl(jsonProxyEndpoints.createSeed);
   const idsAndPrefs = getIdsAndPreferences();
   if (idsAndPrefs === undefined) {
     return undefined;

@@ -132,7 +132,7 @@ export const addOperatorClientProxyEndpoints = (
     httpRedirect(res, url.toString(), 302);
   });
 
-  app.post(jsonProxyEndpoints.seed, cors(corsOptions), (req, res) => {
+  app.post(jsonProxyEndpoints.createSeed, cors(corsOptions), (req, res) => {
     const request = JSON.parse(req.body as string) as PostSeedRequest;
     const seed = client.buildSeed(request.transaction_ids, request.data);
     const response = seed as PostSeedResponse; // For now, the response is only a Seed.

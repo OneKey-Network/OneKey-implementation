@@ -104,12 +104,9 @@ export class OperatorClient {
 
   private addSignatureToSeed(unsigned: UnsignedData<Seed>, signature: Signature): Seed {
     return {
-      version: unsigned.version,
-      transaction_ids: unsigned.transaction_ids,
-      publisher: unsigned.publisher,
+      ...unsigned,
       source: {
-        domain: unsigned.source.domain,
-        timestamp: unsigned.source.timestamp,
+        ...unsigned.source,
         signature,
       },
     };
