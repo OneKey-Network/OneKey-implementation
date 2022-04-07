@@ -128,6 +128,8 @@ export type SignPrefsOptions = Options;
 
 export type GetNewIdOptions = Options;
 
+export type CreateSeedOptions = Options;
+
 /**
  * Refresh result
  */
@@ -431,7 +433,7 @@ export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
 };
 
 export const createSeed = async (
-  { proxyHostName }: GetNewIdOptions,
+  { proxyHostName }: CreateSeedOptions,
   transactionIds: TransactionId[]
 ): Promise<Seed | undefined> => {
   const getUrl = getProxyUrl(proxyHostName);
@@ -445,17 +447,7 @@ export const createSeed = async (
     transaction_ids: transactionIds,
     data: idsAndPrefs,
   };
-  const response = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(requestContent),
-    credentials: 'include',
-  });
+  const response = await postJson(url, requestContent);
 
-  const json = (await response.json()) as PostSeedResponse;
-  if (!json) {
-    return undefined;
-  }
-  const seed = json as Seed;
-
-  return seed;
+  return await response.json();
 };
