@@ -14,7 +14,6 @@ import {
   GetNewIdRequest,
   Identifier,
   PostIdsPrefsRequest,
-  PostSignPreferencesRequest,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
   Test3Pc,

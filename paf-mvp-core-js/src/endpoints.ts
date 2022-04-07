@@ -39,7 +39,7 @@ export const jsonProxyEndpoints = {
   write: `${proxyPrefix}${jsonWrite}`,
   verify3PC: `${proxyPrefix}${jsonVerify3PC}`,
   newId: `${proxyPrefix}${jsonNewId}`,
-  seed: `${proxyPrefix}${jsonSeed}`,
+  createSeed: `${proxyPrefix}${jsonSeed}`,
 };
 export const redirectProxyEndpoints = {
   read: `${proxyPrefix}${redirectEndpoints.read}`,

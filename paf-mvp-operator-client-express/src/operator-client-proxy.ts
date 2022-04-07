@@ -3,7 +3,6 @@ import cors, { CorsOptions } from 'cors';
 import { OperatorClient } from './operator-client';
 import {
   Error,
-  IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostSeedRequest,
   PostSeedResponse,
