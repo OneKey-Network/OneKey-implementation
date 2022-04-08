@@ -5,6 +5,7 @@ import {
   PrivateConfig,
   pafDemoPublisherConfig,
   pifDemoPublisherConfig,
+  pofDemoPublisherConfig,
 } from './config';
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
@@ -31,7 +32,11 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 export const cmpApp = express();
 
 // This CMP only allows calls from some clients
-const allowedOrigins = [`https://${pafDemoPublisherConfig.host}`, `https://${pifDemoPublisherConfig.host}`];
+const allowedOrigins = [
+  `https://${pafDemoPublisherConfig.host}`,
+  `https://${pifDemoPublisherConfig.host}`,
+  `https://${pofDemoPublisherConfig.host}`,
+];
 
 addOperatorClientProxyEndpoints(
   cmpApp,

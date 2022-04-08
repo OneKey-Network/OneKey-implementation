@@ -9,6 +9,7 @@ import {
   pafDemoPublisherConfig,
   pafMarketConfig,
   pifDemoPublisherConfig,
+  pofDemoPublisherConfig,
   portalConfig,
   PublicConfig,
 } from './config';
@@ -21,6 +22,7 @@ import { createServer } from 'https';
 import { isLocalDev, sslOptions } from './server-config';
 import { create } from 'express-handlebars';
 import { pifDemoPublisherApp } from './pif-demo-publisher';
+import { pofDemoPublisherApp } from './pof-demo-publisher';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -67,6 +69,7 @@ addApp(portalConfig, portalApp);
 addApp(pafMarketConfig, pafMarketApp);
 addApp(pafDemoPublisherConfig, pafDemoPublisherApp);
 addApp(pifDemoPublisherConfig, pifDemoPublisherApp);
+addApp(pofDemoPublisherConfig, pofDemoPublisherApp);
 addApp(cmpConfig, cmpApp);
 
 // start the Express server

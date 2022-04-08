@@ -9,6 +9,7 @@ import {
   PublicConfig,
   pafDemoPublisherConfig,
   pifDemoPublisherConfig,
+  pofDemoPublisherConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -45,6 +46,7 @@ const hostsFile = '/etc/hosts';
     addConfig(pafMarketConfig);
     addConfig(pafDemoPublisherConfig);
     addConfig(pifDemoPublisherConfig);
+    addConfig(pofDemoPublisherConfig);
     addConfig(cmpConfig);
   } else {
     console.error(`Unsupported action ${action}`);
