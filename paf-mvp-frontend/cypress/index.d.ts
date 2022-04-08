@@ -5,6 +5,7 @@ import {
   writeIdsAndPref,
   getNewId,
 } from '../src/lib/paf-lib';
+import { NotificationEnum } from '../src/enums/notification.enum';
 
 declare global {
   namespace Cypress {
@@ -22,7 +23,10 @@ declare global {
       getIdsAndPreferences: typeof getIdsAndPreferences;
       refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
     };
-    __promptConsent: () => Promise<boolean>;
+    PAFUI: {
+      promptConsent: () => Promise<boolean>;
+      showNotification: (notificationType: NotificationEnum) => void;
+    };
   }
 }
 

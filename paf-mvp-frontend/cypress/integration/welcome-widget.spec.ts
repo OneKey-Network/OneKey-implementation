@@ -43,7 +43,7 @@ describe('Welcome widget view', () => {
     const FAKE_ID = 'FAKE-ID-PAF';
     const consent = false;
 
-    before(() => {
+    beforeEach(() => {
       cy.setCookie(Cookies.identifiers, JSON.stringify(getFakeIdentifiers(FAKE_ID)));
       cy.setCookie(Cookies.preferences, JSON.stringify(getFakePreferences(consent)));
       page = new WidgetPage();
@@ -93,8 +93,6 @@ describe('Welcome widget view', () => {
         page.saveButton.click();
         cy.wrap(signStub).should('be.called');
         cy.wrap(writeStub).should('be.called');
-
-        page.widget.findByText(/Choose your marketing preferences/).should('not.exist');
       });
     });
   });

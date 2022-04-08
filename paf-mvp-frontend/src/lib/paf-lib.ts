@@ -21,6 +21,12 @@ import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
 import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
 import { getCookieValue } from '../utils/cookie';
+import { NotificationEnum } from '../enums/notification.enum';
+
+declare const PAFUI: {
+  promptConsent: () => Promise<boolean>;
+  showNotification: (notificationType: NotificationEnum) => void;
+};
 
 const logger = console;
 
@@ -86,6 +92,10 @@ const setCookie = (cookieName: string, value: string, expiration: Date) => {
 
 export const removeCookie = (cookieName: string) => {
   setCookie(cookieName, null, new Date(0));
+};
+
+const showNotification = (consent: boolean) => {
+  PAFUI.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent);
 };
 
 // Update the URL shown in the address bar, without PAF data
@@ -193,6 +203,10 @@ export const refreshIdsAndPreferences = async ({
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
       saveCookieValue(Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
       saveCookieValue(Cookies.preferences, operatorData.body.preferences);
+
+      if (operatorData?.body?.preferences) {
+        showNotification(operatorData.body.preferences.data?.use_browsing_for_personalization);
+      }
 
       return {
         status: PafStatus.UP_TO_DATE,
@@ -352,6 +366,8 @@ export const writeIdsAndPref = async (
 
       saveCookieValue(Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
       saveCookieValue(Cookies.preferences, operatorData.body.preferences);
+
+      showNotification(operatorData?.body?.preferences?.data?.use_browsing_for_personalization);
 
       return operatorData.body;
     }
