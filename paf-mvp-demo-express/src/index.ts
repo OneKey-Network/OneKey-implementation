@@ -1,12 +1,19 @@
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
-import { operatorApp } from './operator';
+import { crtoOneOperatorApp } from './crto1-operator';
 import vhost from 'vhost';
-import { advertiserApp } from './advertiser';
-import { advertiserConfig, cmpConfig, operatorConfig, portalConfig, PublicConfig, publisherConfig } from './config';
+import { pafMarketApp } from './paf-market';
+import {
+  pafMarketConfig,
+  cmpConfig,
+  crtoOneOperatorConfig,
+  portalConfig,
+  PublicConfig,
+  pafDemoPublisherConfig,
+} from './config';
 import { join } from 'path';
 import { cmpApp } from './cmp';
-import { publisherApp } from './publisher';
+import { pafDemoPublisherApp } from './paf-demo-publisher';
 import { portalApp } from './portal';
 import bodyParser from 'body-parser';
 import { createServer } from 'https';
@@ -53,10 +60,10 @@ const addApp = (config: PublicConfig, app: Express) => {
   apps.push(config);
 };
 
-addApp(operatorConfig, operatorApp);
+addApp(crtoOneOperatorConfig, crtoOneOperatorApp);
 addApp(portalConfig, portalApp);
-addApp(advertiserConfig, advertiserApp);
-addApp(publisherConfig, publisherApp);
+addApp(pafMarketConfig, pafMarketApp);
+addApp(pafDemoPublisherConfig, pafDemoPublisherApp);
 addApp(cmpConfig, cmpApp);
 
 // start the Express server

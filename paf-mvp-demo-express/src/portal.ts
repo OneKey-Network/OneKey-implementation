@@ -1,5 +1,5 @@
 import express from 'express';
-import { operatorConfig, portalConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, fromIdsCookie, fromPrefsCookie } from '@core/cookies';
 import {
@@ -51,9 +51,14 @@ export const portalApp = express();
 const keyStore = new PublicKeyStore(s2sOptions);
 
 // The portal is a client of the operator API
-const client = new OperatorClient(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey, keyStore);
+const client = new OperatorClient(
+  crtoOneOperatorConfig.host,
+  portalConfig.host,
+  portalPrivateConfig.privateKey,
+  keyStore
+);
 const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
-  operatorConfig.host,
+  crtoOneOperatorConfig.host,
   portalConfig.host,
   portalPrivateConfig.privateKey
 );
@@ -154,28 +159,28 @@ const messageWithBodyVerifier = new MessageVerifier(keyStore.provider, new Messa
 
 const verifiers: { [name in keyof Model]?: Verifier<unknown> } = {
   identifier: new Verifier(keyStore.provider, new IdentifierDefinition()),
-  ['ids-and-preferences']: new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
-  ['get-ids-prefs-request']: emptyMessageVerifier,
-  ['get-ids-prefs-response']: messageWithBodyVerifier,
-  ['get-new-id-request']: emptyMessageVerifier,
-  ['get-new-id-response']: messageWithBodyVerifier,
-  ['post-ids-prefs-request']: messageWithBodyVerifier,
-  ['post-ids-prefs-response']: messageWithBodyVerifier,
-  ['redirect-get-ids-prefs-request']: new Verifier(
+  'ids-and-preferences': new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
+  'get-ids-prefs-request': emptyMessageVerifier,
+  'get-ids-prefs-response': messageWithBodyVerifier,
+  'get-new-id-request': emptyMessageVerifier,
+  'get-new-id-response': messageWithBodyVerifier,
+  'post-ids-prefs-request': messageWithBodyVerifier,
+  'post-ids-prefs-response': messageWithBodyVerifier,
+  'redirect-get-ids-prefs-request': new Verifier(
     keyStore.provider,
     new RedirectRequestDefinition<GetIdsPrefsRequest>(new MessageWithoutBodyDefinition())
   ),
-  ['redirect-get-ids-prefs-response']: new Verifier(
+  'redirect-get-ids-prefs-response': new Verifier(
     keyStore.provider,
     new RedirectResponseDefinition<GetIdsPrefsResponse>(new MessageWithBodyDefinition())
   ),
-  ['redirect-post-ids-prefs-request']: new Verifier(
+  'redirect-post-ids-prefs-request': new Verifier(
     keyStore.provider,
     new RedirectRequestDefinition<PostIdsPrefsRequest, UnsignedMessage<PostIdsPrefsRequest>>(
       new MessageWithBodyDefinition()
     )
   ),
-  ['redirect-post-ids-prefs-response']: new Verifier(
+  'redirect-post-ids-prefs-response': new Verifier(
     keyStore.provider,
     new RedirectResponseDefinition<PostIdsPrefsResponse, UnsignedMessage<PostIdsPrefsResponse>>(
       new MessageWithBodyDefinition()
@@ -187,7 +192,7 @@ type Mappings = { [host: string]: { [path: string]: keyof Model } };
 
 // Mapping of paths => types
 const mappings: Mappings = {
-  [operatorConfig.host]: {
+  [crtoOneOperatorConfig.host]: {
     [jsonOperatorEndpoints.read]: 'get-ids-prefs-request',
     // [jsonOperatorEndpoints.write]: 'post-ids-prefs-request', cannot happen because is POST payload
     [jsonOperatorEndpoints.newId]: 'get-new-id-request',

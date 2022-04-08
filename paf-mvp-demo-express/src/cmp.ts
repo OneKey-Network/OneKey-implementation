@@ -1,5 +1,11 @@
 import express from 'express';
-import { cmpConfig, operatorConfig, PrivateConfig, publisherConfig } from './config';
+import {
+  cmpConfig,
+  crtoOneOperatorConfig,
+  PrivateConfig,
+  pafDemoPublisherConfig,
+  pifDemoPublisherConfig,
+} from './config';
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
@@ -25,11 +31,11 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 export const cmpApp = express();
 
 // This CMP only allows calls from publisher
-const allowedOrigins = [`https://${publisherConfig.host}`];
+const allowedOrigins = [`https://${pafDemoPublisherConfig.host}`];
 
 addOperatorClientProxyEndpoints(
   cmpApp,
-  operatorConfig.host,
+  crtoOneOperatorConfig.host,
   cmpConfig.host,
   cmpPrivateConfig.privateKey,
   allowedOrigins,

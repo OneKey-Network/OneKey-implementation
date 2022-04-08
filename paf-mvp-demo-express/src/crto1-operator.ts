@@ -1,7 +1,7 @@
 import express from 'express';
 import { addOperatorApi, Permission } from '@operator/operator-api';
 import { s2sOptions } from './server-config';
-import { advertiserConfig, cmpConfig, operatorConfig, portalConfig, PrivateConfig } from './config';
+import { pafMarketConfig, cmpConfig, crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {
@@ -21,19 +21,19 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 -----END PRIVATE KEY-----`,
 };
 
-export const operatorApp = express();
+export const crtoOneOperatorApp = express();
 
 // This host supports the Operator API
 addOperatorApi(
-  operatorApp,
-  operatorConfig.host,
+  crtoOneOperatorApp,
+  crtoOneOperatorConfig.host,
   operatorPrivateConfig.privateKey,
-  operatorConfig.name,
+  crtoOneOperatorConfig.name,
   [operatorPrivateConfig.currentPublicKey],
   {
     [cmpConfig.host]: [Permission.READ, Permission.WRITE],
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
-    [advertiserConfig.host]: [Permission.READ],
+    [pafMarketConfig.host]: [Permission.READ],
   },
   s2sOptions
 );

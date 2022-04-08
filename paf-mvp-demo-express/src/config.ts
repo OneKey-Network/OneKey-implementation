@@ -12,24 +12,24 @@ export interface PrivateConfig {
   type: 'vendor' | 'operator'; // TODO should support more
 }
 
-export const advertiserConfig: PublicConfig = {
-  name: 'The advertiser CORP',
+export const pafMarketConfig: PublicConfig = {
+  name: 'PAF advertiser',
   host: 'www.pafmarket.shop',
   cdnHost: 'cdn.pafmarket.shop',
 };
 
-export const publisherConfig: PublicConfig = {
-  name: 'The publisher CORP',
+export const pafDemoPublisherConfig: PublicConfig = {
+  name: 'PAF publisher',
   host: 'www.pafdemopublisher.com',
   cdnHost: 'cdn.pafdemopublisher.com',
 };
 
 export const cmpConfig: PublicConfig = {
-  name: 'The CMP used by the publisher',
+  name: 'CMP used by PAF publisher',
   host: 'cmp.pafdemopublisher.com',
 };
 
-export const operatorConfig: PublicConfig = {
+export const crtoOneOperatorConfig: PublicConfig = {
   name: 'Some PAF operator',
   host: 'crto-poc-1.onekey.network',
 };

@@ -21,7 +21,7 @@ import {
 } from '@core/model/generated-model';
 import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
-import { advertiserConfig, cmpConfig, operatorConfig, publisherConfig } from '../src/config';
+import { pafMarketConfig, cmpConfig, crtoOneOperatorConfig, pafDemoPublisherConfig } from '../src/config';
 import path from 'path';
 import { OperatorClient } from '@operator-client/operator-client';
 import {
@@ -49,7 +49,7 @@ import cloneDeep from 'lodash.clonedeep';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { cmpPrivateConfig } from '../src/cmp';
-import { operatorPrivateConfig } from '../src/operator';
+import { operatorPrivateConfig } from '../src/crto1-operator';
 import { PublicKeyStore } from '@core/express/key-store';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
@@ -89,10 +89,10 @@ if (!fs.existsSync(outputDir)) {
 }
 
 // The examples are not supposed to look like a demo but a real environment
-operatorConfig.host = 'operator.paf-operation-domain.io';
+crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
 cmpConfig.host = 'cmp.com';
-advertiserConfig.host = 'advertiser.com';
-publisherConfig.host = 'publisher.com';
+pafMarketConfig.host = 'advertiser.com';
+pafDemoPublisherConfig.host = 'publisher.com';
 
 class Examples {
   // **************************** Main data
@@ -172,9 +172,9 @@ class Examples {
 
   protected buildExamples() {
     const keyStore = new PublicKeyStore();
-    const operatorAPI = new OperatorApi(operatorConfig.host, operatorPrivateConfig.privateKey, keyStore);
+    const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateConfig.privateKey, keyStore);
     const originalAdvertiserUrl = new URL(
-      `https://${advertiserConfig.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
+      `https://${pafMarketConfig.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
     );
 
     // **************************** Main data
@@ -187,7 +187,12 @@ class Examples {
       operatorAPI.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
     );
 
-    const cmpClient = new OperatorClient(operatorConfig.host, cmpConfig.host, cmpPrivateConfig.privateKey, keyStore);
+    const cmpClient = new OperatorClient(
+      crtoOneOperatorConfig.host,
+      cmpConfig.host,
+      cmpPrivateConfig.privateKey,
+      keyStore
+    );
     this.setObject(
       'preferencesJson',
       cmpClient.buildPreferences(
@@ -211,11 +216,14 @@ class Examples {
 
     // **************************** Read
     const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(
-      operatorConfig.host,
+      crtoOneOperatorConfig.host,
       cmpConfig.host,
       cmpPrivateConfig.privateKey
     );
-    const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorConfig.host, cmpPrivateConfig.privateKey);
+    const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(
+      crtoOneOperatorConfig.host,
+      cmpPrivateConfig.privateKey
+    );
     this.setRestMessage(
       'getIdsPrefsRequestJson',
       getIdsPrefsRequestBuilder.buildRequest(getTimestamp('2022/01/24 17:19'))
@@ -224,7 +232,7 @@ class Examples {
     this.setRestMessage(
       'getIdsPrefsResponse_knownJson',
       getIdsPrefsResponseBuilder.buildResponse(
-        advertiserConfig.host,
+        pafMarketConfig.host,
         {
           identifiers: [this.idJson],
           preferences: this.preferencesJson,
@@ -235,7 +243,7 @@ class Examples {
     this.setRestMessage(
       'getIdsPrefsResponse_unknownJson',
       getIdsPrefsResponseBuilder.buildResponse(
-        advertiserConfig.host,
+        pafMarketConfig.host,
         {
           identifiers: [this.unpersistedIdJson],
         },
@@ -268,12 +276,12 @@ class Examples {
 
     // **************************** Write
     const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
-      operatorConfig.host,
+      crtoOneOperatorConfig.host,
       cmpConfig.host,
       cmpPrivateConfig.privateKey
     );
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(
-      operatorConfig.host,
+      crtoOneOperatorConfig.host,
       cmpPrivateConfig.privateKey
     );
     this.setRestMessage(
@@ -316,11 +324,14 @@ class Examples {
 
     // **************************** Get new ID
     const getNewIdRequestBuilder = new GetNewIdRequestBuilder(
-      operatorConfig.host,
+      crtoOneOperatorConfig.host,
       cmpConfig.host,
       cmpPrivateConfig.privateKey
     );
-    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorConfig.host, operatorPrivateConfig.privateKey);
+    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(
+      crtoOneOperatorConfig.host,
+      operatorPrivateConfig.privateKey
+    );
     this.setRestMessage('getNewIdRequestJson', getNewIdRequestBuilder.buildRequest(getTimestamp('2022/03/01 19:04')));
     this.getNewIdRequestHttp = getGETUrl(getNewIdRequestBuilder.getRestUrl(this.getNewIdRequestJson));
 
@@ -331,7 +342,7 @@ class Examples {
 
     // **************************** Verify 3PC
     const get3PCRequestBuilder = new Get3PCRequestBuilder(
-      operatorConfig.host,
+      crtoOneOperatorConfig.host,
       cmpConfig.host,
       cmpPrivateConfig.privateKey
     );
@@ -344,9 +355,9 @@ class Examples {
     this.get3pcResponse_unsupportedJson = get3PCResponseBuilder.buildResponse(undefined) as Error;
 
     // **************************** Identity
-    const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(operatorConfig.host);
+    const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(crtoOneOperatorConfig.host);
     const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(
-      operatorConfig.name,
+      crtoOneOperatorConfig.name,
       operatorPrivateConfig.type
     );
     this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined));
