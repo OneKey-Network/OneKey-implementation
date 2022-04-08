@@ -3,7 +3,7 @@ import { OptionGroupContext } from '../options-group/OptionsGroup';
 import classes from './styles.scss';
 
 interface OptionProps {
-  children?: JSX.Element | Array<JSX.Element>;
+  children?: JSX.Element | Array<JSX.Element | string> | string;
   value: string;
   testid?: string;
 }
