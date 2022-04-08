@@ -4,12 +4,13 @@ import { crtoOneOperatorApp } from './crto1-operator';
 import vhost from 'vhost';
 import { pafMarketApp } from './paf-market';
 import {
-  pafMarketConfig,
   cmpConfig,
   crtoOneOperatorConfig,
+  pafDemoPublisherConfig,
+  pafMarketConfig,
+  pifDemoPublisherConfig,
   portalConfig,
   PublicConfig,
-  pafDemoPublisherConfig,
 } from './config';
 import { join } from 'path';
 import { cmpApp } from './cmp';
@@ -19,6 +20,7 @@ import bodyParser from 'body-parser';
 import { createServer } from 'https';
 import { isLocalDev, sslOptions } from './server-config';
 import { create } from 'express-handlebars';
+import { pifDemoPublisherApp } from './pif-demo-publisher';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -64,6 +66,7 @@ addApp(crtoOneOperatorConfig, crtoOneOperatorApp);
 addApp(portalConfig, portalApp);
 addApp(pafMarketConfig, pafMarketApp);
 addApp(pafDemoPublisherConfig, pafDemoPublisherApp);
+addApp(pifDemoPublisherConfig, pifDemoPublisherApp);
 addApp(cmpConfig, cmpApp);
 
 // start the Express server

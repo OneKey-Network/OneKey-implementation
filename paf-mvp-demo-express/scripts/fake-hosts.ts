@@ -8,6 +8,7 @@ import {
   portalConfig,
   PublicConfig,
   pafDemoPublisherConfig,
+  pifDemoPublisherConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -43,6 +44,7 @@ const hostsFile = '/etc/hosts';
     addConfig(portalConfig);
     addConfig(pafMarketConfig);
     addConfig(pafDemoPublisherConfig);
+    addConfig(pifDemoPublisherConfig);
     addConfig(cmpConfig);
   } else {
     console.error(`Unsupported action ${action}`);

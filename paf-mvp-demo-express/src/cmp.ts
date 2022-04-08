@@ -30,8 +30,8 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 
 export const cmpApp = express();
 
-// This CMP only allows calls from publisher
-const allowedOrigins = [`https://${pafDemoPublisherConfig.host}`];
+// This CMP only allows calls from some clients
+const allowedOrigins = [`https://${pafDemoPublisherConfig.host}`, `https://${pifDemoPublisherConfig.host}`];
 
 addOperatorClientProxyEndpoints(
   cmpApp,

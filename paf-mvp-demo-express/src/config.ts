@@ -24,6 +24,12 @@ export const pafDemoPublisherConfig: PublicConfig = {
   cdnHost: 'cdn.pafdemopublisher.com',
 };
 
+export const pifDemoPublisherConfig: PublicConfig = {
+  name: 'PIF publisher',
+  host: 'www.pifdemopublisher.com',
+  cdnHost: 'cdn.pifdemopublisher.com',
+};
+
 export const cmpConfig: PublicConfig = {
   name: 'CMP used by PAF publisher',
   host: 'cmp.pafdemopublisher.com',

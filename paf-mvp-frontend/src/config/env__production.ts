@@ -2,6 +2,7 @@ import { cmpConfig, pafDemoPublisherConfig } from '../../../paf-mvp-demo-express
 
 export const env = {
   isDevelopment: false,
+  // FIXME remove host from this config
   host: `https://${pafDemoPublisherConfig.cdnHost}`,
   operatorProxyHost: cmpConfig.host,
 };
