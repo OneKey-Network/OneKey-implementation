@@ -1,7 +1,14 @@
 import express from 'express';
 import { addOperatorApi, Permission } from '@operator/operator-api';
 import { s2sOptions } from './server-config';
-import { pafMarketConfig, cmpConfig, crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
+import {
+  pafMarketConfig,
+  cmpConfig,
+  crtoOneOperatorConfig,
+  portalConfig,
+  PrivateConfig,
+  pifMarketConfig,
+} from './config';
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {
@@ -34,6 +41,7 @@ addOperatorApi(
     [cmpConfig.host]: [Permission.READ, Permission.WRITE],
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
     [pafMarketConfig.host]: [Permission.READ],
+    [pifMarketConfig.host]: [Permission.READ],
   },
   s2sOptions
 );

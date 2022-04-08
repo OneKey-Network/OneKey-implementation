@@ -10,6 +10,7 @@ import {
   pafDemoPublisherConfig,
   pifDemoPublisherConfig,
   pofDemoPublisherConfig,
+  pifMarketConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -44,6 +45,7 @@ const hostsFile = '/etc/hosts';
     addConfig(crtoOneOperatorConfig);
     addConfig(portalConfig);
     addConfig(pafMarketConfig);
+    addConfig(pifMarketConfig);
     addConfig(pafDemoPublisherConfig);
     addConfig(pifDemoPublisherConfig);
     addConfig(pofDemoPublisherConfig);

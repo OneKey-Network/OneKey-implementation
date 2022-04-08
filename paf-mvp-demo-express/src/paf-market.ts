@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { pafMarketConfig, crtoOneOperatorConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pafMarketConfig, PrivateConfig } from './config';
 import { OperatorBackendClient, RedirectType } from '@operator-client/operator-backend-client';
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
@@ -38,7 +38,11 @@ pafMarketApp.get('/', async (req: Request, res: Response) => {
 
   // Act as an HTTP middleware
   if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
-    res.render(view, { host: pafMarketConfig.host, cdnHost: pafMarketConfig.cdnHost });
+    res.render(view, {
+      title: pafMarketConfig.name,
+      host: pafMarketConfig.host,
+      cdnHost: pafMarketConfig.cdnHost,
+    });
   }
 });
 
