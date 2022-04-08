@@ -11,6 +11,7 @@ import {
   pifDemoPublisherConfig,
   pofDemoPublisherConfig,
   pifMarketConfig,
+  pofMarketConfig,
   portalConfig,
   PublicConfig,
 } from './config';
@@ -25,6 +26,7 @@ import { create } from 'express-handlebars';
 import { pifDemoPublisherApp } from './pif-demo-publisher';
 import { pofDemoPublisherApp } from './pof-demo-publisher';
 import { pifMarketApp } from './pif-market';
+import { pofMarketApp } from './pof-market';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -70,6 +72,7 @@ addApp(crtoOneOperatorConfig, crtoOneOperatorApp);
 addApp(portalConfig, portalApp);
 addApp(pafMarketConfig, pafMarketApp);
 addApp(pifMarketConfig, pifMarketApp);
+addApp(pofMarketConfig, pofMarketApp);
 addApp(pafDemoPublisherConfig, pafDemoPublisherApp);
 addApp(pifDemoPublisherConfig, pifDemoPublisherApp);
 addApp(pofDemoPublisherConfig, pofDemoPublisherApp);

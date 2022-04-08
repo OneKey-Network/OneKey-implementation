@@ -8,6 +8,7 @@ import {
   portalConfig,
   PrivateConfig,
   pifMarketConfig,
+  pofMarketConfig,
 } from './config';
 
 // Only exported for generate-examples.ts
@@ -42,6 +43,7 @@ addOperatorApi(
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
     [pafMarketConfig.host]: [Permission.READ],
     [pifMarketConfig.host]: [Permission.READ],
+    [pofMarketConfig.host]: [Permission.READ],
   },
   s2sOptions
 );

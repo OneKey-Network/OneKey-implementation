@@ -11,6 +11,7 @@ import {
   pifDemoPublisherConfig,
   pofDemoPublisherConfig,
   pifMarketConfig,
+  pofMarketConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -46,6 +47,7 @@ const hostsFile = '/etc/hosts';
     addConfig(portalConfig);
     addConfig(pafMarketConfig);
     addConfig(pifMarketConfig);
+    addConfig(pofMarketConfig);
     addConfig(pafDemoPublisherConfig);
     addConfig(pifDemoPublisherConfig);
     addConfig(pofDemoPublisherConfig);
