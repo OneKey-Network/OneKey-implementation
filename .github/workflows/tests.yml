@@ -1,4 +1,4 @@
-name: Cypress Tests
+name: Tests
 
 on: [push]
 
@@ -13,3 +13,7 @@ jobs:
         with:
           project: paf-mvp-frontend
           start: npm run start --prefix paf-mvp-frontend
+      - name: Unit tests
+        run: |
+          npm run test
+          npm run test --prefix paf-mvp-frontend
