@@ -1,4 +1,6 @@
-export class BasePage {
+export abstract class BasePage {
+  open(props?: any);
+
   open() {
     cy.visit('/');
   }
