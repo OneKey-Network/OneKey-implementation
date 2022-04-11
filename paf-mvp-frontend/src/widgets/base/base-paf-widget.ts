@@ -1,13 +1,15 @@
 import { ComponentFactory, createElement, render, VNode } from 'preact';
 import { createHtmlElement } from '../../utils/create-html-element';
 import { env } from '../../config';
+import { currentScript } from '@frontend/utils/current-script';
 
 export abstract class BasePafWidget<T> {
   private readonly element: HTMLElement;
   private readonly elementNode: VNode;
 
   get styleHref() {
-    return `${env.host}/${env.isDevelopment ? 'dist' : 'assets'}/app.bundle.css`;
+    const scriptUrlOrigin = new URL(currentScript.getSource()).origin;
+    return `${scriptUrlOrigin}/${env.isDevelopment ? 'dist' : 'assets'}/app.bundle.css`;
   }
 
   constructor(component: ComponentFactory<T>, props: T | null = null) {

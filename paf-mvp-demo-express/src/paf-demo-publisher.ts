@@ -1,5 +1,5 @@
 import express from 'express';
-import { pafDemoPublisherConfig } from './config';
+import { cmpConfig, pafDemoPublisherConfig } from './config';
 
 export const pafDemoPublisherApp = express();
 
@@ -8,5 +8,6 @@ pafDemoPublisherApp.get('/', (req, res) => {
   res.render(view, {
     title: pafDemoPublisherConfig.name,
     cdnDomain: pafDemoPublisherConfig.cdnHost,
+    cmpHost: cmpConfig.host,
   });
 });
