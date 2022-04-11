@@ -29,12 +29,13 @@ import {
 import { IdsAndPreferencesVerifier, MessageVerifier, Verifier } from '@core/crypto/verifier';
 import { UnsignedMessage } from '@core/model/model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
+import { getTimeStampInSec } from '@core/timestamp';
 
 const portalPrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
-    start: new Date('2022-01-01T12:00:00.000Z'),
-    end: new Date('2022-12-31T12:00:00.000Z'),
+    startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T12:00:00.000Z')),
+    endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEasA7VcBrU8fs2P+Z4xmcZ8bhnj3Q
 Ku3ypZLhzircDPwCeqAUye/pd62OX3zSWZFQQdz7fR93Bztwc7ZodYe8UQ==

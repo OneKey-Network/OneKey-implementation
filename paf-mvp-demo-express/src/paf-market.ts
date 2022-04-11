@@ -5,12 +5,13 @@ import { addOperatorClientProxyEndpoints } from '@operator-client/operator-clien
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { PublicKeyStore } from '@core/express/key-store';
+import { getTimeStampInSec } from '@core/timestamp';
 
 const pafMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
-    start: new Date('2022-01-01T12:00:00.000Z'),
-    end: new Date('2022-12-31T12:00:00.000Z'),
+    startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T12:00:00.000Z')),
+    endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUnarwp0gUZgjb9fsYNLcNrddNKV5
 h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==

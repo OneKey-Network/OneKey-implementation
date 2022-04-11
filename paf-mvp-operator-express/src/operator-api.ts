@@ -217,7 +217,7 @@ export const addOperatorApi = (
 
       res.send(signedData);
     } catch (e) {
-      res.sendStatus(400);
+      res.status(400);
       res.send(e);
     }
   });
@@ -294,7 +294,7 @@ export class OperatorApi {
     )
   ) {}
 
-  generateNewId(timestamp = new Date().getTime()): Identifier {
+  generateNewId(timestamp = getTimeStampInSec()): Identifier {
     return {
       ...this.signId(uuidv4(), timestamp),
       persisted: false,

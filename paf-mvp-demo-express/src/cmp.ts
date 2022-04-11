@@ -10,12 +10,13 @@ import {
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
+import { getTimeStampInSec } from '@core/timestamp';
 
 // Only exported for generate-examples.ts
 export const cmpPrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
-    start: new Date('2022-01-15T10:50:00.000Z'),
+    startTimestampInSec: getTimeStampInSec(new Date('2022-01-15T10:50:00.000Z')),
     // Notice: no end date
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEl0278pcupaxUfiqHJ9AG9gVMyIO+

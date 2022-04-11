@@ -48,7 +48,7 @@ export class OperatorClient {
   buildPreferences(
     identifiers: Identifiers,
     data: { use_browsing_for_personalization: boolean },
-    timestamp = new Date().getTime()
+    timestamp = getTimeStampInSec()
   ): Preferences {
     const unsignedPreferences: UnsignedData<Preferences> = {
       version: '0.1',
