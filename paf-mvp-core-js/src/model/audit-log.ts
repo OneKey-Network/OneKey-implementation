@@ -23,10 +23,29 @@ export const buildAuditLog = (
   };
 };
 
-interface NodeTrack {
-  node: TransmissionResponse;
-  remainingChildren: TransmissionResponse[];
+/**
+ * Wrapper around TransmissionResponse to keep
+ * track of visited children.
+ */
+class TreeTraversalTracker {
+  private remainingChildrenIndex = 0;
+
+  constructor(public node: TransmissionResponse) {}
+
+  hasUnvisitedChildren(): boolean {
+    return this.remainingChildrenIndex < this.node.children.length;
+  }
+
+  popNextUnvisitedChild(): TreeTraversalTracker | undefined {
+    if (!this.hasUnvisitedChildren()) {
+      return undefined;
+    }
+    const next = this.node.children[this.remainingChildrenIndex];
+    this.remainingChildrenIndex += 1;
+    return new TreeTraversalTracker(next);
+  }
 }
+
 interface TransactionPath {
   /** All the transmission results participating to the contentId, in order. */
   results: TransmissionResult[];
@@ -38,12 +57,12 @@ interface TransactionPath {
  * a tree data-structure and implementing an iterative Depth-First Search.
  */
 const findTransactionPath = (response: TransmissionResponse, contentId: string): TransactionPath | undefined => {
-  const stack: NodeTrack[] = [];
-  let current: NodeTrack = { node: response, remainingChildren: [...response.children] };
+  const stack: TreeTraversalTracker[] = [];
+  let current = new TreeTraversalTracker(response);
 
   while (current !== undefined || stack.length > 0) {
     // Go to next leaf
-    while (current != undefined) {
+    while (current !== undefined) {
       stack.push(current);
       const content = current.node.contents.find((c) => c.content_id == contentId);
       if (content !== undefined) {
@@ -52,19 +71,14 @@ const findTransactionPath = (response: TransmissionResponse, contentId: string):
           transactionId: content.transaction_id,
         };
       }
-      if (current.remainingChildren.length > 0) {
-        const node = current.remainingChildren.pop();
-        current = { node, remainingChildren: [...node.children] };
-      } else {
-        current = undefined;
-      }
+      current = current.popNextUnvisitedChild(); // current = undefined; if no more children.
     }
 
     // Pop all the nodes without child because
     // we checked them in the depth search (above).
     // Once found we are ready to go in a depth search again.
     current = stack.pop();
-    while (current?.remainingChildren.length == 0) {
+    while (current !== undefined && !current?.hasUnvisitedChildren()) {
       current = stack.pop(); // current = undefined; when there is no more element in the stack.
     }
   }
@@ -72,7 +86,7 @@ const findTransactionPath = (response: TransmissionResponse, contentId: string):
   return undefined;
 };
 
-const fromResponseToResult = (t: NodeTrack): TransmissionResult => {
+const fromResponseToResult = (t: TreeTraversalTracker): TransmissionResult => {
   const { version, receiver, contents, status, details, source } = t.node;
   return { version, receiver, contents, status, details, source };
 };
