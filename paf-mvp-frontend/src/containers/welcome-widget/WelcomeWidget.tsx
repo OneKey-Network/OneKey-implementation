@@ -14,9 +14,9 @@ import { SubPanel } from '../../components/sub-panel/SubPanel';
 import { OptionsGroup } from '../../components/forms/options-group/OptionsGroup';
 import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
-import { env } from '../../config';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
+import { currentScript } from '@frontend/utils/current-script';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -31,7 +31,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
 
   const pafIdentifier = pafCookies?.identifiers?.[0]?.value;
   const pafConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
-  const proxyHostName = env.operatorProxyHost;
+  const proxyHostName = currentScript.getData()?.proxy;
   const brandName = window.location.hostname;
 
   const [consent, setConsent] = useState(pafIdentifier && pafConsent);

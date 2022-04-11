@@ -18,7 +18,8 @@
   "rules": {
     "linebreak-style": "off",
     "semi": "warn",
-    "quotes": ["warn", "single"]
+    "quotes": ["warn", "single"],
+    "no-restricted-imports": ["error", { "patterns": ["paf-mvp-demo-express"] }]
   },
   "ignorePatterns": [
     "**/jest.config.js",

@@ -105,43 +105,16 @@ To integrate the widget into a website, website owners should inject the app bun
 
 ```html
 
-<script src="https://my-cdn.domain/assets/app.bundle.js"></script>
+<script 
+  src="https://my-cdn.domain/assets/app.bundle.js"
+  data-proxy="https://cmp-proxy.url">
+</script>
 ```
+To get the user's consent, the widget provides the next API:
 
-and add a tag with widget target attribute:
+`PAFUI.promptConsent(): Promise<boolean>` - displays the widget with OneKey information and returns Promise with user's response
 
-```html
-
-<div paf-root></div>
-```
-
-Website Owners can provide additional information to the widget, such a brand logo, brand name etc.
-
-```html
-<!--NOT WORKING IN IE-->
-<div paf-root>
-  <script type="application/json">
-      {
-        "brandName": "The Publisher",
-        "brandLogoUrl":"http://localhost:3000/images/default-customer-logo.png",
-        "color": "green"
-      }
-  
-  
-  </script>
-</div>
-```
-
-OR
-
-```html
-<!-- WORKS EVERYWHERE -->
-<div
-  paf-root
-  data-prop-brand-name="The Publisher"
-  data-prop-brand-logo-url="http://localhost:3000/images/default-customer-logo.png">
-</div>
-```
+`PAFUI.showNotification(notificationType: NotificationEnum)` - displays a snack bar with a predefined message
 
 ## Development
 

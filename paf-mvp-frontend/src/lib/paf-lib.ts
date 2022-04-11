@@ -9,7 +9,6 @@ import {
   IdsAndPreferences,
   PostIdsPrefsRequest,
   PostSeedRequest,
-  PostSeedResponse,
   PostSignPreferencesRequest,
   Preferences,
   Seed,
