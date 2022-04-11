@@ -29,12 +29,13 @@ import {
 import { IdsAndPreferencesVerifier, MessageVerifier, Verifier } from '@core/crypto/verifier';
 import { UnsignedMessage } from '@core/model/model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
+import { getTimeStampInSec } from '@core/timestamp';
 
 const portalPrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
-    start: new Date('2022-01-01T12:00:00.000Z'),
-    end: new Date('2022-12-31T12:00:00.000Z'),
+    startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T12:00:00.000Z')),
+    endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEasA7VcBrU8fs2P+Z4xmcZ8bhnj3Q
 Ku3ypZLhzircDPwCeqAUye/pd62OX3zSWZFQQdz7fR93Bztwc7ZodYe8UQ==
@@ -154,28 +155,28 @@ const messageWithBodyVerifier = new MessageVerifier(keyStore.provider, new Messa
 
 const verifiers: { [name in keyof Model]?: Verifier<unknown> } = {
   identifier: new Verifier(keyStore.provider, new IdentifierDefinition()),
-  ['ids-and-preferences']: new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
-  ['get-ids-prefs-request']: emptyMessageVerifier,
-  ['get-ids-prefs-response']: messageWithBodyVerifier,
-  ['get-new-id-request']: emptyMessageVerifier,
-  ['get-new-id-response']: messageWithBodyVerifier,
-  ['post-ids-prefs-request']: messageWithBodyVerifier,
-  ['post-ids-prefs-response']: messageWithBodyVerifier,
-  ['redirect-get-ids-prefs-request']: new Verifier(
+  'ids-and-preferences': new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
+  'get-ids-prefs-request': emptyMessageVerifier,
+  'get-ids-prefs-response': messageWithBodyVerifier,
+  'get-new-id-request': emptyMessageVerifier,
+  'get-new-id-response': messageWithBodyVerifier,
+  'post-ids-prefs-request': messageWithBodyVerifier,
+  'post-ids-prefs-response': messageWithBodyVerifier,
+  'redirect-get-ids-prefs-request': new Verifier(
     keyStore.provider,
     new RedirectRequestDefinition<GetIdsPrefsRequest>(new MessageWithoutBodyDefinition())
   ),
-  ['redirect-get-ids-prefs-response']: new Verifier(
+  'redirect-get-ids-prefs-response': new Verifier(
     keyStore.provider,
     new RedirectResponseDefinition<GetIdsPrefsResponse>(new MessageWithBodyDefinition())
   ),
-  ['redirect-post-ids-prefs-request']: new Verifier(
+  'redirect-post-ids-prefs-request': new Verifier(
     keyStore.provider,
     new RedirectRequestDefinition<PostIdsPrefsRequest, UnsignedMessage<PostIdsPrefsRequest>>(
       new MessageWithBodyDefinition()
     )
   ),
-  ['redirect-post-ids-prefs-response']: new Verifier(
+  'redirect-post-ids-prefs-response': new Verifier(
     keyStore.provider,
     new RedirectResponseDefinition<PostIdsPrefsResponse, UnsignedMessage<PostIdsPrefsResponse>>(
       new MessageWithBodyDefinition()
