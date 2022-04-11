@@ -1,14 +1,19 @@
-import { AuditLog, TransmissionRequest, TransmissionResponse, TransmissionResult } from './generated-model';
+import {
+  AuditLog,
+  IdsAndPreferences,
+  Seed,
+  TransmissionRequest,
+  TransmissionResponse,
+  TransmissionResult,
+} from './generated-model';
 import { CurrentModelVersion } from './model';
 
 export const buildAuditLog = (
-  request: TransmissionRequest,
+  seed: Seed,
+  data: IdsAndPreferences,
   response: TransmissionResponse,
   contentId: string
 ): AuditLog | undefined => {
-  if (request.version != CurrentModelVersion) {
-    return undefined;
-  }
   if (response.version != CurrentModelVersion) {
     return undefined;
   }
@@ -18,8 +23,8 @@ export const buildAuditLog = (
   }
   return {
     version: CurrentModelVersion,
-    data: request.data,
-    seed: request.seed,
+    data,
+    seed,
     transaction_id: path.transactionId,
     transmissions: path.results,
   };

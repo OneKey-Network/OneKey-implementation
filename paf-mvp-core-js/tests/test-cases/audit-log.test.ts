@@ -1,12 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { buildAuditLog } from '@core/model/audit-log';
-import { AuditLog, TransmissionRequest, TransmissionResponse } from '../../src/model/generated-model';
+import {
+  AuditLog,
+  IdsAndPreferences,
+  Seed,
+  TransmissionRequest,
+  TransmissionResponse,
+} from '../../src/model/generated-model';
 
 const fixturesDirectory = path.join('tests', 'fixtures', 'audit-log');
 
 interface Fixture {
-  request: TransmissionRequest;
+  seed: Seed;
+  data: IdsAndPreferences;
   response: TransmissionResponse;
   auditLog: AuditLog;
 }
@@ -19,11 +26,12 @@ const loadJson = (...filePath: string[]): any => {
 };
 
 const loadFixture = (directory: string, auditLogName = 'audit-log.json'): Fixture => {
-  const auditLog = loadJson(directory, auditLogName);
-  const request = loadJson(directory, 'transmission-request.json');
-  const response = loadJson(directory, 'transmission-response.json');
+  const auditLog: AuditLog = loadJson(directory, auditLogName);
+  const request: TransmissionRequest = loadJson(directory, 'transmission-request.json');
+  const response: TransmissionResponse = loadJson(directory, 'transmission-response.json');
   return {
-    request,
+    seed: request.seed,
+    data: request.data,
     response,
     auditLog,
   };
@@ -33,20 +41,11 @@ describe('Audit Log Tests', () => {
   const defaultDirectory = '1_audit-log_one_transmission';
   const defaultContentId = '90141190-26fe-497c-acee-4d2b649c2112';
 
-  test('Request with unknown version', () => {
-    const fixture = loadFixture(defaultDirectory);
-    fixture.request.version = '42';
-
-    const auditLog = buildAuditLog(fixture.request, fixture.response, defaultContentId);
-
-    expect(auditLog).toBeUndefined();
-  });
-
   test('Response with unknown version', () => {
     const fixture = loadFixture(defaultDirectory);
     fixture.response.version = '42';
 
-    const auditLog = buildAuditLog(fixture.request, fixture.response, defaultContentId);
+    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
 
     expect(auditLog).toBeUndefined();
   });
@@ -54,7 +53,7 @@ describe('Audit Log Tests', () => {
   test('Not found', () => {
     const fixture = loadFixture(defaultDirectory);
 
-    const auditLog = buildAuditLog(fixture.request, fixture.response, 'bad-content-id');
+    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, 'bad-content-id');
 
     expect(auditLog).toBeUndefined();
   });
@@ -62,7 +61,7 @@ describe('Audit Log Tests', () => {
   test('one transmission for one content id', () => {
     const fixture = loadFixture(defaultDirectory);
 
-    const auditLog = buildAuditLog(fixture.request, fixture.response, defaultContentId);
+    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
 
     expect(auditLog).toEqual(fixture.auditLog);
   });
@@ -70,7 +69,7 @@ describe('Audit Log Tests', () => {
   test('2 nested transmissions for one content id', () => {
     const fixture = loadFixture('2_audit-log_two_transmissions');
 
-    const auditLog = buildAuditLog(fixture.request, fixture.response, defaultContentId);
+    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
 
     expect(auditLog).toEqual(fixture.auditLog);
   });
@@ -81,7 +80,7 @@ describe('Audit Log Tests', () => {
       'audit-log-90141190-26fe-497c-acee-4d2b649c2112.json'
     );
 
-    const auditLog = buildAuditLog(fixture.request, fixture.response, defaultContentId);
+    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
 
     expect(auditLog).toEqual(fixture.auditLog);
   });
@@ -92,7 +91,12 @@ describe('Audit Log Tests', () => {
       'audit-log-8dc32df6-f379-4dbb-bf82-a495d9ec898a.json'
     );
 
-    const auditLog = buildAuditLog(fixture.request, fixture.response, '8dc32df6-f379-4dbb-bf82-a495d9ec898a');
+    const auditLog = buildAuditLog(
+      fixture.seed,
+      fixture.data,
+      fixture.response,
+      '8dc32df6-f379-4dbb-bf82-a495d9ec898a'
+    );
 
     expect(auditLog).toEqual(fixture.auditLog);
   });
