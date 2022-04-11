@@ -1,5 +1,5 @@
 import express from 'express';
-import { pifDemoPublisherConfig } from './config';
+import { pifCmpConfig, pifDemoPublisherConfig } from './config';
 
 export const pifDemoPublisherApp = express();
 
@@ -8,5 +8,7 @@ pifDemoPublisherApp.get('/', (req, res) => {
   res.render(view, {
     title: pifDemoPublisherConfig.name,
     cdnDomain: pifDemoPublisherConfig.cdnHost,
+    // Using the CMP backend as a PAF operator proxy
+    proxyHostName: pifCmpConfig.host,
   });
 });

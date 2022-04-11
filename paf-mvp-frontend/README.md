@@ -77,11 +77,11 @@ Example usage:
 
 - `PAF.signPreferences`
   - takes identifiers and unsigned preferences as input, and **sign it** through a call to the backend proxy.
-  - see [the demo CMP](../paf-mvp-demo-express/src/cmp/js/cmp.ts) for example usage
+  - see [the demo CMP](../paf-mvp-demo-express/src/cmp/frontend/cmp.ts) for example usage
 
 - `PAF.writeIdsAndPref`
   - write (persist) new preferences and ids to the PAF TLD+1 domain
-  - see [the demo CMP](../paf-mvp-demo-express/src/cmp/js/cmp.ts) for example usage
+  - see [the demo CMP](../paf-mvp-demo-express/src/cmp/frontend/cmp.ts) for example usage
 
 - `PAF.getNewId`
   - calls the operator (via the operator proxy) to get a new PAF ID value
