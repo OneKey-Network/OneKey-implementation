@@ -12,24 +12,48 @@ export interface PrivateConfig {
   type: 'vendor' | 'operator'; // TODO should support more
 }
 
-export const advertiserConfig: PublicConfig = {
-  name: 'The advertiser CORP',
+export const pafMarketConfig: PublicConfig = {
+  name: 'PAF advertiser',
   host: 'www.pafmarket.shop',
   cdnHost: 'cdn.pafmarket.shop',
 };
 
-export const publisherConfig: PublicConfig = {
-  name: 'The publisher CORP',
+export const pifMarketConfig: PublicConfig = {
+  name: 'PIF advertiser',
+  host: 'www.pifmarket.shop',
+  cdnHost: 'cdn.pifmarket.shop',
+};
+
+export const pofMarketConfig: PublicConfig = {
+  name: 'POF advertiser',
+  host: 'www.pofmarket.shop',
+  cdnHost: 'cdn.pofmarket.shop',
+};
+
+export const pafDemoPublisherConfig: PublicConfig = {
+  name: 'PAF publisher',
   host: 'www.pafdemopublisher.com',
   cdnHost: 'cdn.pafdemopublisher.com',
 };
 
+export const pifDemoPublisherConfig: PublicConfig = {
+  name: 'PIF publisher',
+  host: 'www.pifdemopublisher.com',
+  cdnHost: 'cdn.pifdemopublisher.com',
+};
+
+export const pofDemoPublisherConfig: PublicConfig = {
+  name: 'POF publisher',
+  host: 'www.pofdemopublisher.com',
+  cdnHost: 'cdn.pofdemopublisher.com',
+};
+
 export const cmpConfig: PublicConfig = {
-  name: 'The CMP used by the publisher',
+  name: 'CMP used by PAF publisher',
   host: 'cmp.pafdemopublisher.com',
 };
 
-export const operatorConfig: PublicConfig = {
+export const crtoOneOperatorConfig: PublicConfig = {
   name: 'Some PAF operator',
   host: 'crto-poc-1.onekey.network',
 };

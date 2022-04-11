@@ -2,12 +2,16 @@ import path from 'path';
 import fs from 'fs';
 import { EOL } from 'os';
 import {
-  advertiserConfig,
+  pafMarketConfig,
   cmpConfig,
-  operatorConfig,
+  crtoOneOperatorConfig,
   portalConfig,
   PublicConfig,
-  publisherConfig,
+  pafDemoPublisherConfig,
+  pifDemoPublisherConfig,
+  pofDemoPublisherConfig,
+  pifMarketConfig,
+  pofMarketConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -39,10 +43,14 @@ const hostsFile = '/etc/hosts';
         content += `127.0.0.1 ${config.cdnHost} ${pattern} ${config.name} (CDN)${EOL}`;
       }
     };
-    addConfig(operatorConfig);
+    addConfig(crtoOneOperatorConfig);
     addConfig(portalConfig);
-    addConfig(advertiserConfig);
-    addConfig(publisherConfig);
+    addConfig(pafMarketConfig);
+    addConfig(pifMarketConfig);
+    addConfig(pofMarketConfig);
+    addConfig(pafDemoPublisherConfig);
+    addConfig(pifDemoPublisherConfig);
+    addConfig(pofDemoPublisherConfig);
     addConfig(cmpConfig);
   } else {
     console.error(`Unsupported action ${action}`);

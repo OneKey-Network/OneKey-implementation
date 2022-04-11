@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { advertiserConfig, operatorConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pafMarketConfig, PrivateConfig } from './config';
 import { OperatorBackendClient, RedirectType } from '@operator-client/operator-backend-client';
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
@@ -7,7 +7,7 @@ import { s2sOptions } from './server-config';
 import { PublicKeyStore } from '@core/express/key-store';
 import { getTimeStampInSec } from '@core/timestamp';
 
-const advertiserPrivateConfig: PrivateConfig = {
+const pafMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T12:00:00.000Z')),
@@ -24,36 +24,40 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
 };
 
-export const advertiserApp = express();
+export const pafMarketApp = express();
 
 const client = new OperatorBackendClient(
-  operatorConfig.host,
-  advertiserConfig.host,
-  advertiserPrivateConfig.privateKey,
+  crtoOneOperatorConfig.host,
+  pafMarketConfig.host,
+  pafMarketPrivateConfig.privateKey,
   RedirectType.http,
   new PublicKeyStore(s2sOptions)
 );
 
-advertiserApp.get('/', async (req: Request, res: Response) => {
+pafMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   // Act as an HTTP middleware
   if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
-    res.render(view, { host: advertiserConfig.host, cdnHost: advertiserConfig.cdnHost });
+    res.render(view, {
+      title: pafMarketConfig.name,
+      host: pafMarketConfig.host,
+      cdnHost: pafMarketConfig.cdnHost,
+    });
   }
 });
 
 // ...and also as a JS proxy
 addOperatorClientProxyEndpoints(
-  advertiserApp,
-  operatorConfig.host,
-  advertiserConfig.host,
-  advertiserPrivateConfig.privateKey,
-  [`https://${advertiserConfig.host}`],
+  pafMarketApp,
+  crtoOneOperatorConfig.host,
+  pafMarketConfig.host,
+  pafMarketPrivateConfig.privateKey,
+  [`https://${pafMarketConfig.host}`],
   s2sOptions
 );
 
 // Add identity endpoint
-addIdentityEndpoint(advertiserApp, advertiserConfig.name, advertiserPrivateConfig.type, [
-  advertiserPrivateConfig.currentPublicKey,
+addIdentityEndpoint(pafMarketApp, pafMarketConfig.name, pafMarketPrivateConfig.type, [
+  pafMarketPrivateConfig.currentPublicKey,
 ]);

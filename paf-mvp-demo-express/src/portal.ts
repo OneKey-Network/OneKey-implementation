@@ -1,5 +1,5 @@
 import express from 'express';
-import { operatorConfig, portalConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, fromIdsCookie, fromPrefsCookie } from '@core/cookies';
 import {
@@ -52,9 +52,14 @@ export const portalApp = express();
 const keyStore = new PublicKeyStore(s2sOptions);
 
 // The portal is a client of the operator API
-const client = new OperatorClient(operatorConfig.host, portalConfig.host, portalPrivateConfig.privateKey, keyStore);
+const client = new OperatorClient(
+  crtoOneOperatorConfig.host,
+  portalConfig.host,
+  portalPrivateConfig.privateKey,
+  keyStore
+);
 const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
-  operatorConfig.host,
+  crtoOneOperatorConfig.host,
   portalConfig.host,
   portalPrivateConfig.privateKey
 );
@@ -188,7 +193,7 @@ type Mappings = { [host: string]: { [path: string]: keyof Model } };
 
 // Mapping of paths => types
 const mappings: Mappings = {
-  [operatorConfig.host]: {
+  [crtoOneOperatorConfig.host]: {
     [jsonOperatorEndpoints.read]: 'get-ids-prefs-request',
     // [jsonOperatorEndpoints.write]: 'post-ids-prefs-request', cannot happen because is POST payload
     [jsonOperatorEndpoints.newId]: 'get-new-id-request',

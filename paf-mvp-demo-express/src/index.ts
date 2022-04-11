@@ -1,17 +1,32 @@
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
-import { operatorApp } from './operator';
+import { crtoOneOperatorApp } from './crto1-operator';
 import vhost from 'vhost';
-import { advertiserApp } from './advertiser';
-import { advertiserConfig, cmpConfig, operatorConfig, portalConfig, PublicConfig, publisherConfig } from './config';
+import { pafMarketApp } from './paf-market';
+import {
+  cmpConfig,
+  crtoOneOperatorConfig,
+  pafDemoPublisherConfig,
+  pafMarketConfig,
+  pifDemoPublisherConfig,
+  pofDemoPublisherConfig,
+  pifMarketConfig,
+  pofMarketConfig,
+  portalConfig,
+  PublicConfig,
+} from './config';
 import { join } from 'path';
 import { cmpApp } from './cmp';
-import { publisherApp } from './publisher';
+import { pafDemoPublisherApp } from './paf-demo-publisher';
 import { portalApp } from './portal';
 import bodyParser from 'body-parser';
 import { createServer } from 'https';
 import { isLocalDev, sslOptions } from './server-config';
 import { create } from 'express-handlebars';
+import { pifDemoPublisherApp } from './pif-demo-publisher';
+import { pofDemoPublisherApp } from './pof-demo-publisher';
+import { pifMarketApp } from './pif-market';
+import { pofMarketApp } from './pof-market';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -53,10 +68,14 @@ const addApp = (config: PublicConfig, app: Express) => {
   apps.push(config);
 };
 
-addApp(operatorConfig, operatorApp);
+addApp(crtoOneOperatorConfig, crtoOneOperatorApp);
 addApp(portalConfig, portalApp);
-addApp(advertiserConfig, advertiserApp);
-addApp(publisherConfig, publisherApp);
+addApp(pafMarketConfig, pafMarketApp);
+addApp(pifMarketConfig, pifMarketApp);
+addApp(pofMarketConfig, pofMarketApp);
+addApp(pafDemoPublisherConfig, pafDemoPublisherApp);
+addApp(pifDemoPublisherConfig, pifDemoPublisherApp);
+addApp(pofDemoPublisherConfig, pofDemoPublisherApp);
 addApp(cmpConfig, cmpApp);
 
 // start the Express server
