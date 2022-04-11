@@ -46,9 +46,9 @@ addOperatorApi(
     [pifCmpConfig.host]: [Permission.READ, Permission.WRITE],
     [pofCmpConfig.host]: [Permission.READ, Permission.WRITE],
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
-    [pafMarketConfig.host]: [Permission.READ],
-    [pifMarketConfig.host]: [Permission.READ],
-    [pofMarketConfig.host]: [Permission.READ],
+    [pafMarketConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifMarketConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofMarketConfig.host]: [Permission.READ, Permission.WRITE],
   },
   s2sOptions
 );
