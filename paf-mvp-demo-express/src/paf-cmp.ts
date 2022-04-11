@@ -1,19 +1,12 @@
 import express from 'express';
-import {
-  cmpConfig,
-  crtoOneOperatorConfig,
-  PrivateConfig,
-  pafDemoPublisherConfig,
-  pifDemoPublisherConfig,
-  pofDemoPublisherConfig,
-} from './config';
+import { crtoOneOperatorConfig, pafCmpConfig, pafDemoPublisherConfig, PrivateConfig } from './config';
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
 // Only exported for generate-examples.ts
-export const cmpPrivateConfig: PrivateConfig = {
+export const pafCmpPrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-15T10:50:00.000Z')),
@@ -30,23 +23,19 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 -----END PRIVATE KEY-----`,
 };
 
-export const cmpApp = express();
+export const pafCmpApp = express();
 
-// This CMP only allows calls from some clients
-const allowedOrigins = [
-  `https://${pafDemoPublisherConfig.host}`,
-  `https://${pifDemoPublisherConfig.host}`,
-  `https://${pofDemoPublisherConfig.host}`,
-];
+// This PAF proxy only allows calls from its clients
+const allowedOrigins = [`https://${pafDemoPublisherConfig.host}`];
 
 addOperatorClientProxyEndpoints(
-  cmpApp,
+  pafCmpApp,
   crtoOneOperatorConfig.host,
-  cmpConfig.host,
-  cmpPrivateConfig.privateKey,
+  pafCmpConfig.host,
+  pafCmpPrivateConfig.privateKey,
   allowedOrigins,
   s2sOptions
 );
 
 // Add identity endpoint
-addIdentityEndpoint(cmpApp, cmpConfig.name, cmpPrivateConfig.type, [cmpPrivateConfig.currentPublicKey]);
+addIdentityEndpoint(pafCmpApp, pafCmpConfig.name, pafCmpPrivateConfig.type, [pafCmpPrivateConfig.currentPublicKey]);

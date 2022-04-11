@@ -2,16 +2,18 @@ import path from 'path';
 import fs from 'fs';
 import { EOL } from 'os';
 import {
-  pafMarketConfig,
-  cmpConfig,
   crtoOneOperatorConfig,
+  pafCmpConfig,
+  pafDemoPublisherConfig,
+  pafMarketConfig,
+  pifCmpConfig,
+  pifDemoPublisherConfig,
+  pifMarketConfig,
+  pofCmpConfig,
+  pofDemoPublisherConfig,
+  pofMarketConfig,
   portalConfig,
   PublicConfig,
-  pafDemoPublisherConfig,
-  pifDemoPublisherConfig,
-  pofDemoPublisherConfig,
-  pifMarketConfig,
-  pofMarketConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -51,7 +53,9 @@ const hostsFile = '/etc/hosts';
     addConfig(pafDemoPublisherConfig);
     addConfig(pifDemoPublisherConfig);
     addConfig(pofDemoPublisherConfig);
-    addConfig(cmpConfig);
+    addConfig(pafCmpConfig);
+    addConfig(pifCmpConfig);
+    addConfig(pofCmpConfig);
   } else {
     console.error(`Unsupported action ${action}`);
     process.exit(1);

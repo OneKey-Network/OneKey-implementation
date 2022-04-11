@@ -48,9 +48,19 @@ export const pofDemoPublisherConfig: PublicConfig = {
   cdnHost: 'cdn.pofdemopublisher.com',
 };
 
-export const cmpConfig: PublicConfig = {
+export const pafCmpConfig: PublicConfig = {
   name: 'CMP used by PAF publisher',
   host: 'cmp.pafdemopublisher.com',
+};
+
+export const pifCmpConfig: PublicConfig = {
+  name: 'CMP used by PIF publisher',
+  host: 'cmp.pifdemopublisher.com',
+};
+
+export const pofCmpConfig: PublicConfig = {
+  name: 'CMP used by POF publisher',
+  host: 'cmp.pofdemopublisher.com',
 };
 
 export const crtoOneOperatorConfig: PublicConfig = {
