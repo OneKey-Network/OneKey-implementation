@@ -7,7 +7,7 @@ import {
   Seed,
   TransmissionRequest,
   TransmissionResponse,
-} from '../../src/model/generated-model';
+} from '@core/model/generated-model';
 
 const fixturesDirectory = path.join('tests', 'fixtures', 'audit-log');
 
@@ -18,7 +18,7 @@ interface Fixture {
   auditLog: AuditLog;
 }
 
-const loadJson = (...filePath: string[]): any => {
+const loadJson = <T>(...filePath: string[]): T => {
   const joinedPath = path.join(fixturesDirectory, ...filePath);
   const jsonString = fs.readFileSync(joinedPath, 'utf8');
   const json = JSON.parse(jsonString);
@@ -26,9 +26,9 @@ const loadJson = (...filePath: string[]): any => {
 };
 
 const loadFixture = (directory: string, auditLogName = 'audit-log.json'): Fixture => {
-  const auditLog: AuditLog = loadJson(directory, auditLogName);
-  const request: TransmissionRequest = loadJson(directory, 'transmission-request.json');
-  const response: TransmissionResponse = loadJson(directory, 'transmission-response.json');
+  const auditLog = loadJson<AuditLog>(directory, auditLogName);
+  const request = loadJson<TransmissionRequest>(directory, 'transmission-request.json');
+  const response = loadJson<TransmissionResponse>(directory, 'transmission-response.json');
   return {
     seed: request.seed,
     data: request.data,
