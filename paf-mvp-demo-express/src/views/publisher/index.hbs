@@ -71,7 +71,31 @@
 
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
+<<<<<<< HEAD
             pbjs.setConfig({debug: true})
+=======
+            pbjs.setConfig({
+                debug: true,
+                realTimeData: {
+                    auctionDelay: 1000,
+                    dataProviders: [
+                            {
+                            name: "paf",
+                            waitForIt: true,
+                            params: {proxyHostName: "cmp.pafdemopublisher.com"}
+                        }
+                    ]
+                },
+                userSync: {
+                    userIds: [{
+                        name: "pafData",
+                        params: {}
+                    }],
+                    auctionDelay: 1000,
+                    syncDelay: 3000
+                }
+            });
+>>>>>>> 399fa63... prebid updates
             pbjs.requestBids({
                 bidsBackHandler: initAdserver,
                 timeout: PREBID_TIMEOUT
