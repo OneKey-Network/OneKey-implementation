@@ -1,0 +1,72 @@
+{
+    "version": "0.1",
+    "seed": {
+        "version": "0.1",
+        "transaction_ids": [ 
+            "4640dc9f-385f-4e02-a0e5-abbf241af94d"
+        ],
+        "publisher": "publisher.com",
+        "source": {
+            "domain": "publisher.com",
+            "timestamp": 1639582000,
+            "signature": "f1f4871d48b825931c5016a433cb3b6388f989fac363af09b9ee3cd400d86b74"
+        }
+    },
+    "data": {
+        "identifiers": [
+            {
+                "version": "0.1",
+                "type": "paf_browser_id",
+                "value": "7435313e-caee-4889-8ad7-0acd0114ae3c",
+                "source": {
+                    "domain": "operator0.com",
+                    "timestamp": 1639580000,
+                    "signature": "868e7a6c27b7b7fe5fed219503894bf263f31bb6d8fd48336d283e77b512cda7"
+                }
+            }
+        ],
+        "preferences": {
+            "version": "0.1",
+            "data": { 
+                "use_browsing_for_personalization": true 
+            },
+            "source": {
+                "domain": "cmp1.com",
+                "timestamp": 1639581000,
+                "signature": "65acdcfdbdba8b17936f25a32b33b000393c866588d146cb62ec51ab8890c54f"
+            }
+        }
+    },
+    "transaction_id": "4640dc9f-385f-4e02-a0e5-abbf241af94d",
+    "transmissions": [
+        {
+            "version": "0.1",
+            "contents": [],
+            "status": "success",
+            "details": "",
+            "receiver": "ssp1.com",
+            "source": {
+                "domain": "ssp1.com",
+                "timestamp": 1639589531,
+                "signature": "d01c6e83f14b4f057c2a2a86d320e2454fc0c60df4645518d993b5f40019d24c"
+            }
+        },
+        {
+            "version": "0.1",
+            "contents": [
+                {
+                    "transaction_id": "4640dc9f-385f-4e02-a0e5-abbf241af94d",
+                    "content_id": "90141190-26fe-497c-acee-4d2b649c2112"
+                }
+            ],
+            "status": "success",
+            "details": "",
+            "receiver": "dsp1.com",
+            "source": {
+                "domain": "dsp1.com",
+                "timestamp": 1639589999,
+                "signature": "d01c6e83f14b4f057c2a2a86d320e2454fc0c60df4645518d993b5f40019d24c"
+            }
+        }
+    ]
+}

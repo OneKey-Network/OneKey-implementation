@@ -130,7 +130,7 @@ export interface _ {
  * An Audit Log gathers the necessary data to audit a Transaction (via Transmission) for a given Addressable Content
  */
 export interface AuditLog {
-  version?: Version;
+  version: Version;
   data: IdsAndPreferences;
   seed: Seed;
   transaction_id: TransactionId;
