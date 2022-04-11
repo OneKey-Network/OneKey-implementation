@@ -9,7 +9,6 @@ import {
   IdsAndPreferences,
   PostIdsPrefsRequest,
   PostSeedRequest,
-  PostSeedResponse,
   PostSignPreferencesRequest,
   Preferences,
   Seed,
@@ -268,6 +267,10 @@ export const refreshIdsAndPreferences = async ({
 
         saveCookieValue(Cookies.identifiers, persistedIds);
         saveCookieValue(Cookies.preferences, operatorData.body.preferences);
+
+        if (operatorData?.body?.preferences) {
+          showNotification(operatorData.body.preferences.data?.use_browsing_for_personalization);
+        }
 
         return {
           status: PafStatus.UP_TO_DATE,

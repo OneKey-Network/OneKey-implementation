@@ -12,13 +12,14 @@ import {
   portalConfig,
   PrivateConfig,
 } from './config';
+import { getTimeStampInSec } from '@core/timestamp';
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {
   type: 'operator',
   currentPublicKey: {
-    start: new Date('2022-01-01T10:50:00.000Z'),
-    end: new Date('2022-12-31T12:00:00.000Z'),
+    startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T10:50:00.000Z')),
+    endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
     publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
 jmcW7W3x9wvlX4YXqJUQKR2c0lveqVDj4hwO0kTZDuNRUhgxk4irwV3fzw==

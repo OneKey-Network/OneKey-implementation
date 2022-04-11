@@ -9,6 +9,7 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
-    "jest/no-deprecated-functions": 0
+    "jest/no-deprecated-functions": 0,
+    "no-restricted-imports": ["error", { "patterns": ["paf-mvp-demo-express"] }]
   }
 }
