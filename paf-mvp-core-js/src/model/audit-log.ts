@@ -1,11 +1,4 @@
-import {
-  AuditLog,
-  IdsAndPreferences,
-  Seed,
-  TransmissionRequest,
-  TransmissionResponse,
-  TransmissionResult,
-} from './generated-model';
+import { AuditLog, IdsAndPreferences, Seed, TransmissionResponse, TransmissionResult } from './generated-model';
 import { CurrentModelVersion } from './model';
 
 export const buildAuditLog = (
@@ -40,12 +33,16 @@ interface TransactionPath {
   transactionId: string;
 }
 
+/**
+ * Find a list a Transaction Result by considering the TransmissionResponse as
+ * a tree data-structure and implementing an iterative Depth-First Search.
+ */
 const findTransactionPath = (response: TransmissionResponse, contentId: string): TransactionPath | undefined => {
   const stack: NodeTrack[] = [];
   let current: NodeTrack = { node: response, remainingChildren: [...response.children] };
 
   while (current !== undefined || stack.length > 0) {
-    // Go to next leaf (depth search)
+    // Go to next leaf
     while (current != undefined) {
       stack.push(current);
       const content = current.node.contents.find((c) => c.content_id == contentId);
@@ -65,14 +62,10 @@ const findTransactionPath = (response: TransmissionResponse, contentId: string):
 
     // Pop all the nodes without child because
     // we checked them in the depth search (above).
-    // We stop when there are a child to stack in
-    // search in depth.
+    // Once found we are ready to go in a depth search again.
     current = stack.pop();
-    while (stack.length > 0 && current.remainingChildren.length == 0) {
-      current = stack.pop();
-    }
-    if (current.remainingChildren.length == 0) {
-      current = undefined;
+    while (current?.remainingChildren.length == 0) {
+      current = stack.pop(); // current = undefined; when there is no more element in the stack.
     }
   }
 
@@ -80,12 +73,6 @@ const findTransactionPath = (response: TransmissionResponse, contentId: string):
 };
 
 const fromResponseToResult = (t: NodeTrack): TransmissionResult => {
-  return {
-    version: t.node.version,
-    receiver: t.node.receiver,
-    contents: t.node.contents,
-    status: t.node.status,
-    details: t.node.details,
-    source: t.node.source,
-  };
+  const { version, receiver, contents, status, details, source } = t.node;
+  return { version, receiver, contents, status, details, source };
 };
