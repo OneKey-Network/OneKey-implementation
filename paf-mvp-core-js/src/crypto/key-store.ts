@@ -1,9 +1,9 @@
-import { fromIdentityResponse, KeyInfo } from '@core/crypto/identity';
+import { fromIdentityResponse, KeyInfo } from './identity';
+import { PublicKey, publicKeyFromString } from './keys';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
-import { PublicKey, publicKeyFromString } from '@core/crypto/keys';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { getTimeStampInSec } from '@core/timestamp';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
 
