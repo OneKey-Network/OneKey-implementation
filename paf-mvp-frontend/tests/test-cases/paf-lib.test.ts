@@ -4,6 +4,7 @@ import {
   getIdsAndPreferences,
   signPreferences,
   refreshIdsAndPreferences,
+  createSeed,
 } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
@@ -373,6 +374,26 @@ describe('Function signPreferences', () => {
     fetch.mockResponseOnce(JSON.stringify(mockResponse));
     const input = { unsignedPreferences: getFakePreferences(), identifiers: getFakeIdentifiers() };
     const result = await signPreferences({ proxyHostName }, input);
+    expect(result).toEqual(mockResponse);
+  });
+});
+
+describe('Function createSeed', () => {
+  test('should return undefined if no cookies set', async () => {
+    const mockResponse = { body: 'response' };
+    fetch.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await createSeed({ proxyHostName }, ['test-id']);
+    expect(result).toBeUndefined();
+  });
+
+  test('should fetch backend and return response', async () => {
+    const mockResponse = { body: 'response' };
+    fetch.mockResponseOnce(JSON.stringify(mockResponse));
+    CookiesHelpers.mockPreferences(true);
+    CookiesHelpers.mockIdentifiers('');
+
+    const result = await createSeed({ proxyHostName }, ['test-id']);
     expect(result).toEqual(mockResponse);
   });
 });
