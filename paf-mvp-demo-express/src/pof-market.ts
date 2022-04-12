@@ -20,6 +20,8 @@ MHcCAQEEINYQ3rZ6+TUBN1IYOE1jpfFXGIjl1kDfFxy4AqqvYpFzoAoGCCqGSM49
 AwEHoUQDQgAETKe8WSDJmxoVWLgHk3F2Q0vtewqncNqOUrKuGEU+7iwJPiQVkdL1
 hshouUEPI2C2ti8j0s3K3JY2imY3DxKigw==
 -----END EC PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@www.pofmarket.shop',
+  privacyPolicyUrl: 'https://www.pofmarket.shop/privacy',
 };
 
 export const pofMarketApp = express();
@@ -45,6 +47,11 @@ addOperatorClientProxyEndpoints(
 );
 
 // Add identity endpoint
-addIdentityEndpoint(pofMarketApp, pofMarketConfig.name, pofMarketPrivateConfig.type, [
-  pofMarketPrivateConfig.currentPublicKey,
-]);
+addIdentityEndpoint(
+  pofMarketApp,
+  pofMarketConfig.name,
+  pofMarketPrivateConfig.type,
+  [pofMarketPrivateConfig.currentPublicKey],
+  pofMarketPrivateConfig.dpoEmailAddress,
+  new URL(pofMarketPrivateConfig.privacyPolicyUrl)
+);

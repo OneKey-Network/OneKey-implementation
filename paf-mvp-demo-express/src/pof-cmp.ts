@@ -20,6 +20,8 @@ MHcCAQEEIIodhppYa0SJtSzEKntZM5Dr0xh/5xcbk9QRzqvmp1eEoAoGCCqGSM49
 AwEHoUQDQgAE1CAIeic0n0aSLczizA1xzhxDPRBDEoKX2OO3IeuyAyVAOmcb9Rab
 k/MRohFL/ay2XJUUf7Jb9weRJH9CuSEYZQ==
 -----END EC PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@www.pofdemopublisher.com',
+  privacyPolicyUrl: 'https://www.pofdemopublisher.com/privacy',
 };
 
 export const pofCmpApp = express();
@@ -37,4 +39,11 @@ addOperatorClientProxyEndpoints(
 );
 
 // Add identity endpoint
-addIdentityEndpoint(pofCmpApp, pofCmpConfig.name, pofCmpPrivateConfig.type, [pofCmpPrivateConfig.currentPublicKey]);
+addIdentityEndpoint(
+  pofCmpApp,
+  pofCmpConfig.name,
+  pofCmpPrivateConfig.type,
+  [pofCmpPrivateConfig.currentPublicKey],
+  pofCmpPrivateConfig.dpoEmailAddress,
+  new URL(pofCmpPrivateConfig.privacyPolicyUrl)
+);

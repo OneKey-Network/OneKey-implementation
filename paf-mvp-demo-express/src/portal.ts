@@ -1,5 +1,5 @@
 import express from 'express';
-import { crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pofMarketConfig, portalConfig, PrivateConfig } from './config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, fromIdsCookie, fromPrefsCookie } from '@core/cookies';
 import {
@@ -30,6 +30,7 @@ import { IdsAndPreferencesVerifier, MessageVerifier, Verifier } from '@core/cryp
 import { UnsignedMessage } from '@core/model/model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { getTimeStampInSec } from '@core/timestamp';
+import { pofMarketApp } from './pof-market';
 
 const portalPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -46,6 +47,8 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiDfb74JY+vBjdEmr
 hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
 -----END PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@portal.onekey.network',
+  privacyPolicyUrl: 'https://portal.onekey.network/privacy',
 };
 export const portalApp = express();
 
@@ -283,4 +286,11 @@ portalApp.get('/', (req, res) => {
   res.render('portal/index', options);
 });
 
-addIdentityEndpoint(portalApp, portalConfig.name, 'vendor', [portalPrivateConfig.currentPublicKey]);
+addIdentityEndpoint(
+  portalApp,
+  portalConfig.name,
+  portalPrivateConfig.type,
+  [portalPrivateConfig.currentPublicKey],
+  portalPrivateConfig.dpoEmailAddress,
+  new URL(portalPrivateConfig.privacyPolicyUrl)
+);
