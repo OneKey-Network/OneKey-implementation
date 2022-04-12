@@ -1,4 +1,4 @@
-import { PublicKeyInfo, PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyInfo, PublicKeyStore } from '@core/crypto/key-store';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { publicKeyFromString } from '@core/crypto/keys';
 import { getTimeStampInSec } from '@core/timestamp';
