@@ -366,3 +366,13 @@ describe('Function refreshIdsAndPreferences', () => {
     });
   });
 });
+
+describe('Function signPreferences', () => {
+  test('should return fetch response', async () => {
+    const mockResponse = { body: 'response' };
+    fetch.mockResponseOnce(JSON.stringify(mockResponse));
+    const input = { unsignedPreferences: getFakePreferences(), identifiers: getFakeIdentifiers() };
+    const result = await signPreferences({ proxyHostName }, input);
+    expect(result).toEqual(mockResponse);
+  });
+});
