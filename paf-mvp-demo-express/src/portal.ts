@@ -17,7 +17,7 @@ import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builder
 import { s2sOptions } from './server-config';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import domainParser from 'tld-extract';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,

@@ -4,7 +4,7 @@ import { OperatorBackendClient, RedirectType } from '@operator-client/operator-b
 import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 import { getTimeStampInSec } from '@core/timestamp';
 
 const pafMarketPrivateConfig: PrivateConfig = {

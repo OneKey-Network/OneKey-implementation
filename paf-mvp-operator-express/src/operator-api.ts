@@ -31,7 +31,7 @@ import {
 } from '@core/model/operator-response-builders';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { KeyInfo } from '@core/crypto/identity';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 import { AxiosRequestConfig } from 'axios';
 import domainParser from 'tld-extract';
 import { Signer } from '@core/crypto/signer';

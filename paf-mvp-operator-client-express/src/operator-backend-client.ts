@@ -14,7 +14,7 @@ import {
   setCookie,
 } from '@core/express/utils';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 
 export enum RedirectType {
   http = 'http',
@@ -143,13 +143,12 @@ export class OperatorBackendClient {
       logger.info('Browser known to support 3PC: YES');
 
       return fromClientCookieValues(undefined, undefined);
-    } else {
-      logger.info('Browser known to support 3PC: NO');
-
-      this.redirectToRead(req, res, view);
-
-      return undefined;
     }
+    logger.info('Browser known to support 3PC: NO');
+
+    this.redirectToRead(req, res, view);
+
+    return undefined;
   }
 
   private redirectToRead(req: Request, res: Response, view: string) {
