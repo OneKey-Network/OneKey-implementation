@@ -171,6 +171,14 @@ export interface GetIdentityResponse {
   type: 'vendor' | 'operator';
   version: Version;
   /**
+   * Email address to contact the company
+   */
+  dpo_email: string;
+  /**
+   * URL of the recipient's privacy policy
+   */
+  privacy_policy_url: string;
+  /**
    * List of public keys the contracting party used or is using for signing data and messages
    */
   keys: {
