@@ -50,7 +50,7 @@ import { GetIdentityResponseBuilder } from '@core/model/identity-response-builde
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { pafCmpPrivateConfig } from '../src/paf-cmp';
 import { operatorPrivateConfig } from '../src/crto1-operator';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>

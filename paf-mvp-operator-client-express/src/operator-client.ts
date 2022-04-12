@@ -9,7 +9,7 @@ import {
 } from '@core/model/generated-model';
 import { CurrentModelVersion, UnsignedData } from '@core/model/model';
 import { privateKeyFromString } from '@core/crypto/keys';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
 import { Signer } from '@core/crypto/signer';
 import {
