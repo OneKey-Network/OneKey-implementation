@@ -70,12 +70,14 @@ export const addOperatorApi = (
   name: string,
   keys: KeyInfo[],
   allowedDomains: AllowedDomains,
+  dpoEmailAddress: string,
+  privacyPolicyUrl: URL,
   s2sOptions?: AxiosRequestConfig
 ) => {
   const keyStore = new PublicKeyStore(s2sOptions);
 
   // Start by adding identity endpoint
-  addIdentityEndpoint(app, name, 'operator', keys);
+  addIdentityEndpoint(app, name, 'operator', keys, dpoEmailAddress, privacyPolicyUrl);
 
   const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey);
   const get3PCResponseBuilder = new Get3PCResponseBuilder();

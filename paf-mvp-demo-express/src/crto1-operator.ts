@@ -30,6 +30,8 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxK7RQm5KP1g62SQn
 oyeE+rrDPJzpZxIyCCTHDvd1TRShRANCAAQSJkhGEbE118biXou5jZB+PJ/rRHSO
 ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 -----END PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@crto-poc-1.onekey.network',
+  privacyPolicyUrl: 'https://crto-poc-1.onekey.network/privacy',
 };
 
 export const crtoOneOperatorApp = express();
@@ -50,5 +52,7 @@ addOperatorApi(
     [pifMarketConfig.host]: [Permission.READ, Permission.WRITE],
     [pofMarketConfig.host]: [Permission.READ, Permission.WRITE],
   },
+  operatorPrivateConfig.dpoEmailAddress,
+  new URL(operatorPrivateConfig.privacyPolicyUrl),
   s2sOptions
 );

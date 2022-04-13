@@ -22,6 +22,8 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
 cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
 j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@www.pafmarket.shop',
+  privacyPolicyUrl: 'https://www.pafmarket.shop/privacy',
 };
 
 export const pafMarketApp = express();
@@ -58,6 +60,11 @@ addOperatorClientProxyEndpoints(
 );
 
 // Add identity endpoint
-addIdentityEndpoint(pafMarketApp, pafMarketConfig.name, pafMarketPrivateConfig.type, [
-  pafMarketPrivateConfig.currentPublicKey,
-]);
+addIdentityEndpoint(
+  pafMarketApp,
+  pafMarketConfig.name,
+  pafMarketPrivateConfig.type,
+  [pafMarketPrivateConfig.currentPublicKey],
+  pafMarketPrivateConfig.dpoEmailAddress,
+  new URL(pafMarketPrivateConfig.privacyPolicyUrl)
+);
