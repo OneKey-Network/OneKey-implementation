@@ -32,6 +32,7 @@ export class CookiesHelpers {
   static clearPafCookies() {
     CookiesHelpers.setCookies(Cookies.preferences, '');
     CookiesHelpers.setCookies(Cookies.identifiers, '');
+    CookiesHelpers.setCookies(Cookies.lastRefresh, '');
   }
 
   static setCookies(name: string, value: string) {
@@ -57,5 +58,9 @@ export class CookiesHelpers {
 
   static mockIdentifiers(fakeId: string) {
     CookiesHelpers.setIdentifiers(getFakeIdentifiers(fakeId));
+  }
+
+  static mockRefreshTime() {
+    CookiesHelpers.setCookies(Cookies.lastRefresh, new Date().toISOString());
   }
 }

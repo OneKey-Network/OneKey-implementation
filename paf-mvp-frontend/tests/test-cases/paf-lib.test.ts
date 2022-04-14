@@ -34,10 +34,21 @@ describe('Function getIdsAndPreferences', () => {
 
     CookiesHelpers.mockIdentifiers(fakeId);
     CookiesHelpers.mockPreferences(testConsent);
+    CookiesHelpers.mockRefreshTime();
     expect(getIdsAndPreferences()).toEqual({
       preferences: getFakePreferences(testConsent),
       identifiers: getFakeIdentifiers(fakeId),
     });
+  });
+
+  test('should return undefined if refreshTime is missing', () => {
+    const fakeId = 'FAKE_TEST_ID';
+    const testConsent = false;
+
+    CookiesHelpers.mockIdentifiers(fakeId);
+    CookiesHelpers.mockPreferences(testConsent);
+
+    expect(getIdsAndPreferences()).toBeUndefined();
   });
 
   test('should return undefined if user is not participating', () => {

@@ -46,6 +46,7 @@ describe('Welcome widget view', () => {
     beforeEach(() => {
       cy.setCookie(Cookies.identifiers, JSON.stringify(getFakeIdentifiers(FAKE_ID)));
       cy.setCookie(Cookies.preferences, JSON.stringify(getFakePreferences(consent)));
+      cy.setCookie(Cookies.lastRefresh, new Date().toISOString());
       page = new WidgetPage();
       page.open();
     });
