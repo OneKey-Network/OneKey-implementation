@@ -1,5 +1,5 @@
 import { Cookies } from '@core/cookies';
-import { Identifiers, Preferences } from '@core/model/generated-model';
+import { Identifiers, Preferences, IdsAndPreferences } from '@core/model/generated-model';
 
 const timestamp = Date.now();
 
@@ -38,11 +38,24 @@ export class CookiesHelpers {
     document.cookie = `${name}=${value}`;
   }
 
+  static setIdsAndPreferences(idsAndPreferences: IdsAndPreferences) {
+    CookiesHelpers.setIdentifiers(idsAndPreferences.identifiers);
+    CookiesHelpers.setPreferences(idsAndPreferences.preferences);
+  }
+
+  static setIdentifiers(identifiers: Identifiers) {
+    CookiesHelpers.setCookies(Cookies.identifiers, JSON.stringify(identifiers));
+  }
+
+  static setPreferences(preferences: Preferences) {
+    CookiesHelpers.setCookies(Cookies.preferences, JSON.stringify(preferences));
+  }
+
   static mockPreferences(consent: boolean) {
-    CookiesHelpers.setCookies(Cookies.preferences, JSON.stringify(getFakePreferences(consent)));
+    CookiesHelpers.setPreferences(getFakePreferences(consent));
   }
 
   static mockIdentifiers(fakeId: string) {
-    CookiesHelpers.setCookies(Cookies.identifiers, JSON.stringify(getFakeIdentifiers(fakeId)));
+    CookiesHelpers.setIdentifiers(getFakeIdentifiers(fakeId));
   }
 }

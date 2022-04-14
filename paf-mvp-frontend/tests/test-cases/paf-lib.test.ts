@@ -4,11 +4,12 @@ import {
   getIdsAndPreferences,
   signPreferences,
   refreshIdsAndPreferences,
+  createSeed,
 } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
-import { Identifier, IdsAndPreferences } from '@core/model/generated-model';
+import { Identifier, IdsAndPreferences, PostSeedResponse } from '@core/model/generated-model';
 import fetch from 'jest-fetch-mock';
 
 const proxyHostName = 'http://localhost';
@@ -98,5 +99,50 @@ describe('Function writeIdsAndPref', () => {
       // FIXME: redirect Url is changed inside writeIdsAndPref
       expect(redirectMock.mock.calls[0][0]).toBe(redirectUrl.toString());
     });
+  });
+});
+
+describe('Function createSeed', () => {
+  const transmission_ids = ['1234', '5678'];
+  const idsAndPreferences: IdsAndPreferences = {
+    preferences: getFakePreferences(true),
+    identifiers: getFakeIdentifiers(),
+  };
+  const response: PostSeedResponse = {
+    version: '0.1',
+    transaction_ids: transmission_ids,
+    publisher: proxyHostName,
+    source: {
+      domain: 'proxyHostName',
+      timestamp: 123454,
+      signature: 'signature_value',
+    },
+  };
+
+  beforeEach(() => {
+    CookiesHelpers.clearPafCookies();
+    CookiesHelpers.setIdsAndPreferences(idsAndPreferences);
+    fetch.mockResponseOnce(JSON.stringify(response));
+  });
+
+  afterEach(() => {
+    CookiesHelpers.clearPafCookies();
+    fetch.resetMocks();
+  });
+
+  test('with empty transmission_ids', async () => {
+    const seed = await createSeed({ proxyHostName }, []);
+    expect(seed).toBeUndefined();
+  });
+
+  test('with no id and preferences', async () => {
+    CookiesHelpers.clearPafCookies();
+    const seed = await createSeed({ proxyHostName }, transmission_ids);
+    expect(seed).toBeUndefined();
+  });
+
+  test('nominal path', async () => {
+    const seed = await createSeed({ proxyHostName }, transmission_ids);
+    expect(seed).toEqual(response);
   });
 });
