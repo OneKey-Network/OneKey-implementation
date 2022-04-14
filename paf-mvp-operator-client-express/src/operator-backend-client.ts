@@ -92,6 +92,7 @@ export class OperatorBackendClient {
     const cookies = getCookies(req);
 
     const rawIds = cookies[Cookies.identifiers];
+    const lastRefresh = cookies[Cookies.lastRefresh];
     const rawPreferences = cookies[Cookies.preferences];
 
     logger.info('Cookie found: NO');
@@ -130,7 +131,7 @@ export class OperatorBackendClient {
       return undefined;
     }
 
-    if (rawIds && rawPreferences) {
+    if (lastRefresh && rawIds && rawPreferences) {
       logger.info('Cookie found: YES');
 
       return fromClientCookieValues(rawIds, rawPreferences);

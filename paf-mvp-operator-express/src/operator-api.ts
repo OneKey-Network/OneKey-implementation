@@ -13,14 +13,16 @@ import {
   GetIdsPrefsRequest,
   GetNewIdRequest,
   Identifier,
+  Identifiers,
   PostIdsPrefsRequest,
+  Preferences,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
   Test3Pc,
 } from '@core/model/generated-model';
 import { UnsignedData } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
-import { Cookies, fromIdsCookie, fromPrefsCookie, fromTest3pcCookie, toTest3pcCookie } from '@core/cookies';
+import { Cookies, typedCookie, toTest3pcCookie } from '@core/cookies';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import {
@@ -121,8 +123,8 @@ export const addOperatorApi = (
       throw 'Read request verification failed';
     }
 
-    const identifiers = fromIdsCookie(req.cookies[Cookies.identifiers]) ?? [];
-    const preferences = fromPrefsCookie(req.cookies[Cookies.preferences]);
+    const identifiers = typedCookie<Identifiers>(req.cookies[Cookies.identifiers]) ?? [];
+    const preferences = typedCookie<Preferences>(req.cookies[Cookies.preferences]);
 
     if (!identifiers.some((i: Identifier) => i.type === 'paf_browser_id')) {
       // No existing id, let's generate one, unpersisted
@@ -201,7 +203,7 @@ export const addOperatorApi = (
     // Note: no signature verification here
 
     const cookies = req.cookies;
-    const testCookieValue = fromTest3pcCookie(cookies[Cookies.test_3pc]);
+    const testCookieValue = typedCookie<Test3Pc>(cookies[Cookies.test_3pc]);
 
     // Clean up
     removeCookie(req, res, Cookies.test_3pc, { domain: tld });
