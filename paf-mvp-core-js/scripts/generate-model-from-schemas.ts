@@ -33,9 +33,6 @@ const removeAdditionalWhenRef = (schema: JSONSchema4): JSONSchema4 => {
     schema.description = undefined;
     schema.examples = undefined;
     schema.enum = undefined;
-
-    // FIXME special hack until transmission-response-no-recursion can be removed
-    schema.$ref = schema.$ref.replace('-no-recursion', '');
   }
   if (schema.properties !== undefined) {
     Object.keys(schema.properties).forEach((currentKey) => {
@@ -66,9 +63,7 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
   // Construct a "fake" object that references ALL schemas in the directory,
   // to make sure we generate all types in one output file
   // (json-schema-to-typescript doesn't support to take a _list_ of schemas)
-  const files = (await fs.promises.readdir(inputDir))
-    // FIXME special hack until transmission-response-no-recursion can be removed
-    .filter((f) => !f.match(/-no-recursion.json$/));
+  const files = await fs.promises.readdir(inputDir);
 
   const schemas = await Promise.all(
     files.map(async (f) => JSON.parse(await fs.promises.readFile(path.join(inputDir, f), 'utf-8')))
