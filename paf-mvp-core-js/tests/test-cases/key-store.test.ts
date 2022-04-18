@@ -46,6 +46,8 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       type: 'vendor',
       name: 'My domain',
       keys: [oldKey, currentKey],
+      privacy_policy_url: 'https://mockPolicy.com',
+      dpo_email: 'mock@vendor.com',
     };
 
     const keyStore = new PublicKeyStore({}, axios.create({}));
@@ -80,6 +82,8 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
           end: undefined, // No end date
         },
       ],
+      privacy_policy_url: 'https://mockPolicy.com',
+      dpo_email: 'mock@vendor.com',
     };
 
     const keyStore = new PublicKeyStore({});
@@ -107,6 +111,8 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       type: 'vendor',
       name: 'My domain',
       keys: [oldKey, currentKey],
+      privacy_policy_url: 'https://mockPolicy.com',
+      dpo_email: 'mock@vendor.com',
     };
 
     // Provide mock timer
@@ -146,6 +152,8 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       type: 'vendor',
       name: 'My domain',
       keys: [oldKey],
+      privacy_policy_url: 'https://mockPolicy.com',
+      dpo_email: 'mock@vendor.com',
     };
 
     const keyStore = new PublicKeyStore({});

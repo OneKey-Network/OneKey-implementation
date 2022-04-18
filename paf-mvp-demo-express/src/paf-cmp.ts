@@ -21,6 +21,8 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg0X8r0PYAm3mq206o
 CdMHwZ948ONyVJToeFbLqBDKi7OhRANCAASXTbvyly6lrFR+Kocn0Ab2BUzIg76f
 Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 -----END PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@www.pafdemopublisher.com',
+  privacyPolicyUrl: 'https://www.pafdemopublisher.com/privacy',
 };
 
 export const pafCmpApp = express();
@@ -38,4 +40,11 @@ addOperatorClientProxyEndpoints(
 );
 
 // Add identity endpoint
-addIdentityEndpoint(pafCmpApp, pafCmpConfig.name, pafCmpPrivateConfig.type, [pafCmpPrivateConfig.currentPublicKey]);
+addIdentityEndpoint(
+  pafCmpApp,
+  pafCmpConfig.name,
+  pafCmpPrivateConfig.type,
+  [pafCmpPrivateConfig.currentPublicKey],
+  pafCmpPrivateConfig.dpoEmailAddress,
+  new URL(pafCmpPrivateConfig.privacyPolicyUrl)
+);

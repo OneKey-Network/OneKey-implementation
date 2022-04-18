@@ -20,6 +20,8 @@ MHcCAQEEIF4OKHOcZh3/XeLmP5yPtb0qiBc+8vuZf0bgVrOo/CbIoAoGCCqGSM49
 AwEHoUQDQgAEKwW/bVmi/yM2QRtPMKGeKMylxBBgQs9+mjSaivSEXR8VCCJfxdkt
 JyDD+ooj5HxZibrLkmoQ8klbnMaXBvkVkw==
 -----END EC PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@www.pifdemopublisher.com',
+  privacyPolicyUrl: 'https://www.pifdemopublisher.com/privacy',
 };
 
 export const pifCmpApp = express();
@@ -37,4 +39,11 @@ addOperatorClientProxyEndpoints(
 );
 
 // Add identity endpoint
-addIdentityEndpoint(pifCmpApp, pifCmpConfig.name, pifCmpPrivateConfig.type, [pifCmpPrivateConfig.currentPublicKey]);
+addIdentityEndpoint(
+  pifCmpApp,
+  pifCmpConfig.name,
+  pifCmpPrivateConfig.type,
+  [pifCmpPrivateConfig.currentPublicKey],
+  pifCmpPrivateConfig.dpoEmailAddress,
+  new URL(pifCmpPrivateConfig.privacyPolicyUrl)
+);

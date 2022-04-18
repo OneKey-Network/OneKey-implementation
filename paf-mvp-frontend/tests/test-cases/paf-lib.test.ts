@@ -9,7 +9,7 @@ import {
 import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
-import { Identifier, IdsAndPreferences } from '@core/model/generated-model';
+import { Identifier, IdsAndPreferences, PostSeedResponse } from '@core/model/generated-model';
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
@@ -379,21 +379,46 @@ describe('Function signPreferences', () => {
 });
 
 describe('Function createSeed', () => {
-  test('should return undefined if no cookies set', async () => {
-    const mockResponse = { body: 'response' };
-    fetch.mockResponseOnce(JSON.stringify(mockResponse));
+  const transmission_ids = ['1234', '5678'];
+  const idsAndPreferences: IdsAndPreferences = {
+    preferences: getFakePreferences(true),
+    identifiers: getFakeIdentifiers(),
+  };
+  const response: PostSeedResponse = {
+    version: '0.1',
+    transaction_ids: transmission_ids,
+    publisher: proxyHostName,
+    source: {
+      domain: 'proxyHostName',
+      timestamp: 123454,
+      signature: 'signature_value',
+    },
+  };
 
-    const result = await createSeed({ proxyHostName }, ['test-id']);
-    expect(result).toBeUndefined();
+  beforeEach(() => {
+    CookiesHelpers.clearPafCookies();
+    CookiesHelpers.setIdsAndPreferences(idsAndPreferences);
+    fetch.mockResponseOnce(JSON.stringify(response));
   });
 
-  test('should fetch backend and return response', async () => {
-    const mockResponse = { body: 'response' };
-    fetch.mockResponseOnce(JSON.stringify(mockResponse));
-    CookiesHelpers.mockPreferences(true);
-    CookiesHelpers.mockIdentifiers('');
+  afterEach(() => {
+    CookiesHelpers.clearPafCookies();
+    fetch.resetMocks();
+  });
 
-    const result = await createSeed({ proxyHostName }, ['test-id']);
-    expect(result).toEqual(mockResponse);
+  test('with empty transmission_ids', async () => {
+    const seed = await createSeed({ proxyHostName }, []);
+    expect(seed).toBeUndefined();
+  });
+
+  test('with no id and preferences', async () => {
+    CookiesHelpers.clearPafCookies();
+    const seed = await createSeed({ proxyHostName }, transmission_ids);
+    expect(seed).toBeUndefined();
+  });
+
+  test('nominal path', async () => {
+    const seed = await createSeed({ proxyHostName }, transmission_ids);
+    expect(seed).toEqual(response);
   });
 });

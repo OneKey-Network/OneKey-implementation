@@ -31,7 +31,7 @@ import {
 } from '@core/model/operator-response-builders';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { KeyInfo } from '@core/crypto/identity';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 import { AxiosRequestConfig } from 'axios';
 import domainParser from 'tld-extract';
 import { Signer } from '@core/crypto/signer';
@@ -70,12 +70,14 @@ export const addOperatorApi = (
   name: string,
   keys: KeyInfo[],
   allowedDomains: AllowedDomains,
+  dpoEmailAddress: string,
+  privacyPolicyUrl: URL,
   s2sOptions?: AxiosRequestConfig
 ) => {
   const keyStore = new PublicKeyStore(s2sOptions);
 
   // Start by adding identity endpoint
-  addIdentityEndpoint(app, name, 'operator', keys);
+  addIdentityEndpoint(app, name, 'operator', keys, dpoEmailAddress, privacyPolicyUrl);
 
   const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey);
   const get3PCResponseBuilder = new Get3PCResponseBuilder();

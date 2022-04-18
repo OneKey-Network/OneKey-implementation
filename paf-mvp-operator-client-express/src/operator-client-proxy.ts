@@ -18,7 +18,7 @@ import {
   PostIdsPrefsRequestBuilder,
 } from '@core/model/operator-request-builders';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 
 /**
  * Get return URL parameter, otherwise set response code 400

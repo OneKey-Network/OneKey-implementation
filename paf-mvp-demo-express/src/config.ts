@@ -10,6 +10,8 @@ export interface PrivateConfig {
   currentPublicKey: KeyInfo;
   privateKey: string;
   type: 'vendor' | 'operator'; // TODO should support more
+  dpoEmailAddress: string;
+  privacyPolicyUrl: string;
 }
 
 export const pafMarketConfig: PublicConfig = {

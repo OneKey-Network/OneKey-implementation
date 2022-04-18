@@ -20,6 +20,8 @@ MHcCAQEEIHdDU+4DGYLAqroSuXm3yMyd0fN3KHV+dS/14F9qOIRSoAoGCCqGSM49
 AwEHoUQDQgAEEaF2LzzUF4lEQ4KQZxVkz7Sl5KIw0Pk2uD/k+nv9NnSZat9kQtJ8
 MfRbBTyw+3s7boL9UFmkpc366R8fFXZMjg==
 -----END EC PRIVATE KEY-----`,
+  dpoEmailAddress: 'contact@www.pifmarket.shop',
+  privacyPolicyUrl: 'https://www.pifmarket.shop/privacy',
 };
 
 export const pifMarketApp = express();
@@ -45,6 +47,11 @@ addOperatorClientProxyEndpoints(
 );
 
 // Add identity endpoint
-addIdentityEndpoint(pifMarketApp, pifMarketConfig.name, pifMarketPrivateConfig.type, [
-  pifMarketPrivateConfig.currentPublicKey,
-]);
+addIdentityEndpoint(
+  pifMarketApp,
+  pifMarketConfig.name,
+  pifMarketPrivateConfig.type,
+  [pifMarketPrivateConfig.currentPublicKey],
+  pifMarketPrivateConfig.dpoEmailAddress,
+  new URL(pifMarketPrivateConfig.privacyPolicyUrl)
+);

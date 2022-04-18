@@ -1,4 +1,5 @@
 @use 'src/styles/variables' as variables;
+@use 'sass:math';
 
 .modalContainer {
   position: fixed;
@@ -7,7 +8,7 @@
   width: 100vw;
   height: 100vh;
   justify-content: center;
-  z-index: 999999;
+  z-index: math.pow(2, 31); // max integer
   overflow: auto;
 
   .modal {

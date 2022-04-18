@@ -19,17 +19,30 @@ if (!fs.existsSync(inputDir)) {
 
 const outputFile = path.join(__dirname, '..', 'src', 'model', 'generated-model.ts');
 
-const removeRefDescription = (schema: JSONSchema4): JSONSchema4 => {
+/**
+ * Remove "overriding" properties when referencing an external schema
+ * This is to avoid the generator to consider it is a specific interface.
+ * Removes:
+ *  - description
+ *  - examples
+ *  - enum
+ * @param schema
+ */
+const removeAdditionalWhenRef = (schema: JSONSchema4): JSONSchema4 => {
   if (schema.$ref) {
     schema.description = undefined;
     schema.examples = undefined;
+    schema.enum = undefined;
+
+    // FIXME special hack until transmission-response-no-recursion can be removed
+    schema.$ref = schema.$ref.replace('-no-recursion', '');
   }
   if (schema.properties !== undefined) {
     Object.keys(schema.properties).forEach((currentKey) => {
-      schema.properties[currentKey] = removeRefDescription(schema.properties[currentKey]);
+      schema.properties[currentKey] = removeAdditionalWhenRef(schema.properties[currentKey]);
     });
   } else if (schema.items) {
-    schema.items = removeRefDescription(schema.items);
+    schema.items = removeAdditionalWhenRef(schema.items);
   }
 
   return schema;
@@ -37,7 +50,7 @@ const removeRefDescription = (schema: JSONSchema4): JSONSchema4 => {
 
 const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
   // Remove the title attribute that is used to generate interface names (makes very long and ugly names)
-  const { title, description, ...rest } = removeRefDescription(schema);
+  const { title, description, ...rest } = removeAdditionalWhenRef(schema);
 
   // Remove all descriptions from references otherwise the generator will create a new interface (duplicate!)
   return {
@@ -53,7 +66,10 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
   // Construct a "fake" object that references ALL schemas in the directory,
   // to make sure we generate all types in one output file
   // (json-schema-to-typescript doesn't support to take a _list_ of schemas)
-  const files = await fs.promises.readdir(inputDir);
+  const files = (await fs.promises.readdir(inputDir))
+    // FIXME special hack until transmission-response-no-recursion can be removed
+    .filter((f) => !f.match(/-no-recursion.json$/));
+
   const schemas = await Promise.all(
     files.map(async (f) => JSON.parse(await fs.promises.readFile(path.join(inputDir, f), 'utf-8')))
   );
@@ -91,12 +107,12 @@ const cleanSchema = (schema: JSONSchema4): JSONSchema4 => {
     },
   };
 
-  const ts = await compile(rootSchema, rootSchema.id, {
+  const ts = `/* eslint-disable */\n${await compile(rootSchema, rootSchema.id, {
     $refOptions: {
       resolve: { localFile: resolver },
     },
     strictIndexSignatures: true,
-  });
+  })}`;
 
   await fs.promises.writeFile(outputFile, ts);
 

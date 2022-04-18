@@ -50,7 +50,7 @@ import { GetIdentityResponseBuilder } from '@core/model/identity-response-builde
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { pafCmpPrivateConfig } from '../src/paf-cmp';
 import { operatorPrivateConfig } from '../src/crto1-operator';
-import { PublicKeyStore } from '@core/express/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>
@@ -362,7 +362,9 @@ class Examples {
     const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(crtoOneOperatorConfig.host);
     const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(
       crtoOneOperatorConfig.name,
-      operatorPrivateConfig.type
+      operatorPrivateConfig.type,
+      operatorPrivateConfig.dpoEmailAddress,
+      new URL(operatorPrivateConfig.privacyPolicyUrl)
     );
     this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined));
     this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([
@@ -371,7 +373,12 @@ class Examples {
 
     // TODO add examples with multiple keys
     const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(pafCmpConfig.host);
-    const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(pafCmpConfig.name, pafCmpPrivateConfig.type);
+    const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(
+      pafCmpConfig.name,
+      pafCmpPrivateConfig.type,
+      pafCmpPrivateConfig.dpoEmailAddress,
+      new URL(pafCmpPrivateConfig.privacyPolicyUrl)
+    );
     this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined));
     this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
       pafCmpPrivateConfig.currentPublicKey,
