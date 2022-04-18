@@ -3,11 +3,11 @@
 <head>
     <!-- Prebid SSO integration -->
     <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
-    <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{cmpHost}}"></script>
+    <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
 
     <!-- CMP -->
     <script src="https://{{cdnDomain}}/assets/cmp/cmp.js"></script>
-    <script>CMP.cmpCheck();</script>
+    <script>CMP.cmpCheck({ proxyHostName: "{{proxyHostName}}" });</script>
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>

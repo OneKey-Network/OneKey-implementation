@@ -2,13 +2,15 @@ import express from 'express';
 import { addOperatorApi, Permission } from '@operator/operator-api';
 import { s2sOptions } from './server-config';
 import {
-  pafMarketConfig,
-  cmpConfig,
   crtoOneOperatorConfig,
+  pafCmpConfig,
+  pafMarketConfig,
+  pifCmpConfig,
+  pifMarketConfig,
+  pofCmpConfig,
+  pofMarketConfig,
   portalConfig,
   PrivateConfig,
-  pifMarketConfig,
-  pofMarketConfig,
 } from './config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -40,11 +42,13 @@ addOperatorApi(
   crtoOneOperatorConfig.name,
   [operatorPrivateConfig.currentPublicKey],
   {
-    [cmpConfig.host]: [Permission.READ, Permission.WRITE],
+    [pafCmpConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifCmpConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofCmpConfig.host]: [Permission.READ, Permission.WRITE],
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
-    [pafMarketConfig.host]: [Permission.READ],
-    [pifMarketConfig.host]: [Permission.READ],
-    [pofMarketConfig.host]: [Permission.READ],
+    [pafMarketConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifMarketConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofMarketConfig.host]: [Permission.READ, Permission.WRITE],
   },
   s2sOptions
 );

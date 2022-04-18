@@ -21,7 +21,7 @@ import {
 } from '@core/model/generated-model';
 import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
-import { pafMarketConfig, cmpConfig, crtoOneOperatorConfig, pafDemoPublisherConfig } from '../src/config';
+import { crtoOneOperatorConfig, pafCmpConfig, pafDemoPublisherConfig, pafMarketConfig } from '../src/config';
 import path from 'path';
 import { OperatorClient } from '@operator-client/operator-client';
 import {
@@ -48,7 +48,7 @@ import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
-import { cmpPrivateConfig } from '../src/cmp';
+import { pafCmpPrivateConfig } from '../src/paf-cmp';
 import { operatorPrivateConfig } from '../src/crto1-operator';
 import { PublicKeyStore } from '@core/express/key-store';
 
@@ -90,7 +90,7 @@ if (!fs.existsSync(outputDir)) {
 
 // The examples are not supposed to look like a demo but a real environment
 crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
-cmpConfig.host = 'cmp.com';
+pafCmpConfig.host = 'cmp.com';
 pafMarketConfig.host = 'advertiser.com';
 pafDemoPublisherConfig.host = 'publisher.com';
 
@@ -189,8 +189,8 @@ class Examples {
 
     const cmpClient = new OperatorClient(
       crtoOneOperatorConfig.host,
-      cmpConfig.host,
-      cmpPrivateConfig.privateKey,
+      pafCmpConfig.host,
+      pafCmpPrivateConfig.privateKey,
       keyStore
     );
     this.setObject(
@@ -217,12 +217,12 @@ class Examples {
     // **************************** Read
     const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(
       crtoOneOperatorConfig.host,
-      cmpConfig.host,
-      cmpPrivateConfig.privateKey
+      pafCmpConfig.host,
+      pafCmpPrivateConfig.privateKey
     );
     const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(
       crtoOneOperatorConfig.host,
-      cmpPrivateConfig.privateKey
+      pafCmpPrivateConfig.privateKey
     );
     this.setRestMessage(
       'getIdsPrefsRequestJson',
@@ -277,12 +277,12 @@ class Examples {
     // **************************** Write
     const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
       crtoOneOperatorConfig.host,
-      cmpConfig.host,
-      cmpPrivateConfig.privateKey
+      pafCmpConfig.host,
+      pafCmpPrivateConfig.privateKey
     );
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(
       crtoOneOperatorConfig.host,
-      cmpPrivateConfig.privateKey
+      pafCmpPrivateConfig.privateKey
     );
     this.setRestMessage(
       'postIdsPrefsRequestJson',
@@ -298,7 +298,7 @@ class Examples {
     this.setRestMessage(
       'postIdsPrefsResponseJson',
       postIdsPrefsResponseBuilder.buildResponse(
-        cmpConfig.host,
+        pafCmpConfig.host,
         {
           identifiers: [this.idJson],
           preferences: this.preferencesJson,
@@ -325,8 +325,8 @@ class Examples {
     // **************************** Get new ID
     const getNewIdRequestBuilder = new GetNewIdRequestBuilder(
       crtoOneOperatorConfig.host,
-      cmpConfig.host,
-      cmpPrivateConfig.privateKey
+      pafCmpConfig.host,
+      pafCmpPrivateConfig.privateKey
     );
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(
       crtoOneOperatorConfig.host,
@@ -337,14 +337,18 @@ class Examples {
 
     this.setRestMessage(
       'getNewIdResponseJson',
-      getNewIdResponseBuilder.buildResponse(cmpConfig.host, this.unpersistedIdJson, getTimestamp('2022/03/01 19:04:47'))
+      getNewIdResponseBuilder.buildResponse(
+        pafCmpConfig.host,
+        this.unpersistedIdJson,
+        getTimestamp('2022/03/01 19:04:47')
+      )
     );
 
     // **************************** Verify 3PC
     const get3PCRequestBuilder = new Get3PCRequestBuilder(
       crtoOneOperatorConfig.host,
-      cmpConfig.host,
-      cmpPrivateConfig.privateKey
+      pafCmpConfig.host,
+      pafCmpPrivateConfig.privateKey
     );
     const get3PCResponseBuilder = new Get3PCResponseBuilder();
     this.get3pcRequestHttp = getGETUrl(get3PCRequestBuilder.getRestUrl());
@@ -366,25 +370,25 @@ class Examples {
     ]);
 
     // TODO add examples with multiple keys
-    const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(cmpConfig.host);
-    const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(cmpConfig.name, cmpPrivateConfig.type);
+    const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(pafCmpConfig.host);
+    const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(pafCmpConfig.name, pafCmpPrivateConfig.type);
     this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined));
     this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
-      cmpPrivateConfig.currentPublicKey,
+      pafCmpPrivateConfig.currentPublicKey,
     ]);
 
     // **************************** Proxy
-    const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(cmpConfig.host);
+    const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(pafCmpConfig.host);
     this.signPreferencesHttp = getPOSTUrl(signPreferencesRequestBuilder.getRestUrl(undefined)); // Notice is POST url
     this.signPreferencesJson = signPreferencesRequestBuilder.buildRequest([this.idJson], {
       use_browsing_for_personalization: true,
     });
 
-    const signPostIdsPrefsRequestBuilder = new ProxyRestSignPostIdsPrefsRequestBuilder(cmpConfig.host);
+    const signPostIdsPrefsRequestBuilder = new ProxyRestSignPostIdsPrefsRequestBuilder(pafCmpConfig.host);
     this.signPostIdsPrefsHttp = getPOSTUrl(signPostIdsPrefsRequestBuilder.getRestUrl(undefined)); // Notice is POST url
     this.signPostIdsPrefsJson = signPostIdsPrefsRequestBuilder.buildRequest([this.idJson], this.preferencesJson);
 
-    const verifyGetIdsPrefsRequestBuilder = new ProxyRestVerifyGetIdsPrefsRequestBuilder(cmpConfig.host);
+    const verifyGetIdsPrefsRequestBuilder = new ProxyRestVerifyGetIdsPrefsRequestBuilder(pafCmpConfig.host);
     this.verifyGetIdsPrefsHttp = getPOSTUrl(verifyGetIdsPrefsRequestBuilder.getRestUrl(undefined)); // Notice is POST url
     this.verifyGetIdsPrefs_invalidJson = { message: 'Invalid signature' };
   }

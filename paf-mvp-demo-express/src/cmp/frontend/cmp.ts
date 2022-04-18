@@ -5,7 +5,6 @@ import {
   signPreferences,
   writeIdsAndPref,
 } from '@frontend/lib/paf-lib';
-import { cmpConfig } from '../../config';
 import { PafStatus } from '@core/operator-client-commons';
 import { Cookies } from '@core/cookies';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
@@ -20,10 +19,7 @@ declare const PAFUI: {
   showNotification: (notificationType: NotificationEnum) => void;
 };
 
-// Using the CMP backend as a PAF operator proxy
-const proxyHostName = cmpConfig.host;
-
-export const cmpCheck = async () => {
+export const cmpCheck = async ({ proxyHostName }: { proxyHostName: string }) => {
   const { status, data } = await PAF.refreshIdsAndPreferences({ proxyHostName, triggerRedirectIfNeeded: true });
 
   if (status === PafStatus.REDIRECT_NEEDED || status === PafStatus.NOT_PARTICIPATING) {

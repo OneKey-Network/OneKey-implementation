@@ -1,5 +1,5 @@
 import express from 'express';
-import { cmpConfig, pofDemoPublisherConfig } from './config';
+import { pofCmpConfig, pofDemoPublisherConfig } from './config';
 
 export const pofDemoPublisherApp = express();
 
@@ -8,6 +8,7 @@ pofDemoPublisherApp.get('/', (req, res) => {
   res.render(view, {
     title: pofDemoPublisherConfig.name,
     cdnDomain: pofDemoPublisherConfig.cdnHost,
-    cmpHost: cmpConfig.host,
+    // Using the CMP backend as a PAF operator proxy
+    proxyHostName: pofCmpConfig.host,
   });
 });
