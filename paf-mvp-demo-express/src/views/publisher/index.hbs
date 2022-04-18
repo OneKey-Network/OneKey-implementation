@@ -765,9 +765,7 @@
                         if (PAF.getIdsAndPreferences()) {
                           PAFUI.promptConsent();
                         } else {
-                          document.cookie = 'paf_identifiers=;';
-                          document.cookie = 'paf_preferences=;';
-                          CMP.cmpCheck({ proxyHostName: "{{proxyHostName}}" });
+                          CMP.cmpCheck({ proxyHostName: "{{proxyHostName}}", forcePrompt: true});
                         }
                       });
                   </script>

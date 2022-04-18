@@ -19,7 +19,12 @@ declare const PAFUI: {
   showNotification: (notificationType: NotificationEnum) => void;
 };
 
-export const cmpCheck = async ({ proxyHostName }: { proxyHostName: string }) => {
+export const cmpCheck = async ({ proxyHostName, forcePrompt }: { proxyHostName: string; forcePrompt?: boolean }) => {
+  if (forcePrompt) {
+    removeCookie(Cookies.identifiers);
+    removeCookie(Cookies.preferences);
+  }
+
   const { status, data } = await PAF.refreshIdsAndPreferences({ proxyHostName, triggerRedirectIfNeeded: true });
 
   if (status === PafStatus.REDIRECT_NEEDED || status === PafStatus.NOT_PARTICIPATING) {
