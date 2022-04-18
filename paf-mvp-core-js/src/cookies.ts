@@ -15,6 +15,11 @@ export const getPrebidDataCacheExpiration = (date: Date = new Date()) => {
   return expirationDate;
 };
 
+export const getPafRefreshExpiration = () => {
+  const minutesCount = 1;
+  return new Date(Date.now() + 1000 * 60 * minutesCount);
+};
+
 /**
  * Parse string cookie values and build an IdsAndOptionalPreferences accordingly
  * @param idsCookie

@@ -14,7 +14,7 @@ import {
   Seed,
   TransactionId,
 } from '@core/model/generated-model';
-import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
@@ -114,7 +114,7 @@ export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefine
 
   // TODO use different expiration if "not participating"
   setCookie(cookieName, valueToStore, getPrebidDataCacheExpiration());
-  setCookie(Cookies.lastRefresh, new Date().toISOString(), new Date(Date.now() + 1000 * 60 * 1)); // 1 minute
+  setCookie(Cookies.lastRefresh, new Date().toISOString(), getPafRefreshExpiration());
 
   return valueToStore;
 };
@@ -179,15 +179,15 @@ export const refreshIdsAndPreferences = async ({
 
     // 1. Any Prebid 1st party cookie?
     const strIds = getCookieValue(Cookies.identifiers);
-    const lestRefresh = getCookieValue(Cookies.lastRefresh);
+    const lastRefresh = getCookieValue(Cookies.lastRefresh);
     const strPreferences = getCookieValue(Cookies.preferences);
     const currentPafData = fromClientCookieValues(strIds, strPreferences);
+    const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
 
     const triggerNotification = (freshConsent: boolean) => {
-      const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
       const shouldShowNotification = !strPreferences || freshConsent !== currentlySelectedConsent;
 
-      if (shouldShowNotification) {
+      if (shouldShowNotification && freshConsent) {
         showNotification(freshConsent);
       }
     };
@@ -237,7 +237,7 @@ export const refreshIdsAndPreferences = async ({
       };
     }
 
-    if (lestRefresh) {
+    if (lastRefresh) {
       logger.info('Cookie found: YES');
 
       const pafStatus = getPafStatus(strIds, strPreferences);
@@ -250,9 +250,6 @@ export const refreshIdsAndPreferences = async ({
         status: pafStatus,
         data: currentPafData,
       };
-    } else if (strIds || strPreferences) {
-      removeCookie(Cookies.preferences);
-      removeCookie(Cookies.identifiers);
     }
 
     logger.info('Cookie found: NO');
