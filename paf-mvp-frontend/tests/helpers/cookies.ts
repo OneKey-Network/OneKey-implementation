@@ -42,6 +42,7 @@ export class CookiesHelpers {
   static setIdsAndPreferences(idsAndPreferences: IdsAndPreferences) {
     CookiesHelpers.setIdentifiers(idsAndPreferences.identifiers);
     CookiesHelpers.setPreferences(idsAndPreferences.preferences);
+    CookiesHelpers.mockRefreshTime();
   }
 
   static setIdentifiers(identifiers: Identifiers) {
