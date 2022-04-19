@@ -749,8 +749,26 @@
                         <li><a href="#">User Agreement</a></li>
                         <li><a href="#">Privacy</a></li>
                         <li><a href="#">About us</a></li>
-                        <li><a href="#">Contact</a></li>
+                        <li><a href="#" id="preferences" class="d-flex align-items-center">
+                          <div class="mr-2">
+                            <img src="/assets/publisher/images/Union.svg" alt="">
+                          </div>
+                          <div>
+                            Marketing preferences
+                          </div>
+                        </a></li>
                     </ul>
+                  <script>
+                    document.querySelector('#preferences')
+                      .addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (PAF.getIdsAndPreferences()) {
+                          PAFUI.promptConsent();
+                        } else {
+                          CMP.cmpCheck({ proxyHostName: "{{proxyHostName}}", forcePrompt: true});
+                        }
+                      });
+                  </script>
                 </div>
             </div>
             <div class="row">
