@@ -4,7 +4,7 @@
     <!-- Prebid SSO integration -->
     <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
     <script src="https://{{cdnDomain}}/assets/paf-lib.js"
-          onload='PAF.cmpCheck({ proxyHostName: "{{proxyHostName}}" });'></script>
+          onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script>
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
@@ -759,11 +759,7 @@
                     document.querySelector('#preferences')
                       .addEventListener('click', (e) => {
                         e.preventDefault();
-                        if (PAF.getIdsAndPreferences()) {
-                          PAFUI.promptConsent();
-                        } else {
-                          PAF.cmpCheck({ proxyHostName: "{{proxyHostName}}", forcePrompt: true});
-                        }
+                        PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}", showPrompt: 'doPrompt'});
                       });
                   </script>
                 </div>

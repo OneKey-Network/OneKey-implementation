@@ -17,6 +17,7 @@ import { Refresh } from '../../components/svg/refresh/Refresh';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
 import { currentScript } from '@frontend/utils/current-script';
+import { updateIdsAndPreferences } from '@frontend/lib/paf-lib';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -29,18 +30,19 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
   const [pafCookies, setPafCookies] = useState(window.PAF.getIdsAndPreferences());
 
-  const pafIdentifier = pafCookies?.identifiers?.[0]?.value;
-  const pafConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
+  const originalIdentifier = pafCookies?.identifiers?.[0]?.value;
+  const originalConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
   const proxyHostName = currentScript.getData()?.proxy;
   const brandName = window.location.hostname;
 
-  const [consent, setConsent] = useState(pafIdentifier && pafConsent);
-  const [appIdentifier, setAppIdentifier] = useState(pafIdentifier);
+  const [consent, setConsent] = useState(originalIdentifier && originalConsent);
+  const [appIdentifier, setAppIdentifier] = useState(originalIdentifier);
 
   const onChooseOption = (consent: boolean) => {
     setConsent(consent);
-    if (pafIdentifier) {
-      return; // Change settings flow
+    if (originalIdentifier) {
+      // Update existing settings => don't close the widget until confirmation
+      return;
     }
     emitConsent(consent);
     setIsOpen(false);
@@ -62,24 +64,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
   };
 
   const updateSettings = async () => {
-    const unsignedPreferences = {
-      version: '0.1',
-      data: { use_browsing_for_personalization: consent },
-    };
-    const signedPreferences = await window.PAF.signPreferences(
-      { proxyHostName },
-      {
-        identifiers: pafCookies.identifiers,
-        unsignedPreferences,
-      }
-    );
-    await window.PAF.writeIdsAndPref(
-      { proxyHostName },
-      {
-        identifiers: pafCookies.identifiers,
-        preferences: signedPreferences,
-      }
-    );
+    await window.PAF.updateIdsAndPreferences(proxyHostName, consent, pafCookies.identifiers);
     closeWidget();
   };
 
@@ -95,7 +80,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
 
   return (
     <div class={style.container}>
-      <Modal closeBtnText={pafIdentifier ? 'Cancel' : 'Close dialog'} maxWidth={385} onClose={() => closeWidget()}>
+      <Modal closeBtnText={originalIdentifier ? 'Cancel' : 'Close dialog'} maxWidth={385} onClose={() => closeWidget()}>
         <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Choose your marketing preferences</h2>
 
         <p class={style.textCenter}>
@@ -104,7 +89,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
         </p>
 
         <div class={grid['my-5']}>
-          {!!pafIdentifier && (
+          {!!originalIdentifier && (
             <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-3']}`}>
               <div className={`${layout.alignCenter}`}>
                 <small className={[typography.textDark, grid['mr-1'], typography.textBold].join(' ')}>
@@ -154,7 +139,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
           </OptionsGroup>
         </div>
 
-        {!!pafIdentifier && (
+        {!!originalIdentifier && (
           <div class={grid['my-5']}>
             <Button testid="save-btn" wide primary action={() => updateSettings()}>
               Confirm settings

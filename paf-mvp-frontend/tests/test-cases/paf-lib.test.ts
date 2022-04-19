@@ -1,6 +1,5 @@
 import {
   getNewId,
-  writeIdsAndPref,
   getIdsAndPreferences,
   signPreferences,
   refreshIdsAndPreferences,
@@ -84,6 +83,7 @@ describe('Function getNewId', () => {
   });
 });
 
+/*
 describe('Function writeIdsAndPref', () => {
   const idAndPreferences: IdsAndPreferences = {
     preferences: getFakePreferences(true),
@@ -116,6 +116,8 @@ describe('Function writeIdsAndPref', () => {
     });
   });
 });
+
+ */
 
 describe('Function refreshIdsAndPreferences', () => {
   const realLocation = location;
@@ -214,7 +216,7 @@ describe('Function refreshIdsAndPreferences', () => {
       expect(document.cookie).toContain(JSON.stringify(preferences));
 
       expect(result).toEqual({
-        status: PafStatus.UP_TO_DATE,
+        status: PafStatus.PARTICIPATING,
         data: {
           identifiers: [identifier],
           preferences,
@@ -299,7 +301,7 @@ describe('Function refreshIdsAndPreferences', () => {
       });
 
       expect(result).toEqual({
-        status: PafStatus.UP_TO_DATE,
+        status: PafStatus.PARTICIPATING,
         data: {
           identifiers: getFakeIdentifiers(fakeId),
           preferences: getFakePreferences(true),
@@ -338,7 +340,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
         expect(isBrowserKnownToSupport3PC).toHaveBeenCalled();
         expect(result).toEqual({
-          status: PafStatus.UP_TO_DATE,
+          status: PafStatus.PARTICIPATING,
           data: {
             identifiers: getFakeIdentifiers(),
             preferences: getFakePreferences(),
@@ -434,5 +436,3 @@ describe('Function createSeed', () => {
     expect(seed).toEqual(response);
   });
 });
-
-// TODO test cmpCheck

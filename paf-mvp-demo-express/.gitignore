@@ -3,6 +3,7 @@
 /public/assets/app.bundle.js
 /public/assets/app.bundle.css
 /public/assets/images/
+/public/assets/**/*.d.ts
 
 # Ignore generated SSL certificates
 /paf.crt

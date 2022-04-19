@@ -43,7 +43,7 @@ pafMarketApp.get('/', async (req: Request, res: Response) => {
   if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
     res.render(view, {
       title: pafMarketConfig.name,
-      host: pafMarketConfig.host,
+      proxyHostName: pafMarketConfig.host,
       cdnHost: pafMarketConfig.cdnHost,
     });
   }

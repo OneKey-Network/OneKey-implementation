@@ -4,7 +4,8 @@ import { typedCookie } from './cookies';
 export enum PafStatus {
   NOT_PARTICIPATING = 'NOT_PARTICIPATING',
   REDIRECT_NEEDED = 'REDIRECT_NEEDED',
-  UP_TO_DATE = 'UP_TO_DATE',
+  PARTICIPATING = 'PARTICIPATING',
+  UNKNOWN = 'UNKNOWN',
 }
 
 const getCleanCookieValue = (cookieValue: string): string | undefined =>
@@ -32,5 +33,5 @@ export const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus 
     return PafStatus.NOT_PARTICIPATING;
   }
 
-  return PafStatus.UP_TO_DATE;
+  return PafStatus.PARTICIPATING;
 };

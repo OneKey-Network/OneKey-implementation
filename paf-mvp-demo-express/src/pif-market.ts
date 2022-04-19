@@ -31,7 +31,7 @@ pifMarketApp.get('/', async (req: Request, res: Response) => {
 
   res.render(view, {
     title: pifMarketConfig.name,
-    host: pifMarketConfig.host,
+    proxyHostName: pifMarketConfig.host,
     cdnHost: pifMarketConfig.cdnHost,
   });
 });
