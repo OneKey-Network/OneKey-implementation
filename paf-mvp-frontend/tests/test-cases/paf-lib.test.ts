@@ -285,6 +285,7 @@ describe('Function refreshIdsAndPreferences', () => {
     beforeAll(() => {
       CookiesHelpers.mockPreferences(true);
       CookiesHelpers.mockIdentifiers(fakeId);
+      CookiesHelpers.mockRefreshTime();
     });
 
     afterAll(() => {
