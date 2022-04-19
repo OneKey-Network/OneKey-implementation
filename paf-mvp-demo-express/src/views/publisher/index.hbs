@@ -2,12 +2,9 @@
 <html lang="html">
 <head>
     <!-- Prebid SSO integration -->
-    <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
+    <script src="https://{{cdnDomain}}/assets/paf-lib.js"
+            onload='PAF.cmpCheck({ proxyHostName: "{{proxyHostName}}" });'></script>
     <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
-
-    <!-- CMP -->
-    <script src="https://{{cdnDomain}}/assets/cmp/cmp.js"></script>
-    <script>CMP.cmpCheck({ proxyHostName: "{{proxyHostName}}" });</script>
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
@@ -765,7 +762,7 @@
                         if (PAF.getIdsAndPreferences()) {
                           PAFUI.promptConsent();
                         } else {
-                          CMP.cmpCheck({ proxyHostName: "{{proxyHostName}}", forcePrompt: true});
+                          PAF.cmpCheck({ proxyHostName: "{{proxyHostName}}", forcePrompt: true});
                         }
                       });
                   </script>

@@ -433,3 +433,5 @@ describe('Function createSeed', () => {
     expect(seed).toEqual(response);
   });
 });
+
+// TODO test cmpCheck

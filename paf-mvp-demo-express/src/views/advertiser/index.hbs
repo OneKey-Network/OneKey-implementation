@@ -2,7 +2,8 @@
 <html lang="html">
 <head>
     <!-- Prebid SSO integration -->
-    <script onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: true});" src="https://{{cdnHost}}/assets/paf-lib.js"></script>
+    <script src="https://{{cdnHost}}/assets/paf-lib.js"
+            onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: true});"></script>
     <script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{host}}"></script>
     <script>
         const redirectIfNeeded = () => PAF.refreshIdsAndPreferences({proxyHostName: '{{host}}', triggerRedirectIfNeeded: true})
@@ -792,7 +793,7 @@
                       if (PAF.getIdsAndPreferences()) {
                         PAFUI.promptConsent();
                       } else {
-                        CMP.cmpCheck({ proxyHostName: "{{proxyHostName}}", forcePrompt: true});
+                        PAF.cmpCheck({ proxyHostName: "{{proxyHostName}}", forcePrompt: true});
                       }
                     });
                 </script>

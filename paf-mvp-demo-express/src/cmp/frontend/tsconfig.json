@@ -1,8 +1,0 @@
-{
-  "extends": "../../../../tsconfig.json",
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "declarationDir": ""
-  }
-}
