@@ -2,9 +2,9 @@
 <html lang="html">
 <head>
     <!-- Prebid SSO integration -->
-    <script src="https://{{cdnDomain}}/assets/paf-lib.js"
-            onload='PAF.cmpCheck({ proxyHostName: "{{proxyHostName}}" });'></script>
     <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
+    <script src="https://{{cdnDomain}}/assets/paf-lib.js"
+          onload='PAF.cmpCheck({ proxyHostName: "{{proxyHostName}}" });'></script>
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
