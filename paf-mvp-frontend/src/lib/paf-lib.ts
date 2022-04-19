@@ -27,9 +27,8 @@ declare const PAFUI: {
   showNotification: (notificationType: NotificationEnum) => void;
 };
 
-const logger = console;
-
 const redirect = (url: string): void => {
+  logInfo('Redirecting to:', url);
   location.replace(url);
 };
 
@@ -106,11 +105,11 @@ const getProxyUrl =
     `https://${proxyHost}${endpoint}`;
 
 export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
-  logger.info(`Value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
+  logInfo(`Value for ${cookieName}: ${cookieValue !== undefined ? 'YES' : 'NO'}`);
 
   const valueToStore = cookieValue === undefined ? PafStatus.NOT_PARTICIPATING : JSON.stringify(cookieValue);
 
-  logger.info(`Save ${cookieName} value: ${valueToStore}`);
+  logInfo(`Save cookie ${cookieName}:`, valueToStore);
 
   // TODO use different expiration if "not participating"
   setCookie(cookieName, valueToStore, getPrebidDataCacheExpiration());
@@ -165,7 +164,7 @@ export const refreshIdsAndPreferences = async ({
   const getUrl = getProxyUrl(proxyHostName);
 
   const redirectToRead = () => {
-    logger.info('Redirect to operator');
+    logInfo('Redirect to operator');
     const url = redirectUrl ?? new URL(getUrl(redirectProxyEndpoints.read));
     url.searchParams.set(proxyUriParams.returnUrl, location.href);
     redirect(url.toString());
@@ -194,7 +193,7 @@ export const refreshIdsAndPreferences = async ({
 
     // 2. Redirected from operator?
     if (uriData) {
-      logger.info('Redirected from operator: YES');
+      logInfo('Redirected from operator: YES');
 
       // Consider that if we have been redirected, it means 3PC are not supported
       thirdPartyCookiesSupported = false;
@@ -207,8 +206,8 @@ export const refreshIdsAndPreferences = async ({
         throw 'Verification failed';
       }
 
-      console.debug('received:');
-      console.debug(operatorData);
+      logMessage('received:');
+      logMessage(operatorData);
 
       // 3. Received data?
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -223,10 +222,10 @@ export const refreshIdsAndPreferences = async ({
       };
     }
 
-    logger.info('Redirected from operator: NO');
+    logInfo('Redirected from operator: NO');
 
     if (getPafStatus(strIds, strPreferences) === PafStatus.REDIRECT_NEEDED) {
-      logger.info('Redirect previously deferred');
+      logInfo('Redirect previously deferred');
 
       if (triggerRedirectIfNeeded) {
         redirectToRead();
@@ -238,12 +237,12 @@ export const refreshIdsAndPreferences = async ({
     }
 
     if (lastRefresh) {
-      logger.info('Cookie found: YES');
+      logInfo('Cookie found: YES');
 
       const pafStatus = getPafStatus(strIds, strPreferences);
 
       if (pafStatus === PafStatus.NOT_PARTICIPATING) {
-        logger.info('User is not participating');
+        logInfo('User is not participating');
       }
 
       return {
@@ -252,15 +251,15 @@ export const refreshIdsAndPreferences = async ({
       };
     }
 
-    logger.info('Cookie found: NO');
+    logInfo('Cookie found: NO');
 
     // 4. Browser known to support 3PC?
     const userAgent = new UAParser(navigator.userAgent);
 
     if (isBrowserKnownToSupport3PC(userAgent.getBrowser())) {
-      logger.info('Browser known to support 3PC: YES');
+      logInfo('Browser known to support 3PC: YES');
 
-      logger.info('Attempt to read from JSON');
+      logInfo('Attempt to read from JSON');
       const readResponse = await get(getUrl(jsonProxyEndpoints.read));
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
@@ -268,7 +267,7 @@ export const refreshIdsAndPreferences = async ({
 
       // 3. Received data?
       if (persistedIds?.length > 0) {
-        logger.info('Operator returned id & prefs: YES');
+        logInfo('Operator returned id & prefs: YES');
 
         // If we got data, it means 3PC are supported
         thirdPartyCookiesSupported = true;
@@ -285,9 +284,9 @@ export const refreshIdsAndPreferences = async ({
           data: operatorData.body,
         };
       }
-      logger.info('Operator returned id & prefs: NO');
+      logInfo('Operator returned id & prefs: NO');
 
-      logger.info('Verify 3PC on operator');
+      logInfo('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
       const verifyResponse = await get(getUrl(jsonProxyEndpoints.verify3PC));
       const testOk: Get3PcResponse | Error = await verifyResponse.json();
@@ -295,11 +294,11 @@ export const refreshIdsAndPreferences = async ({
       // 4. 3d party cookie ok?
       if ((testOk as Get3PcResponse)?.['3pc']) {
         // TODO might want to do more verification
-        logger.info('3PC verification OK: YES');
+        logInfo('3PC verification OK: YES');
 
         thirdPartyCookiesSupported = true;
 
-        logger.info('Save "not participating"');
+        logInfo('Save "not participating"');
         saveCookieValue(Cookies.identifiers, undefined);
         saveCookieValue(Cookies.preferences, undefined);
 
@@ -310,19 +309,19 @@ export const refreshIdsAndPreferences = async ({
           },
         };
       }
-      logger.info('3PC verification OK: NO');
+      logInfo('3PC verification OK: NO');
       thirdPartyCookiesSupported = false;
-      logger.info('Fallback to JS redirect');
+      logInfo('Fallback to JS redirect');
     } else {
-      logger.info('Browser known to support 3PC: NO');
+      logInfo('Browser known to support 3PC: NO');
       thirdPartyCookiesSupported = false;
-      logger.info('JS redirect');
+      logInfo('JS redirect');
     }
 
     if (triggerRedirectIfNeeded) {
       redirectToRead();
     } else {
-      logger.info('Deffer redirect to later, in agreement with options');
+      logInfo('Deffer redirect to later, in agreement with options');
       saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
       saveCookieValue(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
     }
@@ -334,7 +333,7 @@ export const refreshIdsAndPreferences = async ({
 
   const idsAndPreferences = await processGetIdsAndPreferences();
 
-  logger.info('Finished', idsAndPreferences);
+  logInfo('Finished', idsAndPreferences);
 
   return idsAndPreferences;
 };
@@ -353,9 +352,7 @@ export const writeIdsAndPref = async (
   const getUrl = getProxyUrl(proxyHostName);
 
   const processWriteIdsAndPref = async (): Promise<IdsAndOptionalPreferences | undefined> => {
-    console.log('Attempt to write:');
-    console.log(input.identifiers);
-    console.log(input.preferences);
+    logInfo('Attempt to write:', input.identifiers, input.preferences);
 
     // First clean up local cookies
     removeCookie(Cookies.identifiers);
@@ -363,7 +360,7 @@ export const writeIdsAndPref = async (
 
     // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
     if (thirdPartyCookiesSupported) {
-      console.log('3PC supported');
+      logInfo('3PC supported');
 
       // 1) sign the request
       const signedResponse = await postJson(getUrl(jsonProxyEndpoints.signWrite), input);
@@ -383,7 +380,7 @@ export const writeIdsAndPref = async (
       return operatorData.body;
     }
 
-    console.log('3PC not supported: redirect');
+    logInfo('3PC not supported: redirect');
 
     // Redirect. Signing of the request will happen on the backend proxy
     const returnUrl = redirectUrl ?? new URL(getUrl(redirectProxyEndpoints.write));
@@ -392,14 +389,12 @@ export const writeIdsAndPref = async (
 
     const url = returnUrl.toString();
 
-    console.log(`Redirecting to ${url}`);
-
     redirect(url);
   };
 
   const idsAndPreferences = await processWriteIdsAndPref();
 
-  logger.info('Finished', idsAndPreferences);
+  logInfo('Finished', idsAndPreferences);
 
   return idsAndPreferences;
 };
@@ -485,3 +480,34 @@ export const createSeed = async (
 
   return await response.json();
 };
+
+// **************************************************************************************************************** LOGS
+const label = (color: string) =>
+  `display: inline-block; color: #fff; background: ${color}; padding: 1px 4px; border-radius: 3px;`;
+
+const decorateLog = (prefix: string, args: unknown[]) => {
+  const newArgs = [].slice.call(args);
+  prefix && newArgs.unshift(prefix);
+  newArgs.unshift(label('#3bb8c3'));
+  newArgs.unshift('%cPAF');
+  return newArgs;
+};
+
+/**
+ * Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
+ */
+function logMessage(...args: unknown[]) {
+  console.log(...decorateLog('MESSAGE:', args));
+}
+
+function logInfo(...args: unknown[]) {
+  console.info(...decorateLog('INFO:', args));
+}
+
+function logWarn(...args: unknown[]) {
+  console.warn(...decorateLog('WARNING:', args));
+}
+
+function logError(...args: unknown[]) {
+  console.error(...decorateLog('ERROR:', args));
+}
