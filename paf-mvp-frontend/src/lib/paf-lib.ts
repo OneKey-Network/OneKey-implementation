@@ -58,7 +58,7 @@ const get = (url: string) =>
 // Remove any "paf data" param from the query string
 // From https://stackoverflow.com/questions/1634748/how-can-i-delete-a-query-string-parameter-in-javascript/25214672#25214672
 // TODO should be able to use a more standard way, but URL class is immutable :-(
-const removeUrlParameter = (url: string, parameter: string) => {
+const removeUrlParameters = (url: string, parameters: string[]) => {
   const urlParts = url.split('?');
 
   if (urlParts.length >= 2) {
@@ -68,16 +68,18 @@ const removeUrlParameter = (url: string, parameter: string) => {
     // Join it back up
     const queryString = urlParts.join('?');
 
-    const prefix = `${encodeURIComponent(parameter)}=`;
+    const prefixes = parameters.map((param) => `${encodeURIComponent(param)}=`);
     const parts = queryString.split(/[&;]/g);
 
     // Reverse iteration as may be destructive
-    for (let i = parts.length; i-- > 0; ) {
-      // Idiom for string.startsWith
-      if (parts[i].lastIndexOf(prefix, 0) !== -1) {
-        parts.splice(i, 1);
+    prefixes.forEach((prefix) => {
+      for (let i = parts.length; i-- > 0; ) {
+        // Idiom for string.startsWith
+        if (parts[i].lastIndexOf(prefix, 0) !== -1) {
+          parts.splice(i, 1);
+        }
       }
-    }
+    });
 
     url = urlBase + (parts.length > 0 ? `?${parts.join('&')}` : '');
   }
@@ -98,9 +100,6 @@ const showNotificationIfValid = (consent: boolean | undefined) => {
     PAFUI.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent);
   }
 };
-
-// Update the URL shown in the address bar, without PAF data
-const cleanUpUrL = () => history.pushState(null, '', removeUrlParameter(location.href, QSParam.paf));
 
 const getProxyUrl =
   (proxyHost: string) =>
@@ -252,23 +251,34 @@ async function updateDataWithPrompt(
  * @return a status and optional data
  */
 export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
-  const { proxyHostName, triggerRedirectIfNeeded, redirectUrl, showPrompt } = {
+  const mergedOptions = {
     ...defaultsRefreshIdsAndPrefsOptions,
     ...options,
   };
+  const { proxyHostName, triggerRedirectIfNeeded, redirectUrl } = mergedOptions;
+  let { showPrompt } = mergedOptions;
 
+  // Special query string param to remember the prompt must be shown
+  const localQSParamShowPrompt = 'paf_show_prompt';
+
+  // Update the URL shown in the address bar, without PAF data
+  const cleanUpUrL = () =>
+    history.pushState(null, '', removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]));
   const getUrl = getProxyUrl(proxyHostName);
 
   const redirectToRead = () => {
     logInfo('Redirect to operator');
     const url = redirectUrl ?? new URL(getUrl(redirectProxyEndpoints.read));
-    url.searchParams.set(proxyUriParams.returnUrl, location.href);
+    const currentUrl = new URL(location.href);
+    currentUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
+    url.searchParams.set(proxyUriParams.returnUrl, currentUrl.toString());
     redirect(url.toString());
   };
 
   const processGetIdsAndPreferences = async (): Promise<RefreshResult> => {
     const urlParams = new URLSearchParams(window.location.search);
-    const uriData = urlParams.get(QSParam.paf);
+    const uriOperatorData = urlParams.get(QSParam.paf);
+    const uriShowPrompt = urlParams.get(localQSParamShowPrompt);
 
     cleanUpUrL();
 
@@ -294,15 +304,14 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
     async function handleAfterRedirect() {
       // Verify message
-      const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriData);
+      const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
       const operatorData = (await response.json()) as GetIdsPrefsResponse;
 
       if (!operatorData) {
         throw 'Verification failed';
       }
 
-      logDebug('received:');
-      logDebug(operatorData);
+      logDebug('Operator data after redirect', operatorData);
 
       // 3. Received data?
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -321,11 +330,14 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     }
 
     // 2. Redirected from operator?
-    if (uriData) {
+    if (uriOperatorData) {
       logInfo('Redirected from operator: YES');
 
       // Consider that if we have been redirected, it means 3PC are not supported
       thirdPartyCookiesSupported = false;
+
+      // Remember what was asked for prompt, before the redirect
+      showPrompt = uriShowPrompt as ShowPromptOption;
 
       return await handleAfterRedirect();
     }
