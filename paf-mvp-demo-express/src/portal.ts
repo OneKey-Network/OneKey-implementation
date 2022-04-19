@@ -1,7 +1,7 @@
 import express from 'express';
 import { crtoOneOperatorConfig, pofMarketConfig, portalConfig, PrivateConfig } from './config';
 import { OperatorClient } from '@operator-client/operator-client';
-import { Cookies, fromIdsCookie, fromPrefsCookie } from '@core/cookies';
+import { Cookies, typedCookie } from '@core/cookies';
 import {
   _ as Model,
   GetIdsPrefsRequest,
@@ -125,7 +125,7 @@ portalApp.get(writeNewId, (req, res) => {
 
   const preferences =
     // little trick because we know the cookie is available in the same TLD+1
-    fromPrefsCookie(cookies[Cookies.preferences]) ??
+    typedCookie<Preferences>(cookies[Cookies.preferences]) ??
     // Assume opt out by default if no preferences
     client.buildPreferences(identifiers, { use_browsing_for_personalization: false });
 
@@ -134,7 +134,7 @@ portalApp.get(writeNewId, (req, res) => {
 
 portalApp.get(optInUrl, (req, res) => {
   const cookies = req.cookies;
-  const identifiers = fromIdsCookie(cookies[Cookies.identifiers]);
+  const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
   const homeUrl = getRequestUrl(req, '/');
   if (identifiers) {
@@ -147,7 +147,7 @@ portalApp.get(optInUrl, (req, res) => {
 
 portalApp.get(optOutUrl, (req, res) => {
   const cookies = req.cookies;
-  const identifiers = fromIdsCookie(cookies[Cookies.identifiers]);
+  const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
   const homeUrl = getRequestUrl(req, '/');
   if (identifiers) {
@@ -276,7 +276,7 @@ portalApp.get('/', (req, res) => {
   };
 
   // little trick because we know the cookie is available in the same TLD+1
-  const identifiers = fromIdsCookie(cookies[Cookies.identifiers]);
+  const identifiers = typedCookie(cookies[Cookies.identifiers]);
 
   if (identifiers) {
     options.optInUrl = optInUrl;

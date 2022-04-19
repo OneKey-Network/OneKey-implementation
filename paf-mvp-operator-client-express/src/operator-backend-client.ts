@@ -3,7 +3,7 @@ import { OperatorClient } from './operator-client';
 import winston from 'winston';
 import UAParser from 'ua-parser-js';
 import { IdsAndOptionalPreferences, RedirectGetIdsPrefsResponse } from '@core/model/generated-model';
-import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
 import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
 import {
   getCookies,
@@ -92,6 +92,7 @@ export class OperatorBackendClient {
     const cookies = getCookies(req);
 
     const rawIds = cookies[Cookies.identifiers];
+    const lastRefresh = cookies[Cookies.lastRefresh];
     const rawPreferences = cookies[Cookies.preferences];
 
     logger.info('Cookie found: NO');
@@ -116,6 +117,7 @@ export class OperatorBackendClient {
       const persistedIds = operatorData.body.identifiers.filter((identifier) => identifier?.persisted !== false);
       saveCookieValue(res, Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
       saveCookieValue(res, Cookies.preferences, operatorData.body.preferences);
+      setCookie(res, Cookies.lastRefresh, new Date().toISOString(), getPafRefreshExpiration());
 
       return operatorData.body;
     }
@@ -130,7 +132,7 @@ export class OperatorBackendClient {
       return undefined;
     }
 
-    if (rawIds && rawPreferences) {
+    if (lastRefresh && rawIds && rawPreferences) {
       logger.info('Cookie found: YES');
 
       return fromClientCookieValues(rawIds, rawPreferences);

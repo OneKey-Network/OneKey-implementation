@@ -34,6 +34,7 @@ export const cmpCheck = async ({ proxyHostName }: { proxyHostName: string }) => 
     // Reset cookies before to show the prompt to make sure we set the appropriate value only after user action
     removeCookie(Cookies.identifiers);
     removeCookie(Cookies.preferences);
+    removeCookie(Cookies.lastRefresh);
 
     const optIn = await PAFUI.promptConsent();
 

@@ -14,7 +14,7 @@ import {
   Seed,
   TransactionId,
 } from '@core/model/generated-model';
-import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
@@ -113,6 +113,7 @@ export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefine
 
   // TODO use different expiration if "not participating"
   setCookie(cookieName, valueToStore, getPrebidDataCacheExpiration());
+  setCookie(Cookies.lastRefresh, new Date().toISOString(), getPafRefreshExpiration());
 
   return valueToStore;
 };
@@ -177,7 +178,18 @@ export const refreshIdsAndPreferences = async ({
 
     // 1. Any Prebid 1st party cookie?
     const strIds = getCookieValue(Cookies.identifiers);
+    const lastRefresh = getCookieValue(Cookies.lastRefresh);
     const strPreferences = getCookieValue(Cookies.preferences);
+    const currentPafData = fromClientCookieValues(strIds, strPreferences);
+    const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
+
+    const triggerNotification = (freshConsent: boolean) => {
+      const shouldShowNotification = !strPreferences || freshConsent !== currentlySelectedConsent;
+
+      if (shouldShowNotification && freshConsent) {
+        showNotification(freshConsent);
+      }
+    };
 
     // 2. Redirected from operator?
     if (uriData) {
@@ -202,9 +214,7 @@ export const refreshIdsAndPreferences = async ({
       saveCookieValue(Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
       saveCookieValue(Cookies.preferences, operatorData.body.preferences);
 
-      if (operatorData?.body?.preferences) {
-        showNotification(operatorData.body.preferences.data?.use_browsing_for_personalization);
-      }
+      triggerNotification(operatorData.body.preferences?.data?.use_browsing_for_personalization);
 
       return {
         status: PafStatus.UP_TO_DATE,
@@ -226,7 +236,7 @@ export const refreshIdsAndPreferences = async ({
       };
     }
 
-    if (strIds && strPreferences) {
+    if (lastRefresh) {
       logInfo('Cookie found: YES');
 
       const pafStatus = getPafStatus(strIds, strPreferences);
@@ -237,7 +247,7 @@ export const refreshIdsAndPreferences = async ({
 
       return {
         status: pafStatus,
-        data: fromClientCookieValues(strIds, strPreferences),
+        data: currentPafData,
       };
     }
 
@@ -267,9 +277,7 @@ export const refreshIdsAndPreferences = async ({
         saveCookieValue(Cookies.identifiers, persistedIds);
         saveCookieValue(Cookies.preferences, operatorData.body.preferences);
 
-        if (operatorData?.body?.preferences) {
-          showNotification(operatorData.body.preferences.data?.use_browsing_for_personalization);
-        }
+        triggerNotification(operatorData.body.preferences?.data?.use_browsing_for_personalization);
 
         return {
           status: PafStatus.UP_TO_DATE,
@@ -291,8 +299,8 @@ export const refreshIdsAndPreferences = async ({
         thirdPartyCookiesSupported = true;
 
         logInfo('Save "not participating"');
-        setCookie(Cookies.identifiers, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
-        setCookie(Cookies.preferences, PafStatus.NOT_PARTICIPATING, getPrebidDataCacheExpiration());
+        saveCookieValue(Cookies.identifiers, undefined);
+        saveCookieValue(Cookies.preferences, undefined);
 
         return {
           status: PafStatus.UP_TO_DATE,
@@ -314,8 +322,8 @@ export const refreshIdsAndPreferences = async ({
       redirectToRead();
     } else {
       logInfo('Deffer redirect to later, in agreement with options');
-      setCookie(Cookies.identifiers, PafStatus.REDIRECT_NEEDED, getPrebidDataCacheExpiration());
-      setCookie(Cookies.preferences, PafStatus.REDIRECT_NEEDED, getPrebidDataCacheExpiration());
+      saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
+      saveCookieValue(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
     }
 
     return {
@@ -429,6 +437,9 @@ export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Iden
  * Otherwise, return undefined
  */
 export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
+  if (!getCookieValue(Cookies.lastRefresh)) {
+    return undefined;
+  }
   // Remove special string values
   const cleanCookieValue = (rawValue: string) =>
     rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;

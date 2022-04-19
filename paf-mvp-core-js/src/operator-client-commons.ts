@@ -1,5 +1,5 @@
 import { IdsAndOptionalPreferences } from './model/generated-model';
-import { fromIdsCookie, fromPrefsCookie } from './cookies';
+import { typedCookie } from './cookies';
 
 export enum PafStatus {
   NOT_PARTICIPATING = 'NOT_PARTICIPATING',
@@ -17,8 +17,8 @@ const getCleanCookieValue = (cookieValue: string): string | undefined =>
  */
 export const fromClientCookieValues = (idsCookie: string, prefsCookie: string): IdsAndOptionalPreferences => {
   return {
-    identifiers: fromIdsCookie(getCleanCookieValue(idsCookie)) ?? [],
-    preferences: fromPrefsCookie(getCleanCookieValue(prefsCookie)),
+    identifiers: typedCookie(getCleanCookieValue(idsCookie)) ?? [],
+    preferences: typedCookie(getCleanCookieValue(prefsCookie)),
   };
 };
 
