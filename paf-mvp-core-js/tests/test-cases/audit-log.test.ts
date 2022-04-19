@@ -9,7 +9,14 @@ import {
   TransmissionResponse,
 } from '@core/model/generated-model';
 
-const fixturesDirectory = path.join('tests', 'fixtures', 'audit-log');
+const fixturesDirectory = (() => {
+  const dirs = __dirname.split(path.sep);
+  while (dirs[dirs.length - 1] != 'tests') {
+    dirs.pop();
+  }
+  const fixturesDir = path.join(...dirs, 'fixtures', 'audit-log');
+  return fixturesDir;
+})();
 
 interface Fixture {
   seed: Seed;
