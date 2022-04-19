@@ -92,8 +92,10 @@ export const removeCookie = (cookieName: string) => {
   setCookie(cookieName, null, new Date(0));
 };
 
-const showNotification = (consent: boolean) => {
-  PAFUI.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent);
+const showNotificationIfValid = (consent: boolean | undefined) => {
+  if (consent !== undefined) {
+    PAFUI.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent);
+  }
 };
 
 // Update the URL shown in the address bar, without PAF data
@@ -184,10 +186,15 @@ export const refreshIdsAndPreferences = async ({
     const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
 
     const triggerNotification = (freshConsent: boolean) => {
-      const shouldShowNotification = !strPreferences || freshConsent !== currentlySelectedConsent;
+      const shouldShowNotification =
+        !strPreferences || // there was no value before the refresh
+        freshConsent !== currentlySelectedConsent; // the new value is different from the previous one
 
-      if (shouldShowNotification && freshConsent) {
-        showNotification(freshConsent);
+      if (shouldShowNotification) {
+        logDebug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
+        showNotificationIfValid(freshConsent);
+      } else {
+        logDebug(`No preferences changes (${currentlySelectedConsent}), don't show notification`);
       }
     };
 
@@ -206,8 +213,8 @@ export const refreshIdsAndPreferences = async ({
         throw 'Verification failed';
       }
 
-      logMessage('received:');
-      logMessage(operatorData);
+      logDebug('received:');
+      logDebug(operatorData);
 
       // 3. Received data?
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -267,7 +274,7 @@ export const refreshIdsAndPreferences = async ({
 
       // 3. Received data?
       if (persistedIds?.length > 0) {
-        logInfo('Operator returned id & prefs: YES');
+        logDebug('Operator returned id & prefs: YES');
 
         // If we got data, it means 3PC are supported
         thirdPartyCookiesSupported = true;
@@ -370,12 +377,12 @@ export const writeIdsAndPref = async (
       const response = await postJson(getUrl(jsonProxyEndpoints.write), signedData);
       const operatorData = (await response.json()) as GetIdsPrefsResponse;
 
-      const persistedIds = operatorData.body.identifiers.filter((identifier) => identifier?.persisted !== false);
+      const persistedIds = operatorData?.body?.identifiers?.filter((identifier) => identifier?.persisted !== false);
 
       saveCookieValue(Cookies.identifiers, persistedIds.length === 0 ? undefined : persistedIds);
       saveCookieValue(Cookies.preferences, operatorData.body.preferences);
 
-      showNotification(operatorData?.body?.preferences?.data?.use_browsing_for_personalization);
+      showNotificationIfValid(operatorData?.body?.preferences?.data?.use_browsing_for_personalization);
 
       return operatorData.body;
     }
@@ -496,12 +503,12 @@ const decorateLog = (prefix: string, args: unknown[]) => {
 /**
  * Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
  */
-function logMessage(...args: unknown[]) {
-  console.log(...decorateLog('MESSAGE:', args));
+function logDebug(...args: unknown[]) {
+  console.debug(...decorateLog('MESSAGE:', args));
 }
 
 function logInfo(...args: unknown[]) {
-  console.info(...decorateLog('INFO:', args));
+  console.log(...decorateLog('INFO:', args));
 }
 
 function logWarn(...args: unknown[]) {
