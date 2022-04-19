@@ -11,6 +11,11 @@ import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
 import { Identifier, IdsAndPreferences, PostSeedResponse } from '@core/model/generated-model';
 import fetch from 'jest-fetch-mock';
+import { isBrowserKnownToSupport3PC } from '@core/user-agent';
+import { MockedFunction } from 'ts-jest';
+
+jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
+jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
 
 const proxyHostName = 'http://localhost';
 
@@ -18,7 +23,6 @@ afterEach(() => {
   // cleaning up the mess left behind the previous test
   fetch.resetMocks();
 });
-
 describe('Function getIdsAndPreferences', () => {
   beforeEach(() => {
     CookiesHelpers.clearPafCookies();
@@ -110,6 +114,278 @@ describe('Function writeIdsAndPref', () => {
       // FIXME: redirect Url is changed inside writeIdsAndPref
       expect(redirectMock.mock.calls[0][0]).toBe(redirectUrl.toString());
     });
+  });
+});
+
+describe('Function refreshIdsAndPreferences', () => {
+  const realLocation = location;
+
+  describe('with PAF data in the URI', () => {
+    const historySpy = jest.spyOn(global.history, 'pushState');
+    const uriData = 'TEST-STRING';
+    const identifier = getFakeIdentifiers()[0];
+    const preferences = getFakePreferences(true);
+
+    beforeAll(() => {
+      delete global.location;
+      global.location = {
+        search: `?paf=${uriData}`,
+        href: 'fake-href?foo=42&paf=TO_BE_REMOVED&baz=bar',
+      } as unknown as Location;
+      global.PAFUI = {
+        showNotification: jest.fn(),
+      };
+    });
+
+    afterEach(() => {
+      historySpy.mockClear();
+    });
+
+    afterAll(() => {
+      global.location = realLocation;
+    });
+
+    test('should clean paf parameter in the URI', async () => {
+      fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
+
+      await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: true,
+      });
+
+      expect(historySpy).toBeCalledWith(null, '', 'fake-href?foo=42&baz=bar');
+    });
+
+    test('should verify uriData', async () => {
+      fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
+
+      await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: true,
+      });
+
+      expect(fetch.mock.calls[0][1].body).toBe(uriData);
+    });
+
+    test('should throw an error if empty response received', async () => {
+      fetch.mockResponseOnce('null');
+      await expect(
+        refreshIdsAndPreferences({
+          proxyHostName,
+          triggerRedirectIfNeeded: true,
+        })
+      ).rejects.toBe('Verification failed');
+    });
+
+    test('should save NOT_PARTICIPATING, if no preferences received', async () => {
+      fetch.mockResponseOnce(
+        JSON.stringify({
+          body: {
+            identifiers: [],
+            preferences: undefined,
+          },
+        })
+      );
+      await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: true,
+      });
+
+      expect(document.cookie).toContain(`${Cookies.identifiers}=NOT_PARTICIPATING`);
+      expect(document.cookie).toContain(`${Cookies.preferences}=NOT_PARTICIPATING`);
+    });
+
+    test('should save persistedIds to Cookies', async () => {
+      fetch.mockResponseOnce(
+        JSON.stringify({
+          body: {
+            identifiers: [identifier],
+            preferences,
+          },
+        })
+      );
+
+      const result = await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: true,
+      });
+
+      expect(document.cookie).toContain(JSON.stringify(identifier));
+      expect(document.cookie).toContain(JSON.stringify(preferences));
+
+      expect(result).toEqual({
+        status: PafStatus.UP_TO_DATE,
+        data: {
+          identifiers: [identifier],
+          preferences,
+        },
+      });
+    });
+
+    test('should display notification', async () => {
+      fetch.mockResponseOnce(
+        JSON.stringify({
+          body: {
+            identifiers: [identifier],
+            preferences,
+          },
+        })
+      );
+
+      await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: true,
+      });
+
+      expect(global.PAFUI.showNotification).toBeCalledWith('PERSONALIZED');
+    });
+  });
+
+  describe('when redirect needed', () => {
+    const redirectMock = jest.fn();
+    const realLocation = location;
+
+    beforeAll(() => {
+      delete global.location;
+      global.location = {
+        replace: redirectMock,
+        href: '',
+      } as unknown as Location;
+      CookiesHelpers.setCookies(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
+    });
+
+    afterAll(() => {
+      CookiesHelpers.clearPafCookies();
+      global.location = realLocation;
+    });
+
+    test('should redirect', async () => {
+      const result = await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: false,
+      });
+
+      expect(global.location.replace).not.toBeCalled();
+      expect(result).toEqual({
+        status: PafStatus.REDIRECT_NEEDED,
+      });
+
+      await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: true,
+      });
+
+      expect(redirectMock).toBeCalled();
+    });
+  });
+
+  describe('when cookies found', () => {
+    const fakeId = 'FAKE_IDENTIFIER';
+
+    beforeAll(() => {
+      CookiesHelpers.mockPreferences(true);
+      CookiesHelpers.mockIdentifiers(fakeId);
+    });
+
+    afterAll(() => {
+      CookiesHelpers.clearPafCookies();
+    });
+
+    test('should return cookies value', async () => {
+      const result = await refreshIdsAndPreferences({
+        proxyHostName,
+        triggerRedirectIfNeeded: true,
+      });
+
+      expect(result).toEqual({
+        status: PafStatus.UP_TO_DATE,
+        data: {
+          identifiers: getFakeIdentifiers(fakeId),
+          preferences: getFakePreferences(true),
+        },
+      });
+    });
+  });
+
+  describe('when no cookie found', () => {
+    beforeAll(() => {
+      global.PAFUI = {
+        showNotification: jest.fn(),
+      };
+    });
+
+    describe('when 3PC are supported', () => {
+      beforeAll(() => {
+        (isBrowserKnownToSupport3PC as MockedFunction<typeof isBrowserKnownToSupport3PC>).mockImplementation(
+          () => true
+        );
+      });
+
+      test('should return data from operator', async () => {
+        fetch.mockResponseOnce(
+          JSON.stringify({
+            body: {
+              identifiers: getFakeIdentifiers(),
+              preferences: getFakePreferences(),
+            },
+          })
+        );
+        const result = await refreshIdsAndPreferences({
+          proxyHostName,
+          triggerRedirectIfNeeded: false,
+        });
+
+        expect(isBrowserKnownToSupport3PC).toHaveBeenCalled();
+        expect(result).toEqual({
+          status: PafStatus.UP_TO_DATE,
+          data: {
+            identifiers: getFakeIdentifiers(),
+            preferences: getFakePreferences(),
+          },
+        });
+        expect(document.cookie).toContain(`${Cookies.identifiers}=${JSON.stringify(getFakeIdentifiers())}`);
+        expect(document.cookie).toContain(`${Cookies.preferences}=${JSON.stringify(getFakePreferences())}`);
+
+        CookiesHelpers.clearPafCookies();
+      });
+    });
+
+    describe('when 3PC aren`t supported', () => {
+      const replaceMock = jest.fn();
+      beforeAll(() => {
+        (isBrowserKnownToSupport3PC as MockedFunction<typeof isBrowserKnownToSupport3PC>).mockImplementation(
+          () => false
+        );
+        delete global.location;
+        global.location = {
+          replace: replaceMock,
+          href: '',
+        } as unknown as Location;
+      });
+
+      afterAll(() => {
+        global.location = realLocation;
+      });
+
+      test('triggers redirect', async () => {
+        await refreshIdsAndPreferences({
+          proxyHostName,
+          triggerRedirectIfNeeded: true,
+        });
+
+        expect(replaceMock).toHaveBeenCalled();
+      });
+    });
+  });
+});
+
+describe('Function signPreferences', () => {
+  test('should return fetch response', async () => {
+    const mockResponse = { body: 'response' };
+    fetch.mockResponseOnce(JSON.stringify(mockResponse));
+    const input = { unsignedPreferences: getFakePreferences(), identifiers: getFakeIdentifiers() };
+    const result = await signPreferences({ proxyHostName }, input);
+    expect(result).toEqual(mockResponse);
   });
 });
 
