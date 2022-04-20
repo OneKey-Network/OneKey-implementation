@@ -615,10 +615,10 @@ const seedStorage = new Map<TransactionId, SeedEntry>();
 const auditLogByPrebidTransactionId = new Map<PrebidTransactionId, AuditLog>();
 const prebidTransactionIdBySlotId = new Map<SlotId, PrebidTransactionId>();
 
-const createSeed = async (
+export const createSeed = async (
   { proxyHostName }: GenerateSeedOptions,
   transactionIds: TransactionId[]
-): Promise<Seed | undefined> => {
+): Promise<SeedEntry | undefined> => {
   if (transactionIds.length == 0) {
     return undefined;
   }
