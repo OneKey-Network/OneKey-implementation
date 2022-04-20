@@ -1,110 +1,103 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { buildAuditLog } from '@core/model/audit-log';
+import { buildAuditLog, fromResponseToResult } from '@core/model/audit-log';
+import { TransmissionResponse } from '@core/model/generated-model';
 import {
-  AuditLog,
-  IdsAndPreferences,
-  Seed,
-  TransmissionRequest,
-  TransmissionResponse,
-} from '@core/model/generated-model';
-
-const fixturesDirectory = (() => {
-  const dirs = __dirname.split(path.sep);
-  while (dirs[dirs.length - 1] != 'tests') {
-    dirs.pop();
-  }
-  const fixturesDir = path.join(...dirs, 'fixtures', 'audit-log');
-  return fixturesDir;
-})();
-
-interface Fixture {
-  seed: Seed;
-  data: IdsAndPreferences;
-  response: TransmissionResponse;
-  auditLog: AuditLog;
-}
-
-const loadJson = <T>(...filePath: string[]): T => {
-  const joinedPath = path.join(fixturesDirectory, ...filePath);
-  const jsonString = fs.readFileSync(joinedPath, 'utf8');
-  const json = JSON.parse(jsonString);
-  return json;
-};
-
-const loadFixture = (directory: string, auditLogName = 'audit-log.json'): Fixture => {
-  const auditLog = loadJson<AuditLog>(directory, auditLogName);
-  const request = loadJson<TransmissionRequest>(directory, 'transmission-request.json');
-  const response = loadJson<TransmissionResponse>(directory, 'transmission-response.json');
-  return {
-    seed: request.seed,
-    data: request.data,
-    response,
-    auditLog,
-  };
-};
+  buildAuditLogFixture,
+  buildTransmissionResponseFixture,
+  contentFixture,
+  seedFixture,
+  dataFixture,
+  retrieveTransmissionResults,
+  generateContents,
+} from '../fixtures/audit-log-fixtures';
 
 describe('Audit Log Tests', () => {
-  const defaultDirectory = '1_audit-log_one_transmission';
-  const defaultContentId = '90141190-26fe-497c-acee-4d2b649c2112';
+  let dspResponse: TransmissionResponse;
+
+  beforeEach(() => {
+    dspResponse = buildTransmissionResponseFixture('dsp1', [contentFixture]);
+  });
 
   test('Response with unknown version', () => {
-    const fixture = loadFixture(defaultDirectory);
-    fixture.response.version = '42';
+    dspResponse.version = '42';
 
-    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
+    const auditLog = buildAuditLog(seedFixture, dataFixture, dspResponse, contentFixture.content_id);
 
     expect(auditLog).toBeUndefined();
   });
 
   test('Not found', () => {
-    const fixture = loadFixture(defaultDirectory);
-
-    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, 'bad-content-id');
+    const auditLog = buildAuditLog(seedFixture, dataFixture, dspResponse, 'bad-content-id');
 
     expect(auditLog).toBeUndefined();
   });
 
   test('one transmission for one content id', () => {
-    const fixture = loadFixture(defaultDirectory);
+    const expected = buildAuditLogFixture([fromResponseToResult(dspResponse)]);
 
-    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
+    const auditLog = buildAuditLog(seedFixture, dataFixture, dspResponse, contentFixture.content_id);
 
-    expect(auditLog).toEqual(fixture.auditLog);
+    expect(auditLog).toEqual(expected);
   });
 
   test('2 nested transmissions for one content id', () => {
-    const fixture = loadFixture('2_audit-log_two_transmissions');
+    const response = buildTransmissionResponseFixture('ssp1', [], [dspResponse]);
+    const results = retrieveTransmissionResults('ssp1#dsp1', response);
+    const expected = buildAuditLogFixture(results);
 
-    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
+    const auditLog = buildAuditLog(seedFixture, dataFixture, response, contentFixture.content_id);
 
-    expect(auditLog).toEqual(fixture.auditLog);
+    expect(auditLog).toEqual(expected);
   });
 
-  test('2 nested transmissions with many content_id', () => {
-    const fixture = loadFixture(
-      '3_audit-log_many_children_and_content_id',
-      'audit-log-90141190-26fe-497c-acee-4d2b649c2112.json'
+  test('3 nested transmissions with many content_id', () => {
+    const contentIds = generateContents(2, 'dsp1');
+    contentIds.push(contentFixture);
+
+    const response = buildTransmissionResponseFixture(
+      'ssp1',
+      [],
+      [
+        buildTransmissionResponseFixture(
+          'ssp2',
+          [],
+          [buildTransmissionResponseFixture('dsp1', contentIds, [buildTransmissionResponseFixture('partner', [], [])])]
+        ),
+      ]
     );
+    const results = retrieveTransmissionResults('ssp1#ssp2#dsp1', response);
 
-    const auditLog = buildAuditLog(fixture.seed, fixture.data, fixture.response, defaultContentId);
+    const expected = buildAuditLogFixture(results);
+    const auditLog = buildAuditLog(seedFixture, dataFixture, response, contentFixture.content_id);
 
-    expect(auditLog).toEqual(fixture.auditLog);
+    expect(auditLog).toEqual(expected);
   });
 
-  test('3 nested transmissions with many pathes', () => {
-    const fixture = loadFixture(
-      '3_audit-log_many_children_and_content_id',
-      'audit-log-8dc32df6-f379-4dbb-bf82-a495d9ec898a.json'
+  test('Multiple paths', () => {
+    const response = buildTransmissionResponseFixture(
+      'ssp1',
+      [],
+      [
+        buildTransmissionResponseFixture(
+          'ssp2',
+          [],
+          [buildTransmissionResponseFixture('dsp1', generateContents(2, 'dsp1'), [])]
+        ),
+        buildTransmissionResponseFixture(
+          'ssp3',
+          [],
+          [
+            buildTransmissionResponseFixture('dsp2', generateContents(2, 'dsp2'), []),
+            buildTransmissionResponseFixture('dsp3', [], []),
+          ]
+        ),
+        buildTransmissionResponseFixture('ssp4', [], [buildTransmissionResponseFixture('dsp3', [contentFixture], [])]),
+      ]
     );
+    const results = retrieveTransmissionResults('ssp1#ssp4#dsp3', response);
 
-    const auditLog = buildAuditLog(
-      fixture.seed,
-      fixture.data,
-      fixture.response,
-      '8dc32df6-f379-4dbb-bf82-a495d9ec898a'
-    );
+    const expected = buildAuditLogFixture(results);
+    const auditLog = buildAuditLog(seedFixture, dataFixture, response, contentFixture.content_id);
 
-    expect(auditLog).toEqual(fixture.auditLog);
+    expect(auditLog).toEqual(expected);
   });
 });

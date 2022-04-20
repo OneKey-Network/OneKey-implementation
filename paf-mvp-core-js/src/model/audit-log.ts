@@ -67,7 +67,7 @@ const findTransactionPath = (response: TransmissionResponse, contentId: string):
       const content = current.node.contents.find((c) => c.content_id == contentId);
       if (content !== undefined) {
         return {
-          results: stack.map(fromResponseToResult),
+          results: stack.map((t) => fromResponseToResult(t.node)),
           transactionId: content.transaction_id,
         };
       }
@@ -86,7 +86,7 @@ const findTransactionPath = (response: TransmissionResponse, contentId: string):
   return undefined;
 };
 
-const fromResponseToResult = (t: TreeTraversalTracker): TransmissionResult => {
-  const { version, receiver, contents, status, details, source } = t.node;
+export const fromResponseToResult = (r: TransmissionResponse): TransmissionResult => {
+  const { version, receiver, contents, status, details, source } = r;
   return { version, receiver, contents, status, details, source };
 };
