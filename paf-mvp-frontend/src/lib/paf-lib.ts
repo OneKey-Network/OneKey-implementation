@@ -590,7 +590,7 @@ export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
  * in case they change in the cookies after the
  * generation of the Seed.
  */
-interface SeedEntry {
+export interface SeedEntry {
   seed: Seed;
   idsAndPreferences: IdsAndPreferences;
 }
