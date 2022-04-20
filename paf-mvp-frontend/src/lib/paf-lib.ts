@@ -21,7 +21,7 @@ import { QSParam } from '@core/query-string';
 import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
 import { getCookieValue } from '../utils/cookie';
 import { NotificationEnum } from '../enums/notification.enum';
-import { logDebug, logInfo } from '@frontend/lib/logging';
+import { logDebug, logInfo } from './logging';
 
 declare const PAFUI: {
   promptConsent: () => Promise<boolean>;
@@ -262,8 +262,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
   const localQSParamShowPrompt = 'paf_show_prompt';
 
   // Update the URL shown in the address bar, without PAF data
-  const cleanUpUrL = () =>
-    history.pushState(null, '', removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]));
+  const cleanUpUrL = () => {
+    const cleanedUrl = removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]);
+    history.pushState(null, '', cleanedUrl);
+  };
   const getUrl = getProxyUrl(proxyHostName);
 
   const redirectToRead = () => {

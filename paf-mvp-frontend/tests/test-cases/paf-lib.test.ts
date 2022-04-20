@@ -83,6 +83,7 @@ describe('Function getNewId', () => {
   });
 });
 
+// FIXME test updateIdsAndPreferences
 /*
 describe('Function writeIdsAndPref', () => {
   const idAndPreferences: IdsAndPreferences = {
@@ -251,7 +252,7 @@ describe('Function refreshIdsAndPreferences', () => {
       delete global.location;
       global.location = {
         replace: redirectMock,
-        href: '',
+        href: 'http://localhost',
       } as unknown as Location;
       CookiesHelpers.setCookies(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
     });
@@ -362,7 +363,7 @@ describe('Function refreshIdsAndPreferences', () => {
         delete global.location;
         global.location = {
           replace: replaceMock,
-          href: '',
+          href: 'http://localhost/my-page.html?foo=bar',
         } as unknown as Location;
       });
 
