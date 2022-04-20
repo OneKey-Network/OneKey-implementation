@@ -1,9 +1,9 @@
 import {
   getIdsAndPreferences,
+  getNewId,
   refreshIdsAndPreferences,
   signPreferences,
-  writeIdsAndPref,
-  getNewId,
+  updateIdsAndPreferences,
 } from './lib/paf-lib';
 import { NotificationEnum } from './enums/notification.enum';
 
@@ -12,9 +12,9 @@ declare global {
     PAF: {
       getNewId: typeof getNewId;
       signPreferences: typeof signPreferences;
-      writeIdsAndPref: typeof writeIdsAndPref;
       getIdsAndPreferences: typeof getIdsAndPreferences;
       refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
+      updateIdsAndPreferences: typeof updateIdsAndPreferences;
     };
     PAFUI: {
       promptConsent: () => Promise<boolean>;

@@ -31,7 +31,7 @@ pofMarketApp.get('/', async (req: Request, res: Response) => {
 
   res.render(view, {
     title: pofMarketConfig.name,
-    host: pofMarketConfig.host,
+    proxyHostName: pofMarketConfig.host,
     cdnHost: pofMarketConfig.cdnHost,
   });
 });

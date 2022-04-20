@@ -1,6 +1,5 @@
 import {
   getNewId,
-  writeIdsAndPref,
   getIdsAndPreferences,
   signPreferences,
   refreshIdsAndPreferences,
@@ -84,6 +83,8 @@ describe('Function getNewId', () => {
   });
 });
 
+// FIXME test updateIdsAndPreferences
+/*
 describe('Function writeIdsAndPref', () => {
   const idAndPreferences: IdsAndPreferences = {
     preferences: getFakePreferences(true),
@@ -116,6 +117,8 @@ describe('Function writeIdsAndPref', () => {
     });
   });
 });
+
+ */
 
 describe('Function refreshIdsAndPreferences', () => {
   const realLocation = location;
@@ -214,7 +217,7 @@ describe('Function refreshIdsAndPreferences', () => {
       expect(document.cookie).toContain(JSON.stringify(preferences));
 
       expect(result).toEqual({
-        status: PafStatus.UP_TO_DATE,
+        status: PafStatus.PARTICIPATING,
         data: {
           identifiers: [identifier],
           preferences,
@@ -249,7 +252,7 @@ describe('Function refreshIdsAndPreferences', () => {
       delete global.location;
       global.location = {
         replace: redirectMock,
-        href: '',
+        href: 'http://localhost',
       } as unknown as Location;
       CookiesHelpers.setCookies(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
     });
@@ -299,7 +302,7 @@ describe('Function refreshIdsAndPreferences', () => {
       });
 
       expect(result).toEqual({
-        status: PafStatus.UP_TO_DATE,
+        status: PafStatus.PARTICIPATING,
         data: {
           identifiers: getFakeIdentifiers(fakeId),
           preferences: getFakePreferences(true),
@@ -338,7 +341,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
         expect(isBrowserKnownToSupport3PC).toHaveBeenCalled();
         expect(result).toEqual({
-          status: PafStatus.UP_TO_DATE,
+          status: PafStatus.PARTICIPATING,
           data: {
             identifiers: getFakeIdentifiers(),
             preferences: getFakePreferences(),
@@ -360,7 +363,7 @@ describe('Function refreshIdsAndPreferences', () => {
         delete global.location;
         global.location = {
           replace: replaceMock,
-          href: '',
+          href: 'http://localhost/my-page.html?foo=bar',
         } as unknown as Location;
       });
 

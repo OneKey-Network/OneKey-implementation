@@ -6,7 +6,6 @@
   "scripts": {
     "test": "jest --passWithNoTests",
     "build-front": "npm run build --prefix paf-mvp-frontend",
-    "build-cmp": "npm run build --prefix paf-mvp-demo-express",
     "start:watch": "nodemon --debug .",
     "lint": "eslint .",
     "lint:all": "npm run lint && npm run lint:frontend",
@@ -18,7 +17,7 @@
     "prettier:fix": "prettier --write \"./paf-*/**/*.{tsx,ts}\" --loglevel silent",
     "prepare": "husky install",
     "###########": "FYI: Google cloud console automatically runs these scripts after deploy:",
-    "gcp-build": "npm run build-front && npm run build-cmp",
+    "gcp-build": "npm run build-front",
     "start": "npm run start --prefix paf-mvp-demo-express"
   },
   "repository": {
