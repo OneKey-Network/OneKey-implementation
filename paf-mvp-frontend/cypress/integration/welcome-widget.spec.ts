@@ -89,10 +89,8 @@ describe('Welcome widget view', () => {
 
     it('should save preferences', () => {
       cy.window().then((win) => {
-        const signStub = cy.stub(win.PAF, 'signPreferences');
         const updateStub = cy.stub(win.PAF, 'updateIdsAndPreferences');
         page.saveButton.click();
-        cy.wrap(signStub).should('be.called');
         cy.wrap(updateStub).should('be.called');
       });
     });
