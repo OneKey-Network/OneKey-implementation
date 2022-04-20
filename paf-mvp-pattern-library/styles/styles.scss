@@ -1,0 +1,101 @@
+.ok-ui {
+  @import "vars";
+
+  // reset
+  // we need to force quite an intense reset here to ensure only our styling alters our components
+  & {
+    font-family: $base-font-family;
+    font-size: $base-font-size;
+    line-height: $base-line-height;
+    color: $grey-800;
+    box-sizing: border-box;
+  }
+
+  *, *::before, *::after {
+    box-sizing: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+
+  &, *, *::before, *::after {
+    padding: 0;
+    margin: 0;
+    border: none;
+    outline: none;
+
+    text-transform: none;
+
+    transition: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .ok-ui-heading-1 {
+    font-family: $heading-font-family;
+    font-size: $heading-font-size;
+    line-height: $heading-line-height;
+    font-weight: $heading-font-weight;
+  }
+
+  .ok-ui-heading-2 {
+    font-family: $heading-font-family;
+    font-size: $sub-heading-font-size;
+    line-height: $sub-heading-line-height;
+    font-weight: $heading-font-weight;
+  }
+
+  // mixins/functions
+  @mixin visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  // this function is to allow us to generate em sizes based on the original font size (12px)
+  @function em($pixels, $context: 12px) {
+    @return calc($pixels / $context) * 1em;
+  }
+
+  @mixin focusable {
+    box-shadow: 0 0 0 em(4px) $brand-50;
+  }
+
+  @mixin popup-gutterable {
+    @media (min-width: (320px + ($popup-gutter * 2))) { @content; }
+  }
+
+  @mixin phone-only {
+    @media (max-width: ($max-width - 1)) { @content; }
+  }
+
+  @mixin tablet-plus {
+    @media (min-width: $max-width) { @content; }
+  }
+
+  // components
+  @import "components/browsing-id.scss";
+  @import "components/button.scss";
+  @import "components/card.scss";
+  @import "components/link.scss";
+  @import "components/option.scss";
+  @import "components/popup.scss";
+  @import "components/provider.scss";
+  @import "components/snackbar.scss";
+  @import "components/spacer.scss";
+  @import "components/toggle.scss";
+  @import "components/tooltip.scss";
+
+  // utilities
+  @for $i from 0 through 2 {
+    .ok-ui-mt-#{$i} { margin-top: calc(8px * $i); }
+    .ok-ui-mb-#{$i} { margin-bottom: calc(8px * $i); }
+  }
+}

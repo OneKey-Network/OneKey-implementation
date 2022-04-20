@@ -1,0 +1,52 @@
+// ------- Basic customisation --------
+
+// Colours
+
+$brand-primary: #18A9E1; // the primary brand colour; used in places like the main buttons and links
+
+// Fonts
+
+$base-font-size: 12px; // the font size of the main text, and what most other measurements are based on
+
+// ------- More advanced customisation --------
+
+// Colours
+
+$brand-600: darken($brand-primary, 12%); // commonly a darker version of the primary brand color; used for button focus and hover states
+$brand-800: darken($brand-primary, 15%); // commonly an even darker version of the primary brand color; used for button active states
+$brand-50: rgba($brand-primary, 0.12); // commonly a much lighter version of the primary brand color; used for branded backgrounds, like certain types of button
+
+$grey-800: #252E38;
+$grey-600: #505253;
+$grey-400: #828586;
+$grey-200: #C4C6CA;
+$grey-100: #E1E3E8;
+$grey-50: #F7F7F7;
+
+$shadow-background: rgba(#000000, 0.12);
+$popup-overlay-background: rgba(#000000, 0.25);
+$popup-background: #FFFFFF;
+
+// Fonts
+
+$base-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+$base-line-height: 1.5;
+
+$heading-font-family: Verdana, sans-serif;
+$heading-font-size: 1.083em;
+$heading-font-weight: 600;
+$heading-line-height: 1.429;
+
+$sub-heading-font-size: 1em;
+$sub-heading-line-height: 1.333;
+
+// Popup
+
+$popup-z-index: 10000; // makes this as low as you can
+$popup-gutter: 16px;
+$max-width: 40em;
+
+// Radii
+
+$border-radius: 8px;
+$button-border-radius: 999px;

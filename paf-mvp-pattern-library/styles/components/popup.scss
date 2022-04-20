@@ -1,0 +1,31 @@
+.ok-ui-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: $popup-z-index;
+}
+
+.ok-ui-popup--open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ok-ui-popup__block {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+
+  background-color: $popup-overlay-background;
+}
+
+.ok-ui-popup__content {
+  z-index: 1;
+}

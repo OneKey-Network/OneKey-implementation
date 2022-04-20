@@ -1,0 +1,73 @@
+.ok-ui-tooltip {
+  display: inline-flex;
+  align-items: center;
+  
+  width: em(16px);
+  height: em(16px);
+  margin-left: em(4px);
+
+  cursor: pointer;
+
+  > * {
+    pointer-events: none;
+  }
+
+  > svg {
+    position: relative;
+    top: em(2px);
+  }
+
+  &:focus > svg {
+    border-radius: 999px;
+    
+    @include focusable;
+  }
+}
+
+.ok-ui-tooltip__message {
+  $arrow-size: em(8px);
+
+  display: none;
+
+  // position absolute is set by popper
+  z-index: 1;
+ 
+  width: em(200px);
+  padding: em(8px);
+  border-radius: $border-radius;
+
+  color: #FFFFFF;
+  text-align: center;
+
+  background-color: $grey-800;
+  box-shadow: 0 em(8px) em(12px) $shadow-background;
+
+  cursor: default;
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    left: 50%;
+    transform: translate3d(-$arrow-size, em(-2px), 0);
+
+    border-left: $arrow-size solid transparent;
+    border-right: $arrow-size solid transparent;
+  }
+
+  &[data-popper-placement="top"]::after {
+    bottom: -$arrow-size;
+    border-top: em(6px) solid $grey-800;
+  }
+
+  &[data-popper-placement="bottom"]::after {
+    top: em(-4px);
+    border-bottom: em(6px) solid $grey-800;
+  }
+}
+
+.ok-ui-tooltip[data-show] {
+  .ok-ui-tooltip__message {
+    display: block;
+  }
+}

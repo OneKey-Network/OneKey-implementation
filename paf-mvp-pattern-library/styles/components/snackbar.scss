@@ -1,0 +1,44 @@
+.ok-ui-snackbar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  z-index: $popup-z-index;
+
+  width: em(633px);
+  max-width: calc(100vw - $popup-gutter * 2);
+  border-radius: $border-radius;
+  box-shadow: 0 em(8px) em(12px) $shadow-background;
+}
+
+.ok-ui-snackbar__body {
+  padding: em(16px);
+  border-radius: $border-radius $border-radius 0 0;
+  background-color: $popup-background;
+
+  p {
+    margin-top: em(4px);
+    color: $grey-600;
+  }
+}
+
+.ok-ui-snackbar__icon {
+  flex: 0 0 em(40px);
+  width: em(40px);
+  height: em(40px);
+  margin-right: em(16px);
+  border-radius: $border-radius;
+  background-color: $brand-50;
+}
+
+.ok-ui-snackbar__footer {
+  display: flex;
+  justify-content: flex-end;
+
+  padding: em(8px);
+  border-radius: 0 0 $border-radius $border-radius;
+
+  color: $grey-400;
+  background-color: $grey-50;
+}

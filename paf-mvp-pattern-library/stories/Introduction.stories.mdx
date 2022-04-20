@@ -1,0 +1,51 @@
+import { Meta } from '@storybook/addon-docs';
+
+<Meta title="OneKey UI kit" />
+
+# Welcome to the OneKey UI kit
+
+This is the pattern library for OneKey, built in Storybook to make it easy to understand the components, and easy to copy the examples for use in your application.
+
+> If you haven't already, run `npm start` to start Storybook
+
+<br/><br/>
+
+## Building the pattern library
+
+The main export from this pattern library is the CSS and Javascript files. You can build those by running:
+
+- `npm run build`
+
+This will generate:
+
+1. A minified, sourcemapped `./build/ok-ui.css` file
+2. A minified `./build/ok-ui.js` file
+3. A `./build/images/OneKey.svg` logo file
+
+### Testing the built pattern library
+
+You can validate that the build worked by running:
+
+- `npm run build-test`
+
+This will open a basic HTML file with the CSS and Javascript included, and one of the groups from the pattern library as an example.
+
+<br/>
+
+## Customising the styling
+
+There is a `_vars.scss` file in the `./styles` directory where you can manage the core configuration of the styling.
+
+There are three intended levels of customisation:
+
+1. **Change the primary brand colour and the base font size variables.** You can personalise the appearance quickly with these two changes.
+2. **Change the advanced variables.** Customise more of the brand colours, change the font styling more heavily.
+3. **Changes the components.** Fully customise the component SCSS files in `./styles/components` to suit your needs.
+
+<br/>
+
+## Copying the examples
+
+The Groups section of the Storybook navigation contains the most useful HTML examples for you to copy into your application.
+
+Make sure `Docs` is selected in the toolbar at the top, and then use the `Show Code` action at the bottom right of each canvas to copy the HTML you need to build that view. See the [Settings page](/docs/groups-settings--settings) example.

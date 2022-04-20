@@ -1,0 +1,14 @@
+.ok-ui-provider {
+  display: flex;
+  align-items: center;
+
+  padding: em(8px) 0;
+  border-bottom: solid em(1px) $grey-100;
+}
+
+.ok-ui-provider .ok-ui-heading-1 {
+  flex: 1;
+
+  margin-left: em(8px);
+  margin-right: em(8px);
+}

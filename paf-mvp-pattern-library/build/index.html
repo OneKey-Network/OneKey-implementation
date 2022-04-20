@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OK UI sample implementation</title>
+  <link rel="stylesheet" href="ok-ui.css">
+  <script src="ok-ui.js"></script>
+</head>
+<body>
+
+  <div class="ok-ui">
+    <div class="ok-ui-popup ok-ui-popup--open">
+      <div class="ok-ui-popup__block"></div>
+      <div class="ok-ui-popup__content">
+        <form>
+          <section class="ok-ui-card">
+            <header class="ok-ui-card__header">
+              <div class="ok-ui-card__actions">
+                <img src="images/OneKey.svg" alt="OneKey" class="ok-ui-card__header-logo" />
+                <button type="button" class="ok-ui-button ok-ui-button--text ok-ui-button--icon-end">
+                  <svg width="0.667em" height="0.667em" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.39332 0.666748L3.99999 3.06008L1.60666 0.666748L0.666656 1.60675L3.05999 4.00008L0.666656 6.39341L1.60666 7.33341L3.99999 4.94008L6.39332 7.33341L7.33332 6.39341L4.93999 4.00008L7.33332 1.60675L6.39332 0.666748Z" fill="currentColor" />
+                  </svg>
+                  <span class="ok-ui-button__label">Cancel</span>
+                </button>
+              </div>
+              <h1 class="ok-ui-heading-1">Choose your marketing preferences</h1>
+              <p>OneKey signals your preferences that can enhance your experience across partner websites, without bothering you with future prompts or directly identifying you.</p>
+              <p>By saving your preferences, you also agree to our site’s privacy policy.</p>
+            </header>
+            <main class="ok-ui-card__body">
+              <div class="ok-ui-browsing-id-wrapper">
+                <span>
+                  <span class="ok-ui-browsing-id-label" aria-describedby="ok-ui-your-browsing-id-tooltip">
+                    Your browsing ID
+                  </span>
+                  <button class="ok-ui-tooltip" tabindex="0">
+                    <svg width="1.167em" height="1.167em" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6.33325 3.66659H7.66659V4.99992H6.33325V3.66659ZM6.33325 6.33325H7.66659V10.3333H6.33325V6.33325ZM6.99992 0.333252C3.31992 0.333252 0.333252 3.31992 0.333252 6.99992C0.333252 10.6799 3.31992 13.6666 6.99992 13.6666C10.6799 13.6666 13.6666 10.6799 13.6666 6.99992C13.6666 3.31992 10.6799 0.333252 6.99992 0.333252ZM6.99992 12.3333C4.05992 12.3333 1.66659 9.93992 1.66659 6.99992C1.66659 4.05992 4.05992 1.66659 6.99992 1.66659C9.93992 1.66659 12.3333 4.05992 12.3333 6.99992C12.3333 9.93992 9.93992 12.3333 6.99992 12.3333Z" fill="#B6BCCA" />
+                    </svg>
+                    <span class="ok-ui-tooltip__message-wrapper">
+                      <span id="ok-ui-your-browsing-id-tooltip" class="ok-ui-tooltip__message"><strong>OneKey</strong> links your preferences to a random, pseudonymous ID  that lasts 6 months. Use your right to be forgotten at any time by refreshing your browsing ID</span>
+                    </span>
+                  </button>
+                </span>
+                <button class="ok-ui-browsing-id">
+                  <span>NNNAZD567</span>
+                  <svg width="1em" height="1em" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0.666748 11.3334V6.66668H5.33341L3.18875 8.81335C3.92872 9.57003 4.94172 9.99762 6.00008 10C7.69305 9.99751 9.20109 8.92949 9.76541 7.33335H9.77741C9.85378 7.11642 9.91154 6.8934 9.95008 6.66668H11.2914C10.9555 9.33328 8.68776 11.3333 6.00008 11.3334H5.99341C4.57926 11.3376 3.22219 10.7758 2.22475 9.77335L0.666748 11.3334ZM2.04941 5.33335H0.708081C1.04391 2.66775 3.31008 0.668109 5.99675 0.666653H6.00008C7.4145 0.662127 8.77189 1.22391 9.76941 2.22668L11.3334 0.666653V5.33335H6.66675L8.81475 3.18668C8.07401 2.42911 7.05961 2.00144 6.00008 2.00001C4.30712 2.00251 2.79907 3.07054 2.23475 4.66668H2.22275C2.14579 4.88342 2.08801 5.1065 2.05008 5.33335H2.04941Z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="ok-ui-option">
+                <input class="ok-ui-option__input" type="radio" name="marketing" value="1" id="ok-ui-marketing-1" />
+                <label class="ok-ui-option__label" for="ok-ui-marketing-1">
+                  <span class="ok-ui-option__input-facade"></span>
+                  <div class="ok-ui-option__content">
+                    <h2 class="ok-ui-heading-1">Turn on personalized marketing</h2>
+                    <p>See more relevant content and ads.</p>
+                  </div>
+                </label>
+              </div>
+              <div class="ok-ui-option">
+                <input class="ok-ui-option__input" type="radio" name="marketing" value="0" id="ok-ui-marketing-0" />
+                <label class="ok-ui-option__label" for="ok-ui-marketing-0">
+                  <span class="ok-ui-option__input-facade"></span>
+                  <div class="ok-ui-option__content">
+                    <h2 class="ok-ui-heading-1">Turn on standard marketing</h2>
+                    <p>See generic content and ads.</p>
+                  </div>
+                </label>
+              </div>
+              <button type="button" class="ok-ui-button ok-ui-button--text">
+                <span class="ok-ui-button__label">Customize your experience</span>
+              </button>
+              <div class="ok-ui-mt-2">
+                <div class="ok-ui-toggle ok-ui-toggle--input-start">
+                  <input class="ok-ui-toggle__input" type="checkbox" name="only-this-site" value="1650402608869" id="ok-ui-only-this-site-1650402608869" />
+                  <label class="ok-ui-toggle__input-facade" for="ok-ui-only-this-site-1650402608869"></label>
+                  <div class="ok-ui-toggle__content">
+                    <label class="ok-ui-toggle__label " aria-described-by="ok-ui-only-this-site-1650402608869-tooltip" for="ok-ui-only-this-site-1650402608869">
+                      Apply preferences to this site only and re-ask on other OneKey sites.
+                    </label>
+                    <a href="#" class="ok-ui-link">View privacy policy</a>
+                  </div>
+                </div>
+              </div>
+            </main>
+            <footer class="ok-ui-card__footer">
+              <div class="ok-ui-card__actions">
+                <button type="button" class="ok-ui-button ok-ui-button--filled">
+                  <span class="ok-ui-button__label">Refuse all</span>
+                </button>
+                <button type="button" class="ok-ui-button ok-ui-button--filled" disabled>
+                  <span class="ok-ui-button__label">Save</span>
+                </button>
+              </div>
+            </footer>
+          </section>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+</body>
+</html>
