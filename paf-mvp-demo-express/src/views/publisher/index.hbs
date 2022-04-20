@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="html">
 <head>
+
+    <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
+    <link rel="preload" as="script" href="https://{{cdnDomain}}/assets/cmp/ok-ui.js">
+
     <!-- Prebid SSO integration -->
-    <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
-    <script src="https://{{cdnDomain}}/assets/paf-lib.js"
-          onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script>
+    {{!-- <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
+    <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script> --}}
 
     <!-- Prebid.js -->
-    <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
-    <script async src="/assets/publisher/prebid/prebid.js"></script>
+    {{!-- <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
+    <script async src="/assets/publisher/prebid/prebid.js"></script> --}}
 
     <script>
 
@@ -116,11 +119,21 @@
     {{/if}}
 </head>
 <body>
+
+<!-- CMP -->
+<script src="https://{{cdnDomain}}/assets/cmp/ok-ui.js" 
+    data-display-intro="true"
+    data-snackbar-timeout-ms="5000" 
+    data-proxy-host-name="cmp.pafdemopublisher.com" 
+    data-brand-name="CMP PAF Demo Pub"
+    data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
+
 <div>
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/publisher/css/style.min.css" type="text/css">
 
 </div>
+
 <header id="header">
     <div class="container">
         <nav class="navbar navbar-expand-lg navbar-light">
@@ -245,6 +258,7 @@
 
 <div>
     <div class="container">
+        
         <div class="banner-top-thumb-wrap">
             <div class="d-lg-flex justify-content-between align-items-center">
                 <div class="d-flex justify-content-between  mb-3 mb-lg-0">
@@ -745,6 +759,7 @@
                         <li><a href="#">FAQ</a></li>
                         <li><a href="#">User Agreement</a></li>
                         <li><a href="#">Privacy</a></li>
+                        <li><a href="javascript:window.PAFUI.promptConsent();">OneKey Settings</a></li>
                         <li><a href="#">About us</a></li>
                         <li><a href="#" id="preferences" class="d-flex align-items-center">
                           <div class="mr-2">

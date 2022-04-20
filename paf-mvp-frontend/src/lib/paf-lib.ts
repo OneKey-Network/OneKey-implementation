@@ -468,7 +468,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
  * @param input the identifiers and preferences to write
  * @return the written identifiers and preferences
  */
-const writeIdsAndPref = async (
+export const writeIdsAndPref = async (
   { proxyHostName }: WriteIdsAndPrefsOptions,
   input: IdsAndPreferences
 ): Promise<IdsAndOptionalPreferences | undefined> => {

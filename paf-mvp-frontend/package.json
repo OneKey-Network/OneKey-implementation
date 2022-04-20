@@ -9,8 +9,8 @@
     "test": "jest",
     "test:cypress": "wait-on http://localhost:3000 && cypress run",
     "cypress:wait-and-run": "run-p -r start test:cypress",
-    "lint": "eslint ./src --c src/.eslintrc --no-eslintrc",
-    "lint:fix": "eslint ./src --fix --c src/.eslintrc --no-eslintrc",
+    "lint": "npx eslint ./src --c src/.eslintrc --no-eslintrc",
+    "lint:fix": "npx eslint ./src --fix --c src/.eslintrc --no-eslintrc",
     "lint:prettier": "prettier --list-different \"./src/**/*.{tsx,ts}\"",
     "prettier": "prettier --write \"./src/**/*.{tsx,ts}\" --loglevel silent",
     "prepare": "npm run build"
