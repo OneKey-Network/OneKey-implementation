@@ -84,6 +84,11 @@ addApp(pafCmpConfig, pafCmpApp);
 addApp(pifCmpConfig, pifCmpApp);
 addApp(pofCmpConfig, pofCmpApp);
 
+// Warmup Requests to Improve Performance on Google Cloud Platform
+mainApp.get('/_ah/warmup', (req, res) => {
+  res.sendStatus(200);
+});
+
 // start the Express server
 const port = process.env.PORT || 80;
 mainApp.listen(port, () => {
