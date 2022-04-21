@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "esnext",
     "moduleResolution": "Node",
-    "target": "ES6",
+    "target": "ES5",
     "esModuleInterop": true,
     "jsx": "react",
     "jsxFactory": "h",
