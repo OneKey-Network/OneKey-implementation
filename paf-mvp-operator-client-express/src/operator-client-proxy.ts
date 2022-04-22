@@ -94,49 +94,11 @@ export const addOperatorClientProxyEndpoints = (
     httpRedirect(res, url.toString(), 302);
   });
 
-  // *****************************************************************************************************************
-  // ******************************************************************************************** JSON - SIGN & VERIFY
-  // *****************************************************************************************************************
-  app.post(jsonProxyEndpoints.verifyRead, cors(corsOptions), (req, res) => {
-    const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
-
-    if (!message.response) {
-      // FIXME do something smart in case of error
-      throw message.error;
-    }
-
-    const verification = client.verifyReadResponse(message.response);
-    if (!verification) {
-      // TODO [errors] finer error feedback
-      const error: Error = { message: 'verification failed' };
-      res.send(error);
-    } else {
-      res.send(message.response);
-    }
-  });
-
-  app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
-    const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
-    res.send(client.buildPreferences(identifiers, unsignedPreferences.data));
-  });
-
-  app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
-    const message = getPayload<IdsAndPreferences>(req);
-    res.send(postIdsPrefsRequestBuilder.buildRequest(message));
-  });
-
   app.get(jsonProxyEndpoints.newId, cors(corsOptions), (req, res) => {
     const getNewIdRequestJson = getNewIdRequestBuilder.buildRequest();
     const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
     httpRedirect(res, url.toString(), 302);
-  });
-
-  app.post(jsonProxyEndpoints.createSeed, cors(corsOptions), (req, res) => {
-    const request = JSON.parse(req.body as string) as PostSeedRequest;
-    const seed = client.buildSeed(request.transaction_ids, request.data);
-    const response = seed as PostSeedResponse; // For now, the response is only a Seed.
-    res.send(response);
   });
 
   // *****************************************************************************************************************
@@ -169,5 +131,43 @@ export const addOperatorClientProxyEndpoints = (
 
       httpRedirect(res, url.toString(), 302);
     }
+  });
+
+  // *****************************************************************************************************************
+  // ******************************************************************************************** JSON - SIGN & VERIFY
+  // *****************************************************************************************************************
+  app.post(jsonProxyEndpoints.verifyRead, cors(corsOptions), (req, res) => {
+    const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
+
+    if (!message.response) {
+      // FIXME do something smart in case of error
+      throw message.error;
+    }
+
+    const verification = client.verifyReadResponse(message.response);
+    if (!verification) {
+      // TODO [errors] finer error feedback
+      const error: Error = { message: 'verification failed' };
+      res.send(error);
+    } else {
+      res.send(message.response);
+    }
+  });
+
+  app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
+    const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
+    res.send(client.buildPreferences(identifiers, unsignedPreferences.data));
+  });
+
+  app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
+    const message = getPayload<IdsAndPreferences>(req);
+    res.send(postIdsPrefsRequestBuilder.buildRequest(message));
+  });
+
+  app.post(jsonProxyEndpoints.createSeed, cors(corsOptions), (req, res) => {
+    const request = JSON.parse(req.body as string) as PostSeedRequest;
+    const seed = client.buildSeed(request.transaction_ids, request.data);
+    const response = seed as PostSeedResponse; // For now, the response is only a Seed.
+    res.send(response);
   });
 };
