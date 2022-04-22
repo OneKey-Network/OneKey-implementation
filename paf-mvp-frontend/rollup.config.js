@@ -107,8 +107,19 @@ export default [
           ]
         } else { // list of plugins for development
           return [
+            copy({ // copy files
+              targets: [
+                {
+                  src: './assets/*',
+                  dest: 'dist',
+                },
+              ],
+            }),
             serve({ // dev server
               contentBase: '',
+              headers: {
+                'Access-Control-Allow-Origin': '*'
+              },
               open: false, // change to true to open browser automatically
               openPage: '/',
               // Set to true to return index.html (200) instead of error page (404)

@@ -32,7 +32,7 @@ describe('Notification widget', () => {
     });
 
     it('should contain personalized text', () => {
-      page.content.should('contain', 'You chose to see personalized content and relevant ads');
+      page.content.should('contain', 'You chose to see relevant ads on');
     });
 
     it('should open Welcome widget', () => {
@@ -40,7 +40,7 @@ describe('Notification widget', () => {
 
       cy.get('[paf-root]')
         .shadow()
-        .findByText(/Choose your marketing preferences/)
+        .findByText(/Manage your marketing preferences/)
         .should('be.visible');
     });
   });
@@ -52,7 +52,7 @@ describe('Notification widget', () => {
     });
 
     it('should general right text', () => {
-      page.content.should('contain', 'You chose to see standard content and ads on');
+      page.content.should('contain', 'You chose to see standard ads on');
     });
   });
 });

@@ -19,4 +19,8 @@ export class WidgetPage extends BasePage {
   get saveButton() {
     return this.widget.findByTestId('save-btn');
   }
+
+  get logoBtn() {
+    return this.widget.findByTestId('onekey-logo');
+  }
 }

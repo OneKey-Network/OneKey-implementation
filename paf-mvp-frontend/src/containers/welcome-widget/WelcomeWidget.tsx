@@ -17,7 +17,6 @@ import { Refresh } from '../../components/svg/refresh/Refresh';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
 import { currentScript } from '@frontend/utils/current-script';
-import { updateIdsAndPreferences } from '@frontend/lib/paf-lib';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -77,26 +76,37 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
     return;
   }
 
+  const OneKeyLogoBtn = (
+    <a role="button" data-testid="onekey-logo" class={style.oneKeyLogo} onClick={() => setIsDetailsPanelOpen(true)}>
+      <OnekeyLogo />
+    </a>
+  );
+
   return (
     <div class={style.container}>
-      <Modal closeBtnText={originalIdentifier ? 'Cancel' : 'Close dialog'} maxWidth={385} onClose={() => closeWidget()}>
-        <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Choose your marketing preferences</h2>
+      <Modal
+        closeBtnText={originalIdentifier ? 'Cancel' : 'Close dialog'}
+        logo={OneKeyLogoBtn}
+        maxWidth={288}
+        onClose={() => closeWidget()}
+      >
+        <h2 class={`${style.textCenter} ${style.widgetHeading}`}>Manage your marketing preferences</h2>
 
         <p class={style.textCenter}>
-          Onekey respects your preferences to offer you a better experience across partner websites, without needing to
-          bother you with additional prompts.
+          Enjoy smoother navigation without annoying pop-ups. Even better, OneKey personalizes your experience without
+          directly identifying you.
         </p>
 
-        <div class={grid['my-5']}>
-          {!!originalIdentifier && (
+        <div class={grid['mt-3']}>
+          {originalIdentifier ? (
             <div class={`${layout.justifyBetween} ${layout.alignCenter} ${grid['mb-3']}`}>
               <div className={`${layout.alignCenter}`}>
                 <small className={[typography.textDark, grid['mr-1'], typography.textBold].join(' ')}>
                   Your browsing ID
                 </small>
                 <Tooltip>
-                  OneKey links your preferences to a random, pseudonymous ID. Use your right to be forgotten at any time
-                  by refreshing your Browsing ID.
+                  OneKey links your preferences to a random ID, not to your identity. Your ID lasts 6 months. You can
+                  reset it by clicking the Refresh icon.
                 </Tooltip>
               </div>
 
@@ -119,6 +129,10 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
                 </Button>
               </div>
             </div>
+          ) : (
+            <p class={style.textCenter}>
+              By choosing your preferences, you agree to our site’s <a href="">privacy policy</a>.
+            </p>
           )}
           <OptionsGroup selected={getConsentValue()} onSelectOption={(value) => onChooseOption(value === 'on')}>
             <Option value="on" testid="consent-option">
@@ -139,20 +153,21 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
         </div>
 
         {!!originalIdentifier && (
-          <div class={grid['my-5']}>
-            <Button testid="save-btn" wide primary action={() => updateSettings()}>
-              Confirm settings
-            </Button>
+          <div class={grid['mt-3']}>
+            <p class={style.textCenter}>
+              By saving your preferences, you agree to our site’s <a href="">privacy policy</a>.
+            </p>
+
+            <div class={style.controlBtn}>
+              <Button testid="forget-btn" primary rounded wide action={() => ''}>
+                Forget me
+              </Button>
+              <Button testid="save-btn" wide primary rounded action={() => updateSettings()}>
+                Save
+              </Button>
+            </div>
           </div>
         )}
-
-        <p class={style.textCenter}>By choosing one of these options, you agree to our site's terms and conditions.</p>
-        <div class={`${layout.justifyCenter} ${layout.alignCenter}`}>
-          <Button action={() => setIsDetailsPanelOpen(true)} accent outline small>
-            Learn more about Onekey
-          </Button>
-        </div>
-
         <SubPanel
           isOpen={isDetailsPanelOpen}
           header={

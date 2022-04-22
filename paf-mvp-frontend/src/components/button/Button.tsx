@@ -8,6 +8,7 @@ interface IButtonProps {
   testid?: string;
   outline?: boolean;
   primary?: boolean;
+  rounded?: boolean;
   disabled?: boolean;
   highlight?: boolean;
   children?: JSX.Element | Array<JSX.Element | string> | string;
@@ -22,6 +23,7 @@ export const Button = ({
   small,
   wide,
   primary,
+  rounded,
   action,
   accent,
   outline,
@@ -34,6 +36,7 @@ export const Button = ({
     classes.btn,
     small && classes.small,
     primary && classes.primary,
+    rounded && classes.rounded,
     wide && classes.wide,
     accent && classes.accent,
     highlight && classes.highlight,
