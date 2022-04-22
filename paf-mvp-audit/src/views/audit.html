@@ -1,0 +1,24 @@
+<div class="ok-ui-popup ok-ui-popup--open">
+  <div class="ok-ui-popup__block"></div>
+  <div class="ok-ui-popup__content">
+    <form>
+      <section class="ok-ui-card">
+        <header class="ok-ui-card__header">
+          <div class="ok-ui-card__actions">
+            <img src="images/OneKey.svg" alt="OneKey" class="ok-ui-card__header-logo" />
+          </div>
+          <h1 class="ok-ui-heading-1 ok-ui-mb-2">${ _.auditHeading }</h1>
+          <p>${ _.auditBodyHTML }</p>
+        </header>
+        <main class="ok-ui-card__body" id="ok-ui-provider">
+        </main>
+        <footer class="ok-ui-card__footer">
+          <button type="button" class="ok-ui-button ok-ui-button--outlined">
+            <span class="ok-ui-button__label">${ _.download }</span>
+          </button>
+          <p class="ok-ui-mt-2">${ _.auditFooter }</p>
+        </footer>
+      </section>
+    </form>
+  </div>
+</div>
