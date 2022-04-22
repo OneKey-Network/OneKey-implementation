@@ -1,6 +1,6 @@
 import { Locale } from './locale';
 import { Config } from './config';
-import { log } from './log';
+import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement, BindingViewOnly } from './binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
@@ -15,6 +15,9 @@ import { Marketing, Model } from './model';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
 import { View } from './view';
+
+// Logger used to send messages to console.
+const log = new Log('ok-ui', '#18a9e1');
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.

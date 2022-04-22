@@ -1,5 +1,5 @@
 import { Options } from '@frontend/lib/paf-lib';
-import { log } from './log';
+import { Log } from '@core/log';
 
 /**
  * UI specific options set via the script tag's attributes.
@@ -91,7 +91,7 @@ export class Config implements Options {
     if (help !== null) {
       message += ` ${help}`;
     }
-    log.Error(message);
+    new Log('ok-ui', '#18a9e1').Error(message);
     return message;
   }
 }
