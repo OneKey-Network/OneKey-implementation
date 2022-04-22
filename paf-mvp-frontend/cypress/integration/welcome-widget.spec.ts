@@ -1,6 +1,7 @@
 import { WidgetPage } from '../pages/widget.page';
 import { Cookies } from '@core/cookies';
-import { getFakeIdentifiers, getFakePreferences } from '../../tests/helpers/cookies';
+import { getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../../tests/helpers/cookies';
+import { Identifiers } from '@core/model/generated-model';
 
 describe('Welcome widget view', () => {
   let page: WidgetPage;
@@ -41,10 +42,15 @@ describe('Welcome widget view', () => {
 
   context('With cookies', () => {
     const FAKE_ID = 'FAKE-ID-PAF';
+    const FAKE_ID_UID = 'FAKE-ID-UID';
     const consent = false;
 
     beforeEach(() => {
-      cy.setCookie(Cookies.identifiers, JSON.stringify(getFakeIdentifiers(FAKE_ID)));
+      // Let's put multiple ids
+      cy.setCookie(
+        Cookies.identifiers,
+        JSON.stringify([getFakeIdentifier(FAKE_ID), getFakeIdentifier(FAKE_ID_UID, 'uid2')])
+      );
       cy.setCookie(Cookies.preferences, JSON.stringify(getFakePreferences(consent)));
       cy.setCookie(Cookies.lastRefresh, new Date().toISOString());
       page = new WidgetPage();
@@ -89,9 +95,20 @@ describe('Welcome widget view', () => {
 
     it('should save preferences', () => {
       cy.window().then((win) => {
+        const NEW_ID = 'NEW-USER-ID';
+        const selectedConsentIndex = consent ? 0 : 1;
+        const oppositeOptionIndex = Math.abs(selectedConsentIndex - 1);
         const updateStub = cy.stub(win.PAF, 'updateIdsAndPreferences');
+        cy.stub(win.PAF, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
+        // Refresh ID
+        page.refreshBtn.click();
+        // Change preferences
+        page.consentOptions.eq(oppositeOptionIndex).click();
+
         page.saveButton.click();
-        cy.wrap(updateStub).should('be.called');
+        const identifiers: Identifiers = [getFakeIdentifier(FAKE_ID_UID, 'uid2'), getFakeIdentifier(NEW_ID)];
+
+        cy.wrap(updateStub).should('be.calledWith', 'cypress.paf.com', !consent, identifiers);
       });
     });
   });
