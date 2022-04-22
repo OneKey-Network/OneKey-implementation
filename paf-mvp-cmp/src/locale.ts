@@ -5,6 +5,19 @@ export class Values {
   introBody = ['NOT SET'];
   aboutBody = ['NOT SET'];
   settingsBody = ['NOT SET'];
+
+  // Snackbar fields
+  snackbarHeadingPersonalized = 'NOT SET';
+  snackbarHeadingStandard = 'NOT SET';
+  snackbarHeadingCustomized = 'NOT SET';
+  snackbarBodyPersonalized = 'NOT SET';
+  snackbarBodyStandard = 'NOT SET';
+  snackbarBodyCustomized = 'NOT SET';
+
+  // Customize fields
+  customizeStandard = 'NOT SET';
+  customizePersonalized = 'NOT SET';
+  customizeCustomized = 'NOT SET';
 }
 
 export class Locale extends Values {
@@ -22,7 +35,7 @@ export class Locale extends Values {
     super();
 
     // Use US english as the default locale.
-    Object.assign(this, en_us);
+    Object.assign(this, <Values>en_us);
 
     // Replace any values with the users chosen locale.
     Object.assign(this, this.getLocale(languages));
