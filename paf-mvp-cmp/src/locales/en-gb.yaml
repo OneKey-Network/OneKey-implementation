@@ -27,7 +27,7 @@ aboutBody:
 settingsHeading: Choose your marketing preferences
 settingsBody: 
   - OneKey signals your preferences that can enhance your experience across partner websites, without bothering you with future prompts or directly identifying you.
-  - By saving your preferences, you also agree to our site's privacy policy.
+  - By saving your preferences, you also agree to our <a href="[BrandPrivacyUrl]">site's privacy policy</a>.
 settingsBrowsingId: Your browsing ID
 settingsBrowsingIdTip: <strong>OneKey</strong> links your preferences to a random, pseudonymous ID that lasts 6 months. Use your right to be forgotten at any time by refreshing your browsing ID.
 settingsPersonalizedLabel: Turn on personalized marketing
@@ -35,14 +35,13 @@ settingsPersonalizedBody: See more relevant content and ads.
 settingsStandardLabel: Turn on standard marketing
 settingsStandardBody: See generic content and ads.
 settingsThisSite: Apply preferences to this site only and re-ask on other OneKey sites
-settingsThisSitePrivacyPolicy: View site's privacy policy
 
 # Customize text
 customizeCurrent: "Your current choice:"
 customizeAll: Select all / unselect all
 customizeStandard: Standard marketing
 customizePersonalized: Personalized marketing
-customizeCustomized: Customized marketing
+customizeCustomized: Site specific marketing
 
 # Customize text labels
 customizeAccessDeviceLabel: Select and/or access information on a device
