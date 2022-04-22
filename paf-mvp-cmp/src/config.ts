@@ -80,7 +80,7 @@ export class Config implements Options {
 
   private getValue(name: string, help?: string): string {
     const value = this.script.getAttribute(name);
-    if (value == null) {
+    if (value === null) {
       return Config.missingAttribute(name, help);
     }
     return value;
@@ -88,7 +88,7 @@ export class Config implements Options {
 
   private static missingAttribute(name: string, help?: string): string {
     let message = `Attribute '${name}' needs to be added as an attribute of the script tag.`;
-    if (help != null) {
+    if (help !== null) {
       message += ` ${help}`;
     }
     log.Error(message);

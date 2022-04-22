@@ -7,7 +7,7 @@ import { NotificationEnum } from '@frontend/enums/notification.enum';
 let controller: Controller = null;
 const promptConsent = () =>
   new Promise<void>((resolve) => {
-    if (controller != null) {
+    if (controller !== null) {
       controller.display('settings');
     }
     resolve();

@@ -59,7 +59,7 @@ export class FieldId extends Field<Identifier> {
    * True if the value in the field has been persisted, otherwise false.
    */
   public get persisted(): boolean {
-    return this.value?.persisted == true;
+    return this.value?.persisted === true;
   }
 
   /**
@@ -89,7 +89,7 @@ export class FieldId extends Field<Identifier> {
     Validate.Identifiers(identifiers);
     for (let i = 0; i < identifiers.length; i++) {
       const id = identifiers[i];
-      if (id.persisted == true && this.types.includes(id.type)) {
+      if (id.persisted === true && this.types.includes(id.type)) {
         this.value = id;
         return;
       }
@@ -115,7 +115,7 @@ export class FieldPreferences extends Field<PreferencesData> {
    * Returns true if the value has changed from the persisted value, otherwise false.
    */
   public get hasChanged(): boolean {
-    return Marketing.equals(this._persisted?.data, this.value) == false;
+    return Marketing.equals(this._persisted?.data, this.value) === false;
   }
 
   /**
@@ -164,7 +164,7 @@ export class FieldThisSiteOnly extends Field<boolean> {
    * the model is being loaded for the first time.
    */
   protected updateOthers() {
-    if (this.value == false) {
+    if (this.value === false) {
       this.model.reset();
     }
     this.model.canSave.value = ButtonState.isEnabled(this.model);
@@ -192,7 +192,7 @@ export abstract class FieldCustom extends Field<boolean> {
    * If custom marketing is selected then the preferences are only for this site.
    */
   protected setThisSiteOnly() {
-    if (this.model.onlyThisSite.value == false && Marketing.equals(this.model.pref.value, Marketing.custom)) {
+    if (this.model.onlyThisSite.value === false && Marketing.equals(this.model.pref.value, Marketing.custom)) {
       this.model.onlyThisSite.value = true;
     }
   }
@@ -267,14 +267,14 @@ export class Model {
    * True if all of the preferences or identifiers have been set from persisted data, otherwise false.
    */
   public get allPersisted(): boolean {
-    return this.pref.persisted != null && this.rid.persisted;
+    return this.pref.persisted !== null && this.rid.persisted;
   }
 
   /**
    * True if neither the preferences or the identifiers have been persisted.
    */
   public get nonePersisted(): boolean {
-    return this.pref.persisted == null && this.rid.persisted == false;
+    return this.pref.persisted === null && this.rid.persisted === false;
   }
 
   // Fields that are used internally to relate values to one another.
@@ -351,12 +351,12 @@ export class Model {
    */
   public setFromIdsAndPreferences(data: IdsAndOptionalPreferences) {
     this.reset();
-    if (data != undefined) {
-      if (data.identifiers != undefined && data.identifiers.length > 0) {
+    if (data !== undefined) {
+      if (data.identifiers !== undefined && data.identifiers.length > 0) {
         Validate.Identifiers(data.identifiers);
         this.rid.setPersisted(data.identifiers);
       }
-      if (data.preferences != undefined) {
+      if (data.preferences !== undefined) {
         this.pref.setPersisted(data.preferences);
       }
     }
@@ -385,7 +385,7 @@ class Validate {
   private static validVersions: Version[] = ['0.1'];
 
   static Preference(p: Preferences) {
-    if (p == undefined) {
+    if (p === undefined) {
       throw 'Preference must be defined';
     }
     Validate.Source(p.source);
@@ -393,17 +393,17 @@ class Validate {
   }
 
   static Identifiers(s: Identifier[]) {
-    if (s == undefined || s.length == 0) {
+    if (s === undefined || s.length === 0) {
       throw 'Identifiers must be defined';
     }
     s.forEach((i) => Validate.Identifier(i));
   }
 
   static Identifier(i: Identifier) {
-    if (i == undefined) {
+    if (i === undefined) {
       throw 'Identifier must be defined';
     }
-    if (i.persisted != true) {
+    if (i.persisted !== true) {
       throw 'Identifier must have been persisted';
     }
     Validate.Source(i.source);
@@ -412,13 +412,13 @@ class Validate {
 
   private static Source(s: Source) {
     if (
-      s == undefined ||
-      s.domain == undefined ||
-      s.signature == undefined ||
-      s.timestamp == undefined ||
-      s.domain.length == 0 ||
-      s.signature.length == 0 ||
-      s.timestamp == 0
+      s === undefined ||
+      s.domain === undefined ||
+      s.signature === undefined ||
+      s.timestamp === undefined ||
+      s.domain.length === 0 ||
+      s.signature.length === 0 ||
+      s.timestamp === 0
     ) {
       throw `'${s}' is an invalid source`;
     }

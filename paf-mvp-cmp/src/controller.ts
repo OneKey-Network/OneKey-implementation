@@ -55,17 +55,17 @@ export class Controller {
    * If some of the data is persisted and others not then show the settings card.
    */
   public async display(card?: string) {
-    if (card == null) {
-      if (this.model.status != PafStatus.NOT_PARTICIPATING) {
-        if (this.model.allPersisted == true && this.model.status == PafStatus.PARTICIPATING) {
+    if (card === null || card === undefined) {
+      if (this.model.status !== PafStatus.NOT_PARTICIPATING) {
+        if (this.model.allPersisted === true && this.model.status === PafStatus.PARTICIPATING) {
           this.setCard('snackbar');
-        } else if (this.model.nonePersisted == true) {
-          if (this.config.displayIntro && this.model.status == PafStatus.REDIRECT_NEEDED) {
+        } else if (this.model.nonePersisted === true) {
+          if (this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
             this.setCard('intro');
-          } else if (this.model.status != PafStatus.REDIRECT_NEEDED) {
+          } else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
             this.setCard('settings');
           }
-        } else if (this.model.status != PafStatus.REDIRECT_NEEDED) {
+        } else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
           this.setCard('settings');
         }
       }
@@ -163,7 +163,7 @@ export class Controller {
     if (await this.getIdsAndPreferencesFromGlobal(false)) {
       return;
     }
-    if (this.config.displayIntro == false) {
+    if (this.config.displayIntro === false) {
       await this.getIdsAndPreferencesFromGlobal(true);
     }
     return;
@@ -182,7 +182,7 @@ export class Controller {
     });
     log.Message('global data', r);
     this.model.status = r.status;
-    if (r.data != null) {
+    if (r.data !== null) {
       this.setPersistedFlag(r.data.identifiers);
       this.model.setFromIdsAndPreferences(r.data);
       return true;
@@ -197,7 +197,7 @@ export class Controller {
   private getIdsAndPreferencesFromLocal(): boolean {
     const data = getIdsAndPreferences();
     log.Message('local data', data);
-    if (data != undefined) {
+    if (data !== undefined) {
       this.model.status = PafStatus.PARTICIPATING;
       this.setPersistedFlag(data?.identifiers);
       this.model.setFromIdsAndPreferences(data);
@@ -212,7 +212,7 @@ export class Controller {
    * @param identifiers to have the persisted flag set to true
    */
   private setPersistedFlag(identifiers: Identifier[]) {
-    if (identifiers != undefined) {
+    if (identifiers !== undefined) {
       identifiers.forEach((i) => (i.persisted = true));
     }
   }
@@ -233,14 +233,14 @@ export class Controller {
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
       const card = element.getAttribute('data-card');
-      if (card != null) {
+      if (card !== null) {
         element.addEventListener(event, (e) => {
           this.setCard(card);
           e.preventDefault();
         });
       }
       const action = element.getAttribute('data-action');
-      if (action != null) {
+      if (action !== null) {
         element.addEventListener(event, (e) => {
           this.processAction(action);
           e.preventDefault();
@@ -316,7 +316,7 @@ export class Controller {
    * @returns a promise that when resolved will provide the values written to the storage
    */
   private writeIdsAndPref(): Promise<IdsAndOptionalPreferences> {
-    if (this.model.onlyThisSite.value == false) {
+    if (this.model.onlyThisSite.value === false) {
       // If the global storage is selected then return a promise from the data layer.
       return this.writeIdsAndPrefGlobal();
     }
@@ -373,9 +373,9 @@ export class Controller {
    */
   private getNewIdIfNeeded(): Promise<Identifier> {
     if (
-      this.model.rid.value == null ||
-      this.model.rid.value.source == null ||
-      this.model.rid.value.source.signature == null
+      this.model.rid.value === null ||
+      this.model.rid.value.source === null ||
+      this.model.rid.value.source.signature === null
     ) {
       return this.resetId();
     }
@@ -423,8 +423,8 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
    */
   public setValue(value: Identifier) {
     const element = super.getElement();
-    if (element != undefined) {
-      if (value != null && value.value != null) {
+    if (element !== null) {
+      if (value !== null && value.value !== null) {
         element.innerText = value.value.substring(0, 6);
       } else {
         element.innerText = '';
@@ -433,7 +433,7 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
   }
 
   public bind(): void {
-    if (this.field != null) {
+    if (this.field !== null) {
       this.setValue(this.field.value);
     }
   }
@@ -449,14 +449,14 @@ class BindingShowRandomId extends BindingViewOnly<PreferencesData, HTMLDivElemen
    */
   public setValue(value: PreferencesData) {
     const element = super.getElement();
-    if (element != undefined) {
-      const visible = value != null;
+    if (element !== null) {
+      const visible = value !== null;
       element.style.display = visible ? '' : 'none';
     }
   }
 
   public bind(): void {
-    if (this.field != null) {
+    if (this.field !== null) {
       this.setValue(this.field.value);
     }
   }

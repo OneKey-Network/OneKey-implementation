@@ -82,7 +82,7 @@ export abstract class Field<T> extends FieldReadOnly<T> implements IFieldReset {
   public set value(value: T) {
     this._value = value;
     this.bindings.forEach((b) => b.setValue(value));
-    if (this.model.settingValues == false) {
+    if (this.model.settingValues === false) {
       this.model.settingValues = true;
       this.updateOthers();
       this.model.settingValues = false;

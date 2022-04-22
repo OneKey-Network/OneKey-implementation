@@ -66,7 +66,7 @@ export class View {
   public setCard(card: string) {
     this.stopSnackbarHide();
     this.setContainerCard(card);
-    if ('snackbar' == card) {
+    if ('snackbar' === card) {
       this.countDown = setInterval(() => this.hidePopup(), this.config.snackbarTimeoutMs);
       document.body.addEventListener('click', (e) => this.hideSnackbar(e));
     }
@@ -78,7 +78,7 @@ export class View {
    */
   private hideSnackbar(t: MouseEvent) {
     let p = <HTMLElement>t.target;
-    while (p != undefined) {
+    while (p !== undefined) {
       for (let i = 0; i < p.classList.length; i++) {
         const className = p.classList[i];
         if (className.startsWith('ok-ui')) {
@@ -145,7 +145,7 @@ export class View {
     let html: string;
     const template = this.getTemplate(card);
     const container = this.getTemplateContainer(card);
-    if (container != null) {
+    if (container !== null) {
       html = container(template(this.locale));
     } else {
       html = template(this.locale);
@@ -198,7 +198,7 @@ export class View {
    */
   private getPopUp(): HTMLDivElement {
     const popups = this.getContainer().getElementsByClassName('ok-ui-popup');
-    if (popups != null && popups.length > 0) {
+    if (popups !== null && popups.length > 0) {
       return <HTMLDivElement>popups[0];
     }
     return null;
@@ -209,7 +209,7 @@ export class View {
    * @returns
    */
   private getContainer(): HTMLDivElement {
-    if (this.container == null) {
+    if (this.container === null) {
       this.addContainer();
     }
     return this.container;
