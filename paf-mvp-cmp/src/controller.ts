@@ -305,69 +305,74 @@ export class Controller {
     this.model.pref.setPersisted(p);
 
     // Write the Ids and preferences to storage.
-    const w = await this.writeIdsAndPref();
+    const w = await this.writeIdsAndPrefGlobal();
     this.setPersistedFlag(w?.identifiers);
     this.model.setFromIdsAndPreferences(w);
 
-    // Close the pop up as everything has been confirmed to be okay.
-    this.view.hidePopup();
-  }
-
-  /**
-   * Writes the identifiers and preferences to with local storage or global storage depending on the user's preference
-   * for this site only.
-   * @returns a promise that when resolved will provide the values written to the storage
-   */
-  private writeIdsAndPref(): Promise<IdsAndOptionalPreferences> {
-    if (this.model.onlyThisSite.value === false) {
-      // If the global storage is selected then return a promise from the data layer.
-      return this.writeIdsAndPrefGlobal();
+    // Ensure the this site only data is removed.
+    if (this.config.siteOnlyCookieTcf !== null) {
+      removeCookie(this.config.siteOnlyCookieTcf);
     }
-    // If local storage is to be used then just write the cookies.
-    return this.writeIdsAndPrefLocal();
   }
 
-  /**
-   * Writes the current model preferences only to local storage.
-   * @remarks
-   * TODO: Determine if the bogus identifier is the right way forward.
-   * https://github.com/prebid/paf-mvp-implementation/issues/115
-   * @returns preferences and bogus identifier written to local storage
-   */
-  private async writeIdsAndPrefLocal() {
-    const s = {
-      domain: window.location.hostname,
-      signature: 'NA',
-      timestamp: new Date().getTime(),
-    };
-    saveCookieValue(Cookies.identifiers, [
-      {
-        value: '',
-        type: 'site_browser_id',
-        version: '0.1',
-        source: s,
-      },
-    ]);
-    saveCookieValue(Cookies.preferences, {
-      data: this.model.pref.value,
-      version: '0.1',
-      source: s,
-    });
-    return getIdsAndPreferences();
-  }
+  private async writeIdsAndPrefGlobal(): Promise<IdsAndOptionalPreferences> {
+    /*
+    TODO change the updateIdsAndPreferences method to take all possible data structures as optional parameters. The 
+    current implementation does not enable a signed preferences structure to be provided as input. Perhaps the 
+    preferences were created at T0 along with the Random ID. Then at T1 the Random ID changes. We don't really want
+    to reset the preferences just because the Random ID changed.
+    
+    There is a relationship between the PAF lib and the UI which is confusing. If the PAF lib is a data layer then it
+    should not consider the UI. If validation fails either in the client, or via calls to the CMP or Operator there 
+    needs to be a method of passing this back to the client. We need an enumeration of error codes that can be tied to
+    text in the UI. There will also be more serious exceptions that will need to be handled. The UI doesn't currently
+    allow for this.
 
-  private writeIdsAndPrefGlobal(): Promise<IdsAndOptionalPreferences> {
-    return writeIdsAndPref(
-      {
-        proxyHostName: this.config.proxyHostName,
-      },
-      {
-        // The identifier has to have been created by an operator add as is.
-        identifiers: [this.model.rid.value],
-        // The preferences must be signed before the write operation.
-        preferences: this.model.pref.persisted,
-      }
+    Otherwise there should be a defined interface that must be provided to the PAF lib to manipulate the UI and the UI
+    implementor will need to ensure they implement the interface. This approach is less flexible.
+    
+    The method then needs to return the values as they currently exist in the persistent storage. The caller is then
+    responsible for handling the result and the UI. We need to give more thought to the unhappy path here and how errors
+    will be handled and communicated to the user. The UI doesn't have placeholders to tell the user that something has
+    gone wrong. i.e. "Whoops. We're not able to store your preference at the moment. We'll store them just for this 
+    site, so that you can continue. Okay?".
+    
+    This call should become.
+    
+      updateIdsAndPreferences(
+        {
+          proxyHostName: this.config.proxyHostName
+        },
+        {
+          identifiers: [ array of identifiers ],
+          preferences: signedPreferences
+        }
+      ) : Promise<IdsAndOptionalPreferencesWithErrorCodes> 
+
+    For reference the SWAN API provided a single method for getting and updating the data. 
+    See https://github.com/SWAN-community/swan/blob/main/apis.md#update
+    SWID is similar to the paf_browser_id or Random ID (RID)
+    Pref is similar to the PreferencesData structure.
+    OWID is similar to Source.
+    The design approach there is to have a single method that will store what is provided (if anything) and return the
+    current data. The CMP would handle the decrypt of the results which is not relevant to PAF as the data is not
+    encrypted.
+    */
+
+    // Update the ids and preferences.
+    await updateIdsAndPreferences(
+      this.config.proxyHostName,
+      this.model.pref.persisted.data.use_browsing_for_personalization,
+      [this.model.rid.value]
     );
+
+    // Refresh the ids and preferences.
+    const r = await refreshIdsAndPreferences({
+      proxyHostName: this.config.proxyHostName,
+      triggerRedirectIfNeeded: true,
+    });
+
+    return r.data;
   }
 
   /**
