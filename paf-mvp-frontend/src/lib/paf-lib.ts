@@ -152,9 +152,8 @@ export type SignPrefsOptions = Options;
 export type GetNewIdOptions = Options;
 
 export interface GenerateSeedOptions extends Options {
-  callback?: Function;
+  callback?: (seed: Seed) => void;
 }
-
 
 /**
  * Refresh result
@@ -666,7 +665,11 @@ export const generateSeed = async (
   }
 
   if (options.callback) {
-    options.callback(entry);
+    if (entry !== undefined) {
+      options.callback(entry.seed);
+    } else {
+      options.callback(undefined);
+    }
     return;
   }
 
