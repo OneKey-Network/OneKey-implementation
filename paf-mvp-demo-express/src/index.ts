@@ -92,7 +92,7 @@ mainApp.get('/_ah/warmup', (req, res) => {
 // start the Express server
 const port = process.env.PORT || 80;
 mainApp.listen(port, () => {
-  console.log('server started');
+  console.log(`server started on port ${port}`);
   console.log('');
   console.log('Listening on:');
   for (const app of apps) {
