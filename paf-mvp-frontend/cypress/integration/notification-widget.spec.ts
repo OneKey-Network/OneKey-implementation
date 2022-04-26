@@ -6,6 +6,7 @@ describe('Notification widget', () => {
 
   context('general scenarios', () => {
     beforeEach(() => {
+      cy.clock();
       page = new NotificationPage();
       page.open(NotificationEnum.generalContent);
     });
@@ -18,10 +19,9 @@ describe('Notification widget', () => {
 
     it('should be closed after timeout', () => {
       page.container.should('be.visible');
-      const timeout = 15_000;
-      cy.clock();
+      const timeout = 16_000;
       cy.tick(timeout);
-      page.container.should('not.be.visible');
+      cy.get('[paf-root]').should('not.exist');
     });
   });
 
