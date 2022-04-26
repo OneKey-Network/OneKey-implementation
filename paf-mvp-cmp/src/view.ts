@@ -79,10 +79,12 @@ export class View {
   private hideSnackbar(t: MouseEvent) {
     let p = <HTMLElement>t.target;
     while (p !== undefined) {
-      for (let i = 0; i < p.classList.length; i++) {
-        const className = p.classList[i];
-        if (className.startsWith('ok-ui')) {
-          return;
+      if (p.classList !== undefined) {
+        for (let i = 0; i < p.classList.length; i++) {
+          const className = p.classList[i];
+          if (className.startsWith('ok-ui')) {
+            return;
+          }
         }
       }
       p = p.parentElement;
