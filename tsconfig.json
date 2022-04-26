@@ -1,14 +1,21 @@
 {
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs",
+      "types": ["node", "tld-extract", "ec-key", "ecdsa-secp256r1"]
+    }
+  },
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
     "esModuleInterop": true,
-    "target": "es5",
+    "target": "ES6",
     "lib": ["esnext", "dom"],
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
-    "declaration": true,
-    "resolveJsonModule": true,
+    "jsx": "react",
+    "jsxFactory": "h",
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
     "skipLibCheck": true,
     "rootDir": ".",
     "baseUrl": ".",
@@ -23,15 +30,7 @@
       "@frontend/*": ["./paf-mvp-frontend/src/*"]
     }
   },
-  "include": [
-    "./paf-mvp-core-js",
-    "./paf-mvp-operator-express",
-    "./paf-mvp-operator-client-express",
-    "./paf-mvp-frontend",
-    "./paf-mvp-demo-express"
-  ],
   "exclude": [
-    "paf-mvp-frontend/src",
     "paf-mvp-frontend/cypress",
     "**/tests"
   ]

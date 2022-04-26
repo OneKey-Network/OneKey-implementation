@@ -35,11 +35,19 @@ export default [
     treeshake: 'smallest', // remove unused code
     plugins: [
       typescript({
-        tsconfig: relative('src/lib/tsconfig.json')
+        tsconfig: relative('../tsconfig.json')
       }),
       commonjs(),
       nodeResolve(),
-      // terser(), // minify js output
+      ...(() => {
+        if (DEV) {
+          return []
+        } else {
+          return [
+            terser(), // minify js output
+          ]
+        }
+      })(),
     ]
   }),
   defineConfig({
@@ -81,7 +89,7 @@ export default [
         resolvePreactCompat: true,
       }),
       typescript({
-          tsconfig: relative('tsconfig.app.json')
+          tsconfig: relative('../tsconfig.json')
         }
       ), // compile typescript => js
       ...(() => {
