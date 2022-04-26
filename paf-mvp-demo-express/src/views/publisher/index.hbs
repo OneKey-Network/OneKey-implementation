@@ -6,12 +6,12 @@
     <link rel="preload" as="script" href="https://{{cdnDomain}}/assets/cmp/ok-ui.js">
 
     <!-- Prebid SSO integration -->
-    {{!-- <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
-    <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script> --}}
+    <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
+    {{!-- <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script> --}}
 
     <!-- Prebid.js -->
-    {{!-- <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
-    <script async src="/assets/publisher/prebid/prebid.js"></script> --}}
+    <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
+    <script async src="/assets/publisher/prebid/prebid.js"></script>
 
     <script>
 
@@ -121,11 +121,14 @@
 <body>
 
 <!-- CMP -->
+<!-- See paf-mvp-cmp/README.md for details -->
 <script src="https://{{cdnDomain}}/assets/cmp/ok-ui.js" 
     data-display-intro="true"
     data-snackbar-timeout-ms="5000" 
-    data-proxy-host-name="cmp.pafdemopublisher.com" 
-    data-brand-name="CMP PAF Demo Pub"
+    data-proxy-host-name="{{proxyHostName}}" 
+    data-brand-name="Demo Publisher"
+    data-site-only-cookie-tcf-core="tcf-core"
+    data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
 
 <div>
