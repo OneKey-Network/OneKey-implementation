@@ -3,10 +3,6 @@ import typescript from '@rollup/plugin-typescript';
 import commonjs from "@rollup/plugin-commonjs";
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-// Used to ensure the resulting bundle will run on the widest variety of web 
-// browsers.
-import babel from '@rollup/plugin-babel';
-
 // Needed to minimize the resulting bundle.
 import { terser } from 'rollup-plugin-terser';
 
@@ -24,7 +20,6 @@ import { string } from 'rollup-plugin-string';
 
 export default {
   input: './src/main.ts',
-  treeshake: 'smallest', // remove unused code
   plugins: [
     commonjs(),
     nodeResolve(),
@@ -32,25 +27,21 @@ export default {
     minifyHTML(),
     string({ include: ['**/*.css', '**/*.svg', '**/*.js'] }),
     typescript({
-      sourceMap: true,
       tsconfig: './tsconfig.json'
-    }),
-    babel({
-      exclude: ['node_modules/**', 'dist/**'],
-      babelHelpers: 'bundled'
     }),
     yaml()
   ],
+  treeshake: true,
   output: [
     {
       file: './dist/ok-ui.js',
-      format: 'iife',
-      name: 'PAF'
+      sourcemap: true,
+      format: 'iife'
     },
     {
       file: './dist/ok-ui.min.js',
       format: 'iife',
-      name: 'PAF',
+      sourcemap: false,
       plugins: [
         terser()
       ]
@@ -58,7 +49,10 @@ export default {
     {
       file: '../paf-mvp-demo-express/public/assets/cmp/ok-ui.js',
       format: 'iife',
-      name: 'PAF'
+      sourcemap: false,
+      plugins: [
+        terser()
+      ]
     },
   ]
 };
