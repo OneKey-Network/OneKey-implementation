@@ -44,6 +44,7 @@ describe('testing model', () => {
     expect(model.tcf.get(10).value).toBe(false);
   });
   test('customized results in this site only', () => {
+    model.onlyThisSiteEnabled = true;
     model.all.value = true;
     expect(model.onlyThisSite.value).toBe(false);
     model.tcf.get(5).value = false;
