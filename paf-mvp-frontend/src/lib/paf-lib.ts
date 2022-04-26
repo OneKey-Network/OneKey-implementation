@@ -151,7 +151,9 @@ export type SignPrefsOptions = Options;
 
 export type GetNewIdOptions = Options;
 
-export type GenerateSeedOptions = Options;
+export interface GenerateSeedOptions extends Options {
+  callback?: (seed: Seed) => void;
+}
 
 /**
  * Refresh result
@@ -660,6 +662,15 @@ export const generateSeed = async (
     for (const id of pafTransactionIds) {
       seedStorage.set(id, entry);
     }
+  }
+
+  if (options.callback) {
+    if (entry !== undefined) {
+      options.callback(entry.seed);
+    } else {
+      options.callback(undefined);
+    }
+    return;
   }
 
   return entry.seed;

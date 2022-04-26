@@ -33,7 +33,7 @@
                     }
                 },
                 bids: [{
-                    bidder: 'openx',
+                    bidder: 'openx2',
                     params: {
                         delDomain: 'sademo-d.openx.net',
                         unit: '540096529',
@@ -49,7 +49,7 @@
                     }
                 },
                 bids: [{
-                    bidder: 'openx',
+                    bidder: 'openx2',
                     params: {
                         delDomain: 'sademo-d.openx.net',
                         unit: '540096529',
@@ -71,7 +71,27 @@
 
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
-            pbjs.setConfig({debug: true})
+            pbjs.setConfig({
+                debug: true,
+                realTimeData: {
+                    auctionDelay: 1000,
+                    dataProviders: [
+                            {
+                            name: "paf",
+                            waitForIt: true,
+                            params: {proxyHostName: "cmp.pafdemopublisher.com"}
+                        }
+                    ]
+                },
+                userSync: {
+                    userIds: [{
+                        name: "pafData",
+                        params: {}
+                    }],
+                    auctionDelay: 1000,
+                    syncDelay: 3000
+                }
+            });
             pbjs.requestBids({
                 bidsBackHandler: initAdserver,
                 timeout: PREBID_TIMEOUT
