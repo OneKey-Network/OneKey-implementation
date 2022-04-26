@@ -51,7 +51,7 @@ describe('Notification widget', () => {
       page.open(NotificationEnum.generalContent);
     });
 
-    it('should general right text', () => {
+    it('should contain right text', () => {
       page.content.should('contain', 'You chose to see standard ads on');
     });
   });
