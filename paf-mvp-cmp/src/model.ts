@@ -192,7 +192,11 @@ export abstract class FieldCustom extends Field<boolean> {
    * If custom marketing is selected then the preferences are only for this site.
    */
   protected setThisSiteOnly() {
-    if (this.model.onlyThisSite.value === false && Marketing.equals(this.model.pref.value, Marketing.custom)) {
+    if (
+      this.model.onlyThisSiteEnabled &&
+      this.model.onlyThisSite.value === false &&
+      Marketing.equals(this.model.pref.value, Marketing.custom)
+    ) {
       this.model.onlyThisSite.value = true;
     }
   }
@@ -237,26 +241,26 @@ export class FieldAll extends FieldSingle {
  * The model used in the module.
  */
 export class Model {
+  /**
+   * Minimum purpose consent Id.
+   */
+  public static readonly MinId = 1;
+
+  /**
+   * Maximum purpose consent Id.
+   */
+  public static readonly MaxId = 12;
+
   // Set to true when model update operations are occurring. Results in the
   // methods to update other properties being disabled.
   settingValues = false;
 
   // The data fields that relate to the data model.
-  rid = new FieldId(this, null, ['paf_browser_id', 'site_browser_id']); // The random id
+  rid = new FieldId(this, null, ['paf_browser_id']); // The random id
   pref = new FieldPreferences(this, Marketing.notSet); // The preferences
   onlyThisSite = new FieldThisSiteOnly(this, false);
-  1 = new FieldSingle(this, false); // Select and/or access information on a device
-  2 = new FieldSingle(this, false); // Select basic ads
-  3 = new FieldSingle(this, false); // Apply market research to generate audience insights
-  4 = new FieldSingle(this, false); // Develop & improve products
-  5 = new FieldSingle(this, false); // Ensure security, prevent fraud, and debug
-  6 = new FieldSingle(this, false); // Technically deliver ads or content
-  7 = new FieldSingle(this, false); // Create a personalized ad profile
-  8 = new FieldSingle(this, false); // Select personalized ads
-  9 = new FieldSingle(this, false); // Create a personalized content profile
-  10 = new FieldSingle(this, false); // Select personalized content
-  11 = new FieldSingle(this, false); // Measure ad performance
-  12 = new FieldSingle(this, false); // Measure content performance
+  onlyThisSiteEnabled: boolean; // True if only this site is enabled.
+  tcf: Map<number, FieldSingle>;
   all = new FieldAll(this, false);
   canSave = new FieldSingle(this, false); // True when the model can be saved
   email: string | null = null; // Not currently used.
@@ -284,21 +288,24 @@ export class Model {
   readonly customFields: FieldSingle[];
 
   constructor() {
+    // Add the TCF fields.
+    this.tcf = this.BuildTcfFields();
+
     // All the fields. Used for the reset and bind methods.
     this.allFields = [
       this.onlyThisSite,
-      this[1],
-      this[2],
-      this[3],
-      this[4],
-      this[5],
-      this[6],
-      this[7],
-      this[8],
-      this[9],
-      this[10],
-      this[11],
-      this[12],
+      this.tcf.get(1),
+      this.tcf.get(2),
+      this.tcf.get(3),
+      this.tcf.get(4),
+      this.tcf.get(5),
+      this.tcf.get(6),
+      this.tcf.get(7),
+      this.tcf.get(8),
+      this.tcf.get(9),
+      this.tcf.get(10),
+      this.tcf.get(11),
+      this.tcf.get(12),
       this.all,
       this.canSave,
       this.rid,
@@ -307,22 +314,31 @@ export class Model {
 
     // All the custom boolean fields that appear in the persisted data.
     this.customFields = [
-      this[1],
-      this[2],
-      this[3],
-      this[4],
-      this[5],
-      this[6],
-      this[7],
-      this[8],
-      this[9],
-      this[10],
-      this[11],
-      this[12],
+      this.tcf.get(1),
+      this.tcf.get(2),
+      this.tcf.get(3),
+      this.tcf.get(4),
+      this.tcf.get(5),
+      this.tcf.get(6),
+      this.tcf.get(7),
+      this.tcf.get(8),
+      this.tcf.get(9),
+      this.tcf.get(10),
+      this.tcf.get(11),
+      this.tcf.get(12),
     ];
 
     // The custom fields that are set to true when standard marketing is enabled.
-    this.standardFields = [this[1], this[2], this[3], this[4], this[5], this[6], this[11], this[12]];
+    this.standardFields = [
+      this.tcf.get(1),
+      this.tcf.get(2),
+      this.tcf.get(3),
+      this.tcf.get(4),
+      this.tcf.get(5),
+      this.tcf.get(6),
+      this.tcf.get(11),
+      this.tcf.get(12),
+    ];
 
     // The custom fields that are set to true when personalized marketing is enabled.
     this.personalizedFields = this.customFields;
@@ -361,6 +377,30 @@ export class Model {
       }
     }
   }
+
+  /**
+   * Adds the 12 TCF user choice fields.
+   * 1. Select and/or access information on a device
+   * 2. Select basic ads
+   * 3. Apply market research to generate audience insights
+   * 4. Develop & improve products
+   * 5. Ensure security, prevent fraud, and debug
+   * 6. Technically deliver ads or content
+   * 7. Create a personalized ad profile
+   * 8. Select personalized ads
+   * 9. Create a personalized content profile
+   * 10. Select personalized content
+   * 11. Measure ad performance
+   * 12. Measure content performance
+   * @returns map of 12 fields.
+   */
+  private BuildTcfFields() {
+    const map = new Map<number, FieldSingle>();
+    for (let i = Model.MinId; i <= Model.MaxId; i++) {
+      map.set(i, new FieldSingle(this, false));
+    }
+    return map;
+  }
 }
 
 /**
@@ -373,7 +413,11 @@ class ButtonState {
    * @returns
    */
   static isEnabled(model: Model) {
-    return model.onlyThisSite.value === true || model.pref.hasChanged === true || model.rid.persisted === false;
+    return (
+      (model.onlyThisSite.value === true && model.onlyThisSiteEnabled === true) ||
+      model.pref.hasChanged === true ||
+      model.rid.persisted === false
+    );
   }
 }
 

@@ -13,10 +13,11 @@ The script adds the HTML elements to the DOM at the point it is included. It sho
 UI as soon as possible and enable the web site to continue loading and fetching data whilst the user interacts with the 
 dialogue. All the resources needed to provide the UI are embedded in the single small JavaScript resource.
 
-## Performance
+## Performance (1)
 
 To improve overall performance a preload link element should be added at the beginning of the `<head>` element. This 
-will commence fetching the JavaScript resource as soon as possible in the page render process.
+will commence fetching the JavaScript resource as soon as possible in the page render process. This will be 
+particularly noticeable when HTTPS/2 is used.
 
 ```html
 <link rel="preload" as="script" href="https://domain.com/assets/cmp/ok-ui.js">
@@ -34,22 +35,33 @@ The script element and attributes must be added to the `<body>` element. See the
     data-snackbar-timeout-ms="5000" 
     data-proxy-host-name="cmp.pafdemopublisher.com" 
     data-brand-name="CMP PAF Demo Pub"
+    data-site-only-cookie-tcf-core="pub-tcf"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
 ```
 
-The DOM is modified at the point the script is included and there are no other deployment options.
+The DOM is modified at the point the script is included. There are no other deployment options.
+
+### Performance (2)
+
+By placing the script element for the CMP as close to the top of the `<body>` element as possible the interface will 
+appear on first request while the rest of the page is loading behind it. Should the interface require a redirect to 
+fetch or store data then the assets for the publishers page will already be cached by the web browser effectively 
+improving user perceive page load time. Also the approach is likely to improve actual page load time compared to 
+solutions which load the interface after other page processing completes.
 
 ## Configuration options
 
 The following attributes must be present in the script tag.
 
-- data-display-intro: True to display the introduction card, or false to skip straight to the settings card after a possible redirect.
-- data-snackbar-timeout-ms: The number of milliseconds to wait for the snackbar to disappear.
-- data-proxy-host-name: The host name to use when reading and writing data from the global storage.
 - data-brand-name: The brand name to use throughout the user interface.
 - data-brand-privacy-url: This URL is needed to inform the user about the privacy policy of the brand.
+- data-display-intro: True to display the introduction card, or false to skip straight to the settings card after a possible redirect.
+- data-proxy-host-name: The host name to use when reading and writing data from the global storage.
+- data-site-only-cookie-tcf-core: The name of the cookie used to store the TCF core string. If not provided then the this site only option is not available.
+- data-snackbar-timeout-ms: The number of milliseconds to wait for the snackbar to disappear.
+- data-template-tcf-core-string: The [template TCF core string](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20Consent%20string%20and%20vendor%20list%20formats%20v2.md?msclkid=5236f9f5c47b11ec8a04e36f3dd976c9#the-core-string) that will be used when generating the resulting TCF core string from the CMP. This project will change the Purposes Consents, Created, and LastUpdated fields of the provided value when writing the TCF core string to the cookie. See [IAB TCF](https://iabtcf.com/#/encode) web site to generate this value.
 
-If these are invalid or not provided then errors are written to the console and the UI will not function.
+If these are invalid, or not provided where mandatory, then errors are written to the console and the UI will not function.
 
 # For Developers
 

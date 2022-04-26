@@ -27,7 +27,7 @@ aboutBody:
 settingsHeading: Choose your marketing preferences
 settingsBody: 
   - OneKey signals your preferences that can enhance your experience across partner websites, without bothering you with future prompts or directly identifying you.
-  - By saving your preferences, you also agree to our <a href="[BrandPrivacyUrl]">site's privacy policy</a>.
+  - By saving your preferences, you also agree to our <a href="[BrandPrivacyUrl]" class="ok-ui-link">site's privacy policy</a>.
 settingsBrowsingId: Your browsing ID
 settingsBrowsingIdTip: <strong>OneKey</strong> links your preferences to a random, pseudonymous ID that lasts 6 months. Use your right to be forgotten at any time by refreshing your browsing ID.
 settingsPersonalizedLabel: Turn on personalized marketing

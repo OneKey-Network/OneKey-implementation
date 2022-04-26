@@ -7,14 +7,17 @@ import {
   getIdsAndPreferences,
   refreshIdsAndPreferences,
   signPreferences,
-  writeIdsAndPref,
   getNewId,
   saveCookieValue,
+  updateIdsAndPreferences,
+  removeCookie,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
-import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
 import { View } from './view';
+import { getCookieValue } from '@frontend/utils/cookie';
+import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { TcfCore } from './tcfcore';
 
 // Logger used to send messages to console.
 const log = new Log('ok-ui', '#18a9e1');
@@ -44,6 +47,7 @@ export class Controller {
     this.locale = locale;
     this.config = config;
     this.view = new View(locale, config);
+    this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
     this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
     this.load()
       .then(() => this.display())
@@ -131,20 +135,12 @@ export class Controller {
         ])
       )
     );
-    this.model.pref.addBinding(new BindingShowRandomId('ok-ui-settings-rid'));
+    this.model.pref.addBinding(new BindingShowRandomId('ok-ui-settings-rid', this.model));
     this.model.onlyThisSite.addBinding(new BindingChecked('ok-ui-only-this-site'));
-    this.model[1].addBinding(new BindingChecked('ok-ui-preference-1'));
-    this.model[2].addBinding(new BindingChecked('ok-ui-preference-2'));
-    this.model[3].addBinding(new BindingChecked('ok-ui-preference-3'));
-    this.model[4].addBinding(new BindingChecked('ok-ui-preference-4'));
-    this.model[5].addBinding(new BindingChecked('ok-ui-preference-5'));
-    this.model[6].addBinding(new BindingChecked('ok-ui-preference-6'));
-    this.model[7].addBinding(new BindingChecked('ok-ui-preference-7'));
-    this.model[8].addBinding(new BindingChecked('ok-ui-preference-8'));
-    this.model[9].addBinding(new BindingChecked('ok-ui-preference-9'));
-    this.model[10].addBinding(new BindingChecked('ok-ui-preference-10'));
-    this.model[11].addBinding(new BindingChecked('ok-ui-preference-11'));
-    this.model[12].addBinding(new BindingChecked('ok-ui-preference-12'));
+    this.model.onlyThisSite.addBinding(new BindingThisSiteOnly('ok-ui-only-this-site-container', this.config));
+    for (let id = Model.MinId; id <= Model.MaxId; id++) {
+      this.model.tcf.get(id).addBinding(new BindingChecked(`ok-ui-preference-${id}`));
+    }
     this.model.all.addBinding(new BindingChecked('ok-ui-preference-all'));
     this.model.canSave.addBinding(new BindingButton('ok-ui-button-save'));
     this.model.rid.addBinding(new BindingDisplayRandomId('ok-ui-display-rid'));
@@ -194,20 +190,56 @@ export class Controller {
   }
 
   /**
-   * Gets the Ids and preferences from local domain storage.
+   * Gets the Ids and preferences from local domain storage. Tries to get a local copy of the PAF data. If that is not
+   * available and the configuration supports this site only then looks for the local data.
    * @returns true if found in local domain storage, otherwise false.
    */
   private getIdsAndPreferencesFromLocal(): boolean {
+    // Get the data from local TCF core cookie if available and set the status to not participating.
+    if (this.config.siteOnlyEnabled) {
+      const tcf = getCookieValue(this.config.siteOnlyCookieTcfCore);
+      if (tcf !== undefined) {
+        this.getIdsAndPreferencesFromTcf(tcf);
+        return true;
+      }
+    }
+
+    // Try and get the PAF data from local cookies.
     const data = getIdsAndPreferences();
-    log.Message('local data', data);
     if (data !== undefined) {
+      log.Message('local PAF data', data);
       this.model.status = PafStatus.PARTICIPATING;
       this.setPersistedFlag(data?.identifiers);
       this.model.setFromIdsAndPreferences(data);
       return true;
     }
+
     this.model.status = PafStatus.REDIRECT_NEEDED;
     return false;
+  }
+
+  /**
+   * Decode the local TCF core cookie string if present and set the data model accordingly.
+   * @remarks
+   * Sets the PAF status to not participating and the Random ID to null.
+   * @param value of the TCF core string
+   */
+  private getIdsAndPreferencesFromTcf(value: string) {
+    const tcfCore = new TcfCore(value);
+    const flags = tcfCore.getPurposesConsent();
+    if (flags.length !== Model.MaxId) {
+      throw `TCF core string contains '${flags.length}' purposes consent flags, but data model requires '${Model.MaxId}'`;
+    }
+    for (let i = 0; i <= flags.length; i++) {
+      const field = this.model.tcf.get(i + 1);
+      if (field !== undefined) {
+        log.Message(i, flags[i]);
+        field.value = flags[i];
+      }
+    }
+    this.model.onlyThisSite.value = true;
+    this.model.status = PafStatus.NOT_PARTICIPATING;
+    this.model.rid.value = null;
   }
 
   /**
@@ -284,9 +316,12 @@ export class Controller {
   }
 
   /**
-   * Refuses all data processing, writes a cookie to indicate this to the domain, and closes the UI.
+   * Refuses all data processing, writes cookies to indicate this to the domain, and closes the UI.
    */
   private async actionRefuseAll() {
+    // TODO: Could be handled via a call to the PAF lib.
+    saveCookieValue(Cookies.identifiers, PafStatus.NOT_PARTICIPATING);
+    saveCookieValue(Cookies.preferences, PafStatus.NOT_PARTICIPATING);
     this.view.hidePopup();
   }
 
@@ -296,6 +331,42 @@ export class Controller {
    * complete if the storage of the data requires a redirect.
    */
   private async actionSave() {
+    if (this.model.onlyThisSite.value) {
+      this.actionSaveLocal();
+    } else {
+      await this.actionSaveGlobal();
+    }
+
+    // Close the pop up as everything has been confirmed to be okay.
+    this.view.hidePopup();
+  }
+
+  /**
+   * Saves the TCF data to local storage using the same data expiry policy as Prebid.
+   */
+  private actionSaveLocal() {
+    const tcfCore = this.config.tcfCore.clone();
+    const flags: boolean[] = [];
+    tcfCore.setDate(new Date());
+    for (let id = Model.MinId; id <= Model.MaxId; id++) {
+      const field = this.model.tcf.get(id);
+      if (field !== null) {
+        flags.push(field.value);
+      }
+    }
+    tcfCore.setPurposesConsent(flags);
+    document.cookie = `${
+      this.config.siteOnlyCookieTcfCore
+    }=${tcfCore.toString()};expires=${getPrebidDataCacheExpiration()}`;
+    removeCookie(Cookies.identifiers);
+    removeCookie(Cookies.preferences);
+    removeCookie(Cookies.lastRefresh);
+  }
+
+  /**
+   * Saves the data to global storage.
+   */
+  private async actionSaveGlobal() {
     // Get a new random Id if one is not already present.
     const rid = await this.getNewIdIfNeeded();
     this.model.rid.value = rid;
@@ -310,8 +381,8 @@ export class Controller {
     this.model.setFromIdsAndPreferences(w);
 
     // Ensure the this site only data is removed.
-    if (this.config.siteOnlyCookieTcf !== null) {
-      removeCookie(this.config.siteOnlyCookieTcf);
+    if (this.config.siteOnlyEnabled) {
+      removeCookie(this.config.siteOnlyCookieTcfCore);
     }
   }
 
@@ -448,9 +519,46 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
 }
 
 /**
+ * Hides the this site only option if the feature is not configured.
+ */
+class BindingThisSiteOnly extends BindingViewOnly<boolean, HTMLDivElement> {
+  private readonly enabled: boolean;
+
+  constructor(id: string, config: Config) {
+    super(id);
+    this.enabled = config.siteOnlyEnabled;
+  }
+
+  public bind(): void {
+    const element = this.getElement();
+    if (element !== null) {
+      element.style.display = this.enabled ? '' : 'none';
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setValue(value: boolean): void {
+    // Do nothing.
+  }
+}
+
+/**
  * Custom UI binding to hide or show the area that displays the random identifier if preferences have been set.
  */
 class BindingShowRandomId extends BindingViewOnly<PreferencesData, HTMLDivElement> {
+  protected readonly model: Model;
+
+  constructor(id: string, model: Model) {
+    super(id);
+    this.model = model;
+  }
+
+  public bind(): void {
+    if (this.field !== null) {
+      this.setValue(this.field.value);
+    }
+  }
+
   /**
    * If the preferences are persisted then show the identifier.
    * @param value of the identifier being displayed
@@ -458,14 +566,8 @@ class BindingShowRandomId extends BindingViewOnly<PreferencesData, HTMLDivElemen
   public setValue(value: PreferencesData) {
     const element = super.getElement();
     if (element !== null) {
-      const visible = value !== null;
+      const visible = value !== null && this.model.rid?.value?.value !== undefined;
       element.style.display = visible ? '' : 'none';
-    }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
     }
   }
 }
