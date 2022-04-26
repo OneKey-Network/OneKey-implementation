@@ -11,6 +11,7 @@ import {
   saveCookieValue,
   updateIdsAndPreferences,
   removeCookie,
+  RefreshIdsAndPrefsOptions,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@core/operator-client-commons';
@@ -175,6 +176,12 @@ export class Controller {
    * @returns true if the data is valid, otherwise false
    */
   private async getIdsAndPreferencesFromGlobal(triggerRedirectIfNeeded: boolean) {
+    // TODO: These values are used by the refresh method. Remove them to force processing a redirect if needed and
+    // allowed.
+    removeCookie(Cookies.identifiers);
+    removeCookie(Cookies.preferences);
+    removeCookie(Cookies.lastRefresh);
+
     const r = await refreshIdsAndPreferences({
       proxyHostName: this.config.proxyHostName,
       triggerRedirectIfNeeded,
@@ -182,9 +189,15 @@ export class Controller {
     log.Message('global data', r);
     this.model.status = r.status;
     if (r.data !== null) {
-      this.setPersistedFlag(r.data.identifiers);
-      this.model.setFromIdsAndPreferences(r.data);
-      return true;
+      // TODO: The data returned does not match the interface and should really include a status value to avoid this
+      // try catch block.
+      try {
+        this.setPersistedFlag(r.data.identifiers);
+        this.model.setFromIdsAndPreferences(r.data);
+        return true;
+      } catch (ex) {
+        log.Warn('Problem parsing global ids and preferences', ex);
+      }
     }
     return false;
   }
@@ -207,11 +220,17 @@ export class Controller {
     // Try and get the PAF data from local cookies.
     const data = getIdsAndPreferences();
     if (data !== undefined) {
-      log.Message('local PAF data', data);
-      this.model.status = PafStatus.PARTICIPATING;
-      this.setPersistedFlag(data?.identifiers);
-      this.model.setFromIdsAndPreferences(data);
-      return true;
+      // TODO: The data returned does not match the interface and should really include a status value to avoid this
+      // try catch block.
+      try {
+        log.Message('local PAF data', data);
+        this.model.status = PafStatus.PARTICIPATING;
+        this.setPersistedFlag(data.identifiers);
+        this.model.setFromIdsAndPreferences(data);
+        return true;
+      } catch (ex) {
+        log.Warn('Problem parsing local ids and preferences', ex);
+      }
     }
 
     this.model.status = PafStatus.REDIRECT_NEEDED;

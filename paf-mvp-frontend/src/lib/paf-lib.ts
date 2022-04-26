@@ -1,4 +1,4 @@
-import UAParser from 'ua-parser-js';
+import { IBrowser } from 'ua-parser-js';
 import {
   AuditLog,
   Error,
@@ -255,9 +255,14 @@ async function updateDataWithPrompt(
  * - proxyHostName: servername of operator proxy. ex: www.myproxy.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
  * - redirectUrl: the redirectUrl that must be called in return when no 3PC are available. Default = current page
+ * @param browser:
+ * Optional instance of an IBrowser interface used to determine if the browser is likely to support 3PC.
  * @return a status and optional data
  */
-export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
+export const refreshIdsAndPreferences = async (
+  options: RefreshIdsAndPrefsOptions,
+  browser?: IBrowser
+): Promise<RefreshResult> => {
   const mergedOptions = {
     ...defaultsRefreshIdsAndPrefsOptions,
     ...options,
@@ -383,9 +388,9 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     log.Info('Cookie found: NO');
 
     // 4. Browser known to support 3PC?
-    const userAgent = new UAParser(navigator.userAgent);
+    // const userAgent = new UAParser(navigator.userAgent);
 
-    if (isBrowserKnownToSupport3PC(userAgent.getBrowser())) {
+    if (browser !== null && isBrowserKnownToSupport3PC(browser)) {
       log.Info('Browser known to support 3PC: YES');
 
       log.Info('Attempt to read from JSON');
