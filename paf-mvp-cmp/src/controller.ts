@@ -252,7 +252,6 @@ export class Controller {
     for (let i = 0; i <= flags.length; i++) {
       const field = this.model.tcf.get(i + 1);
       if (field !== undefined) {
-        log.Message(i, flags[i]);
         field.value = flags[i];
       }
     }
