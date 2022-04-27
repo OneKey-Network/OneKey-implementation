@@ -1,5 +1,6 @@
 import Card, { CardHeader, CardHeaderLogo, CardBody, CardFooter, CardActions } from '../components/Card';
 import Button from '../components/Button';
+import { CrossIcon } from '../components/Icons';
 import Provider from '../components/Provider';
 
 export default {
@@ -15,6 +16,8 @@ export const Audit = () => `
       ${CardHeader({ children: `
         ${CardActions({ children: `
           ${CardHeaderLogo()}
+
+          ${Button({ style: 'text', label: 'Close', icon: CrossIcon(), iconPosition: 'end' })}
         ` })}
 
         <h1 class="ok-ui-heading-1 ok-ui-mb-2">Your ad-funded access</h1>
