@@ -1,2 +1,8 @@
 runtime: nodejs16
 instance_class: F2
+
+# Warmup Requests to Improve Performance
+inbound_services:
+  - warmup
+automatic_scaling:
+  min_idle_instances: 1

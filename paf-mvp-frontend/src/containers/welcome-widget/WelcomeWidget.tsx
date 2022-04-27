@@ -28,10 +28,10 @@ export interface IWelcomeWidgetProps {
 export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
-  const [pafCookies, setPafCookies] = useState(window.PAF.getIdsAndPreferences());
+  const originalData = window.PAF.getIdsAndPreferences();
 
-  const originalIdentifier = pafCookies?.identifiers?.[0]?.value;
-  const originalConsent = pafCookies?.preferences?.data?.use_browsing_for_personalization;
+  const originalIdentifier = originalData?.identifiers?.[0];
+  const originalConsent = originalData?.preferences?.data?.use_browsing_for_personalization;
   const proxyHostName = currentScript.getData()?.proxy;
   const brandName = window.location.hostname;
 
@@ -54,17 +54,16 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
   };
 
   const updateIdentifier = async () => {
-    setAppIdentifier('');
+    setAppIdentifier(undefined);
     const newIdentifier = await window.PAF.getNewId({ proxyHostName });
-    setAppIdentifier(newIdentifier.value);
-    setPafCookies({
-      ...pafCookies,
-      identifiers: [newIdentifier],
-    });
+    setAppIdentifier(newIdentifier);
   };
 
   const updateSettings = async () => {
-    await window.PAF.updateIdsAndPreferences(proxyHostName, consent, pafCookies.identifiers);
+    // Remove previous PAF id from the list
+    const identifiers = (originalData?.identifiers ?? []).filter((id) => id.type !== 'paf_browser_id');
+    identifiers.push(appIdentifier);
+    await window.PAF.updateIdsAndPreferences(proxyHostName, consent, identifiers);
     closeWidget();
   };
 
@@ -112,7 +111,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
                   <div class={layout.alignCenter}>
                     {appIdentifier && (
                       <small class={[grid['mr-2'], typography.textUpper].join(' ')}>
-                        {appIdentifier.split('-')?.[0]}
+                        {appIdentifier?.value.split('-')?.[0]}
                       </small>
                     )}
                     {appIdentifier ? <Refresh /> : <DotTyping />}

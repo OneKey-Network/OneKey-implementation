@@ -1,5 +1,5 @@
 import pretty from "pretty";
-import "../styles/styles.scss";
+import "../styles/ok-ui.scss";
 import "../javascript/ok-ui.js";
 import { addDecorator } from '@storybook/html';
 

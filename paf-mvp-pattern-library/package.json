@@ -8,7 +8,7 @@
     "build": "npm run build-css && npm run build-js && mkdir -p build/images && cp assets/images/OneKey.svg build/images/OneKey.svg",
     "build-test": "open build/index.html",
     "build-js": "webpack --mode production --entry ./javascript/ok-ui.js --output-filename ok-ui.js -o ./build",
-    "build-css": "sass styles/styles.scss build/ok-ui.css --style compressed",
+    "build-css": "sass styles/ok-ui.scss:build/ok-ui.css styles/ok-ui-audit.scss:build/ok-ui-audit.css --style compressed",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },

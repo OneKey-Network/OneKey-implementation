@@ -1,5 +1,6 @@
-import UAParser from 'ua-parser-js';
+import { IBrowser } from 'ua-parser-js';
 import {
+  AuditLog,
   Error,
   Get3PcResponse,
   GetIdsPrefsResponse,
@@ -13,6 +14,7 @@ import {
   Preferences,
   Seed,
   TransactionId,
+  TransmissionResponse,
 } from '@core/model/generated-model';
 import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
@@ -21,15 +23,18 @@ import { QSParam } from '@core/query-string';
 import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
 import { getCookieValue } from '../utils/cookie';
 import { NotificationEnum } from '../enums/notification.enum';
-import { logDebug, logInfo } from './logging';
+import { Log } from '@core/log';
+import { buildAuditLog } from '@core/model/audit-log';
 
 declare const PAFUI: {
   promptConsent: () => Promise<boolean>;
   showNotification: (notificationType: NotificationEnum) => void;
 };
 
+const log = new Log('PAF', '#3bb8c3');
+
 const redirect = (url: string): void => {
-  logInfo('Redirecting to:', url);
+  log.Info('Redirecting to:', url);
   location.replace(url);
 };
 
@@ -109,7 +114,7 @@ const getProxyUrl =
 export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
   const valueToStore = cookieValue === undefined ? PafStatus.NOT_PARTICIPATING : JSON.stringify(cookieValue);
 
-  logDebug(`Save cookie ${cookieName}:`, valueToStore);
+  log.Debug(`Save cookie ${cookieName}:`, valueToStore);
 
   // TODO use different expiration if "not participating"
   setCookie(cookieName, valueToStore, getPrebidDataCacheExpiration());
@@ -148,7 +153,9 @@ export type SignPrefsOptions = Options;
 
 export type GetNewIdOptions = Options;
 
-export type CreateSeedOptions = Options;
+export interface GenerateSeedOptions extends Options {
+  callback?: (seed: Seed) => void;
+}
 
 /**
  * Refresh result
@@ -203,8 +210,8 @@ async function updateDataWithPrompt(
 ) {
   const { status, data } = idsAndPreferences;
 
-  logDebug('showPrompt', showPrompt);
-  logDebug('status', status);
+  log.Debug('showPrompt', showPrompt);
+  log.Debug('status', status);
 
   // If a redirect is needed, nothing more to do
   if (status === PafStatus.REDIRECT_NEEDED) {
@@ -248,9 +255,14 @@ async function updateDataWithPrompt(
  * - proxyHostName: servername of operator proxy. ex: www.myproxy.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
  * - redirectUrl: the redirectUrl that must be called in return when no 3PC are available. Default = current page
+ * @param browser:
+ * Optional instance of an IBrowser interface used to determine if the browser is likely to support 3PC.
  * @return a status and optional data
  */
-export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
+export const refreshIdsAndPreferences = async (
+  options: RefreshIdsAndPrefsOptions,
+  browser?: IBrowser
+): Promise<RefreshResult> => {
   const mergedOptions = {
     ...defaultsRefreshIdsAndPrefsOptions,
     ...options,
@@ -269,7 +281,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
   const getUrl = getProxyUrl(proxyHostName);
 
   const redirectToRead = () => {
-    logInfo('Redirect to operator');
+    log.Info('Redirect to operator');
     const url = redirectUrl ?? new URL(getUrl(redirectProxyEndpoints.read));
     const currentUrl = new URL(location.href);
     currentUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
@@ -297,10 +309,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
         freshConsent !== currentlySelectedConsent; // the new value is different from the previous one
 
       if (shouldShowNotification) {
-        logDebug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
+        log.Debug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
         showNotificationIfValid(freshConsent);
       } else {
-        logDebug(`No preferences changes (${currentlySelectedConsent}), don't show notification`);
+        log.Debug(`No preferences changes (${currentlySelectedConsent}), don't show notification`);
       }
     };
 
@@ -313,7 +325,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
         throw 'Verification failed';
       }
 
-      logDebug('Operator data after redirect', operatorData);
+      log.Debug('Operator data after redirect', operatorData);
 
       // 3. Received data?
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -333,7 +345,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
     // 2. Redirected from operator?
     if (uriOperatorData) {
-      logInfo('Redirected from operator: YES');
+      log.Info('Redirected from operator: YES');
 
       // Consider that if we have been redirected, it means 3PC are not supported
       thirdPartyCookiesSupported = false;
@@ -344,12 +356,12 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
       return await handleAfterRedirect();
     }
 
-    logInfo('Redirected from operator: NO');
+    log.Info('Redirected from operator: NO');
 
     const pafStatus = getPafStatus(strIds, strPreferences);
 
     if (pafStatus === PafStatus.REDIRECT_NEEDED) {
-      logInfo('Redirect previously deferred');
+      log.Info('Redirect previously deferred');
 
       if (triggerRedirectIfNeeded) {
         redirectToRead();
@@ -361,10 +373,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     }
 
     if (lastRefresh) {
-      logInfo('Cookie found: YES');
+      log.Info('Cookie found: YES');
 
       if (pafStatus === PafStatus.NOT_PARTICIPATING) {
-        logInfo('User is not participating');
+        log.Info('User is not participating');
       }
 
       return {
@@ -373,15 +385,15 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
       };
     }
 
-    logInfo('Cookie found: NO');
+    log.Info('Cookie found: NO');
 
     // 4. Browser known to support 3PC?
-    const userAgent = new UAParser(navigator.userAgent);
+    // const userAgent = new UAParser(navigator.userAgent);
 
-    if (isBrowserKnownToSupport3PC(userAgent.getBrowser())) {
-      logInfo('Browser known to support 3PC: YES');
+    if (browser !== null && isBrowserKnownToSupport3PC(browser)) {
+      log.Info('Browser known to support 3PC: YES');
 
-      logInfo('Attempt to read from JSON');
+      log.Info('Attempt to read from JSON');
       const readResponse = await get(getUrl(jsonProxyEndpoints.read));
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
@@ -392,7 +404,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
       // 3. Received data?
       if (hasPersistedId && hasPreferences) {
-        logDebug('Operator returned id & prefs: YES');
+        log.Debug('Operator returned id & prefs: YES');
 
         // If we got data, it means 3PC are supported
         thirdPartyCookiesSupported = true;
@@ -409,16 +421,16 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
           data: operatorData.body,
         };
       }
-      logInfo('Operator returned id & prefs: NO');
+      log.Info('Operator returned id & prefs: NO');
 
-      logInfo('Verify 3PC on operator');
+      log.Info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
       const verifyResponse = await get(getUrl(jsonProxyEndpoints.verify3PC));
       const testOk: Get3PcResponse | Error = await verifyResponse.json();
 
       // 4. 3d party cookie ok?
       if ((testOk as Get3PcResponse)?.['3pc']) {
-        logDebug('3PC verification OK: YES');
+        log.Debug('3PC verification OK: YES');
 
         thirdPartyCookiesSupported = true;
 
@@ -429,19 +441,19 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
           },
         };
       }
-      logInfo('3PC verification OK: NO');
+      log.Info('3PC verification OK: NO');
       thirdPartyCookiesSupported = false;
-      logInfo('Fallback to JS redirect');
+      log.Info('Fallback to JS redirect');
     } else {
-      logInfo('Browser known to support 3PC: NO');
+      log.Info('Browser known to support 3PC: NO');
       thirdPartyCookiesSupported = false;
-      logInfo('JS redirect');
+      log.Info('JS redirect');
     }
 
     if (triggerRedirectIfNeeded) {
       redirectToRead();
     } else {
-      logInfo('Deffer redirect to later, in agreement with options');
+      log.Info('Deffer redirect to later, in agreement with options');
       saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
       saveCookieValue(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
     }
@@ -453,7 +465,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
   const idsAndPreferences = await processGetIdsAndPreferences();
 
-  logInfo('Processed refresh', idsAndPreferences);
+  log.Info('Processed refresh', idsAndPreferences);
 
   // Now handle prompt, if relevant
   await updateDataWithPrompt(idsAndPreferences, proxyHostName, showPrompt);
@@ -468,14 +480,14 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
  * @param input the identifiers and preferences to write
  * @return the written identifiers and preferences
  */
-export const writeIdsAndPref = async (
+const writeIdsAndPref = async (
   { proxyHostName }: WriteIdsAndPrefsOptions,
   input: IdsAndPreferences
 ): Promise<IdsAndOptionalPreferences | undefined> => {
   const getUrl = getProxyUrl(proxyHostName);
 
   const processWriteIdsAndPref = async (): Promise<IdsAndOptionalPreferences | undefined> => {
-    logInfo('Attempt to write:', input.identifiers, input.preferences);
+    log.Info('Attempt to write:', input.identifiers, input.preferences);
 
     // First clean up local cookies
     removeCookie(Cookies.identifiers);
@@ -483,7 +495,7 @@ export const writeIdsAndPref = async (
 
     // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
     if (thirdPartyCookiesSupported) {
-      logInfo('3PC supported');
+      log.Info('3PC supported');
 
       // 1) sign the request
       const signedResponse = await postJson(getUrl(jsonProxyEndpoints.signWrite), input);
@@ -504,7 +516,7 @@ export const writeIdsAndPref = async (
       return operatorData.body;
     }
 
-    logInfo('3PC not supported: redirect');
+    log.Info('3PC not supported: redirect');
 
     // Redirect. Signing of the request will happen on the backend proxy
     const returnUrl = new URL(getUrl(redirectProxyEndpoints.write));
@@ -518,7 +530,7 @@ export const writeIdsAndPref = async (
 
   const idsAndPreferences = await processWriteIdsAndPref();
 
-  logInfo('Finished', idsAndPreferences);
+  log.Info('Finished', idsAndPreferences);
 
   return idsAndPreferences;
 };
@@ -581,30 +593,137 @@ export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
 };
 
 /**
+ * Aggregate Seed and Preferences for storage.
  *
- * @param proxyHostName
- * @param transactionIds
+ * We must record the Ids and Preferences
+ * in case they change in the cookies after the
+ * generation of the Seed.
  */
+export interface SeedEntry {
+  seed: Seed;
+  idsAndPreferences: IdsAndPreferences;
+}
+
+type PrebidTransactionId = string;
+type SlotId = string;
+type ContentId = string;
+
+export interface TransmissionRegistryContext {
+  /** Transaction Id generated by Prebidjs. */
+  prebidTransactionId: PrebidTransactionId;
+  /** Transaction Id generated for the PAF Audit Log and used for signing the Seed. */
+  pafTransactionId: TransactionId;
+  slotId: SlotId;
+  contentId: ContentId;
+}
+
+/**
+ * Internal storage for generated Seeds.
+ */
+const seedStorage = new Map<TransactionId, SeedEntry>();
+const auditLogByPrebidTransactionId = new Map<PrebidTransactionId, AuditLog>();
+const prebidTransactionIdBySlotId = new Map<SlotId, PrebidTransactionId>();
+
 export const createSeed = async (
-  { proxyHostName }: CreateSeedOptions,
+  { proxyHostName }: GenerateSeedOptions,
   transactionIds: TransactionId[]
-): Promise<Seed | undefined> => {
+): Promise<SeedEntry | undefined> => {
   if (transactionIds.length == 0) {
     return undefined;
   }
-
   const getUrl = getProxyUrl(proxyHostName);
   const url = getUrl(jsonProxyEndpoints.createSeed);
-  const idsAndPrefs = getIdsAndPreferences();
-  if (idsAndPrefs === undefined) {
+  const idsAndPreferences = getIdsAndPreferences();
+  if (idsAndPreferences === undefined) {
     return undefined;
   }
 
   const requestContent: PostSeedRequest = {
     transaction_ids: transactionIds,
-    data: idsAndPrefs,
+    data: idsAndPreferences,
   };
   const response = await postJson(url, requestContent);
+  const seed = (await response.json()) as Seed;
 
-  return await response.json();
+  return {
+    seed,
+    idsAndPreferences,
+  };
+};
+
+/**
+ * Call hostname endpoint for generating a seed
+ * and store the Seed on Browser side so that it can be retrieved later.
+ *
+ * @param options domain called for creating the Seed (POST /paf-proxy/v1/seed).
+ * @param pafTransactionIds List of Transaction Ids for PAF (visible in the Audit).
+ * @returns A new signed Seed that can be used to start Transmissions Requests.
+ */
+export const generateSeed = async (
+  options: GenerateSeedOptions,
+  pafTransactionIds: TransactionId[]
+): Promise<Seed | undefined> => {
+  const entry = await createSeed(options, pafTransactionIds);
+
+  if (entry !== undefined) {
+    for (const id of pafTransactionIds) {
+      seedStorage.set(id, entry);
+    }
+  }
+
+  if (options.callback) {
+    if (entry !== undefined) {
+      options.callback(entry.seed);
+    } else {
+      options.callback(undefined);
+    }
+    return;
+  }
+
+  return entry.seed;
+};
+
+/**
+ * Register the Transmission Response of an initial Transmission Request for a given Seed.
+ * @param context
+ * @param transmissionResponse Transmission Response of an initial Transmission Request containing all the children.
+ * @returns The generated AuditLog or undefined if the given Transaction Id is unknown or malformed.
+ */
+export const registerTransmissionResponse = (
+  { prebidTransactionId, pafTransactionId, slotId, contentId }: TransmissionRegistryContext,
+  transmissionResponse: TransmissionResponse
+): AuditLog | undefined => {
+  const seedEntry = seedStorage.get(pafTransactionId);
+  if (seedEntry === undefined) {
+    return undefined;
+  }
+
+  const auditLog = buildAuditLog(seedEntry.seed, seedEntry.idsAndPreferences, transmissionResponse, contentId);
+  if (auditLog === undefined) {
+    return undefined;
+  }
+
+  auditLogByPrebidTransactionId.set(prebidTransactionId, auditLog);
+  prebidTransactionIdBySlotId.set(slotId, prebidTransactionId);
+  return auditLog;
+};
+
+/**
+ * @param prebidTransactionId Transaction Id generated by Prebidjs.
+ * @returns The Audit Log attached to the Prebid Transaction Id.
+ */
+export const getAuditLogByTransaction = (prebidTransactionId: PrebidTransactionId): AuditLog | undefined => {
+  return auditLogByPrebidTransactionId.get(prebidTransactionId);
+};
+
+/**
+ * @param slotId Transaction Id generated by Prebidjs.
+ * @returns The Audit Log attached to the Prebid Transaction Id.
+ */
+export const getAuditLogBySlot = (slotId: SlotId): AuditLog | undefined => {
+  const prebidTransactionId = prebidTransactionIdBySlotId.get(slotId);
+  if (prebidTransactionId === undefined) {
+    return undefined;
+  }
+  return getAuditLogByTransaction(prebidTransactionId);
 };

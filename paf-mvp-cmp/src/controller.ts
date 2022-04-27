@@ -1,20 +1,27 @@
 import { Locale } from './locale';
 import { Config } from './config';
-import { log } from './log';
+import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement, BindingViewOnly } from './binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
   getIdsAndPreferences,
   refreshIdsAndPreferences,
   signPreferences,
-  writeIdsAndPref,
   getNewId,
   saveCookieValue,
+  updateIdsAndPreferences,
+  removeCookie,
+  RefreshIdsAndPrefsOptions,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
-import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
 import { View } from './view';
+import { getCookieValue } from '@frontend/utils/cookie';
+import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { TcfCore } from './tcfcore';
+
+// Logger used to send messages to console.
+const log = new Log('ok-ui', '#18a9e1');
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -41,6 +48,7 @@ export class Controller {
     this.locale = locale;
     this.config = config;
     this.view = new View(locale, config);
+    this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
     this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
     this.load()
       .then(() => this.display())
@@ -55,17 +63,17 @@ export class Controller {
    * If some of the data is persisted and others not then show the settings card.
    */
   public async display(card?: string) {
-    if (card == null) {
-      if (this.model.status != PafStatus.NOT_PARTICIPATING) {
-        if (this.model.allPersisted == true && this.model.status == PafStatus.PARTICIPATING) {
+    if (card === null || card === undefined) {
+      if (this.model.status !== PafStatus.NOT_PARTICIPATING) {
+        if (this.model.allPersisted === true && this.model.status === PafStatus.PARTICIPATING) {
           this.setCard('snackbar');
-        } else if (this.model.nonePersisted == true) {
-          if (this.config.displayIntro && this.model.status == PafStatus.REDIRECT_NEEDED) {
+        } else if (this.model.nonePersisted === true) {
+          if (this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
             this.setCard('intro');
-          } else if (this.model.status != PafStatus.REDIRECT_NEEDED) {
+          } else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
             this.setCard('settings');
           }
-        } else if (this.model.status != PafStatus.REDIRECT_NEEDED) {
+        } else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
           this.setCard('settings');
         }
       }
@@ -128,20 +136,12 @@ export class Controller {
         ])
       )
     );
-    this.model.pref.addBinding(new BindingShowRandomId('ok-ui-settings-rid'));
+    this.model.pref.addBinding(new BindingShowRandomId('ok-ui-settings-rid', this.model));
     this.model.onlyThisSite.addBinding(new BindingChecked('ok-ui-only-this-site'));
-    this.model[1].addBinding(new BindingChecked('ok-ui-preference-1'));
-    this.model[2].addBinding(new BindingChecked('ok-ui-preference-2'));
-    this.model[3].addBinding(new BindingChecked('ok-ui-preference-3'));
-    this.model[4].addBinding(new BindingChecked('ok-ui-preference-4'));
-    this.model[5].addBinding(new BindingChecked('ok-ui-preference-5'));
-    this.model[6].addBinding(new BindingChecked('ok-ui-preference-6'));
-    this.model[7].addBinding(new BindingChecked('ok-ui-preference-7'));
-    this.model[8].addBinding(new BindingChecked('ok-ui-preference-8'));
-    this.model[9].addBinding(new BindingChecked('ok-ui-preference-9'));
-    this.model[10].addBinding(new BindingChecked('ok-ui-preference-10'));
-    this.model[11].addBinding(new BindingChecked('ok-ui-preference-11'));
-    this.model[12].addBinding(new BindingChecked('ok-ui-preference-12'));
+    this.model.onlyThisSite.addBinding(new BindingThisSiteOnly('ok-ui-only-this-site-container', this.config));
+    for (let id = Model.MinId; id <= Model.MaxId; id++) {
+      this.model.tcf.get(id).addBinding(new BindingChecked(`ok-ui-preference-${id}`));
+    }
     this.model.all.addBinding(new BindingChecked('ok-ui-preference-all'));
     this.model.canSave.addBinding(new BindingButton('ok-ui-button-save'));
     this.model.rid.addBinding(new BindingDisplayRandomId('ok-ui-display-rid'));
@@ -163,7 +163,7 @@ export class Controller {
     if (await this.getIdsAndPreferencesFromGlobal(false)) {
       return;
     }
-    if (this.config.displayIntro == false) {
+    if (this.config.displayIntro === false) {
       await this.getIdsAndPreferencesFromGlobal(true);
     }
     return;
@@ -176,35 +176,88 @@ export class Controller {
    * @returns true if the data is valid, otherwise false
    */
   private async getIdsAndPreferencesFromGlobal(triggerRedirectIfNeeded: boolean) {
+    // TODO: These values are used by the refresh method. Remove them to force processing a redirect if needed and
+    // allowed.
+    removeCookie(Cookies.identifiers);
+    removeCookie(Cookies.preferences);
+    removeCookie(Cookies.lastRefresh);
+
     const r = await refreshIdsAndPreferences({
       proxyHostName: this.config.proxyHostName,
       triggerRedirectIfNeeded,
     });
     log.Message('global data', r);
     this.model.status = r.status;
-    if (r.data != null) {
-      this.setPersistedFlag(r.data.identifiers);
-      this.model.setFromIdsAndPreferences(r.data);
-      return true;
+    if (r.data !== null) {
+      // TODO: The data returned does not match the interface and should really include a status value to avoid this
+      // try catch block.
+      try {
+        this.setPersistedFlag(r.data.identifiers);
+        this.model.setFromIdsAndPreferences(r.data);
+        return true;
+      } catch (ex) {
+        log.Warn('Problem parsing global ids and preferences', ex);
+      }
     }
     return false;
   }
 
   /**
-   * Gets the Ids and preferences from local domain storage.
+   * Gets the Ids and preferences from local domain storage. Tries to get a local copy of the PAF data. If that is not
+   * available and the configuration supports this site only then looks for the local data.
    * @returns true if found in local domain storage, otherwise false.
    */
   private getIdsAndPreferencesFromLocal(): boolean {
-    const data = getIdsAndPreferences();
-    log.Message('local data', data);
-    if (data != undefined) {
-      this.model.status = PafStatus.PARTICIPATING;
-      this.setPersistedFlag(data?.identifiers);
-      this.model.setFromIdsAndPreferences(data);
-      return true;
+    // Get the data from local TCF core cookie if available and set the status to not participating.
+    if (this.config.siteOnlyEnabled) {
+      const tcf = getCookieValue(this.config.siteOnlyCookieTcfCore);
+      if (tcf !== undefined) {
+        this.getIdsAndPreferencesFromTcf(tcf);
+        return true;
+      }
     }
+
+    // Try and get the PAF data from local cookies.
+    const data = getIdsAndPreferences();
+    if (data !== undefined) {
+      // TODO: The data returned does not match the interface and should really include a status value to avoid this
+      // try catch block.
+      try {
+        log.Message('local PAF data', data);
+        this.model.status = PafStatus.PARTICIPATING;
+        this.setPersistedFlag(data.identifiers);
+        this.model.setFromIdsAndPreferences(data);
+        return true;
+      } catch (ex) {
+        log.Warn('Problem parsing local ids and preferences', ex);
+      }
+    }
+
     this.model.status = PafStatus.REDIRECT_NEEDED;
     return false;
+  }
+
+  /**
+   * Decode the local TCF core cookie string if present and set the data model accordingly.
+   * @remarks
+   * Sets the PAF status to not participating and the Random ID to null.
+   * @param value of the TCF core string
+   */
+  private getIdsAndPreferencesFromTcf(value: string) {
+    const tcfCore = new TcfCore(value);
+    const flags = tcfCore.getPurposesConsent();
+    if (flags.length !== Model.MaxId) {
+      throw `TCF core string contains '${flags.length}' purposes consent flags, but data model requires '${Model.MaxId}'`;
+    }
+    for (let i = 0; i <= flags.length; i++) {
+      const field = this.model.tcf.get(i + 1);
+      if (field !== undefined) {
+        field.value = flags[i];
+      }
+    }
+    this.model.onlyThisSite.value = true;
+    this.model.status = PafStatus.NOT_PARTICIPATING;
+    this.model.rid.value = null;
   }
 
   /**
@@ -212,7 +265,7 @@ export class Controller {
    * @param identifiers to have the persisted flag set to true
    */
   private setPersistedFlag(identifiers: Identifier[]) {
-    if (identifiers != undefined) {
+    if (identifiers !== undefined) {
       identifiers.forEach((i) => (i.persisted = true));
     }
   }
@@ -233,14 +286,14 @@ export class Controller {
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
       const card = element.getAttribute('data-card');
-      if (card != null) {
+      if (card !== null) {
         element.addEventListener(event, (e) => {
           this.setCard(card);
           e.preventDefault();
         });
       }
       const action = element.getAttribute('data-action');
-      if (action != null) {
+      if (action !== null) {
         element.addEventListener(event, (e) => {
           this.processAction(action);
           e.preventDefault();
@@ -281,9 +334,12 @@ export class Controller {
   }
 
   /**
-   * Refuses all data processing, writes a cookie to indicate this to the domain, and closes the UI.
+   * Refuses all data processing, writes cookies to indicate this to the domain, and closes the UI.
    */
   private async actionRefuseAll() {
+    // TODO: Could be handled via a call to the PAF lib.
+    saveCookieValue(Cookies.identifiers, PafStatus.NOT_PARTICIPATING);
+    saveCookieValue(Cookies.preferences, PafStatus.NOT_PARTICIPATING);
     this.view.hidePopup();
   }
 
@@ -293,6 +349,42 @@ export class Controller {
    * complete if the storage of the data requires a redirect.
    */
   private async actionSave() {
+    if (this.model.onlyThisSite.value) {
+      this.actionSaveLocal();
+    } else {
+      await this.actionSaveGlobal();
+    }
+
+    // Close the pop up as everything has been confirmed to be okay.
+    this.view.hidePopup();
+  }
+
+  /**
+   * Saves the TCF data to local storage using the same data expiry policy as Prebid.
+   */
+  private actionSaveLocal() {
+    const tcfCore = this.config.tcfCore.clone();
+    const flags: boolean[] = [];
+    tcfCore.setDate(new Date());
+    for (let id = Model.MinId; id <= Model.MaxId; id++) {
+      const field = this.model.tcf.get(id);
+      if (field !== null) {
+        flags.push(field.value);
+      }
+    }
+    tcfCore.setPurposesConsent(flags);
+    document.cookie = `${
+      this.config.siteOnlyCookieTcfCore
+    }=${tcfCore.toString()};expires=${getPrebidDataCacheExpiration()}`;
+    removeCookie(Cookies.identifiers);
+    removeCookie(Cookies.preferences);
+    removeCookie(Cookies.lastRefresh);
+  }
+
+  /**
+   * Saves the data to global storage.
+   */
+  private async actionSaveGlobal() {
     // Get a new random Id if one is not already present.
     const rid = await this.getNewIdIfNeeded();
     this.model.rid.value = rid;
@@ -302,69 +394,74 @@ export class Controller {
     this.model.pref.setPersisted(p);
 
     // Write the Ids and preferences to storage.
-    const w = await this.writeIdsAndPref();
+    const w = await this.writeIdsAndPrefGlobal();
     this.setPersistedFlag(w?.identifiers);
     this.model.setFromIdsAndPreferences(w);
 
-    // Close the pop up as everything has been confirmed to be okay.
-    this.view.hidePopup();
-  }
-
-  /**
-   * Writes the identifiers and preferences to with local storage or global storage depending on the user's preference
-   * for this site only.
-   * @returns a promise that when resolved will provide the values written to the storage
-   */
-  private writeIdsAndPref(): Promise<IdsAndOptionalPreferences> {
-    if (this.model.onlyThisSite.value == false) {
-      // If the global storage is selected then return a promise from the data layer.
-      return this.writeIdsAndPrefGlobal();
+    // Ensure the this site only data is removed.
+    if (this.config.siteOnlyEnabled) {
+      removeCookie(this.config.siteOnlyCookieTcfCore);
     }
-    // If local storage is to be used then just write the cookies.
-    return this.writeIdsAndPrefLocal();
   }
 
-  /**
-   * Writes the current model preferences only to local storage.
-   * @remarks
-   * TODO: Determine if the bogus identifier is the right way forward.
-   * https://github.com/prebid/paf-mvp-implementation/issues/115
-   * @returns preferences and bogus identifier written to local storage
-   */
-  private async writeIdsAndPrefLocal() {
-    const s = {
-      domain: window.location.hostname,
-      signature: 'NA',
-      timestamp: new Date().getTime(),
-    };
-    saveCookieValue(Cookies.identifiers, [
-      {
-        value: '',
-        type: 'site_browser_id',
-        version: '0.1',
-        source: s,
-      },
-    ]);
-    saveCookieValue(Cookies.preferences, {
-      data: this.model.pref.value,
-      version: '0.1',
-      source: s,
-    });
-    return getIdsAndPreferences();
-  }
+  private async writeIdsAndPrefGlobal(): Promise<IdsAndOptionalPreferences> {
+    /*
+    TODO change the updateIdsAndPreferences method to take all possible data structures as optional parameters. The 
+    current implementation does not enable a signed preferences structure to be provided as input. Perhaps the 
+    preferences were created at T0 along with the Random ID. Then at T1 the Random ID changes. We don't really want
+    to reset the preferences just because the Random ID changed.
+    
+    There is a relationship between the PAF lib and the UI which is confusing. If the PAF lib is a data layer then it
+    should not consider the UI. If validation fails either in the client, or via calls to the CMP or Operator there 
+    needs to be a method of passing this back to the client. We need an enumeration of error codes that can be tied to
+    text in the UI. There will also be more serious exceptions that will need to be handled. The UI doesn't currently
+    allow for this.
 
-  private writeIdsAndPrefGlobal(): Promise<IdsAndOptionalPreferences> {
-    return writeIdsAndPref(
-      {
-        proxyHostName: this.config.proxyHostName,
-      },
-      {
-        // The identifier has to have been created by an operator add as is.
-        identifiers: [this.model.rid.value],
-        // The preferences must be signed before the write operation.
-        preferences: this.model.pref.persisted,
-      }
+    Otherwise there should be a defined interface that must be provided to the PAF lib to manipulate the UI and the UI
+    implementor will need to ensure they implement the interface. This approach is less flexible.
+    
+    The method then needs to return the values as they currently exist in the persistent storage. The caller is then
+    responsible for handling the result and the UI. We need to give more thought to the unhappy path here and how errors
+    will be handled and communicated to the user. The UI doesn't have placeholders to tell the user that something has
+    gone wrong. i.e. "Whoops. We're not able to store your preference at the moment. We'll store them just for this 
+    site, so that you can continue. Okay?".
+    
+    This call should become.
+    
+      updateIdsAndPreferences(
+        {
+          proxyHostName: this.config.proxyHostName
+        },
+        {
+          identifiers: [ array of identifiers ],
+          preferences: signedPreferences
+        }
+      ) : Promise<IdsAndOptionalPreferencesWithErrorCodes> 
+
+    For reference the SWAN API provided a single method for getting and updating the data. 
+    See https://github.com/SWAN-community/swan/blob/main/apis.md#update
+    SWID is similar to the paf_browser_id or Random ID (RID)
+    Pref is similar to the PreferencesData structure.
+    OWID is similar to Source.
+    The design approach there is to have a single method that will store what is provided (if anything) and return the
+    current data. The CMP would handle the decrypt of the results which is not relevant to PAF as the data is not
+    encrypted.
+    */
+
+    // Update the ids and preferences.
+    await updateIdsAndPreferences(
+      this.config.proxyHostName,
+      this.model.pref.persisted.data.use_browsing_for_personalization,
+      [this.model.rid.value]
     );
+
+    // Refresh the ids and preferences.
+    const r = await refreshIdsAndPreferences({
+      proxyHostName: this.config.proxyHostName,
+      triggerRedirectIfNeeded: true,
+    });
+
+    return r.data;
   }
 
   /**
@@ -373,9 +470,9 @@ export class Controller {
    */
   private getNewIdIfNeeded(): Promise<Identifier> {
     if (
-      this.model.rid.value == null ||
-      this.model.rid.value.source == null ||
-      this.model.rid.value.source.signature == null
+      this.model.rid.value === null ||
+      this.model.rid.value.source === null ||
+      this.model.rid.value.source.signature === null
     ) {
       return this.resetId();
     }
@@ -423,8 +520,8 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
    */
   public setValue(value: Identifier) {
     const element = super.getElement();
-    if (element != undefined) {
-      if (value != null && value.value != null) {
+    if (element !== null) {
+      if (value !== null && value.value !== null) {
         element.innerText = value.value.substring(0, 6);
       } else {
         element.innerText = '';
@@ -433,9 +530,33 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
   }
 
   public bind(): void {
-    if (this.field != null) {
+    if (this.field !== null) {
       this.setValue(this.field.value);
     }
+  }
+}
+
+/**
+ * Hides the this site only option if the feature is not configured.
+ */
+class BindingThisSiteOnly extends BindingViewOnly<boolean, HTMLDivElement> {
+  private readonly enabled: boolean;
+
+  constructor(id: string, config: Config) {
+    super(id);
+    this.enabled = config.siteOnlyEnabled;
+  }
+
+  public bind(): void {
+    const element = this.getElement();
+    if (element !== null) {
+      element.style.display = this.enabled ? '' : 'none';
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setValue(value: boolean): void {
+    // Do nothing.
   }
 }
 
@@ -443,21 +564,28 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
  * Custom UI binding to hide or show the area that displays the random identifier if preferences have been set.
  */
 class BindingShowRandomId extends BindingViewOnly<PreferencesData, HTMLDivElement> {
+  protected readonly model: Model;
+
+  constructor(id: string, model: Model) {
+    super(id);
+    this.model = model;
+  }
+
+  public bind(): void {
+    if (this.field !== null) {
+      this.setValue(this.field.value);
+    }
+  }
+
   /**
    * If the preferences are persisted then show the identifier.
    * @param value of the identifier being displayed
    */
   public setValue(value: PreferencesData) {
     const element = super.getElement();
-    if (element != undefined) {
-      const visible = value != null;
+    if (element !== null) {
+      const visible = value !== null && this.model.rid?.value?.value !== undefined;
       element.style.display = visible ? '' : 'none';
-    }
-  }
-
-  public bind(): void {
-    if (this.field != null) {
-      this.setValue(this.field.value);
     }
   }
 }

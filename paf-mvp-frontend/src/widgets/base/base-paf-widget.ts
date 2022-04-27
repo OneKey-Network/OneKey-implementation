@@ -23,7 +23,7 @@ export abstract class BasePafWidget<T> {
     if (this.checkLoaded()) {
       this.renderWidget();
     } else {
-      window.addEventListener('load', this.renderWidget);
+      window.addEventListener('DOMContentLoaded', this.renderWidget);
     }
   }
 
@@ -34,7 +34,7 @@ export abstract class BasePafWidget<T> {
   private renderWidget() {
     const stylesElement = createElement('link', { rel: 'stylesheet', href: this.styleHref });
     document.body.appendChild(this.element);
-    window.removeEventListener('load', this.renderWidget);
+    window.removeEventListener('DOMContentLoaded', this.renderWidget);
 
     // Add shadow root if the browser supports it
     if (document.head.attachShadow) {
@@ -56,6 +56,6 @@ export abstract class BasePafWidget<T> {
   }
 
   protected checkLoaded() {
-    return document.readyState === 'complete';
+    return !!document.body;
   }
 }

@@ -6,12 +6,12 @@
     <link rel="preload" as="script" href="https://{{cdnDomain}}/assets/cmp/ok-ui.js">
 
     <!-- Prebid SSO integration -->
-    {{!-- <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
-    <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script> --}}
+    <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
+    {{!-- <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script> --}}
 
     <!-- Prebid.js -->
-    {{!-- <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
-    <script async src="/assets/publisher/prebid/prebid.js"></script> --}}
+    <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
+    <script async src="/assets/publisher/prebid/prebid.js"></script>
 
     <script>
 
@@ -36,7 +36,7 @@
                     }
                 },
                 bids: [{
-                    bidder: 'openx',
+                    bidder: 'openx2',
                     params: {
                         delDomain: 'sademo-d.openx.net',
                         unit: '540096529',
@@ -52,7 +52,7 @@
                     }
                 },
                 bids: [{
-                    bidder: 'openx',
+                    bidder: 'openx2',
                     params: {
                         delDomain: 'sademo-d.openx.net',
                         unit: '540096529',
@@ -74,7 +74,27 @@
 
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
-            pbjs.setConfig({debug: true})
+            pbjs.setConfig({
+                debug: true,
+                realTimeData: {
+                    auctionDelay: 1000,
+                    dataProviders: [
+                            {
+                            name: "paf",
+                            waitForIt: true,
+                            params: {proxyHostName: "cmp.pafdemopublisher.com"}
+                        }
+                    ]
+                },
+                userSync: {
+                    userIds: [{
+                        name: "pafData",
+                        params: {}
+                    }],
+                    auctionDelay: 1000,
+                    syncDelay: 3000
+                }
+            });
             pbjs.requestBids({
                 bidsBackHandler: initAdserver,
                 timeout: PREBID_TIMEOUT
@@ -121,11 +141,14 @@
 <body>
 
 <!-- CMP -->
+<!-- See paf-mvp-cmp/README.md for details -->
 <script src="https://{{cdnDomain}}/assets/cmp/ok-ui.js" 
     data-display-intro="true"
     data-snackbar-timeout-ms="5000" 
-    data-proxy-host-name="cmp.pafdemopublisher.com" 
-    data-brand-name="CMP PAF Demo Pub"
+    data-proxy-host-name="{{proxyHostName}}" 
+    data-brand-name="Demo Publisher"
+    data-site-only-cookie-tcf-core="tcf-core"
+    data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
 
 <div>

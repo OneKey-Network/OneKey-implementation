@@ -38,21 +38,23 @@ export abstract class FieldReadOnly<T> implements IFieldBind {
     this.model = model;
   }
 
-  // Binds the elements that are associated with the field to the field so
-  // that when the value changes the HTML elements are updated and vice versa.
+  // Binds the elements that are associated with the field to the field so that when the value changes the HTML elements
+  // are updated and vice versa.
   bind() {
     this.bindings.forEach((b) => b.bind());
   }
 
-  // Add a new binding for the field and set the correct value. Sets the
-  // binding to this field, and then adds the binding to the list for the field.
+  // Add a new binding for the field and set the correct value. Sets the binding to this field, and then adds the
+  // binding to the list for the field.
   addBinding(binding: IBindingField<T>) {
     binding.setField(this);
     this.bindings.push(binding);
   }
 }
 
-// Field that can be bound to an HTML element.
+/**
+ * Field that can be bound to an HTML element.
+ */
 export abstract class Field<T> extends FieldReadOnly<T> implements IFieldReset {
   // The default value for the field. Used when the field is reset.
   private readonly defaultValue: T;
@@ -82,7 +84,7 @@ export abstract class Field<T> extends FieldReadOnly<T> implements IFieldReset {
   public set value(value: T) {
     this._value = value;
     this.bindings.forEach((b) => b.setValue(value));
-    if (this.model.settingValues == false) {
+    if (this.model.settingValues === false) {
       this.model.settingValues = true;
       this.updateOthers();
       this.model.settingValues = false;

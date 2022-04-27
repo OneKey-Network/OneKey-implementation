@@ -4,6 +4,7 @@ import {
   signPreferences,
   refreshIdsAndPreferences,
   createSeed,
+  SeedEntry,
 } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
@@ -433,7 +434,10 @@ describe('Function createSeed', () => {
   });
 
   test('nominal path', async () => {
-    const seed = await createSeed({ proxyHostName }, transmission_ids);
-    expect(seed).toEqual(response);
+    const entry = await createSeed({ proxyHostName }, transmission_ids);
+    expect(entry).toEqual({
+      seed: response,
+      idsAndPreferences,
+    });
   });
 });
