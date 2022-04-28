@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest --passWithNoTests",
     "build-front": "npm run build --prefix paf-mvp-frontend",
+    "build-front": "npm run build --prefix paf-mvp-frontend && npm run build --prefix paf-mvp-cmp",
     "start:watch": "nodemon --debug .",
     "lint": "eslint .",
     "lint:all": "npm run lint && npm run lint:frontend",
