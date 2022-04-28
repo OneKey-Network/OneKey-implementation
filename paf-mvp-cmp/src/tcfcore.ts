@@ -1,4 +1,4 @@
-import { TCString, TCModel, SegmentEncoder, Segment } from '@iabtcf/core/lib';
+import { TCString, TCModel, SegmentEncoder, Segment } from '@iabtcf/core';
 import { Model } from './model';
 
 /**
