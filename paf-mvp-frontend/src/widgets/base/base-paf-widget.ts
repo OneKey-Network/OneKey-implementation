@@ -14,24 +14,15 @@ const getCashedStyles = async (stylesUrl: string) => {
 
 const fontFaces = (domain: string) => `@font-face {
   font-family: 'SF Pro Display';
-  src: url('${domain}/fonts/SFProDisplay-Regular.eot');
-  src: local('SF Pro Display Regular'), local('SFProDisplay-Regular'),
-  url('${domain}/fonts/SFProDisplay-Regular.eot?#iefix') format('embedded-opentype'),
-  url('${domain}/fonts/SFProDisplay-Regular.woff2') format('woff2'),
-  url('${domain}/fonts/SFProDisplay-Regular.woff') format('woff'),
-  url('${domain}/fonts/SFProDisplay-Regular.ttf') format('truetype');
+  src: url('${domain}/fonts/SFProDisplay-Regular.woff2') format('woff2'),
+  url('${domain}/fonts/SFProDisplay-Regular.woff') format('woff');
   font-weight: normal;
-  font-style: normal;
 }
 
 @font-face {
   font-family: 'SF Pro Display';
-  src: url('${domain}/fonts/SFProDisplay-Bold.eot');
-  src: local('SF Pro Display Bold'), local('SFProDisplay-Bold'),
-  url('${domain}/fonts/SFProDisplay-Bold.eot?#iefix') format('embedded-opentype'),
-  url('${domain}/fonts/SFProDisplay-Bold.woff2') format('woff2'),
-  url('${domain}/fonts/SFProDisplay-Bold.woff') format('woff'),
-  url('${domain}/fonts/SFProDisplay-Bold.ttf') format('truetype');
+  src: url('${domain}/fonts/SFProDisplay-Bold.woff2') format('woff2'),
+  url('${domain}/fonts/SFProDisplay-Bold.woff') format('woff');
   font-weight: bold;
 }`;
 
