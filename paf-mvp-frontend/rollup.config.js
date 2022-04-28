@@ -9,13 +9,9 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
 import preact from 'rollup-plugin-preact';
-import cssnano from 'cssnano';
-import postcss from 'rollup-plugin-postcss'
+import styles from 'rollup-plugin-styles';
 import {terser} from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
-
-import postCssInitial from 'postcss-initial';
-import autoprefixer from 'autoprefixer';
 
 const DEV = process.env.ROLLUP_WATCH;
 const DIST = 'dist';
@@ -74,11 +70,11 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production'),
         'env__development': DEV ? 'env__development' : 'env__production' // to import correct env file
       }),
-      postcss({ // compile scss => css
-        modules: true, // add hashes to css selectors to have CSS Modules
-        extract: true, // extract css from the output js
-        minimize: !DEV,
-        plugins: [ postCssInitial, autoprefixer(), cssnano() ]
+      styles({
+        modules: true,
+        mode: [
+          "inject", { singleTag: true, prepend: true, attributes: { id: 'PAF-styles' } },
+        ]
       }),
       image(), // allow to import images into ts code (as base64)
       preact({ // compile preact components to javascript

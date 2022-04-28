@@ -3,15 +3,6 @@ import { createHtmlElement } from '../../utils/create-html-element';
 import { env } from '../../config';
 import { currentScript } from '@frontend/utils/current-script';
 
-const cashedStyles: { [url: string]: string } = {};
-const getCashedStyles = async (stylesUrl: string) => {
-  if (!cashedStyles[stylesUrl]) {
-    const response = await fetch(stylesUrl);
-    cashedStyles[stylesUrl] = await response.text();
-  }
-  return cashedStyles[stylesUrl];
-};
-
 const fontFaces = (domain: string) => `@font-face {
   font-family: 'SF Pro Display';
   src: url('${domain}/fonts/SFProDisplay-Regular.woff2') format('woff2'),
@@ -41,15 +32,14 @@ export abstract class BasePafWidget<T> {
   }
 
   async render() {
-    const stylesElement = createHtmlElement('style');
-    stylesElement.appendChild(document.createTextNode(await getCashedStyles(`${this.scriptPath}/app.bundle.css`)));
+    const stylesElement = document.getElementById('PAF-styles');
     currentScript.getParent().appendChild(this.element);
 
     // Add shadow root if the browser supports it
     if (document.head.attachShadow) {
       this.renderAsShadow(stylesElement);
     } else {
-      this.renderAsLegacy(stylesElement);
+      this.renderAsLegacy();
     }
   }
 
@@ -63,8 +53,7 @@ export abstract class BasePafWidget<T> {
     render(this.elementNode, shadowRoot);
   }
 
-  private renderAsLegacy(stylesElement: HTMLElement) {
-    document.head.appendChild(stylesElement);
+  private renderAsLegacy() {
     render(this.elementNode, this.element);
   }
 
