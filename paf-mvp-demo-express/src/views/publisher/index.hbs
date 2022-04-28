@@ -21,7 +21,7 @@
             [300, 600]
         ];
 
-        var PREBID_TIMEOUT = 1000;
+        var PREBID_TIMEOUT = 3000;
         var FAILSAFE_TIMEOUT = 3000;
 
         var adUnits = [
@@ -39,6 +39,12 @@
                         unit: '540096529',
                         test: true
                     }
+                },
+                {
+                    bidder: 'criteo',
+                    params: {
+                        zoneId: 1661193
+                    }
                 }]
             },
             {
@@ -54,6 +60,12 @@
                         delDomain: 'sademo-d.openx.net',
                         unit: '540096529',
                         test: true
+                    }
+                },
+                {
+                    bidder: 'criteo',
+                    params: {
+                        zoneId: 1661192
                     }
                 }]
             }
