@@ -106,10 +106,10 @@ export abstract class BindingReadWrite<T, E extends HTMLElement> extends Binding
   // Binds all the elements to the events that matter for the binding.
   public bind(): void {
     const element = this.getElement();
-    if (element != undefined) {
+    if (element !== null) {
       this.events.forEach((event) => {
         element.addEventListener(event, () => {
-          if (this.field != null) {
+          if (this.field !== null) {
             this.field.value = this.getValue(element);
           }
         });
@@ -131,13 +131,13 @@ export class BindingChecked extends BindingReadWrite<boolean, HTMLInputElement> 
 
   public setValue(value: boolean) {
     const element = super.getElement();
-    if (element != undefined) {
+    if (element !== null) {
       element.checked = value;
     }
   }
 
   public bind(): void {
-    if (this.field != null) {
+    if (this.field !== null) {
       this.setValue(this.field.value);
     }
     super.bind();
@@ -180,13 +180,13 @@ export class BindingCheckedMap<T> extends BindingReadWrite<T, HTMLInputElement> 
    */
   public setValue(value: T) {
     const element = super.getElement();
-    if (element != undefined) {
+    if (element !== null) {
       element.checked = JSON.stringify(value) === JSON.stringify(this.trueValue);
     }
   }
 
   public bind(): void {
-    if (this.field != null) {
+    if (this.field !== null) {
       this.setValue(this.field.value);
     }
     super.bind();
@@ -215,9 +215,9 @@ export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implement
 
   public setValue(key: T) {
     const element = super.getElement();
-    if (element != undefined) {
+    if (element !== null) {
       const text = this.getString(key);
-      if (text != undefined) {
+      if (text !== null) {
         element.innerHTML = text;
       } else {
         element.innerHTML = '';
@@ -226,7 +226,7 @@ export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implement
   }
 
   public bind(): void {
-    if (this.field != null) {
+    if (this.field !== null) {
       this.setValue(this.field.value);
     }
   }
@@ -234,7 +234,7 @@ export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implement
   private getString(key: T): string | null {
     const keyJSON = JSON.stringify(key);
     for (const item of this.pairs) {
-      if (JSON.stringify(item[0]) == keyJSON) {
+      if (JSON.stringify(item[0]) === keyJSON) {
         return item[1];
       }
     }
@@ -245,13 +245,13 @@ export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implement
 export class BindingButton extends BindingViewOnly<boolean, HTMLButtonElement> {
   public setValue(value: boolean) {
     const element = super.getElement();
-    if (element != undefined) {
-      element.disabled = value != true;
+    if (element !== null) {
+      element.disabled = value !== true;
     }
   }
 
   public bind(): void {
-    if (this.field != null) {
+    if (this.field !== null) {
       this.setValue(this.field.value);
     }
   }

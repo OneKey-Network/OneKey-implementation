@@ -4,18 +4,19 @@ import { Controller } from './controller';
 import { Log } from '@core/log';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
 
-let controller: Controller = null;
+let okUiCtrl: Controller = null;
 const promptConsent = () =>
   new Promise<void>((resolve) => {
-    if (controller !== null) {
-      controller.display('settings');
+    if (okUiCtrl !== null) {
+      okUiCtrl.display('settings');
     }
     resolve();
   });
 const showNotification = (type: NotificationEnum) => new Log('ok-ui', '#18a9e1').Message('showNotification', type);
 
+okUiCtrl = new Controller(new Locale(window.navigator.languages), new Config(document.currentScript));
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
 // become a data layer only without any UI considerations.
-window.PAFUI ??= { promptConsent, showNotification };
-controller = new Controller(new Locale(window.navigator.languages), new Config(document.currentScript));
+window.PAFUI ??= { promptConsent, showNotification, okUiCtrl };

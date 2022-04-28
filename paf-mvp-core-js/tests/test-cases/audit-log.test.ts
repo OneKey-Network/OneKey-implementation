@@ -69,6 +69,8 @@ describe('Audit Log Tests', () => {
     const expected = buildAuditLogFixture(results);
     const auditLog = buildAuditLog(seedFixture, dataFixture, response, contentFixture.content_id);
 
+    console.log(JSON.stringify(auditLog));
+
     expect(auditLog).toEqual(expected);
   });
 

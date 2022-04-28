@@ -3,27 +3,14 @@
  * TODO: fix the warning associated with can't find module or type.
  */
 import logoSvg from './images/OneKey.svg';
-import iconCross from './images/iconCross.svg';
-import iconTick from './images/iconTick.svg';
 import css from './css/ok-ui.css';
 import auditTemplate from './views/audit.html';
-import providerTemplate from './views/provider.html';
 import { Locale } from './locale';
 
 /**
  * Type to use with HTML views that support locale language customization.
  */
 type ViewTemplate = (l: Locale) => string;
-
-/**
- * Type to use with HTML containers that take a single string for the content.
- */
-type ContainerTemplate = (s: string) => string;
-
-/**
- * Type used with the provider template.
- */
-type DataTemplate = (t: TransmissionResult) => string;
 
 export class View {
   // The element that contains this script. Used to add the UI components to the DOM.
@@ -52,7 +39,7 @@ export class View {
    */
   public display() {
     this.setContainerCard();
-    document.body.addEventListener('click', (e) => this.hideAudit(e));
+    document.body.addEventListener('click', (t) => this.hideAudit(t));
   }
 
   /**
@@ -61,7 +48,7 @@ export class View {
    */
   private hideAudit(t: MouseEvent) {
     let p = <HTMLElement>t.target;
-    while (p != undefined) {
+    while (p !== null) {
       for (let i = 0; i < p.classList.length; i++) {
         const className = p.classList[i];
         if (className.startsWith('ok-ui')) {
@@ -116,7 +103,7 @@ export class View {
    * Sets the HTML in the container for the audit template.
    */
   private setContainerCard(): void {
-    const template = auditTemplate;
+    const template = <ViewTemplate>auditTemplate;
     this.getContainer().innerHTML = template(this.locale);
   }
 
@@ -126,7 +113,7 @@ export class View {
    */
   private getPopUp(): HTMLDivElement {
     const popups = this.getContainer().getElementsByClassName('ok-ui-popup');
-    if (popups != null && popups.length > 0) {
+    if (popups !== null && popups.length > 0) {
       return <HTMLDivElement>popups[0];
     }
     return null;
@@ -137,7 +124,7 @@ export class View {
    * @returns
    */
   private getContainer(): HTMLDivElement {
-    if (this.container == null) {
+    if (this.container === null) {
       this.addContainer();
     }
     return this.container;

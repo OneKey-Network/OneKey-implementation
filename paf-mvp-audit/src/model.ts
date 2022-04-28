@@ -1,29 +1,35 @@
 import { FieldReadOnly, IFieldBind } from './fields';
-import { AuditLog } from '@core/model/generated-model';
+import { AuditLog, TransmissionResult } from '@core/model/generated-model';
 
 /**
- * Field represents the
+ * Field represents the transmission result from the audit log.
  */
-export class FieldAuditLog extends FieldReadOnly<AuditLog> implements IFieldBind {}
+export class FieldTransmissionResult extends FieldReadOnly<TransmissionResult> implements IFieldBind {}
 
 /**
  * The model used in the module.
  */
 export class Model {
-  // Set to true when model update operations are occurring. Results in the
-  // methods to update other properties being disabled.
+  // Set to true when model update operations are occurring. Results in the methods to update other properties being
+  // disabled.
   settingValues = false;
 
-  // The data fields that relate to the data model.
-  readonly auditLog: FieldAuditLog;
+  // The data fields that relate to each transmission result to be displayed.
+  readonly results: FieldTransmissionResult[];
 
   // All the fields that need to be bound.
   readonly allFields: IFieldBind[];
 
-  // Constructs the data model from the audit log.
-  constructor(auditLog: AuditLog) {
-    this.auditLog = auditLog;
-    this.allFields = [this.auditLog];
+  /**
+   * Constructs the data model from the audit log.
+   * @param audit
+   */
+  constructor(audit: AuditLog) {
+    this.results = [];
+    for (let i = 0; i < audit.transmissions.length; i++) {
+      this.results.push(new FieldTransmissionResult(this));
+    }
+    this.allFields = this.results;
   }
 
   /**

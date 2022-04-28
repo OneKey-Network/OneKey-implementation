@@ -1,0 +1,9 @@
+# Audit text
+auditHeading: Your ad-funded access (GB)
+auditBody: 
+  - The following OneKey participating providers funded your access to this site's content. These organizations do not directly identify you, but rely instead on your OneKey ID and preferences for this purpose. Your OneKey ID will automatically reset every 6 months or you can reset your ID or preference at any time by clicking&nbsp;<a data-action="settings" class="ok-ui-link">here</a>.
+auditFooter: If you believe an organization didn't honour your preferences, click the email icon to send them this audit for investigation. You may also download the same audit data to send to the appropriate government authority.
+
+# Button text
+download: Download text file
+cancel: Cancel
