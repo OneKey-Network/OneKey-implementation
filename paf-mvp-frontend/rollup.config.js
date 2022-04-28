@@ -9,6 +9,7 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
 import preact from 'rollup-plugin-preact';
+import cssnano from 'cssnano';
 import postcss from 'rollup-plugin-postcss'
 import {terser} from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
@@ -77,7 +78,7 @@ export default [
         modules: true, // add hashes to css selectors to have CSS Modules
         extract: true, // extract css from the output js
         minimize: !DEV,
-        plugins: [ postCssInitial, autoprefixer() ]
+        plugins: [ postCssInitial, autoprefixer(), cssnano() ]
       }),
       image(), // allow to import images into ts code (as base64)
       preact({ // compile preact components to javascript
@@ -107,8 +108,19 @@ export default [
           ]
         } else { // list of plugins for development
           return [
+            copy({ // copy files
+              targets: [
+                {
+                  src: './assets/*',
+                  dest: 'dist',
+                },
+              ],
+            }),
             serve({ // dev server
               contentBase: '',
+              headers: {
+                'Access-Control-Allow-Origin': '*'
+              },
               open: false, // change to true to open browser automatically
               openPage: '/',
               // Set to true to return index.html (200) instead of error page (404)

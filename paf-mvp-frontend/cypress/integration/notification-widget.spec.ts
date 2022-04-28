@@ -6,6 +6,7 @@ describe('Notification widget', () => {
 
   context('general scenarios', () => {
     beforeEach(() => {
+      cy.clock();
       page = new NotificationPage();
       page.open(NotificationEnum.generalContent);
     });
@@ -18,10 +19,9 @@ describe('Notification widget', () => {
 
     it('should be closed after timeout', () => {
       page.container.should('be.visible');
-      const timeout = 15_000;
-      cy.clock();
+      const timeout = 16_000;
       cy.tick(timeout);
-      page.container.should('not.be.visible');
+      cy.get('[paf-root]').should('not.exist');
     });
   });
 
@@ -32,7 +32,7 @@ describe('Notification widget', () => {
     });
 
     it('should contain personalized text', () => {
-      page.content.should('contain', 'You chose to see personalized content and relevant ads');
+      page.content.should('contain', 'You chose to see relevant ads on');
     });
 
     it('should open Welcome widget', () => {
@@ -40,7 +40,7 @@ describe('Notification widget', () => {
 
       cy.get('[paf-root]')
         .shadow()
-        .findByText(/Choose your marketing preferences/)
+        .findByText(/Manage your marketing preferences/)
         .should('be.visible');
     });
   });
@@ -51,8 +51,8 @@ describe('Notification widget', () => {
       page.open(NotificationEnum.generalContent);
     });
 
-    it('should general right text', () => {
-      page.content.should('contain', 'You chose to see standard content and ads on');
+    it('should contain right text', () => {
+      page.content.should('contain', 'You chose to see standard ads on');
     });
   });
 });

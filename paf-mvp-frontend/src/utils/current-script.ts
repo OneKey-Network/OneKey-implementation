@@ -12,6 +12,10 @@ class CurrentScript {
   getData(): DOMStringMap {
     return this.currentScript?.dataset;
   }
+
+  getParent() {
+    return this.currentScript.parentElement;
+  }
 }
 
 export const currentScript = new CurrentScript();

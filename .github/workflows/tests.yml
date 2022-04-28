@@ -8,11 +8,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
+      - name: Cache dependencies
+        id: cache_node_modules
+        uses: actions/cache@v2
         with:
-          project: paf-mvp-frontend
-          start: npm run start --prefix paf-mvp-frontend
+          path: ./node_modules
+          key: modules-${{ hashFiles('package-lock.json') }}
+      - name: Cache Cypress
+        id: cache_cypress_binary
+        uses: actions/cache@v2
+        with:
+          path: ./home/runner/.cache/Cypress
+          key: modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Cypress run
+        run: npm run cypress:wait-and-run --prefix paf-mvp-frontend
+
       - name: Unit tests
         run: |
           npm run test

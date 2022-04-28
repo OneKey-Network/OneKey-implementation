@@ -40,7 +40,15 @@ const addMiddleware = (app: Express) => {
   app.engine('hbs', hbs.engine);
   app.set('view engine', 'hbs');
   app.set('views', relative('/views'));
-  app.use(express.static(relative('../public')));
+  app.use(
+    express.static(relative('../public'), {
+      setHeaders: (res, path, stat) => {
+        if (/(woff|woff2|ttf|eot|eot\?#iefix)$/.test(path)) {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+        }
+      },
+    })
+  );
 
   // Cookie parser
   app.use(cookieParser());

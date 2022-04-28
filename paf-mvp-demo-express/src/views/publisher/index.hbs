@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="html">
 <head>
-    <!-- Prebid SSO integration -->
-    <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
-    <script src="https://{{cdnDomain}}/assets/paf-lib.js"
-          onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script>
+    <!-- PAF integration -->
+    <link rel="preload" href="https://{{cdnDomain}}/assets/app.bundle.js" as="script" />
+    <link rel="preload" href="https://{{cdnDomain}}/assets/paf-lib.js" as="script" />
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
@@ -148,6 +147,9 @@
     {{/if}}
 </head>
 <body>
+<script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
+<script src="https://{{cdnDomain}}/assets/paf-lib.js"
+        onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script>
 <div>
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/publisher/css/style.min.css" type="text/css">

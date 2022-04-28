@@ -39,14 +39,14 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
     case NotificationEnum.personalizedContent:
       notificationData = {
         icon: <Done />,
-        title: `You chose to see personalized content and relevant ads on ${brandName}`,
+        title: `You chose to see relevant ads on ${brandName}`,
         message: (
           <div>
             Update your{' '}
             <a href="#" onClick={launchPrompt}>
               marketing preferences
             </a>{' '}
-            at any time on this website.
+            at any time.
           </div>
         ),
       };
@@ -54,14 +54,14 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
     case NotificationEnum.generalContent:
       notificationData = {
         icon: <Attention />,
-        title: `You chose to see standard content and ads on ${brandName}`,
+        title: `You chose to see standard ads on ${brandName}`,
         message: (
           <div>
-            Turn on{' '}
+            Switch to{' '}
             <a href="#" onClick={launchPrompt}>
               personalized marketing
             </a>{' '}
-            at any time to make your content and ads more relevant on this website.
+            at any time to make your ads more relevant.
           </div>
         ),
       };
