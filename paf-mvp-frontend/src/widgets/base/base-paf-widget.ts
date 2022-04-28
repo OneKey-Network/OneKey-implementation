@@ -37,7 +37,7 @@ export abstract class BasePafWidget<T> {
 
     // Add shadow root if the browser supports it
     if (document.head.attachShadow) {
-      this.renderAsShadow(stylesElement);
+      this.renderAsShadow(stylesElement.cloneNode(true));
     } else {
       this.renderAsLegacy();
     }
@@ -47,7 +47,7 @@ export abstract class BasePafWidget<T> {
     this.element.remove();
   }
 
-  private renderAsShadow(stylesElement: HTMLElement) {
+  private renderAsShadow(stylesElement: Node) {
     const shadowRoot = this.element.attachShadow({ mode: 'open' });
     shadowRoot.appendChild(stylesElement);
     render(this.elementNode, shadowRoot);
