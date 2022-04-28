@@ -429,7 +429,7 @@ class Validate {
   private static validVersions: Version[] = ['0.1'];
 
   static Preference(p: Preferences) {
-    if (p === undefined) {
+    if (p === null) {
       throw 'Preference must be defined';
     }
     Validate.Source(p.source);
@@ -437,14 +437,14 @@ class Validate {
   }
 
   static Identifiers(s: Identifier[]) {
-    if (s === undefined || s.length === 0) {
+    if (s === null || s.length === 0) {
       throw 'Identifiers must be defined';
     }
     s.forEach((i) => Validate.Identifier(i));
   }
 
   static Identifier(i: Identifier) {
-    if (i === undefined) {
+    if (i === null) {
       throw 'Identifier must be defined';
     }
     if (i.persisted !== true) {
@@ -456,10 +456,10 @@ class Validate {
 
   private static Source(s: Source) {
     if (
-      s === undefined ||
-      s.domain === undefined ||
-      s.signature === undefined ||
-      s.timestamp === undefined ||
+      s === null ||
+      s.domain === null ||
+      s.signature === null ||
+      s.timestamp === null ||
       s.domain.length === 0 ||
       s.signature.length === 0 ||
       s.timestamp === 0
