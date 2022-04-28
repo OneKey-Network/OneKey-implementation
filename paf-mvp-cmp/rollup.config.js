@@ -21,14 +21,14 @@ import { string } from 'rollup-plugin-string';
 export default {
   input: './src/main.ts',
   plugins: [
+    typescript({
+      tsconfig: './tsconfig.json'
+    }),
     commonjs(),
     nodeResolve(),
     postHTML({ template: true }),
     minifyHTML(),
     string({ include: ['**/*.css', '**/*.svg', '**/*.js'] }),
-    typescript({
-      tsconfig: './tsconfig.json'
-    }),
     yaml()
   ],
   treeshake: true,
@@ -43,16 +43,19 @@ export default {
       format: 'iife',
       sourcemap: false,
       plugins: [
-        terser()
-      ]
+        terser()]
     },
     {
       file: '../paf-mvp-demo-express/public/assets/cmp/ok-ui.js',
+      sourcemap: true,
+      format: 'iife'
+    },
+    {
+      file: '../paf-mvp-demo-express/public/assets/cmp/ok-ui.min.js',
       format: 'iife',
       sourcemap: false,
       plugins: [
-        terser()
-      ]
+        terser()]
     },
   ]
 };
