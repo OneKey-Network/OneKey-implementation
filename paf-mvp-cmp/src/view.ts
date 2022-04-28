@@ -235,7 +235,7 @@ export class View {
     this.container = document.createElement('div');
     this.container.classList.add('ok-ui');
 
-    // If the pop up is valid then append the container and store a reference to the pop up element.
+    // Append the style, tooltips, and container to the container.
     parent.appendChild(style);
     parent.appendChild(tooltipsScript);
     parent.appendChild(this.container);
