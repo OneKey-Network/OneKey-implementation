@@ -44,32 +44,34 @@ customizePersonalized: Personalized marketing
 customizeCustomized: Site specific marketing
 
 # Customize text labels
-customizeAccessDeviceLabel: Select and/or access information on a device
-customizeBasicAdsLabel: Select basic ads
-customizeMarketResearchLabel: Apply market research to generate audience insights
-customizeImproveLabel: Develop & improve products
-customizeSecurityLabel: Ensure security, prevent fraud, and debug
-customizeDeliverLabel: Technically deliver ads or content
-customizePersonalizeProfileLabel: Create a personalized ad profile
-customizePersonalizedAdsLabel: Select personalized ads
-customizePersonalizedContentProfileLabel: Create a personalized content profile
-customizePersonalizedContentLabel: Select personalized content
-customizeMeasureAdPerformanceLabel: Measure ad performance
-customizeMeasureContentPerformanceLabel: Measure content performance
+customizeLabels:
+  - Select and/or access information on a device
+  - Select basic ads
+  - Apply market research to generate audience insights
+  - Develop & improve products
+  - Ensure security, prevent fraud, and debug
+  - Technically deliver ads or content
+  - Create a personalized ad profile
+  - Select personalized ads
+  - Create a personalized content profile
+  - Select personalized content
+  - Measure ad performance
+  - Measure content performance
 
 # Customize text tool tips
-customizeAccessDeviceTip: Select and/or access information on a device
-customizeBasicAdsTip: Select basic ads
-customizeMarketResearchTip: Apply market research to generate audience insights
-customizeImproveTip: Develop & improve products
-customizeSecurityTip: Ensure security, prevent fraud, and debug
-customizeDeliverTip: Technically deliver ads or content
-customizePersonalizeProfileTip: Create a personalized ad profile
-customizePersonalizedAdsTip: Select personalized ads
-customizePersonalizedContentProfileTip: Create a personalized content profile
-customizePersonalizedContentTip: Select personalized content
-customizeMeasureAdPerformanceTip: Measure ad performance
-customizeMeasureContentPerformanceTip: Measure content performance
+customizeTips:
+  - Select and/or access information on a device
+  - Select basic ads
+  - Apply market research to generate audience insights
+  - Develop & improve products
+  - Ensure security, prevent fraud, and debug
+  - Technically deliver ads or content
+  - Create a personalized ad profile
+  - Select personalized ads
+  - Create a personalized content profile
+  - Select personalized content
+  - Measure ad performance
+  - Measure content performance
 
 # Snackbar text
 snackbarHeadingPersonalized: You choose to see personalized content and relevant ads on [BrandName]

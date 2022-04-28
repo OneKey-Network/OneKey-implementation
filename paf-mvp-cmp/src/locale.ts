@@ -18,6 +18,13 @@ export class Values {
   customizeStandard = 'NOT SET';
   customizePersonalized = 'NOT SET';
   customizeCustomized = 'NOT SET';
+
+  // Customize card settings and labels
+  customizeLabels = ['NOT SET'];
+  customizeTips = ['NOT SET'];
+
+  // The customized items. Added to the locale when first used by the view.
+  customizeHtml: string = null;
 }
 
 export class Locale extends Values {

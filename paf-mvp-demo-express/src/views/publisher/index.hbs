@@ -3,7 +3,7 @@
 <head>
 
     <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
-    <link rel="preload" as="script" href="https://{{cdnDomain}}/assets/cmp/ok-ui.js">
+    <link rel="preload" as="script" href="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js">
 
     <!-- Prebid SSO integration -->
     <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
@@ -142,7 +142,7 @@
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
-<script src="https://{{cdnDomain}}/assets/cmp/ok-ui.js" 
+<script src="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js" 
     data-display-intro="true"
     data-snackbar-timeout-ms="5000" 
     data-proxy-host-name="{{proxyHostName}}" 

@@ -1,4 +1,5 @@
 import { Field, FieldReadOnly } from './fields';
+import { View } from './view';
 
 /**
  * Copyright 2021 51Degrees Mobile Experts Limited
@@ -45,15 +46,24 @@ export interface IBindingField<T> {
  * Base class used for all binding classes containing common functionality.
  */
 export abstract class BindingBase<E extends HTMLElement> {
-  // Name of the HTML elements that the field is bound to.
+  /**
+   * The view that will contain the element with the id.
+   */
+  private readonly view: View;
+
+  /**
+   * Id of the HTML elements that the field is bound to.
+   */
   private readonly id: string;
 
   /**
    * Constructs a new field binding the field in the model to an HTML element of the id. i.e. "model-field", or
    * "model-preference". The id should be unique within the DOM.
+   * @param view that will contain the element with the id
    * @param id of the id of the element to bind to
    */
-  constructor(id: string) {
+  constructor(view: View, id: string) {
+    this.view = view;
     this.id = id;
   }
 
@@ -62,7 +72,10 @@ export abstract class BindingBase<E extends HTMLElement> {
    * @returns first element that matches the id
    */
   protected getElement(): E {
-    return <E>document.getElementById(this.id);
+    if (this.view.root !== null) {
+      return <E>this.view.root.getElementById(this.id);
+    }
+    return null;
   }
 }
 
@@ -151,12 +164,13 @@ export class BindingCheckedMap<T> extends BindingReadWrite<T, HTMLInputElement> 
 
   /**
    * Constructs a new instance of the BindingCheckMap<T> class.
+   * @param view that will contain the element with the id
    * @param id of the id of the element to bind to
    * @param trueValue the value of the field that will result in the element being checked
    * @param falseValue the value of the field that will result in the element being unchecked
    */
-  constructor(id: string, trueValue: T, falseValue: T) {
-    super(id);
+  constructor(view: View, id: string, trueValue: T, falseValue: T) {
+    super(view, id);
     this.trueValue = trueValue;
     this.falseValue = falseValue;
   }
@@ -205,11 +219,12 @@ export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implement
 
   /**
    * Relates any HTML element with the innerHTML property to a map of keys and locale string values.
+   * @param view that will contain the element with the id
    * @param id of the id of the element to bind to
    * @param map of field values to locale strings
    */
-  constructor(id: string, map: Map<T, string>) {
-    super(id);
+  constructor(view: View, id: string, map: Map<T, string>) {
+    super(view, id);
     this.pairs = Array.from(map);
   }
 

@@ -39,15 +39,19 @@ export class Controller {
   // The view associated with the controller.
   private readonly view: View;
 
+  // Timer used to hide the snackbar.
+  private countDown: NodeJS.Timer;
+
   /**
    * Constructs a new instance of Controller.
+   * @param script element this method is contained within
    * @param locale the language file to use with the UI
    * @param config the configuration for the controller
    */
-  constructor(locale: Locale, config: Config) {
+  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config) {
     this.locale = locale;
     this.config = config;
-    this.view = new View(locale, config);
+    this.view = new View(script, locale, config);
     this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
     this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
     this.load()
@@ -89,6 +93,7 @@ export class Controller {
    * @param card the name of the card to display, or null if the default card should be displayed.
    */
   private setCard(card: string) {
+    this.stopSnackbarHide();
     this.view.hidePopup();
     this.view.setCard(card);
     this.model.bind();
@@ -101,10 +106,15 @@ export class Controller {
    * bind method of the model is called.
    */
   private mapFieldsToUI(): void {
-    this.model.pref.addBinding(new BindingCheckedMap('ok-ui-marketing-1', Marketing.personalized, Marketing.notSet));
-    this.model.pref.addBinding(new BindingCheckedMap('ok-ui-marketing-0', Marketing.standard, Marketing.notSet));
+    this.model.pref.addBinding(
+      new BindingCheckedMap(this.view, 'ok-ui-marketing-1', Marketing.personalized, Marketing.notSet)
+    );
+    this.model.pref.addBinding(
+      new BindingCheckedMap(this.view, 'ok-ui-marketing-0', Marketing.standard, Marketing.notSet)
+    );
     this.model.pref.addBinding(
       new BindingElement<PreferencesData>(
+        this.view,
         'ok-ui-display-marketing',
         new Map<PreferencesData, string>([
           [Marketing.personalized, this.config.replace(this.locale.customizePersonalized)],
@@ -116,6 +126,7 @@ export class Controller {
     );
     this.model.pref.addBinding(
       new BindingElement<PreferencesData>(
+        this.view,
         'ok-ui-snackbar-heading',
         new Map<PreferencesData, string>([
           [Marketing.personalized, this.config.replace(this.locale.snackbarHeadingPersonalized)],
@@ -127,6 +138,7 @@ export class Controller {
     );
     this.model.pref.addBinding(
       new BindingElement<PreferencesData>(
+        this.view,
         'ok-ui-snackbar-body',
         new Map<PreferencesData, string>([
           [Marketing.personalized, this.config.replace(this.locale.snackbarBodyPersonalized)],
@@ -136,15 +148,17 @@ export class Controller {
         ])
       )
     );
-    this.model.pref.addBinding(new BindingShowRandomId('ok-ui-settings-rid', this.model));
-    this.model.onlyThisSite.addBinding(new BindingChecked('ok-ui-only-this-site'));
-    this.model.onlyThisSite.addBinding(new BindingThisSiteOnly('ok-ui-only-this-site-container', this.config));
+    this.model.pref.addBinding(new BindingShowRandomId(this.view, 'ok-ui-settings-rid', this.model));
+    this.model.onlyThisSite.addBinding(new BindingChecked(this.view, 'ok-ui-only-this-site'));
+    this.model.onlyThisSite.addBinding(
+      new BindingThisSiteOnly(this.view, 'ok-ui-only-this-site-container', this.config)
+    );
     for (let id = Model.MinId; id <= Model.MaxId; id++) {
-      this.model.tcf.get(id).addBinding(new BindingChecked(`ok-ui-preference-${id}`));
+      this.model.tcf.get(id).addBinding(new BindingChecked(this.view, `ok-ui-preference-${id}`));
     }
-    this.model.all.addBinding(new BindingChecked('ok-ui-preference-all'));
-    this.model.canSave.addBinding(new BindingButton('ok-ui-button-save'));
-    this.model.rid.addBinding(new BindingDisplayRandomId('ok-ui-display-rid'));
+    this.model.all.addBinding(new BindingChecked(this.view, 'ok-ui-preference-all'));
+    this.model.canSave.addBinding(new BindingButton(this.view, 'ok-ui-button-save'));
+    this.model.rid.addBinding(new BindingDisplayRandomId(this.view, 'ok-ui-display-rid'));
   }
 
   /**
@@ -275,6 +289,16 @@ export class Controller {
    */
   private bindActions() {
     this.bindActionElements(this.view.getActionElements(), 'click');
+    if ('snackbar' === this.view.currentCard) {
+      this.countDown = setInterval(() => this.view.hidePopup(), this.config.snackbarTimeoutMs);
+    }
+  }
+
+  /**
+   * Used to remove the snackbar hide logic if the user wants to interact.
+   */
+  private stopSnackbarHide() {
+    clearInterval(this.countDown);
   }
 
   /**
@@ -340,6 +364,7 @@ export class Controller {
     // TODO: Could be handled via a call to the PAF lib.
     saveCookieValue(Cookies.identifiers, PafStatus.NOT_PARTICIPATING);
     saveCookieValue(Cookies.preferences, PafStatus.NOT_PARTICIPATING);
+    this.stopSnackbarHide();
     this.view.hidePopup();
   }
 
@@ -356,6 +381,7 @@ export class Controller {
     }
 
     // Close the pop up as everything has been confirmed to be okay.
+    this.stopSnackbarHide();
     this.view.hidePopup();
   }
 
@@ -542,8 +568,8 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
 class BindingThisSiteOnly extends BindingViewOnly<boolean, HTMLDivElement> {
   private readonly enabled: boolean;
 
-  constructor(id: string, config: Config) {
-    super(id);
+  constructor(view: View, id: string, config: Config) {
+    super(view, id);
     this.enabled = config.siteOnlyEnabled;
   }
 
@@ -566,8 +592,8 @@ class BindingThisSiteOnly extends BindingViewOnly<boolean, HTMLDivElement> {
 class BindingShowRandomId extends BindingViewOnly<PreferencesData, HTMLDivElement> {
   protected readonly model: Model;
 
-  constructor(id: string, model: Model) {
-    super(id);
+  constructor(view: View, id: string, model: Model) {
+    super(view, id);
     this.model = model;
   }
 

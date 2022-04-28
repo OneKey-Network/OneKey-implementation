@@ -10,6 +10,7 @@ import introTemplate from './views/intro.html';
 import aboutTemplate from './views/about.html';
 import settingsTemplate from './views/settings.html';
 import customizeTemplate from './views/customize.html';
+import itemTemplate from './views/item.html';
 import snackbarTemplate from './views/snackbar.html';
 import popupTemplate from './views/popup.html';
 import { Locale } from './locale';
@@ -25,33 +26,51 @@ type ViewTemplate = (l: Locale) => string;
  */
 type ContainerTemplate = (s: string) => string;
 
+/**
+ * Item for display in the customize template.
+ */
+interface ItemData {
+  Index: number;
+  Label: string;
+  Tip: string;
+}
+
+type ItemTemplate = (i: ItemData) => string;
+
 export class View {
+  // The shadow root for the UI.
+  public root: ShadowRoot = null;
+
+  // The current card being displayed if any.
+  public currentCard: string = null;
+
   // The element that contains this script. Used to add the UI components to the DOM.
   private readonly script: HTMLOrSVGScriptElement;
 
   // The container element for the UI, or null if the UI has not yet been added to the DOM.
-  private container: HTMLDivElement | null = null;
+  private cardContainer: HTMLDivElement = null;
+
+  // The outer container for the UI.
+  private outerContainer: HTMLElement = null;
 
   // The locale that the UI should adopt.
-  public readonly locale: Locale;
+  private readonly locale: Locale;
 
   // The options provided to the controller.
-  public readonly config: Config;
-
-  // Timer used to hide the snackbar.
-  private countDown: NodeJS.Timer;
+  private readonly config: Config;
 
   /**
-   * Constructs a new instance of Controller.
+   * Constructs a new instance of Controller
+   * @param script element this method is contained within
    * @param locale the language file to use with the UI
    * @param config the configuration for the controller
    */
-  constructor(locale: Locale, config: Config) {
-    this.script = document.currentScript;
+  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config) {
+    this.script = script;
     this.config = config;
+    this.locale = locale;
 
     // Setup the locale with the text and images to use.
-    this.locale = locale;
     this.locale.Logo = logoSvg;
     this.locale.LogoCenter = logoCenterSvg;
   }
@@ -64,38 +83,14 @@ export class View {
    * @param card the name of the card to display, or null if the default card should be displayed.
    */
   public setCard(card: string) {
-    this.stopSnackbarHide();
     this.setContainerCard(card);
-    if ('snackbar' === card) {
-      this.countDown = setInterval(() => this.hidePopup(), this.config.snackbarTimeoutMs);
-      document.body.addEventListener('click', (e) => this.hideSnackbar(e));
-    }
-  }
-
-  /**
-   * Hides the snackbar if display. Checks that the element provided is not part of this UI before hiding.
-   * @param t target that has triggered the event to hide the snackbar
-   */
-  private hideSnackbar(t: MouseEvent) {
-    let p = <HTMLElement>t.target;
-    while (p !== null) {
-      for (let i = 0; i < p.classList.length; i++) {
-        const className = p.classList[i];
-        if (className.startsWith('ok-ui')) {
-          return;
-        }
-      }
-      p = p.parentElement;
-    }
-    this.hidePopup();
   }
 
   /**
    * Hides the popup UI but does not remove it from the DOM.
    */
   public hidePopup() {
-    this.stopSnackbarHide();
-    this.getContainer().style.display = 'none';
+    this.getCardContainer().style.display = 'none';
     this.getPopUp()?.classList.remove('ok-ui-popup--open');
   }
 
@@ -103,7 +98,7 @@ export class View {
    * Displays the popup UI.
    */
   public showPopup() {
-    this.getContainer().style.display = '';
+    this.getCardContainer().style.display = '';
     this.getPopUp()?.classList.add('ok-ui-popup--open');
   }
 
@@ -113,8 +108,8 @@ export class View {
    */
   public getActionElements(): HTMLElement[] {
     const elements: HTMLElement[] = [];
-    View.addElements(elements, this.container.getElementsByTagName('button'));
-    View.addElements(elements, this.container.getElementsByTagName('a'));
+    View.addElements(elements, this.cardContainer.getElementsByTagName('button'));
+    View.addElements(elements, this.cardContainer.getElementsByTagName('a'));
     return elements;
   }
 
@@ -130,14 +125,6 @@ export class View {
   }
 
   /**
-   * Used to remove the snackbar hide logic if the user wants to interact.
-   */
-  private stopSnackbarHide() {
-    clearInterval(this.countDown);
-    document.body.removeEventListener('click', (t) => this.hideSnackbar(t));
-  }
-
-  /**
    * Sets the HTML in the container appropriate for the view card provided.
    * @param card Card to display
    */
@@ -150,7 +137,26 @@ export class View {
     } else {
       html = template(this.locale);
     }
-    this.getContainer().innerHTML = this.config.replace(html);
+    this.getCardContainer().innerHTML = this.config.replace(html);
+    this.currentCard = card;
+  }
+
+  /**
+   * Adds all the HTML for the customize items to the current locale.
+   */
+  private setLocaleCustomizeHtml() {
+    if (this.locale.customizeHtml === null) {
+      const length = Math.min(this.locale.customizeLabels.length, this.locale.customizeTips.length);
+      let items = '';
+      for (let i = 0; i < length; i++) {
+        items += <ItemTemplate>itemTemplate({
+          Index: i + 1,
+          Label: this.locale.customizeLabels[i],
+          Tip: this.locale.customizeTips[i],
+        });
+      }
+      this.locale.customizeHtml = items;
+    }
   }
 
   /**
@@ -167,6 +173,8 @@ export class View {
       case 'settings':
         return settingsTemplate;
       case 'customize':
+        // Ensures that the repetitive HTML is added for each option.
+        this.setLocaleCustomizeHtml();
         return customizeTemplate;
       case 'snackbar':
         return snackbarTemplate;
@@ -197,7 +205,7 @@ export class View {
    * @returns
    */
   private getPopUp(): HTMLDivElement {
-    const popups = this.getContainer().getElementsByClassName('ok-ui-popup');
+    const popups = this.getCardContainer().getElementsByClassName('ok-ui-popup');
     if (popups !== null && popups.length > 0) {
       return <HTMLDivElement>popups[0];
     }
@@ -205,21 +213,22 @@ export class View {
   }
 
   /**
-   * Returns the container for the entire UI adding it if it does not already exist.
+   * Returns the container for the cards adding it if it does not already exist.
    * @returns
    */
-  private getContainer(): HTMLDivElement {
-    if (this.container === null) {
+  private getCardContainer(): HTMLDivElement {
+    if (this.cardContainer === null) {
       this.addContainer();
     }
-    return this.container;
+    return this.cardContainer;
   }
 
   /**
    * Adds the CSS, javascript, and the container div for the UI elements.
    */
   private addContainer() {
-    const parent = this.script.parentElement;
+    // Create an outer container to add the shadow root and UI components to.
+    this.outerContainer = this.script.parentElement.appendChild(document.createElement('div'));
 
     // Create the CSS style element.
     const style = <HTMLStyleElement>document.createElement('style');
@@ -231,13 +240,14 @@ export class View {
     tooltipsScript.type = 'text/javascript';
     tooltipsScript.innerHTML = tooltipsJs;
 
-    // Create the new container with the pop up template.
-    this.container = document.createElement('div');
-    this.container.classList.add('ok-ui');
+    // Create the new container with the templates.
+    this.cardContainer = document.createElement('div');
+    this.cardContainer.className = 'ok-ui';
 
-    // Append the style, tooltips, and container to the container.
-    parent.appendChild(style);
-    parent.appendChild(tooltipsScript);
-    parent.appendChild(this.container);
+    // Append the style, tooltips, and container with a shadow root for encapsulation.
+    this.root = this.outerContainer.attachShadow({ mode: 'open' });
+    this.root.appendChild(style);
+    this.root.appendChild(tooltipsScript);
+    this.root.appendChild(this.cardContainer);
   }
 }
