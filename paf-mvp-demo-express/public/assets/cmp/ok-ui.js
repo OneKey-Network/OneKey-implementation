@@ -1284,6 +1284,52 @@
       }
   }
 
+  /**
+   * Hides the this site only option if the feature is not configured.
+   */
+  class BindingThisSiteOnly extends BindingViewOnly {
+      constructor(view, id, config) {
+          super(view, id);
+          this.enabled = config.siteOnlyEnabled;
+      }
+      bind() {
+          const element = this.getElement();
+          if (element !== null) {
+              element.style.display = this.enabled ? '' : 'none';
+          }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      setValue(value) {
+          // Do nothing.
+      }
+  }
+  /**
+   * Custom UI binding to hide or show the area that displays the random identifier if preferences have been set.
+   */
+  class BindingShowRandomId extends BindingViewOnly {
+      constructor(view, id, model) {
+          super(view, id);
+          this.model = model;
+      }
+      bind() {
+          if (this.field !== null) {
+              this.setValue(this.field.value);
+          }
+      }
+      /**
+       * If the preferences are persisted then show the identifier.
+       * @param value of the identifier being displayed
+       */
+      setValue(value) {
+          var _a, _b;
+          const element = super.getElement();
+          if (element !== null) {
+              const visible = value !== null && ((_b = (_a = this.model.rid) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.value) !== undefined;
+              element.style.display = visible ? '' : 'none';
+          }
+      }
+  }
+
   var Cookies;
   (function (Cookies) {
       Cookies["identifiers"] = "paf_identifiers";
@@ -2709,51 +2755,6 @@
       bind() {
           if (this.field !== null) {
               this.setValue(this.field.value);
-          }
-      }
-  }
-  /**
-   * Hides the this site only option if the feature is not configured.
-   */
-  class BindingThisSiteOnly extends BindingViewOnly {
-      constructor(view, id, config) {
-          super(view, id);
-          this.enabled = config.siteOnlyEnabled;
-      }
-      bind() {
-          const element = this.getElement();
-          if (element !== null) {
-              element.style.display = this.enabled ? '' : 'none';
-          }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      setValue(value) {
-          // Do nothing.
-      }
-  }
-  /**
-   * Custom UI binding to hide or show the area that displays the random identifier if preferences have been set.
-   */
-  class BindingShowRandomId extends BindingViewOnly {
-      constructor(view, id, model) {
-          super(view, id);
-          this.model = model;
-      }
-      bind() {
-          if (this.field !== null) {
-              this.setValue(this.field.value);
-          }
-      }
-      /**
-       * If the preferences are persisted then show the identifier.
-       * @param value of the identifier being displayed
-       */
-      setValue(value) {
-          var _a, _b;
-          const element = super.getElement();
-          if (element !== null) {
-              const visible = value !== null && ((_b = (_a = this.model.rid) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.value) !== undefined;
-              element.style.display = visible ? '' : 'none';
           }
       }
   }
