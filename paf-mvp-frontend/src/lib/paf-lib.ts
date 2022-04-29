@@ -752,3 +752,8 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
   }
   return getAuditLogByTransaction(prebidTransactionId);
 };
+
+export const deleteIdsAndPreferences = (): Promise<boolean> => {
+  // Not handled yet.
+  return Promise.resolve(false);
+};
