@@ -10,15 +10,17 @@ interface ModalProps {
   closeBtnText?: string;
   onClose: () => void;
   children?: JSX.Element | Array<JSX.Element>;
+  logo?: JSX.Element | Array<JSX.Element>;
 }
 
-export const Modal = ({ children, maxWidth, onClose, closeBtnText = '' }: ModalProps) => {
+export const Modal = ({ children, maxWidth, onClose, closeBtnText = '', logo }: ModalProps) => {
   const defaultMaxWidth = 400;
   return (
     <div class={style.modalContainer}>
       <div class={style.backdrop} />
       <div class={style.modal} style={{ maxWidth: maxWidth || defaultMaxWidth }}>
-        <div class={layout.justifyEnd}>
+        <div class={[layout.justifyBetween, layout.alignCenter].join(' ')}>
+          <div>{logo}</div>
           <Button small accent action={() => onClose()}>
             <div class={layout.alignCenter}>
               <b class={grid['mr-2']}>{closeBtnText}</b>

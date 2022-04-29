@@ -40,7 +40,16 @@ const addMiddleware = (app: Express) => {
   app.engine('hbs', hbs.engine);
   app.set('view engine', 'hbs');
   app.set('views', relative('/views'));
-  app.use(express.static(relative('../public')));
+  app.use(
+    express.static(relative('../public'), {
+      setHeaders: (res, path, stat) => {
+        if (/(woff|woff2|ttf|css)$/.test(path)) {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Cache-Control', 'public, max-age=604800');
+        }
+      },
+    })
+  );
 
   // Cookie parser
   app.use(cookieParser());
@@ -92,7 +101,7 @@ mainApp.get('/_ah/warmup', (req, res) => {
 // start the Express server
 const port = process.env.PORT || 80;
 mainApp.listen(port, () => {
-  console.log('server started');
+  console.log(`server started on port ${port}`);
   console.log('');
   console.log('Listening on:');
   for (const app of apps) {

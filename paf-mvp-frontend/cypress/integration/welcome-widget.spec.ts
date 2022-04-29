@@ -13,7 +13,7 @@ describe('Welcome widget view', () => {
     });
 
     it('should exist', () => {
-      page.widget.findByText(/Choose your marketing preferences/).should('exist');
+      page.widget.findByText(/Manage your marketing preferences/).should('exist');
     });
 
     it('should have close button', () => {
@@ -33,7 +33,7 @@ describe('Welcome widget view', () => {
       const getPanel = () => page.widget.findByTestId('learn-more-header');
 
       getPanel().should('not.be.visible');
-      page.widget.findByText(/Learn more about Onekey/).click();
+      page.logoBtn.click();
       getPanel().should('be.visible');
       page.widget.findByTestId('close-panel-btn').click();
       getPanel().should('not.be.visible');

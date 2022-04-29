@@ -1,5 +1,7 @@
 {
   "video": false,
   "screenshotOnRunFailure": false,
-  "baseUrl": "http://localhost:3000"
+  "baseUrl": "http://localhost:3000",
+  "includeShadowDom": true,
+  "pageLoadTimeout": 3000
 }
