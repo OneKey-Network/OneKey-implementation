@@ -12,6 +12,7 @@ import {
   saveCookieValue,
   updateIdsAndPreferences,
   removeCookie,
+  ShowPromptOption,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@core/operator-client-commons';
@@ -199,6 +200,7 @@ export class Controller {
     const r = await refreshIdsAndPreferences({
       proxyHostName: this.config.proxyHostName,
       triggerRedirectIfNeeded,
+      showPrompt: ShowPromptOption.doNotPrompt,
     });
     this.log.Message('global data', r);
     this.model.status = r.status;
@@ -484,6 +486,7 @@ export class Controller {
     const r = await refreshIdsAndPreferences({
       proxyHostName: this.config.proxyHostName,
       triggerRedirectIfNeeded: true,
+      showPrompt: ShowPromptOption.doNotPrompt,
     });
 
     return r.data;

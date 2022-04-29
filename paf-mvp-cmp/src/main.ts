@@ -9,15 +9,21 @@ let controller: Controller = null;
 
 // TODO: See later comment on how to align the UI and data layer.
 const promptConsent = () =>
-  new Promise<void>((resolve) => {
+  new Promise<boolean | undefined>((resolve) => {
+    log.Message('promptConsent');
     if (controller !== null) {
       controller.display('settings');
     }
-    resolve();
+    resolve(undefined);
   });
 
 // TODO: See later comment on how to align the UI and data layer.
-const showNotification = (type: NotificationEnum) => log.Message('showNotification', type);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const showNotification = (type: NotificationEnum) => {
+  if (controller !== null) {
+    controller.display('settings');
+  }
+};
 
 controller = new Controller(
   document.currentScript,
