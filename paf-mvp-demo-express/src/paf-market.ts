@@ -45,6 +45,7 @@ pafMarketApp.get('/', async (req: Request, res: Response) => {
       title: pafMarketConfig.name,
       proxyHostName: pafMarketConfig.host,
       cdnHost: pafMarketConfig.cdnHost,
+      cmp: false,
     });
   }
 });

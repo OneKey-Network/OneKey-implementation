@@ -10,5 +10,7 @@ pofDemoPublisherApp.get('/', (req, res) => {
     cdnDomain: pofDemoPublisherConfig.cdnHost,
     // Using the CMP backend as a PAF operator proxy
     proxyHostName: pofCmpConfig.host,
+    // True if the CMP is part of the demo page
+    cmp: true,
   });
 });

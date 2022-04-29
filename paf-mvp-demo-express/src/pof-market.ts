@@ -33,6 +33,8 @@ pofMarketApp.get('/', async (req: Request, res: Response) => {
     title: pofMarketConfig.name,
     proxyHostName: pofMarketConfig.host,
     cdnHost: pofMarketConfig.cdnHost,
+    // True if the CMP is part of the demo page
+    cmp: true,
   });
 });
 

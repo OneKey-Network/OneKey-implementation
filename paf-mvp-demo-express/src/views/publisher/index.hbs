@@ -2,12 +2,18 @@
 <html lang="html">
 <head>
 
+{{#if cmp}}
+
     <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
     <link rel="preload" as="script" href="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js">
 
+{{else}}
+
     <!-- PAF integration -->
-    {{!-- <link rel="preload" href="https://{{cdnDomain}}/assets/app.bundle.js" as="script" /> --}}
+    <link rel="preload" href="https://{{cdnDomain}}/assets/app.bundle.js" as="script" />
     <link rel="preload" href="https://{{cdnDomain}}/assets/paf-lib.js" as="script" />
+
+{{/if}}
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
@@ -152,6 +158,8 @@
 </head>
 <body>
 
+{{#if cmp}}
+
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
 <script src="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js" 
@@ -163,9 +171,14 @@
     data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
 
-{{!-- <script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script> --}}
-{{!-- <script src="https://{{cdnDomain}}/assets/paf-lib.js"
-        onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script> --}}
+{{else}}
+
+<script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
+<script src="https://{{cdnDomain}}/assets/paf-lib.js"
+        onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script>
+
+{{/if}}
+
 <div>
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/publisher/css/style.min.css" type="text/css">
@@ -883,6 +896,6 @@
     document.getElementById('div-1').setAttribute('auditLog', fakeAuditLogString);
     document.getElementById('div-2').setAttribute('auditLog', fakeAuditLogString);
 </script>
-<script src="https://{{cdnDomain}}/assets/ok-audit.min.js"></script>
+<script src="https://{{cdnDomain}}/assets/ok-audit.min.js" defer></script>
 </body>
 </html>

@@ -33,6 +33,7 @@ pifMarketApp.get('/', async (req: Request, res: Response) => {
     title: pifMarketConfig.name,
     proxyHostName: pifMarketConfig.host,
     cdnHost: pifMarketConfig.cdnHost,
+    cmp: false,
   });
 });
 
