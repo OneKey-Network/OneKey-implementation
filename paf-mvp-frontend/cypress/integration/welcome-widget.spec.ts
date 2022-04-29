@@ -72,9 +72,12 @@ describe('Welcome widget view', () => {
     it('should call the "new id" endpoint', () => {
       cy.window().then((win) => {
         const NEW_ID = 'NEW-USER-ID';
-        const getNewIdSpy = cy.stub(win.PAF, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
+        const response = {
+          body: { identifiers: getFakeIdentifiers(NEW_ID) },
+        };
+        cy.intercept('GET', '/paf-proxy/v1/new-id', { body: response }).as('newId');
         page.refreshBtn.click();
-        cy.wrap(getNewIdSpy).should('have.been.called');
+        cy.waitFor('@newId');
         page.refreshBtn.should('contain', NEW_ID.split('-')[0]);
       });
     });
@@ -96,19 +99,25 @@ describe('Welcome widget view', () => {
     it('should save preferences', () => {
       cy.window().then((win) => {
         const NEW_ID = 'NEW-USER-ID';
+        const response = { body: { identifiers: getFakeIdentifiers(NEW_ID) } };
+        cy.intercept('GET', '/paf-proxy/v1/new-id', { body: response }).as('newId');
+        cy.intercept('POST', '/paf-proxy/v1/sign/prefs', { statusCode: 200 }).as('signIdsPrefs');
+        cy.intercept('POST', '/paf-proxy/v1/sign/write', { statusCode: 200 }).as('writeIdsPrefs');
         const selectedConsentIndex = consent ? 0 : 1;
         const oppositeOptionIndex = Math.abs(selectedConsentIndex - 1);
-        const updateStub = cy.stub(win.PAF, 'updateIdsAndPreferences');
-        cy.stub(win.PAF, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
         // Refresh ID
         page.refreshBtn.click();
+        cy.waitFor('@newId');
         // Change preferences
         page.consentOptions.eq(oppositeOptionIndex).click();
 
         page.saveButton.click();
         const identifiers: Identifiers = [getFakeIdentifier(FAKE_ID_UID, 'uid2'), getFakeIdentifier(NEW_ID)];
-
-        cy.wrap(updateStub).should('be.calledWith', 'cypress.paf.com', !consent, identifiers);
+        const unsignedPreferences = { version: '0.1', data: { use_browsing_for_personalization: true } };
+        const request = JSON.stringify({ identifiers, unsignedPreferences });
+        cy.waitFor('@signIdsPrefs');
+        cy.waitFor('@writeIdsPrefs');
+        cy.get('@signIdsPrefs').its('request.body').should('equal', request);
       });
     });
   });
