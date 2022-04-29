@@ -1,4 +1,4 @@
-import UAParser from 'ua-parser-js';
+import { browserName } from 'detect-browser';
 import {
   AuditLog,
   Error,
@@ -26,6 +26,7 @@ import { NotificationEnum } from '../enums/notification.enum';
 import { logDebug, logInfo } from './logging';
 import { buildAuditLog } from '@core/model/audit-log';
 
+// TODO: avoid global declaration
 declare const PAFUI: {
   promptConsent: () => Promise<boolean>;
   showNotification: (notificationType: NotificationEnum) => void;
@@ -380,10 +381,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
     logInfo('Cookie found: NO');
 
-    // 4. Browser known to support 3PC?
-    const userAgent = new UAParser(navigator.userAgent);
-
-    if (isBrowserKnownToSupport3PC(userAgent.getBrowser())) {
+    if (isBrowserKnownToSupport3PC(browserName(navigator.userAgent))) {
       logInfo('Browser known to support 3PC: YES');
 
       logInfo('Attempt to read from JSON');
