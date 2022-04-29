@@ -15,6 +15,7 @@ import snackbarTemplate from './views/snackbar.html';
 import popupTemplate from './views/popup.html';
 import { Locale } from './locale';
 import { Config } from './config';
+import { IView } from '@core/ui/binding';
 
 /**
  * Type to use with HTML views that support locale language customization.
@@ -37,7 +38,7 @@ interface ItemData {
 
 type ItemTemplate = (i: ItemData) => string;
 
-export class View {
+export class View implements IView {
   // The shadow root for the UI.
   public root: ShadowRoot = null;
 
@@ -60,7 +61,7 @@ export class View {
   private readonly config: Config;
 
   /**
-   * Constructs a new instance of Controller
+   * Constructs a new instance of View
    * @param script element this method is contained within
    * @param locale the language file to use with the UI
    * @param config the configuration for the controller
@@ -245,7 +246,7 @@ export class View {
     this.cardContainer.className = 'ok-ui';
 
     // Append the style, tooltips, and container with a shadow root for encapsulation.
-    this.root = this.outerContainer.attachShadow({ mode: 'open' });
+    this.root = this.outerContainer.attachShadow({ mode: 'closed' });
     this.root.appendChild(style);
     this.root.appendChild(tooltipsScript);
     this.root.appendChild(this.cardContainer);

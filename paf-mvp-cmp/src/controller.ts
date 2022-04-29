@@ -1,7 +1,7 @@
 import { Locale } from './locale';
 import { Config } from './config';
 import { Log } from '@core/log';
-import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement, BindingViewOnly } from './binding';
+import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement, BindingViewOnly } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
   getIdsAndPreferences,
@@ -11,7 +11,6 @@ import {
   saveCookieValue,
   updateIdsAndPreferences,
   removeCookie,
-  RefreshIdsAndPrefsOptions,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@core/operator-client-commons';
@@ -113,7 +112,7 @@ export class Controller {
       new BindingCheckedMap(this.view, 'ok-ui-marketing-0', Marketing.standard, Marketing.notSet)
     );
     this.model.pref.addBinding(
-      new BindingElement<PreferencesData>(
+      new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-display-marketing',
         new Map<PreferencesData, string>([
@@ -125,7 +124,7 @@ export class Controller {
       )
     );
     this.model.pref.addBinding(
-      new BindingElement<PreferencesData>(
+      new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-snackbar-heading',
         new Map<PreferencesData, string>([
@@ -137,7 +136,7 @@ export class Controller {
       )
     );
     this.model.pref.addBinding(
-      new BindingElement<PreferencesData>(
+      new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-snackbar-body',
         new Map<PreferencesData, string>([
@@ -345,8 +344,7 @@ export class Controller {
         this.actionRefuseAll().catch((e) => log.Error(e));
         break;
       default:
-        log.Warn(`Action '${action}' is not known`);
-        break;
+        throw `Action '${action}' is not known`;
     }
   }
 
@@ -539,7 +537,7 @@ export class Controller {
 /**
  * Custom UI binding to display the random identifier in the button used to reset it.
  */
-class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement> {
+class BindingDisplayRandomId extends BindingViewOnly<Identifier, Model, HTMLSpanElement> {
   /**
    * Adds the identifier text to the bound elements inner text.
    * @param value of the identifier
@@ -565,7 +563,7 @@ class BindingDisplayRandomId extends BindingViewOnly<Identifier, HTMLSpanElement
 /**
  * Hides the this site only option if the feature is not configured.
  */
-class BindingThisSiteOnly extends BindingViewOnly<boolean, HTMLDivElement> {
+class BindingThisSiteOnly extends BindingViewOnly<boolean, Model, HTMLDivElement> {
   private readonly enabled: boolean;
 
   constructor(view: View, id: string, config: Config) {
@@ -589,7 +587,7 @@ class BindingThisSiteOnly extends BindingViewOnly<boolean, HTMLDivElement> {
 /**
  * Custom UI binding to hide or show the area that displays the random identifier if preferences have been set.
  */
-class BindingShowRandomId extends BindingViewOnly<PreferencesData, HTMLDivElement> {
+class BindingShowRandomId extends BindingViewOnly<PreferencesData, Model, HTMLDivElement> {
   protected readonly model: Model;
 
   constructor(view: View, id: string, model: Model) {

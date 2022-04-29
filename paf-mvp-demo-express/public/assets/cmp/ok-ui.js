@@ -435,19 +435,27 @@
   }(lib));
 
   class FieldReadOnly {
-      // Sets the default value for the field.
+      /**
+       * Constructs a new instance of the readonly field for the model.
+       * @param model
+       */
       constructor(model) {
           // List of bindings to HTML elements for the field.
           this.bindings = [];
           this.model = model;
       }
-      // Binds the elements that are associated with the field to the field so that when the value changes the HTML elements
-      // are updated and vice versa.
+      /**
+       * Binds the elements that are associated with the field to the field so that when the value changes the HTML elements
+       * are updated and vice versa.
+       */
       bind() {
           this.bindings.forEach((b) => b.bind());
       }
-      // Add a new binding for the field and set the correct value. Sets the binding to this field, and then adds the
-      // binding to the list for the field.
+      /**
+       * Add a new binding for the field and set the correct value. Sets the binding to this field, and then adds the
+       * binding to the list for the field.
+       * @param binding
+       */
       addBinding(binding) {
           binding.setField(this);
           this.bindings.push(binding);
@@ -457,19 +465,26 @@
    * Field that can be bound to an HTML element.
    */
   class Field extends FieldReadOnly {
-      // The model and default value for the field.
+      /**
+       * The model and default value for the field.
+       * @param model
+       * @param defaultValue
+       */
       constructor(model, defaultValue) {
           super(model);
           this.defaultValue = defaultValue;
           this._value = defaultValue;
       }
-      // Gets the current value.
+      /**
+       * Gets the current value.
+       */
       get value() {
           return this._value;
       }
-      // Sets the current value, updating any HTML elements that match the name
-      // value, then checks to see if any other fields need to be updated if the
-      // model is not already in a setting values operation.
+      /**
+       * Sets the current value, updating any HTML elements that match the name value, then checks to see if any other
+       * fields need to be updated if the model is not already in a setting values operation.
+       */
       set value(value) {
           this._value = value;
           this.bindings.forEach((b) => b.setValue(value));
@@ -479,13 +494,16 @@
               this.model.settingValues = false;
           }
       }
-      // Resets the field to the original value.
+      /**
+       * Resets the field to the original value.
+       */
       reset() {
           this.value = this.defaultValue;
       }
-      // Add a new binding for the field and set the correct value. Sets the
-      // binding to this field, sets the value of the HTML element to the current
-      // value of the field, and then adds the binding to the list for the field.
+      /**
+       * Add a new binding for the field and set the correct value. Sets the binding to this field, sets the value of the
+       * HTML element to the current value of the field, and then adds the binding to the list for the field.
+      */
       addBinding(binding) {
           super.addBinding(binding);
           binding.setValue(this._value);
@@ -2026,7 +2044,7 @@
    */
   class View {
       /**
-       * Constructs a new instance of Controller
+       * Constructs a new instance of View
        * @param script element this method is contained within
        * @param locale the language file to use with the UI
        * @param config the configuration for the controller
@@ -2121,7 +2139,7 @@
                   items += itemTemplate({
                       Index: i + 1,
                       Label: this.locale.customizeLabels[i],
-                      Tip: this.locale.customizeTips[i]
+                      Tip: this.locale.customizeTips[i],
                   });
               }
               this.locale.customizeHtml = items;
@@ -2205,7 +2223,7 @@
           this.cardContainer = document.createElement('div');
           this.cardContainer.className = 'ok-ui';
           // Append the style, tooltips, and container with a shadow root for encapsulation.
-          this.root = this.outerContainer.attachShadow({ mode: 'open' });
+          this.root = this.outerContainer.attachShadow({ mode: 'closed' });
           this.root.appendChild(style);
           this.root.appendChild(tooltipsScript);
           this.root.appendChild(this.cardContainer);
@@ -2496,8 +2514,7 @@
                   this.actionRefuseAll().catch((e) => log.Error(e));
                   break;
               default:
-                  log.Warn(`Action '${action}' is not known`);
-                  break;
+                  throw `Action '${action}' is not known`;
           }
       }
       /**
@@ -2743,18 +2760,20 @@
 
   var _a;
   let controller = null;
+  // TODO: See later comment on how to align the UI and data layer.
   const promptConsent = () => new Promise((resolve) => {
       if (controller !== null) {
           controller.display('settings');
       }
       resolve();
   });
+  // TODO: See later comment on how to align the UI and data layer.
   const showNotification = (type) => new Log('ok-ui', '#18a9e1').Message('showNotification', type);
+  controller = new Controller(document.currentScript, new Locale(window.navigator.languages), new Config(document.currentScript));
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
   // become a data layer only without any UI considerations.
-  (_a = window.PAFUI) !== null && _a !== void 0 ? _a : (window.PAFUI = { promptConsent, showNotification });
-  controller = new Controller(document.currentScript, new Locale(window.navigator.languages), new Config(document.currentScript));
+  (_a = window.PAFUI) !== null && _a !== void 0 ? _a : (window.PAFUI = { promptConsent, showNotification, controller });
 
 })();
 //# sourceMappingURL=ok-ui.js.map

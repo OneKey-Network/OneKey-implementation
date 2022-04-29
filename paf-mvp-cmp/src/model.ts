@@ -1,4 +1,4 @@
-import { Field, IField } from './fields';
+import { Field, IField, IModel } from '@core/ui/fields';
 import {
   Identifier,
   IdsAndOptionalPreferences,
@@ -13,6 +13,7 @@ import { PafStatus } from '@core/operator-client-commons';
  * The different states for the marketing preferences field.
  * Can't be an enum as we need the values for the PreferencesData to be comparable.
  */
+
 export class Marketing {
   /**
    * Personalized marketing.
@@ -51,7 +52,7 @@ export class Marketing {
 /**
  * A field used to represent an identifier in the model.
  */
-export class FieldId extends Field<Identifier> {
+export class FieldId extends Field<Identifier, Model> {
   // The types that the id must match. e.g. 'paf_browser_id'
   private readonly types: string[];
 
@@ -101,7 +102,7 @@ export class FieldId extends Field<Identifier> {
 /**
  * A field used to represent preferences in the model.
  */
-export class FieldPreferences extends Field<PreferencesData> {
+export class FieldPreferences extends Field<PreferencesData, Model> {
   private _persisted: Preferences = null;
 
   /**
@@ -158,7 +159,7 @@ export class FieldPreferences extends Field<PreferencesData> {
 /**
  * A field used to represent the "this site only" option.
  */
-export class FieldThisSiteOnly extends Field<boolean> {
+export class FieldThisSiteOnly extends Field<boolean, Model> {
   /**
    * When the this site only option is set to false then all the other values need to be reset. This does not apply when
    * the model is being loaded for the first time.
@@ -174,7 +175,7 @@ export class FieldThisSiteOnly extends Field<boolean> {
 /**
  * Field used to represent custom marketing options shown on the customized card.
  */
-export abstract class FieldCustom extends Field<boolean> {
+export abstract class FieldCustom extends Field<boolean, Model> {
   /**
    * Evaluate marketing preference based on the customized values that have been set.
    */
@@ -240,7 +241,7 @@ export class FieldAll extends FieldSingle {
 /**
  * The model used in the module.
  */
-export class Model {
+export class Model implements IModel {
   /**
    * Minimum purpose consent Id.
    */

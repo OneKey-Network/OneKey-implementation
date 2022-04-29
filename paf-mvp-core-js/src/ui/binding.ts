@@ -1,5 +1,4 @@
-import { Field, FieldReadOnly } from './fields';
-import { View } from './view';
+import { Field, FieldReadOnly, IModel } from './fields';
 
 /**
  * Copyright 2021 51Degrees Mobile Experts Limited
@@ -23,7 +22,7 @@ import { View } from './view';
 /**
  * Used to create an array of fields that can be used with data binding to the UI.
  */
-export interface IBindingField<T> {
+export interface IBindingField<T, M extends IModel> {
   /**
    * Sets the value in the HTML element.
    * @param value
@@ -39,7 +38,17 @@ export interface IBindingField<T> {
    * The field that the binding relates to.
    * @param field
    */
-  setField(field: FieldReadOnly<T>): void;
+  setField(field: FieldReadOnly<T, M>): void;
+}
+
+/**
+ * Interface that the view must implement to expose the shadow root.
+ */
+export interface IView {
+  /**
+   * Returns the shadow root that all elements that will be bound to will be found under.
+   */
+  get root(): ShadowRoot;
 }
 
 /**
@@ -49,7 +58,7 @@ export abstract class BindingBase<E extends HTMLElement> {
   /**
    * The view that will contain the element with the id.
    */
-  private readonly view: View;
+  private readonly view: IView;
 
   /**
    * Id of the HTML elements that the field is bound to.
@@ -62,7 +71,7 @@ export abstract class BindingBase<E extends HTMLElement> {
    * @param view that will contain the element with the id
    * @param id of the id of the element to bind to
    */
-  constructor(view: View, id: string) {
+  constructor(view: IView, id: string) {
     this.view = view;
     this.id = id;
   }
@@ -82,9 +91,9 @@ export abstract class BindingBase<E extends HTMLElement> {
 /**
  * Binding used only to display the value of a field and not update it.
  */
-export abstract class BindingViewOnly<T, E extends HTMLElement> extends BindingBase<E> {
+export abstract class BindingViewOnly<T, M extends IModel, E extends HTMLElement> extends BindingBase<E> {
   // The field that the binding relates to. Set when the binding is added to the field.
-  protected field: Field<T> | null = null;
+  protected field: Field<T, M> | null = null;
 
   /**
    * Sets the UI of the bound element to reflect the value provided. Must be implemented in the inheriting class to
@@ -98,7 +107,7 @@ export abstract class BindingViewOnly<T, E extends HTMLElement> extends BindingB
    * Sets the field that the binding is associated with.
    * @param field to associate with the UI element
    */
-  public setField(field: Field<T>) {
+  public setField(field: Field<T, M>) {
     this.field = field;
   }
 }
@@ -106,7 +115,7 @@ export abstract class BindingViewOnly<T, E extends HTMLElement> extends BindingB
 /**
  * Binding used only to display the value of a field and provide a feedback mechanism to update it.
  */
-export abstract class BindingReadWrite<T, E extends HTMLElement> extends BindingViewOnly<T, E> {
+export abstract class BindingReadWrite<T, M extends IModel, E extends HTMLElement> extends BindingViewOnly<T, M, E> {
   // Get the events that the binding is interested in.
   protected abstract events: string[];
 
@@ -135,7 +144,10 @@ export abstract class BindingReadWrite<T, E extends HTMLElement> extends Binding
  * A boolean field type that is used with an HTMLInputElement and the checked property. Includes support for radio
  * options not part of a group and check boxes.
  */
-export class BindingChecked extends BindingReadWrite<boolean, HTMLInputElement> implements IBindingField<boolean> {
+export class BindingChecked<M extends IModel>
+  extends BindingReadWrite<boolean, M, HTMLInputElement>
+  implements IBindingField<boolean, M>
+{
   protected events: string[] = ['change'];
 
   protected getValue(element: HTMLInputElement): boolean {
@@ -157,7 +169,10 @@ export class BindingChecked extends BindingReadWrite<boolean, HTMLInputElement> 
   }
 }
 
-export class BindingCheckedMap<T> extends BindingReadWrite<T, HTMLInputElement> implements IBindingField<T> {
+export class BindingCheckedMap<T, M extends IModel>
+  extends BindingReadWrite<T, M, HTMLInputElement>
+  implements IBindingField<T, M>
+{
   protected events: string[] = ['change'];
   protected readonly trueValue: T;
   protected readonly falseValue: T;
@@ -169,7 +184,7 @@ export class BindingCheckedMap<T> extends BindingReadWrite<T, HTMLInputElement> 
    * @param trueValue the value of the field that will result in the element being checked
    * @param falseValue the value of the field that will result in the element being unchecked
    */
-  constructor(view: View, id: string, trueValue: T, falseValue: T) {
+  constructor(view: IView, id: string, trueValue: T, falseValue: T) {
     super(view, id);
     this.trueValue = trueValue;
     this.falseValue = falseValue;
@@ -213,7 +228,10 @@ export class BindingCheckedMap<T> extends BindingReadWrite<T, HTMLInputElement> 
  * @remarks
  * The key comparison is performed using JSON.Stringify to compare keys by value.
  */
-export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implements IBindingField<T> {
+export class BindingElement<T, M extends IModel>
+  extends BindingViewOnly<T, M, HTMLElement>
+  implements IBindingField<T, M>
+{
   // Array of key value pairs.
   protected readonly pairs: [T, string][];
 
@@ -223,7 +241,7 @@ export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implement
    * @param id of the id of the element to bind to
    * @param map of field values to locale strings
    */
-  constructor(view: View, id: string, map: Map<T, string>) {
+  constructor(view: IView, id: string, map: Map<T, string>) {
     super(view, id);
     this.pairs = Array.from(map);
   }
@@ -257,7 +275,7 @@ export class BindingElement<T> extends BindingViewOnly<T, HTMLElement> implement
   }
 }
 
-export class BindingButton extends BindingViewOnly<boolean, HTMLButtonElement> {
+export class BindingButton<M extends IModel> extends BindingViewOnly<boolean, M, HTMLButtonElement> {
   public setValue(value: boolean) {
     const element = super.getElement();
     if (element !== null) {
