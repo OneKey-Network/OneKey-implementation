@@ -2420,6 +2420,7 @@
               const r = yield refreshIdsAndPreferences({
                   proxyHostName: this.config.proxyHostName,
                   triggerRedirectIfNeeded,
+                  showPrompt: ShowPromptOption.doNotPrompt,
               });
               this.log.Message('global data', r);
               this.model.status = r.status;
@@ -2691,6 +2692,7 @@
               const r = yield refreshIdsAndPreferences({
                   proxyHostName: this.config.proxyHostName,
                   triggerRedirectIfNeeded: true,
+                  showPrompt: ShowPromptOption.doNotPrompt,
               });
               return r.data;
           });
@@ -2764,13 +2766,19 @@
   let controller = null;
   // TODO: See later comment on how to align the UI and data layer.
   const promptConsent = () => new Promise((resolve) => {
+      log.Message('promptConsent');
       if (controller !== null) {
           controller.display('settings');
       }
-      resolve();
+      resolve(undefined);
   });
   // TODO: See later comment on how to align the UI and data layer.
-  const showNotification = (type) => log.Message('showNotification', type);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const showNotification = (type) => {
+      if (controller !== null) {
+          controller.display('settings');
+      }
+  };
   controller = new Controller(document.currentScript, new Locale(window.navigator.languages), new Config(document.currentScript, log), log);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
