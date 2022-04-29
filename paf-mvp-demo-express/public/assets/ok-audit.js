@@ -159,7 +159,7 @@
       /**
        * Add a new binding for the field and set the correct value. Sets the binding to this field, sets the value of the
        * HTML element to the current value of the field, and then adds the binding to the list for the field.
-      */
+       */
       addBinding(binding) {
           super.addBinding(binding);
           binding.setValue(this._value);
@@ -457,7 +457,7 @@
               case 'settings':
                   this.view.display('button');
                   this.bindActions();
-                  this.okUiCtrl.display('settings').catch(e => log$1.Error(e));
+                  this.okUiCtrl.display('settings').catch((e) => log$1.Error(e));
                   break;
               case 'audit':
                   this.view.display('audit');
@@ -510,7 +510,7 @@
 
   const log = new Log('audit', '#18a9e1');
   const uiCtrl = window.PAFUI.controller;
-  document.querySelectorAll('[auditLog]').forEach(e => {
+  document.querySelectorAll('[auditLog]').forEach((e) => {
       if (e instanceof HTMLDivElement) {
           log.Message('register', e.id);
           const content = e.innerHTML;
@@ -526,3 +526,4 @@
   });
 
 })();
+//# sourceMappingURL=ok-audit.js.map

@@ -503,7 +503,7 @@
       /**
        * Add a new binding for the field and set the correct value. Sets the binding to this field, sets the value of the
        * HTML element to the current value of the field, and then adds the binding to the list for the field.
-      */
+       */
       addBinding(binding) {
           super.addBinding(binding);
           binding.setValue(this._value);
