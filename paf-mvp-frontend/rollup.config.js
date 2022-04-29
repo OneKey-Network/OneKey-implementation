@@ -22,32 +22,6 @@ const getDestFolder = (path) => (DEV ? DIST : relative('../paf-mvp-demo-express/
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
-    input: relative('src/lib/paf-lib.ts'),
-    output: {
-      file: getDestFolder(`/paf-lib.js`),
-      format: 'umd',
-      name: 'PAF',
-      sourcemap: DEV
-    },
-    treeshake: 'smallest', // remove unused code
-    plugins: [
-      typescript({
-        tsconfig: relative('../tsconfig.json')
-      }),
-      commonjs(),
-      nodeResolve(),
-      ...(() => {
-        if (DEV) {
-          return []
-        } else {
-          return [
-            terser(), // minify js output
-          ]
-        }
-      })(),
-    ]
-  }),
-  defineConfig({
     input: relative('src/main.ts'), // entry file
     output: {
       file: getDestFolder(`/app.bundle.js`),
@@ -57,6 +31,8 @@ export default [
     },
     treeshake: 'recommended', // remove unused code
     plugins: [ // a list of plugins we apply to the source code
+      nodeResolve(),
+      commonjs(),
       alias({ // create aliases to replace import sources
         entries: [
           {find: 'react', replacement: 'preact/compat'},
@@ -131,5 +107,10 @@ export default [
         }
       })(),
     ],
+    onwarn(warning, warn) {
+      // Ignore warning "this = undefined" in detect-browser
+      if (warning.code === 'THIS_IS_UNDEFINED') return;
+      warn(warning); // this requires Rollup 0.46
+    }
   })
 ];

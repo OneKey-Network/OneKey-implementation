@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
 import winston from 'winston';
-import UAParser from 'ua-parser-js';
 import { IdsAndOptionalPreferences, RedirectGetIdsPrefsResponse } from '@core/model/generated-model';
 import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
 import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
@@ -15,6 +14,7 @@ import {
 } from '@core/express/utils';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { PublicKeyStore } from '@core/crypto/key-store';
+import { browserName } from 'detect-browser';
 
 export enum RedirectType {
   http = 'http',
@@ -139,9 +139,9 @@ export class OperatorBackendClient {
     }
 
     // 4. Browser known to support 3PC?
-    const userAgent = new UAParser(req.header('user-agent'));
+    const browser = browserName(req.header('user-agent'));
 
-    if (isBrowserKnownToSupport3PC(userAgent.getBrowser())) {
+    if (isBrowserKnownToSupport3PC(browser)) {
       logger.info('Browser known to support 3PC: YES');
 
       return fromClientCookieValues(undefined, undefined);
