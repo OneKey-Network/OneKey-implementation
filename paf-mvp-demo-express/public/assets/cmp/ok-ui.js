@@ -221,37 +221,6 @@
       }
   }
 
-  // Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
-  class Log {
-      constructor(id, color) {
-          this.id = id;
-          this.color = color;
-      }
-      Debug(...args) {
-          console.log(...this.decorateLog('DEBUG:', args));
-      }
-      Message(...args) {
-          console.log(...this.decorateLog('MESSAGE:', args));
-      }
-      Info(...args) {
-          console.info(...this.decorateLog('INFO:', args));
-      }
-      Warn(...args) {
-          console.warn(...this.decorateLog('WARNING:', args));
-      }
-      Error(...args) {
-          console.error(...this.decorateLog('ERROR:', args));
-      }
-      decorateLog(prefix, args) {
-          const newArgs = [].slice.call(args);
-          prefix && newArgs.unshift(prefix);
-          newArgs.unshift(Log.label(this.color));
-          newArgs.unshift(`%c${this.id}`);
-          return newArgs;
-      }
-  }
-  Log.label = (color) => `display: inline-block; color: #fff; background: ${color}; padding: 1px 4px; border-radius: 3px;`;
-
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   var lib = {};
@@ -1001,9 +970,10 @@
    * Immutable UI specific options set via the script tag's attributes.
    */
   class Config {
-      constructor(script) {
+      constructor(script, log) {
           this._tcfCore = null;
           this.script = script;
+          this.log = log;
       }
       /**
        * True to display the introduction card, or false to skip straight to the settings card after a possible redirect.
@@ -1089,17 +1059,17 @@
       getValue(name, mandatory, help) {
           const value = this.script.getAttribute(name);
           if (value === null && mandatory === true) {
-              Config.missingAttribute(name, help);
+              this.missingAttribute(name, help);
               return null;
           }
           return value;
       }
-      static missingAttribute(name, help) {
+      missingAttribute(name, help) {
           let message = `Attribute '${name}' needs to be added as an attribute of the script tag.`;
           if (help !== null) {
               message += ` ${help}`;
           }
-          new Log('ok-ui', '#18a9e1').Error(message);
+          this.log.Error(message);
       }
   }
 
@@ -1419,6 +1389,37 @@
       NotificationEnum["personalizedContent"] = "PERSONALIZED";
       NotificationEnum["generalContent"] = "GENERAL";
   })(NotificationEnum || (NotificationEnum = {}));
+
+  // Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
+  class Log {
+      constructor(id, color) {
+          this.id = id;
+          this.color = color;
+      }
+      Debug(...args) {
+          console.log(...this.decorateLog('DEBUG:', args));
+      }
+      Message(...args) {
+          console.log(...this.decorateLog('MESSAGE:', args));
+      }
+      Info(...args) {
+          console.info(...this.decorateLog('INFO:', args));
+      }
+      Warn(...args) {
+          console.warn(...this.decorateLog('WARNING:', args));
+      }
+      Error(...args) {
+          console.error(...this.decorateLog('ERROR:', args));
+      }
+      decorateLog(prefix, args) {
+          const newArgs = [].slice.call(args);
+          prefix && newArgs.unshift(prefix);
+          newArgs.unshift(Log.label(this.color));
+          newArgs.unshift(`%c${this.id}`);
+          return newArgs;
+      }
+  }
+  Log.label = (color) => `display: inline-block; color: #fff; background: ${color}; padding: 1px 4px; border-radius: 3px;`;
 
   const log$1 = new Log('PAF', '#3bb8c3');
   const redirect = (url) => {
@@ -2230,8 +2231,6 @@
       }
   }
 
-  // Logger used to send messages to console.
-  const log = new Log('ok-ui', '#18a9e1');
   /**
    * Controller class used with the model and views. Uses paf-lib for data access services.
    */
@@ -2242,11 +2241,12 @@
        * @param locale the language file to use with the UI
        * @param config the configuration for the controller
        */
-      constructor(script, locale, config) {
+      constructor(script, locale, config, log) {
           // The model the controller is manipulating.
           this.model = new Model();
           this.locale = locale;
           this.config = config;
+          this.log = log;
           this.view = new View(script, locale, config);
           this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
           this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
@@ -2375,7 +2375,7 @@
                   proxyHostName: this.config.proxyHostName,
                   triggerRedirectIfNeeded,
               });
-              log.Message('global data', r);
+              this.log.Message('global data', r);
               this.model.status = r.status;
               if (r.data !== null) {
                   // TODO: The data returned does not match the interface and should really include a status value to avoid this
@@ -2386,7 +2386,7 @@
                       return true;
                   }
                   catch (ex) {
-                      log.Warn('Problem parsing global ids and preferences', ex);
+                      this.log.Warn('Problem parsing global ids and preferences', ex);
                   }
               }
               return false;
@@ -2412,14 +2412,14 @@
               // TODO: The data returned does not match the interface and should really include a status value to avoid this
               // try catch block.
               try {
-                  log.Message('local PAF data', data);
+                  this.log.Message('local PAF data', data);
                   this.model.status = PafStatus.PARTICIPATING;
                   this.setPersistedFlag(data.identifiers);
                   this.model.setFromIdsAndPreferences(data);
                   return true;
               }
               catch (ex) {
-                  log.Warn('Problem parsing local ids and preferences', ex);
+                  this.log.Warn('Problem parsing local ids and preferences', ex);
               }
           }
           this.model.status = PafStatus.REDIRECT_NEEDED;
@@ -2502,16 +2502,16 @@
       processAction(action) {
           switch (action) {
               case 'reset':
-                  this.actionReset().catch((e) => log.Error(e));
+                  this.actionReset().catch((e) => this.log.Error(e));
                   break;
               case 'refresh':
-                  this.getIdsAndPreferencesFromGlobal(true).catch((e) => log.Error(e));
+                  this.getIdsAndPreferencesFromGlobal(true).catch((e) => this.log.Error(e));
                   break;
               case 'save':
-                  this.actionSave().catch((e) => log.Error(e));
+                  this.actionSave().catch((e) => this.log.Error(e));
                   break;
               case 'refuseAll':
-                  this.actionRefuseAll().catch((e) => log.Error(e));
+                  this.actionRefuseAll().catch((e) => this.log.Error(e));
                   break;
               default:
                   throw `Action '${action}' is not known`;
@@ -2759,6 +2759,7 @@
   }
 
   var _a;
+  const log = new Log('ok-ui', '#18a9e1');
   let controller = null;
   // TODO: See later comment on how to align the UI and data layer.
   const promptConsent = () => new Promise((resolve) => {
@@ -2768,8 +2769,8 @@
       resolve();
   });
   // TODO: See later comment on how to align the UI and data layer.
-  const showNotification = (type) => new Log('ok-ui', '#18a9e1').Message('showNotification', type);
-  controller = new Controller(document.currentScript, new Locale(window.navigator.languages), new Config(document.currentScript));
+  const showNotification = (type) => log.Message('showNotification', type);
+  controller = new Controller(document.currentScript, new Locale(window.navigator.languages), new Config(document.currentScript, log), log);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
   // become a data layer only without any UI considerations.

@@ -6,9 +6,14 @@ import { TcfCore } from './tcfcore';
  * Immutable UI specific options set via the script tag's attributes.
  */
 export class Config implements Options {
+  /** Parent element */
   private readonly script: HTMLOrSVGScriptElement;
-  constructor(script: HTMLOrSVGScriptElement) {
+
+  private readonly log: Log;
+
+  constructor(script: HTMLOrSVGScriptElement, log: Log) {
     this.script = script;
+    this.log = log;
   }
 
   /**
@@ -130,17 +135,17 @@ export class Config implements Options {
   private getValue(name: string, mandatory: boolean, help?: string): string | null {
     const value = this.script.getAttribute(name);
     if (value === null && mandatory === true) {
-      Config.missingAttribute(name, help);
+      this.missingAttribute(name, help);
       return null;
     }
     return value;
   }
 
-  private static missingAttribute(name: string, help?: string) {
+  private missingAttribute(name: string, help?: string) {
     let message = `Attribute '${name}' needs to be added as an attribute of the script tag.`;
     if (help !== null) {
       message += ` ${help}`;
     }
-    new Log('ok-ui', '#18a9e1').Error(message);
+    this.log.Error(message);
   }
 }

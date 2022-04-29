@@ -10,11 +10,6 @@ import iconCross from './images/iconCross.svg';
 import iconTick from './images/iconTick.svg';
 
 /**
- * Logger for the controller.
- */
-const log = new Log('audit', '#18a9e1');
-
-/**
  * Controller class used with the model and views. Uses paf-lib for data access services.
  */
 export class Controller {
@@ -36,16 +31,20 @@ export class Controller {
   // The controller that is used to display the UI. Needed to close the audit module and open the settings module.
   private readonly okUiCtrl: cmp.Controller;
 
+  private readonly log: Log;
+
   /**
    * Constructs a new instance of Controller and displays the audit popup.
    * @param locale the language file to use with the UI
    * @param advert to bind the audit viewer to
    * @param okUiCtrl instance to use if the settings need to be displayed
+   * @param log
    */
-  constructor(locale: Locale, advert: HTMLElement, okUiCtrl: cmp.Controller) {
+  constructor(locale: Locale, advert: HTMLElement, okUiCtrl: cmp.Controller, log: Log) {
     this.locale = locale;
     this.element = advert;
     this.okUiCtrl = okUiCtrl;
+    this.log = log;
 
     // TODO: Replace this with a fetch for the real audit log once available.
     const auditLog = <AuditLog>JSON.parse(advert.getAttribute('auditLog'));
@@ -101,7 +100,7 @@ export class Controller {
       case 'settings':
         this.view.display('button');
         this.bindActions();
-        this.okUiCtrl.display('settings').catch((e) => log.Error(e));
+        this.okUiCtrl.display('settings').catch((e) => this.log.Error(e));
         break;
       case 'audit':
         this.view.display('audit');
@@ -116,7 +115,7 @@ export class Controller {
         // TODO: Code the action to download the audit log.
         break;
       default:
-        log.Warn(`Action '${action}' is not known`);
+        this.log.Warn(`Action '${action}' is not known`);
         break;
     }
   }

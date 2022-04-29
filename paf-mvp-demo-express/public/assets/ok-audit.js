@@ -59,37 +59,6 @@
       }
   }
 
-  // Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
-  class Log {
-      constructor(id, color) {
-          this.id = id;
-          this.color = color;
-      }
-      Debug(...args) {
-          console.log(...this.decorateLog('DEBUG:', args));
-      }
-      Message(...args) {
-          console.log(...this.decorateLog('MESSAGE:', args));
-      }
-      Info(...args) {
-          console.info(...this.decorateLog('INFO:', args));
-      }
-      Warn(...args) {
-          console.warn(...this.decorateLog('WARNING:', args));
-      }
-      Error(...args) {
-          console.error(...this.decorateLog('ERROR:', args));
-      }
-      decorateLog(prefix, args) {
-          const newArgs = [].slice.call(args);
-          prefix && newArgs.unshift(prefix);
-          newArgs.unshift(Log.label(this.color));
-          newArgs.unshift(`%c${this.id}`);
-          return newArgs;
-      }
-  }
-  Log.label = (color) => `display: inline-block; color: #fff; background: ${color}; padding: 1px 4px; border-radius: 3px;`;
-
   class FieldReadOnly {
       /**
        * Constructs a new instance of the readonly field for the model.
@@ -392,10 +361,6 @@
   var iconTick = "<svg width=\"1.5em\" height=\"1.5em\" viewBox=\"0 0 18 18\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\r\n    <path d=\"M9.00001 17.3333C4.39763 17.3333 0.666672 13.6023 0.666672 8.99996C0.666672 4.39759 4.39763 0.666626 9.00001 0.666626C13.6024 0.666626 17.3333 4.39759 17.3333 8.99996C17.3283 13.6002 13.6003 17.3282 9.00001 17.3333ZM8.98667 15.6666H9.00001C12.6806 15.6629 15.6618 12.6772 15.66 8.99663C15.6582 5.31603 12.6739 2.3333 8.99334 2.3333C5.31274 2.3333 2.32851 5.31603 2.32667 8.99663C2.32483 12.6772 5.30608 15.6629 8.98667 15.6666ZM7.33334 13.1666L4.00001 9.83329L5.17501 8.65829L7.33334 10.8083L12.825 5.31663L14 6.49996L7.33334 13.1666Z\" fill=\"#4AD23E\" />\r\n</svg>";
 
   /**
-   * Logger for the controller.
-   */
-  const log$1 = new Log('audit', '#18a9e1');
-  /**
    * Controller class used with the model and views. Uses paf-lib for data access services.
    */
   class Controller {
@@ -404,19 +369,21 @@
        * @param locale the language file to use with the UI
        * @param advert to bind the audit viewer to
        * @param okUiCtrl instance to use if the settings need to be displayed
+       * @param log
        */
-      constructor(locale, advert, okUiCtrl) {
+      constructor(locale, advert, okUiCtrl, log) {
           this.locale = locale;
           this.element = advert;
           this.okUiCtrl = okUiCtrl;
+          this.log = log;
           // TODO: Replace this with a fetch for the real audit log once available.
           const auditLog = JSON.parse(advert.getAttribute('auditLog'));
           this.model = new Model(auditLog);
-          this.view = new View(advert, locale, log$1);
+          this.view = new View(advert, locale, log);
           this.mapFieldsToUI();
           this.view.display('button');
           this.bindActions();
-          log$1.Info('Audit registered', advert.id);
+          log.Info('Audit registered', advert.id);
       }
       /**
        * Maps the fields in the model to the UI elements that will represent or change them. Must be called before the
@@ -457,7 +424,7 @@
               case 'settings':
                   this.view.display('button');
                   this.bindActions();
-                  this.okUiCtrl.display('settings').catch((e) => log$1.Error(e));
+                  this.okUiCtrl.display('settings').catch((e) => this.log.Error(e));
                   break;
               case 'audit':
                   this.view.display('audit');
@@ -472,7 +439,7 @@
                   // TODO: Code the action to download the audit log.
                   break;
               default:
-                  log$1.Warn(`Action '${action}' is not known`);
+                  this.log.Warn(`Action '${action}' is not known`);
                   break;
           }
       }
@@ -508,6 +475,37 @@
       }
   }
 
+  // Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
+  class Log {
+      constructor(id, color) {
+          this.id = id;
+          this.color = color;
+      }
+      Debug(...args) {
+          console.log(...this.decorateLog('DEBUG:', args));
+      }
+      Message(...args) {
+          console.log(...this.decorateLog('MESSAGE:', args));
+      }
+      Info(...args) {
+          console.info(...this.decorateLog('INFO:', args));
+      }
+      Warn(...args) {
+          console.warn(...this.decorateLog('WARNING:', args));
+      }
+      Error(...args) {
+          console.error(...this.decorateLog('ERROR:', args));
+      }
+      decorateLog(prefix, args) {
+          const newArgs = [].slice.call(args);
+          prefix && newArgs.unshift(prefix);
+          newArgs.unshift(Log.label(this.color));
+          newArgs.unshift(`%c${this.id}`);
+          return newArgs;
+      }
+  }
+  Log.label = (color) => `display: inline-block; color: #fff; background: ${color}; padding: 1px 4px; border-radius: 3px;`;
+
   const log = new Log('audit', '#18a9e1');
   const uiCtrl = window.PAFUI.controller;
   document.querySelectorAll('[auditLog]').forEach((e) => {
@@ -519,7 +517,7 @@
               if (content !== e.innerHTML) {
                   log.Message('adding', e.id);
                   clearInterval(e.timer);
-                  new Controller(new Locale(window.navigator.languages), e, uiCtrl);
+                  new Controller(new Locale(window.navigator.languages), e, uiCtrl, log);
               }
           }, 1000);
       }

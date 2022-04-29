@@ -19,7 +19,7 @@ document.querySelectorAll('[auditLog]').forEach((e) => {
       if (content !== e.innerHTML) {
         log.Message('adding', e.id);
         clearInterval((<MonitoredElement>e).timer);
-        new Controller(new Locale(window.navigator.languages), e, uiCtrl);
+        new Controller(new Locale(window.navigator.languages), e, uiCtrl, log);
       }
     }, 1000);
   }

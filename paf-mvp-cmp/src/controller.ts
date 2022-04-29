@@ -19,9 +19,6 @@ import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { TcfCore } from './tcfcore';
 
-// Logger used to send messages to console.
-const log = new Log('ok-ui', '#18a9e1');
-
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
  */
@@ -41,15 +38,18 @@ export class Controller {
   // Timer used to hide the snackbar.
   private countDown: NodeJS.Timer;
 
+  private log: Log;
+
   /**
    * Constructs a new instance of Controller.
    * @param script element this method is contained within
    * @param locale the language file to use with the UI
    * @param config the configuration for the controller
    */
-  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config) {
+  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config, log: Log) {
     this.locale = locale;
     this.config = config;
+    this.log = log;
     this.view = new View(script, locale, config);
     this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
     this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
@@ -199,7 +199,7 @@ export class Controller {
       proxyHostName: this.config.proxyHostName,
       triggerRedirectIfNeeded,
     });
-    log.Message('global data', r);
+    this.log.Message('global data', r);
     this.model.status = r.status;
     if (r.data !== null) {
       // TODO: The data returned does not match the interface and should really include a status value to avoid this
@@ -209,7 +209,7 @@ export class Controller {
         this.model.setFromIdsAndPreferences(r.data);
         return true;
       } catch (ex) {
-        log.Warn('Problem parsing global ids and preferences', ex);
+        this.log.Warn('Problem parsing global ids and preferences', ex);
       }
     }
     return false;
@@ -236,13 +236,13 @@ export class Controller {
       // TODO: The data returned does not match the interface and should really include a status value to avoid this
       // try catch block.
       try {
-        log.Message('local PAF data', data);
+        this.log.Message('local PAF data', data);
         this.model.status = PafStatus.PARTICIPATING;
         this.setPersistedFlag(data.identifiers);
         this.model.setFromIdsAndPreferences(data);
         return true;
       } catch (ex) {
-        log.Warn('Problem parsing local ids and preferences', ex);
+        this.log.Warn('Problem parsing local ids and preferences', ex);
       }
     }
 
@@ -332,16 +332,16 @@ export class Controller {
   private processAction(action: string) {
     switch (action) {
       case 'reset':
-        this.actionReset().catch((e) => log.Error(e));
+        this.actionReset().catch((e) => this.log.Error(e));
         break;
       case 'refresh':
-        this.getIdsAndPreferencesFromGlobal(true).catch((e) => log.Error(e));
+        this.getIdsAndPreferencesFromGlobal(true).catch((e) => this.log.Error(e));
         break;
       case 'save':
-        this.actionSave().catch((e) => log.Error(e));
+        this.actionSave().catch((e) => this.log.Error(e));
         break;
       case 'refuseAll':
-        this.actionRefuseAll().catch((e) => log.Error(e));
+        this.actionRefuseAll().catch((e) => this.log.Error(e));
         break;
       default:
         throw `Action '${action}' is not known`;
