@@ -67,6 +67,5 @@ addClientNodeEndpoints(
     privateKey: pafMarketPrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,
-  [getHttpsOriginFromHostName(pafMarketConfig.host)],
   s2sOptions
 );

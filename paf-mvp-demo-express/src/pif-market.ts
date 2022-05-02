@@ -26,6 +26,7 @@ MfRbBTyw+3s7boL9UFmkpc366R8fFXZMjg==
 
 export const pifMarketApp = express();
 
+// Both a web server serving web content
 pifMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
@@ -37,7 +38,7 @@ pifMarketApp.get('/', async (req: Request, res: Response) => {
   });
 });
 
-// Setup a JS proxy
+// ...and also a PAF node
 addClientNodeEndpoints(
   pifMarketApp,
   {
@@ -51,6 +52,5 @@ addClientNodeEndpoints(
     privateKey: pifMarketPrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,
-  [getHttpsOriginFromHostName(pifMarketConfig.host)],
   s2sOptions
 );

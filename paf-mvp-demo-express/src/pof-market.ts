@@ -3,7 +3,6 @@ import { crtoOneOperatorConfig, pofMarketConfig, PrivateConfig } from './config'
 import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
-import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pofMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -26,6 +25,7 @@ hshouUEPI2C2ti8j0s3K3JY2imY3DxKigw==
 
 export const pofMarketApp = express();
 
+// Both a web server serving web content
 pofMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
@@ -38,7 +38,7 @@ pofMarketApp.get('/', async (req: Request, res: Response) => {
   });
 });
 
-// Setup a JS proxy
+// ...and also a PAF node
 addClientNodeEndpoints(
   pofMarketApp,
   {
@@ -52,6 +52,5 @@ addClientNodeEndpoints(
     privateKey: pofMarketPrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,
-  [getHttpsOriginFromHostName(pofMarketConfig.host)],
   s2sOptions
 );

@@ -28,10 +28,5 @@ CdMHwZ948ONyVJToeFbLqBDKi7OhRANCAASXTbvyly6lrFR+Kocn0Ab2BUzIg76f
 Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 -----END PRIVATE KEY-----`,
   },
-  'example.onekey.network', // The PAF operator to use
-  [
-    // Allow calls from any page of my domain and a "backup" domain, under https
-    /^https:\/\/.*\.example-website\.com(\/?$|\/.*$)/,
-    /^https:\/\/.*\.backup-example-website\.com(\/?$|\/.*$)/,
-  ]
+  'example.onekey.network'
 );

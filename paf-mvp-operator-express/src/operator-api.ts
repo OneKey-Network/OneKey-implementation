@@ -3,6 +3,7 @@ import {
   corsOptionsAcceptAll,
   getPafDataFromQueryString,
   getPayload,
+  getTopLevelDomain,
   httpRedirect,
   removeCookie,
   setCookie,
@@ -87,7 +88,7 @@ export const addOperatorApi = (
   const idVerifier = new Verifier(keyStore.provider, new IdentifierDefinition());
   const prefsVerifier = new Verifier(keyStore.provider, new IdsAndPreferencesDefinition());
 
-  const tld = domainParser(`https://${operatorHost}`).domain;
+  const tld = getTopLevelDomain(operatorHost);
 
   const writeAsCookies = (input: PostIdsPrefsRequest, res: Response) => {
     if (input.body.identifiers !== undefined) {

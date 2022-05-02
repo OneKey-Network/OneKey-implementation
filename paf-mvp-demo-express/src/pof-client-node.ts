@@ -26,9 +26,6 @@ k/MRohFL/ay2XJUUf7Jb9weRJH9CuSEYZQ==
 
 export const pofCmpApp = express();
 
-// This PAF client node only allows calls from the corresponding publisher's website
-const allowedOrigins = [getHttpsOriginFromHostName(pofDemoPublisherConfig.host)];
-
 addClientNodeEndpoints(
   pofCmpApp,
   {
@@ -42,6 +39,5 @@ addClientNodeEndpoints(
     privateKey: pofCmpPrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,
-  allowedOrigins,
   s2sOptions
 );
