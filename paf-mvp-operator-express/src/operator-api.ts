@@ -22,7 +22,7 @@ import {
 } from '@core/model/generated-model';
 import { UnsignedData } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
-import { Cookies, typedCookie, toTest3pcCookie } from '@core/cookies';
+import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import {

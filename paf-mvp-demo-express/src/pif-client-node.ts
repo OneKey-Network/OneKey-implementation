@@ -1,16 +1,10 @@
 import express from 'express';
-import {
-  crtoOneOperatorConfig,
-  pafDemoPublisherConfig,
-  pifCmpConfig,
-  pifDemoPublisherConfig,
-  PrivateConfig,
-} from './config';
+import { crtoOneOperatorConfig, pifCmpConfig, pifDemoPublisherConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
-import { escapeRegExp, getHttpsOriginFromHostName } from '@core/express/utils';
+import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pifCmpPrivateConfig: PrivateConfig = {
   type: 'vendor',
