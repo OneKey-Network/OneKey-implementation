@@ -31,7 +31,7 @@ import {
   GetNewIdResponseBuilder,
   PostIdsPrefsResponseBuilder,
 } from '@core/model/operator-response-builders';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
 import { KeyInfo } from '@core/crypto/identity';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { AxiosRequestConfig } from 'axios';
@@ -67,19 +67,19 @@ export type AllowedDomains = { [domain: string]: Permission[] };
 // So accept whatever the referer is
 export const addOperatorApi = (
   app: Express,
+  identity: Omit<Identity, 'type'>,
   operatorHost: string,
   privateKey: string,
-  name: string,
-  keys: KeyInfo[],
   allowedDomains: AllowedDomains,
-  dpoEmailAddress: string,
-  privacyPolicyUrl: URL,
   s2sOptions?: AxiosRequestConfig
 ) => {
   const keyStore = new PublicKeyStore(s2sOptions);
 
   // Start by adding identity endpoint
-  addIdentityEndpoint(app, name, 'operator', keys, dpoEmailAddress, privacyPolicyUrl);
+  addIdentityEndpoint(app, {
+    ...identity,
+    type: 'operator',
+  });
 
   const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey);
   const get3PCResponseBuilder = new Get3PCResponseBuilder();

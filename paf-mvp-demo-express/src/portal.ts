@@ -285,11 +285,10 @@ portalApp.get('/', (req, res) => {
   res.render('portal/index', options);
 });
 
-addIdentityEndpoint(
-  portalApp,
-  portalConfig.name,
-  portalPrivateConfig.type,
-  [portalPrivateConfig.currentPublicKey],
-  portalPrivateConfig.dpoEmailAddress,
-  new URL(portalPrivateConfig.privacyPolicyUrl)
-);
+addIdentityEndpoint(portalApp, {
+  name: portalConfig.name,
+  type: portalPrivateConfig.type,
+  currentPublicKey: portalPrivateConfig.currentPublicKey,
+  dpoEmailAddress: portalPrivateConfig.dpoEmailAddress,
+  privacyPolicyUrl: new URL(portalPrivateConfig.privacyPolicyUrl),
+});

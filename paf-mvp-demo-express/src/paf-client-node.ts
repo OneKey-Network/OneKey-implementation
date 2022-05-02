@@ -33,19 +33,17 @@ const allowedOrigins = [getHttpsOriginFromHostName(pafDemoPublisherConfig.host)]
 
 addClientNodeEndpoints(
   pafCmpApp,
+  {
+    name: pafCmpConfig.name,
+    currentPublicKey: pafCmpPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pafCmpPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pafCmpPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pafCmpConfig.host,
+    privateKey: pafCmpPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pafCmpConfig.host,
-  pafCmpPrivateConfig.privateKey,
   allowedOrigins,
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pafCmpApp,
-  pafCmpConfig.name,
-  pafCmpPrivateConfig.type,
-  [pafCmpPrivateConfig.currentPublicKey],
-  pafCmpPrivateConfig.dpoEmailAddress,
-  new URL(pafCmpPrivateConfig.privacyPolicyUrl)
 );

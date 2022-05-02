@@ -14,3 +14,8 @@ export interface RedirectResponse<T> {
 export interface RedirectRequest<T> {
   request: T;
 }
+
+export interface PAFNode {
+  hostName: string;
+  privateKey: string;
+}

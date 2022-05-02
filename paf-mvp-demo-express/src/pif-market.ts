@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pifMarketConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 import { getHttpsOriginFromHostName } from '@core/express/utils';
@@ -41,19 +40,17 @@ pifMarketApp.get('/', async (req: Request, res: Response) => {
 // Setup a JS proxy
 addClientNodeEndpoints(
   pifMarketApp,
+  {
+    name: pifMarketConfig.name,
+    currentPublicKey: pifMarketPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pifMarketPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pifMarketPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pifMarketConfig.host,
+    privateKey: pifMarketPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pifMarketConfig.host,
-  pifMarketPrivateConfig.privateKey,
   [getHttpsOriginFromHostName(pifMarketConfig.host)],
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pifMarketApp,
-  pifMarketConfig.name,
-  pifMarketPrivateConfig.type,
-  [pifMarketPrivateConfig.currentPublicKey],
-  pifMarketPrivateConfig.dpoEmailAddress,
-  new URL(pifMarketPrivateConfig.privacyPolicyUrl)
 );

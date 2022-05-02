@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pofMarketConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 import { getHttpsOriginFromHostName } from '@core/express/utils';
@@ -42,19 +41,17 @@ pofMarketApp.get('/', async (req: Request, res: Response) => {
 // Setup a JS proxy
 addClientNodeEndpoints(
   pofMarketApp,
+  {
+    name: pofMarketConfig.name,
+    currentPublicKey: pofMarketPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pofMarketPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pofMarketPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pofMarketConfig.host,
+    privateKey: pofMarketPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pofMarketConfig.host,
-  pofMarketPrivateConfig.privateKey,
   [getHttpsOriginFromHostName(pofMarketConfig.host)],
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pofMarketApp,
-  pofMarketConfig.name,
-  pofMarketPrivateConfig.type,
-  [pofMarketPrivateConfig.currentPublicKey],
-  pofMarketPrivateConfig.dpoEmailAddress,
-  new URL(pofMarketPrivateConfig.privacyPolicyUrl)
 );
