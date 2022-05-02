@@ -32,7 +32,6 @@ import {
   PostIdsPrefsResponseBuilder,
 } from '@core/model/operator-response-builders';
 import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
-import { KeyInfo } from '@core/crypto/identity';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { AxiosRequestConfig } from 'axios';
 import domainParser from 'tld-extract';

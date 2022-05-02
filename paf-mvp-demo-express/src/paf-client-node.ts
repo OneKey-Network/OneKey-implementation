@@ -1,7 +1,6 @@
 import express from 'express';
 import { crtoOneOperatorConfig, pafCmpConfig, pafDemoPublisherConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 import { getHttpsOriginFromHostName } from '@core/express/utils';
