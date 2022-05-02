@@ -31,7 +31,7 @@ import { PAFNode } from '@core/model/model';
  *   privateKey: the PAF client private key string
  * @param operatorHost the PAF operator host name
  * @param allowedOrigins the list of allowed origins. See https://expressjs.com/en/resources/middleware/cors.html#configuration-options
- * @param s2sOptions?? [optional] server to server configuration for local dev
+ * @param s2sOptions [optional] server to server configuration for local dev
  */
 export const addClientNodeEndpoints = (
   app: Express,
