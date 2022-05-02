@@ -253,7 +253,7 @@ async function updateDataWithPrompt(
  * Ensure local cookies for PAF identifiers and preferences are up-to-date.
  * If they aren't, contact the operator to get fresh values.
  * @param options:
- * - proxyHostName: servername of operator proxy. ex: www.myproxy.com
+ * - proxyHostName: servername of the PAF client node. ex: paf.my-website.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
  * - redirectUrl: the redirectUrl that must be called in return when no 3PC are available. Default = current page
  * @return a status and optional data
@@ -466,7 +466,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 /**
  * Write update of identifiers and preferences on the PAF domain
  * @param options:
- * - proxyBase: base URL (scheme, servername) of operator proxy. ex: http://myproxy.com
+ * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
  * @param input the identifiers and preferences to write
  * @return the written identifiers and preferences
  */
@@ -528,7 +528,7 @@ const writeIdsAndPref = async (
 /**
  * Sign preferences
  * @param options:
- * - proxyBase: base URL (scheme, servername) of operator proxy. ex: http://myproxy.com
+ * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
@@ -546,7 +546,7 @@ export const signPreferences = async (
 /**
  * Get new random identifier
  * @param options:
- * - proxyBase: base URL (scheme, servername) of operator proxy. ex: http://myproxy.com
+ * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
  * @return the new Id, signed
  */
 export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Identifier> => {

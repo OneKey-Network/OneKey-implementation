@@ -8,8 +8,8 @@ pafDemoPublisherApp.get('/', (req, res) => {
   res.render(view, {
     title: pafDemoPublisherConfig.name,
     cdnDomain: pafDemoPublisherConfig.cdnHost,
-    // Using the CMP backend as a PAF operator proxy
-    proxyHostName: pafCmpConfig.host,
+    // Using the CMP backend as a PAF client node
+    pafNodeHost: pafCmpConfig.host,
     cmp: false,
   });
 });

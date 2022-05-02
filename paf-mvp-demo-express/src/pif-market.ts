@@ -1,9 +1,10 @@
 import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pifMarketConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
+import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pifMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -31,19 +32,19 @@ pifMarketApp.get('/', async (req: Request, res: Response) => {
 
   res.render(view, {
     title: pifMarketConfig.name,
-    proxyHostName: pifMarketConfig.host,
+    pafNodeHost: pifMarketConfig.host,
     cdnHost: pifMarketConfig.cdnHost,
     cmp: false,
   });
 });
 
 // Setup a JS proxy
-addOperatorClientProxyEndpoints(
+addClientNodeEndpoints(
   pifMarketApp,
   crtoOneOperatorConfig.host,
   pifMarketConfig.host,
   pifMarketPrivateConfig.privateKey,
-  [`https://${pifMarketConfig.host}`],
+  [getHttpsOriginFromHostName(pifMarketConfig.host)],
   s2sOptions
 );
 

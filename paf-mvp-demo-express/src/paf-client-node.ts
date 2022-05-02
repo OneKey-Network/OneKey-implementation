@@ -1,9 +1,10 @@
 import express from 'express';
 import { crtoOneOperatorConfig, pafCmpConfig, pafDemoPublisherConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
+import { escapeRegExp, getHttpsOriginFromHostName } from '@core/express/utils';
 
 // Only exported for generate-examples.ts
 export const pafCmpPrivateConfig: PrivateConfig = {
@@ -27,10 +28,10 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 
 export const pafCmpApp = express();
 
-// This PAF proxy only allows calls from its clients
-const allowedOrigins = [`https://${pafDemoPublisherConfig.host}`];
+// This PAF client node only allows calls from the corresponding publisher's website
+const allowedOrigins = [getHttpsOriginFromHostName(pafDemoPublisherConfig.host)];
 
-addOperatorClientProxyEndpoints(
+addClientNodeEndpoints(
   pafCmpApp,
   crtoOneOperatorConfig.host,
   pafCmpConfig.host,

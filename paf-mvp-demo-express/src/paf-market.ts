@@ -1,11 +1,12 @@
 import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pafMarketConfig, PrivateConfig } from './config';
 import { OperatorBackendClient, RedirectType } from '@operator-client/operator-backend-client';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { getTimeStampInSec } from '@core/timestamp';
+import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pafMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -46,19 +47,19 @@ pafMarketApp.get('/', async (req: Request, res: Response) => {
   //if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
   res.render(view, {
     title: pafMarketConfig.name,
-    proxyHostName: pafMarketConfig.host,
+    pafNodeHost: pafMarketConfig.host,
     cdnHost: pafMarketConfig.cdnHost,
   });
   //}
 });
 
 // ...and also as a JS proxy
-addOperatorClientProxyEndpoints(
+addClientNodeEndpoints(
   pafMarketApp,
   crtoOneOperatorConfig.host,
   pafMarketConfig.host,
   pafMarketPrivateConfig.privateKey,
-  [`https://${pafMarketConfig.host}`],
+  [getHttpsOriginFromHostName(pafMarketConfig.host)],
   s2sOptions
 );
 

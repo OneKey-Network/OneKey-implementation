@@ -48,7 +48,7 @@ import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
-import { pafCmpPrivateConfig } from '../src/paf-cmp';
+import { pafCmpPrivateConfig } from '../src/paf-client-node';
 import { operatorPrivateConfig } from '../src/crto1-operator';
 import { PublicKeyStore } from '@core/crypto/key-store';
 

@@ -74,3 +74,17 @@ export const getPayload = <T>(req: Request): T => {
   // See https://stackoverflow.com/questions/37668282/unable-to-fetch-post-without-no-cors-in-header
   return JSON.parse(req.body as string) as T;
 };
+
+/**
+ * Escape a string to be used in a regular expression.
+ * Stolen from https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex#answer-6969486
+ * @param stringForRegex
+ */
+export const escapeRegExp = (stringForRegex: string): string => stringForRegex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+
+/**
+ * Create a regular expression that allows any request on the host name, under https (but nothing else)
+ * @param hostName
+ */
+export const getHttpsOriginFromHostName = (hostName: string): RegExp =>
+  new RegExp(`^https:\\/\\/${escapeRegExp(hostName)}(/?$|\\/.*$)`);

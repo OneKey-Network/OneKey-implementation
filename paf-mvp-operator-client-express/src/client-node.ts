@@ -21,47 +21,27 @@ import { AxiosRequestConfig } from 'axios';
 import { PublicKeyStore } from '@core/crypto/key-store';
 
 /**
- * Get return URL parameter, otherwise set response code 400
- * @param req
- * @param res
+ * Add PAF client node endpoints to an Express app
+ * @param app the Express app
+ * @param operatorHost the PAF operator host name
+ * @param clientHost the PAF client host name
+ * @param privateKey the PAF client private key string
+ * @param allowedOrigins the list of allowed origins. See https://expressjs.com/en/resources/middleware/cors.html#configuration-options
+ * @param s2sOptions [optional] server to server configuration for local dev
  */
-const getReturnUrl = (req: Request, res: Response): URL | undefined => {
-  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
-  return redirectStr ? new URL(redirectStr) : undefined;
-};
-
-const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
-  const stringValue = req.query[paramName] as string;
-  if (stringValue === undefined) {
-    res.sendStatus(400); // TODO add message
-    return undefined;
-  }
-  return stringValue;
-};
-
-/**
- * Get request parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-export const getMessageObject = <T>(req: Request, res: Response): T => {
-  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
-  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
-};
-
-export const addOperatorClientProxyEndpoints = (
+export const addClientNodeEndpoints = (
   app: Express,
   operatorHost: string,
-  sender: string,
+  clientHost: string,
   privateKey: string,
-  allowedOrigins: string[],
+  allowedOrigins: (string | RegExp)[],
   s2sOptions?: AxiosRequestConfig
 ) => {
-  const client = new OperatorClient(operatorHost, sender, privateKey, new PublicKeyStore(s2sOptions));
+  const client = new OperatorClient(operatorHost, clientHost, privateKey, new PublicKeyStore(s2sOptions));
 
-  const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey);
-  const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey);
-  const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, sender, privateKey);
+  const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
+  const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, clientHost, privateKey);
+  const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, clientHost, privateKey);
 
   const corsOptions: CorsOptions = {
     origin: allowedOrigins,
@@ -170,4 +150,33 @@ export const addOperatorClientProxyEndpoints = (
     const response = seed as PostSeedResponse; // For now, the response is only a Seed.
     res.send(response);
   });
+};
+
+/**
+ * Get return URL parameter, otherwise set response code 400
+ * @param req
+ * @param res
+ */
+const getReturnUrl = (req: Request, res: Response): URL | undefined => {
+  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
+  return redirectStr ? new URL(redirectStr) : undefined;
+};
+
+const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
+  const stringValue = req.query[paramName] as string;
+  if (stringValue === undefined) {
+    res.sendStatus(400); // TODO add message
+    return undefined;
+  }
+  return stringValue;
+};
+
+/**
+ * Get request parameter, otherwise set response code 400
+ * @param req
+ * @param res
+ */
+const getMessageObject = <T>(req: Request, res: Response): T => {
+  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
+  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
 };

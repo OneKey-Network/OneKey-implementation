@@ -1,9 +1,10 @@
 import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pofMarketConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
+import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pofMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -31,7 +32,7 @@ pofMarketApp.get('/', async (req: Request, res: Response) => {
 
   res.render(view, {
     title: pofMarketConfig.name,
-    proxyHostName: pofMarketConfig.host,
+    pafNodeHost: pofMarketConfig.host,
     cdnHost: pofMarketConfig.cdnHost,
     // True if the CMP is part of the demo page
     cmp: true,
@@ -39,12 +40,12 @@ pofMarketApp.get('/', async (req: Request, res: Response) => {
 });
 
 // Setup a JS proxy
-addOperatorClientProxyEndpoints(
+addClientNodeEndpoints(
   pofMarketApp,
   crtoOneOperatorConfig.host,
   pofMarketConfig.host,
   pofMarketPrivateConfig.privateKey,
-  [`https://${pofMarketConfig.host}`],
+  [getHttpsOriginFromHostName(pofMarketConfig.host)],
   s2sOptions
 );
 
