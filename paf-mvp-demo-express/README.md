@@ -106,6 +106,15 @@ npm run start
 
 3. Edit your `/etc/hosts` file or equivalent to fake your web browser to target `localhost`.
     1. See console logs when starting the server for details
+    2. On Linux / MacOS, use the following script:
+
+```shell
+# Target localhost
+sudo ts-node -r tsconfig-paths/register scripts/fake-hosts.ts add
+
+# Use DNS
+sudo ts-node -r tsconfig-paths/register scripts/fake-hosts.ts remove
+```
 
 ✓ You should now be able to access the demo websites running locally.
 
