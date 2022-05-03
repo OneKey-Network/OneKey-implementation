@@ -4,7 +4,13 @@ import { PromptConsent } from './widgets/prompt-consent';
 import { notificationService } from './services/notification.service';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
 import { currentScript } from '@frontend/utils/current-script';
-import { refreshIdsAndPreferences } from './lib/paf-lib';
+import {
+  getIdsAndPreferences,
+  getNewId,
+  refreshIdsAndPreferences,
+  signPreferences,
+  updateIdsAndPreferences,
+} from './lib/paf-lib';
 
 currentScript.setScript(document.currentScript as HTMLScriptElement);
 
@@ -13,4 +19,4 @@ const showNotification = (type: NotificationEnum) => notificationService.showNot
 
 // TODO: avoid global declaration
 window.PAFUI ??= { promptConsent, showNotification };
-refreshIdsAndPreferences({ proxyHostName: currentScript.getData().proxy });
+window.PAF ??= { getNewId, signPreferences, getIdsAndPreferences, refreshIdsAndPreferences, updateIdsAndPreferences };

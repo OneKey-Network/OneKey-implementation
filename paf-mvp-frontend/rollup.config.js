@@ -22,6 +22,32 @@ const getDestFolder = (path) => (DEV ? DIST : relative('../paf-mvp-demo-express/
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
+    input: relative('src/lib/paf-lib.ts'),
+    output: {
+      file: getDestFolder(`/paf-lib.js`),
+      format: 'umd',
+      name: 'PAF',
+      sourcemap: DEV
+    },
+    treeshake: 'smallest', // remove unused code
+    plugins: [
+      typescript({
+        tsconfig: relative('../tsconfig.json')
+      }),
+      commonjs(),
+      nodeResolve(),
+      ...(() => {
+        if (DEV) {
+          return []
+        } else {
+          return [
+            terser(), // minify js output
+          ]
+        }
+      })(),
+    ]
+  }),
+  defineConfig({
     input: relative('src/main.ts'), // entry file
     output: {
       file: getDestFolder(`/app.bundle.js`),

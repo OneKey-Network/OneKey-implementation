@@ -40,13 +40,14 @@ pafMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   // Act as an HTTP middleware
-  if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
-    res.render(view, {
-      title: pafMarketConfig.name,
-      proxyHostName: pafMarketConfig.host,
-      cdnHost: pafMarketConfig.cdnHost,
-    });
-  }
+  // FIXME the usage of the backend client breaks logic for showing the notification. Need to decide how to fix.
+  //if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
+  res.render(view, {
+    title: pafMarketConfig.name,
+    proxyHostName: pafMarketConfig.host,
+    cdnHost: pafMarketConfig.cdnHost,
+  });
+  //}
 });
 
 // ...and also as a JS proxy

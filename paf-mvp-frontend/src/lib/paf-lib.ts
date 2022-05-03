@@ -298,11 +298,8 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
 
     const triggerNotification = (freshConsent: boolean) => {
-      const shouldShowNotification =
-        !strPreferences || // there was no value before the refresh
-        freshConsent !== currentlySelectedConsent; // the new value is different from the previous one
-
-      if (shouldShowNotification) {
+      // the new value is different from the previous one
+      if (freshConsent !== currentlySelectedConsent) {
         logDebug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
         showNotificationIfValid(freshConsent);
       } else {
