@@ -51,7 +51,7 @@
       "Measure content performance",
       "Apply market research to generate audience insights",
       "Develop & improve products",
-      "Select and/or access information on a device",
+      "Store and/or access information on a device",
       "Ensure security, prevent fraud, and debug",
       "Technically deliver ads or content" ],
     snackbarHeadingPersonalized:"You choose to see personalized content and relevant ads on [BrandName]",
@@ -128,30 +128,30 @@
     customizeStandard:"Standard marketing",
     customizePersonalized:"Personalized marketing",
     customizeCustomized:"Site specific marketing",
-    customizeLabels:[ "Select and/or access information on a device",
-      "Select basic ads",
-      "Apply market research to generate audience insights",
-      "Develop & improve products",
-      "Ensure security, prevent fraud, and debug",
-      "Technically deliver ads or content",
+    customizeLabels:[ "Select basic ads",
       "Create a personalized ad profile",
       "Select personalized ads",
       "Create a personalized content profile",
       "Select personalized content",
       "Measure ad performance",
-      "Measure content performance" ],
-    customizeTips:[ "Select and/or access information on a device",
-      "Select basic ads",
+      "Measure content performance",
       "Apply market research to generate audience insights",
       "Develop & improve products",
+      "Select and/or access information on a device",
       "Ensure security, prevent fraud, and debug",
-      "Technically deliver ads or content",
+      "Technically deliver ads or content" ],
+    customizeTips:[ "Select basic ads",
       "Create a personalized ad profile",
       "Select personalized ads",
       "Create a personalized content profile",
       "Select personalized content",
       "Measure ad performance",
-      "Measure content performance" ],
+      "Measure content performance",
+      "Apply market research to generate audience insights",
+      "Develop & improve products",
+      "Store and/or access information on a device",
+      "Ensure security, prevent fraud, and debug",
+      "Technically deliver ads or content" ],
     snackbarHeadingPersonalized:"You choose to see personalized content and relevant ads on [BrandName]",
     snackbarHeadingStandard:"You choose to see standard marketing on [BrandName]",
     snackbarHeadingCustomized:"You've chosen customized marketing on [BrandName]",
@@ -681,6 +681,17 @@
       }
   }
   /**
+   * Field represents a consent purpose that can't be switched off.
+   */
+  class FieldSingleAlwaysTrue extends FieldSingle {
+      set value(newValue) {
+          // Do nothing.
+      }
+      get value() {
+          return true;
+      }
+  }
+  /**
    * Field represents all the options and quickly turns then from true to false.
    */
   class FieldAll extends FieldSingle {
@@ -819,7 +830,17 @@
       BuildTcfFields() {
           const map = new Map();
           for (let i = Model.MinId; i <= Model.MaxId; i++) {
-              map.set(i, new FieldSingle(this, false));
+              let field;
+              switch (i) {
+                  case 11:
+                  case 12:
+                      field = new FieldSingleAlwaysTrue(this, true);
+                      break;
+                  default:
+                      field = new FieldSingle(this, false);
+                      break;
+              }
+              map.set(i, field);
           }
           return map;
       }
@@ -1144,14 +1165,19 @@
    * Binding used only to display the value of a field and provide a feedback mechanism to update it.
    */
   class BindingReadWrite extends BindingViewOnly {
-      // Binds all the elements to the events that matter for the binding.
+      // Binds all the elements to the events that matter for the binding. If the model doesn't update then reverses the 
+      // UI change.
       bind() {
           const element = this.getElement();
           if (element !== null) {
               this.events.forEach((event) => {
                   element.addEventListener(event, () => {
                       if (this.field !== null) {
-                          this.field.value = this.getValue(element);
+                          const newValue = this.getValue(element);
+                          this.field.value = newValue;
+                          if (this.field.value !== newValue) {
+                              this.setValue(this.field.value);
+                          }
                       }
                   });
               });

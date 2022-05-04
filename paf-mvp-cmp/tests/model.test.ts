@@ -1,4 +1,4 @@
-import { Marketing, Model } from '../src/model';
+import { FieldSingleAlwaysTrue, Marketing, Model } from '../src/model';
 
 let model: Model;
 
@@ -14,12 +14,14 @@ describe('testing model', () => {
   test('field all false, check all customized false', () => {
     model.all.value = false;
     expect(model.all.value).toBe(false);
-    model.customFields.forEach((f) => expect(f.value).toBe(false));
+    model.changableFields.forEach((f) => {
+      expect(f.value).toBe(false);
+    });
   });
   test('one customized false, all field false', () => {
     model.all.value = true;
     expect(model.all.value).toBe(true);
-    model.tcf.get(1).value = false;
+    model.tcf.get(3).value = false;
     expect(model.all.value).toBe(false);
   });
   test('personalized true, all customized true', () => {
@@ -49,5 +51,15 @@ describe('testing model', () => {
     expect(model.onlyThisSite.value).toBe(false);
     model.tcf.get(5).value = false;
     expect(model.onlyThisSite.value).toBe(true);
+  });
+  test("check purpose 11 can't be turned off", () => {
+    expect(model.tcf.get(11).value).toBe(true);
+    model.tcf.get(11).value = false;
+    expect(model.tcf.get(11).value).toBe(true);
+  });
+  test("check purpose 12 can't be turned off", () => {
+    expect(model.tcf.get(12).value).toBe(true);
+    model.tcf.get(12).value = false;
+    expect(model.tcf.get(12).value).toBe(true);
   });
 });

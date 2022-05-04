@@ -229,6 +229,18 @@ export class FieldSingle extends FieldCustom {
 }
 
 /**
+ * Field represents a consent purpose that can't be switched off.
+ */
+export class FieldSingleAlwaysTrue extends FieldSingle {
+  set value(newValue: boolean) {
+    // Do nothing.
+  }
+  get value(): boolean {
+    return true;
+  }
+}
+
+/**
  * Field represents all the options and quickly turns then from true to false.
  */
 export class FieldAll extends FieldSingle {
@@ -287,6 +299,7 @@ export class Model implements IModel {
   readonly personalizedFields: FieldSingle[];
   readonly standardFields: FieldSingle[];
   readonly customFields: FieldSingle[];
+  readonly changableFields: FieldSingle[];
 
   constructor() {
     // Add the TCF fields.
@@ -340,6 +353,14 @@ export class Model implements IModel {
       this.tcf.get(11),
       this.tcf.get(12),
     ];
+
+    // The custom fields that can be changed.
+    this.changableFields = [];
+    this.customFields.forEach((f) => {
+      if (f instanceof FieldSingleAlwaysTrue === false) {
+        this.changableFields.push(f);
+      }
+    });
 
     // The custom fields that are set to true when personalized marketing is enabled.
     this.personalizedFields = this.customFields;
@@ -398,7 +419,17 @@ export class Model implements IModel {
   private BuildTcfFields() {
     const map = new Map<number, FieldSingle>();
     for (let i = Model.MinId; i <= Model.MaxId; i++) {
-      map.set(i, new FieldSingle(this, false));
+      let field: FieldSingle;
+      switch (i) {
+        case 11:
+        case 12:
+          field = new FieldSingleAlwaysTrue(this, true);
+          break;
+        default:
+          field = new FieldSingle(this, false);
+          break;
+      }
+      map.set(i, field);
     }
     return map;
   }

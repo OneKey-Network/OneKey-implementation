@@ -125,14 +125,19 @@ export abstract class BindingReadWrite<T, M extends IModel, E extends HTMLElemen
    */
   protected abstract getValue(element: E): T;
 
-  // Binds all the elements to the events that matter for the binding.
+  // Binds all the elements to the events that matter for the binding. If the model doesn't update then reverses the
+  // UI change.
   public bind(): void {
     const element = this.getElement();
     if (element !== null) {
       this.events.forEach((event) => {
         element.addEventListener(event, () => {
           if (this.field !== null) {
-            this.field.value = this.getValue(element);
+            const newValue = this.getValue(element);
+            this.field.value = newValue;
+            if (this.field.value !== newValue) {
+              this.setValue(this.field.value);
+            }
           }
         });
       });
