@@ -1,4 +1,4 @@
-import { IBrowser } from 'ua-parser-js';
+import { browserName } from 'detect-browser';
 import {
   AuditLog,
   Error,
@@ -26,6 +26,7 @@ import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 
+// TODO: avoid global declaration
 declare const PAFUI: {
   promptConsent: () => Promise<boolean>;
   showNotification: (notificationType: NotificationEnum) => void;
@@ -255,14 +256,9 @@ async function updateDataWithPrompt(
  * - proxyHostName: servername of operator proxy. ex: www.myproxy.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
  * - redirectUrl: the redirectUrl that must be called in return when no 3PC are available. Default = current page
- * @param browser:
- * Optional instance of an IBrowser interface used to determine if the browser is likely to support 3PC.
  * @return a status and optional data
  */
-export const refreshIdsAndPreferences = async (
-  options: RefreshIdsAndPrefsOptions,
-  browser?: IBrowser
-): Promise<RefreshResult> => {
+export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
   const mergedOptions = {
     ...defaultsRefreshIdsAndPrefsOptions,
     ...options,
@@ -304,11 +300,8 @@ export const refreshIdsAndPreferences = async (
     const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
 
     const triggerNotification = (freshConsent: boolean) => {
-      const shouldShowNotification =
-        !strPreferences || // there was no value before the refresh
-        freshConsent !== currentlySelectedConsent; // the new value is different from the previous one
-
-      if (shouldShowNotification) {
+      // the new value is different from the previous one
+      if (freshConsent !== currentlySelectedConsent) {
         log.Debug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
         showNotificationIfValid(freshConsent);
       } else {
@@ -387,10 +380,7 @@ export const refreshIdsAndPreferences = async (
 
     log.Info('Cookie found: NO');
 
-    // 4. Browser known to support 3PC?
-    // const userAgent = new UAParser(navigator.userAgent);
-
-    if (browser !== null && isBrowserKnownToSupport3PC(browser)) {
+    if (isBrowserKnownToSupport3PC(browserName(navigator.userAgent))) {
       log.Info('Browser known to support 3PC: YES');
 
       log.Info('Attempt to read from JSON');

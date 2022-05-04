@@ -765,6 +765,13 @@
               this.tcf.get(11),
               this.tcf.get(12),
           ];
+          // The custom fields that can be changed.
+          this.changableFields = [];
+          this.customFields.forEach((f) => {
+              if (f instanceof FieldSingleAlwaysTrue === false) {
+                  this.changableFields.push(f);
+              }
+          });
           // The custom fields that are set to true when personalized marketing is enabled.
           this.personalizedFields = this.customFields;
       }
@@ -1165,7 +1172,7 @@
    * Binding used only to display the value of a field and provide a feedback mechanism to update it.
    */
   class BindingReadWrite extends BindingViewOnly {
-      // Binds all the elements to the events that matter for the binding. If the model doesn't update then reverses the 
+      // Binds all the elements to the events that matter for the binding. If the model doesn't update then reverses the
       // UI change.
       bind() {
           const element = this.getElement();
@@ -1354,6 +1361,77 @@
               element.style.display = visible ? '' : 'none';
           }
       }
+  }
+
+  (undefined && undefined.__spreadArray) || function (to, from, pack) {
+      if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+          if (ar || !(i in from)) {
+              if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+              ar[i] = from[i];
+          }
+      }
+      return to.concat(ar || Array.prototype.slice.call(from));
+  };
+  // tslint:disable-next-line:max-line-length
+  var SEARCHBOX_UA_REGEX = /alexa|bot|crawl(er|ing)|facebookexternalhit|feedburner|google web preview|nagios|postrank|pingdom|slurp|spider|yahoo!|yandex/;
+  var userAgentRules = [
+      ['aol', /AOLShield\/([0-9\._]+)/],
+      ['edge', /Edge\/([0-9\._]+)/],
+      ['edge-ios', /EdgiOS\/([0-9\._]+)/],
+      ['yandexbrowser', /YaBrowser\/([0-9\._]+)/],
+      ['kakaotalk', /KAKAOTALK\s([0-9\.]+)/],
+      ['samsung', /SamsungBrowser\/([0-9\.]+)/],
+      ['silk', /\bSilk\/([0-9._-]+)\b/],
+      ['miui', /MiuiBrowser\/([0-9\.]+)$/],
+      ['beaker', /BeakerBrowser\/([0-9\.]+)/],
+      ['edge-chromium', /EdgA?\/([0-9\.]+)/],
+      [
+          'chromium-webview',
+          /(?!Chrom.*OPR)wv\).*Chrom(?:e|ium)\/([0-9\.]+)(:?\s|$)/,
+      ],
+      ['chrome', /(?!Chrom.*OPR)Chrom(?:e|ium)\/([0-9\.]+)(:?\s|$)/],
+      ['phantomjs', /PhantomJS\/([0-9\.]+)(:?\s|$)/],
+      ['crios', /CriOS\/([0-9\.]+)(:?\s|$)/],
+      ['firefox', /Firefox\/([0-9\.]+)(?:\s|$)/],
+      ['fxios', /FxiOS\/([0-9\.]+)/],
+      ['opera-mini', /Opera Mini.*Version\/([0-9\.]+)/],
+      ['opera', /Opera\/([0-9\.]+)(?:\s|$)/],
+      ['opera', /OPR\/([0-9\.]+)(:?\s|$)/],
+      ['pie', /^Microsoft Pocket Internet Explorer\/(\d+\.\d+)$/],
+      ['pie', /^Mozilla\/\d\.\d+\s\(compatible;\s(?:MSP?IE|MSInternet Explorer) (\d+\.\d+);.*Windows CE.*\)$/],
+      ['netfront', /^Mozilla\/\d\.\d+.*NetFront\/(\d.\d)/],
+      ['ie', /Trident\/7\.0.*rv\:([0-9\.]+).*\).*Gecko$/],
+      ['ie', /MSIE\s([0-9\.]+);.*Trident\/[4-7].0/],
+      ['ie', /MSIE\s(7\.0)/],
+      ['bb10', /BB10;\sTouch.*Version\/([0-9\.]+)/],
+      ['android', /Android\s([0-9\.]+)/],
+      ['ios', /Version\/([0-9\._]+).*Mobile.*Safari.*/],
+      ['safari', /Version\/([0-9\._]+).*Safari/],
+      ['facebook', /FB[AS]V\/([0-9\.]+)/],
+      ['instagram', /Instagram\s([0-9\.]+)/],
+      ['ios-webview', /AppleWebKit\/([0-9\.]+).*Mobile/],
+      ['ios-webview', /AppleWebKit\/([0-9\.]+).*Gecko\)$/],
+      ['curl', /^curl\/([0-9\.]+)$/],
+      ['searchbot', SEARCHBOX_UA_REGEX],
+  ];
+  function matchUserAgent(ua) {
+      // opted for using reduce here rather than Array#first with a regex.test call
+      // this is primarily because using the reduce we only perform the regex
+      // execution once rather than once for the test and for the exec again below
+      // probably something that needs to be benchmarked though
+      return (ua !== '' &&
+          userAgentRules.reduce(function (matched, _a) {
+              var browser = _a[0], regex = _a[1];
+              if (matched) {
+                  return matched;
+              }
+              var uaMatch = regex.exec(ua);
+              return !!uaMatch && [browser, uaMatch];
+          }, false));
+  }
+  function browserName(ua) {
+      var data = matchUserAgent(ua);
+      return data ? data[0] : null;
   }
 
   var Cookies;
@@ -1643,11 +1721,9 @@
    * - proxyHostName: servername of operator proxy. ex: www.myproxy.com
    * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
    * - redirectUrl: the redirectUrl that must be called in return when no 3PC are available. Default = current page
-   * @param browser:
-   * Optional instance of an IBrowser interface used to determine if the browser is likely to support 3PC.
    * @return a status and optional data
    */
-  const refreshIdsAndPreferences = (options, browser) => __awaiter(void 0, void 0, void 0, function* () {
+  const refreshIdsAndPreferences = (options) => __awaiter(void 0, void 0, void 0, function* () {
       const mergedOptions = Object.assign(Object.assign({}, defaultsRefreshIdsAndPrefsOptions), options);
       const { proxyHostName, triggerRedirectIfNeeded, redirectUrl } = mergedOptions;
       let { showPrompt } = mergedOptions;
@@ -1680,9 +1756,8 @@
           const currentPafData = fromClientCookieValues(strIds, strPreferences);
           const currentlySelectedConsent = (_b = (_a = currentPafData.preferences) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.use_browsing_for_personalization;
           const triggerNotification = (freshConsent) => {
-              const shouldShowNotification = !strPreferences || // there was no value before the refresh
-                  freshConsent !== currentlySelectedConsent; // the new value is different from the previous one
-              if (shouldShowNotification) {
+              // the new value is different from the previous one
+              if (freshConsent !== currentlySelectedConsent) {
                   log$1.Debug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
                   showNotificationIfValid(freshConsent);
               }
@@ -1745,9 +1820,7 @@
               };
           }
           log$1.Info('Cookie found: NO');
-          // 4. Browser known to support 3PC?
-          // const userAgent = new UAParser(navigator.userAgent);
-          if (browser !== null && isBrowserKnownToSupport3PC(browser)) {
+          if (isBrowserKnownToSupport3PC(browserName(navigator.userAgent))) {
               log$1.Info('Browser known to support 3PC: YES');
               log$1.Info('Attempt to read from JSON');
               const readResponse = yield get(getUrl(jsonProxyEndpoints.read));
