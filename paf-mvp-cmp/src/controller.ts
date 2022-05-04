@@ -67,24 +67,25 @@ export class Controller {
    * If none of the data is persisted then show the intro card or the settings depending on configuration.
    * If some of the data is persisted and others not then show the settings card.
    */
-  public async display(card?: string) {
-    if (card === null || card === undefined) {
-      if (this.model.status !== PafStatus.NOT_PARTICIPATING) {
-        if (this.model.allPersisted === true && this.model.status === PafStatus.PARTICIPATING) {
-          this.setCard('snackbar');
-        } else if (this.model.nonePersisted === true) {
-          if (this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
-            this.setCard('intro');
-          } else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
-            this.setCard('settings');
-          }
-        } else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
-          this.setCard('settings');
-        }
-      }
-    } else {
-      this.setCard(card);
+  public display(card?: string) {
+    this.setCard(card ?? this.getCard());
+  }
+
+  /**
+   * Works out given the state of the model the card to display.
+   * @returns the card to display, or null if no card should be displayed
+   */
+  private getCard(): string | null {
+    if (this.model.status === PafStatus.NOT_PARTICIPATING) {
+      return null;
     }
+    if (this.model.allPersisted && this.model.status === PafStatus.PARTICIPATING) {
+      return 'snackbar';
+    }
+    if (this.model.nonePersisted && this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
+      return 'intro';
+    }
+    return 'settings';
   }
 
   /**
