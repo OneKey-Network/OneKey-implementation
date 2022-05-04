@@ -30,7 +30,7 @@ export class View implements IView {
   public readonly locale: Locale;
 
   /**
-   * Constructs a new instance of Controller.
+   * Constructs a new instance of View.
    * @param advert element the module relates to
    * @param locale the language file to use with the UI
    */
