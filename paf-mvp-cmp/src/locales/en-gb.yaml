@@ -45,33 +45,33 @@ customizeCustomized: Site specific marketing
 
 # Customize text labels
 customizeLabels:
-  - Select and/or access information on a device
   - Select basic ads
-  - Apply market research to generate audience insights
-  - Develop & improve products
-  - Ensure security, prevent fraud, and debug
-  - Technically deliver ads or content
   - Create a personalized ad profile
   - Select personalized ads
   - Create a personalized content profile
   - Select personalized content
   - Measure ad performance
   - Measure content performance
+  - Apply market research to generate audience insights
+  - Develop & improve products
+  - Select and/or access information on a device
+  - Ensure security, prevent fraud, and debug
+  - Technically deliver ads or content
 
 # Customize text tool tips
 customizeTips:
-  - Select and/or access information on a device
   - Select basic ads
-  - Apply market research to generate audience insights
-  - Develop & improve products
-  - Ensure security, prevent fraud, and debug
-  - Technically deliver ads or content
   - Create a personalized ad profile
   - Select personalized ads
   - Create a personalized content profile
   - Select personalized content
   - Measure ad performance
   - Measure content performance
+  - Apply market research to generate audience insights
+  - Develop & improve products
+  - Store and/or access information on a device
+  - Ensure security, prevent fraud, and debug
+  - Technically deliver ads or content
 
 # Snackbar text
 snackbarHeadingPersonalized: You choose to see personalized content and relevant ads on [BrandName]
