@@ -4,10 +4,11 @@ import { Log } from '@core/log';
 import { Model } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@core/ui/binding';
-import * as cmp from '@cmp/controller';
-import providerTemplate from './views/provider.html';
-import iconCross from './images/iconCross.svg';
+import providerComponent from './html/components/provider.html';
 import iconTick from './images/iconTick.svg';
+
+// TODO: Add back when full audit information is available.
+// import iconCross from './images/iconCross.svg';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -28,22 +29,18 @@ export class Controller {
   // The HTML element that will open the audit view if selected.
   private readonly button: HTMLElement;
 
-  // The controller that is used to display the UI. Needed to close the audit module and open the settings module.
-  private readonly okUiCtrl: cmp.Controller;
-
+  // Logger.
   private readonly log: Log;
 
   /**
    * Constructs a new instance of Controller and displays the audit popup.
    * @param locale the language file to use with the UI
    * @param advert to bind the audit viewer to
-   * @param okUiCtrl instance to use if the settings need to be displayed
    * @param log
    */
-  constructor(locale: Locale, advert: HTMLElement, okUiCtrl: cmp.Controller, log: Log) {
+  constructor(locale: Locale, advert: HTMLElement, log: Log) {
     this.locale = locale;
     this.element = advert;
-    this.okUiCtrl = okUiCtrl;
     this.log = log;
 
     // TODO: Replace this with a fetch for the real audit log once available.
@@ -100,7 +97,7 @@ export class Controller {
       case 'settings':
         this.view.display('button');
         this.bindActions();
-        this.okUiCtrl.display('settings').catch((e) => this.log.Error(e));
+        window.PAFUI.promptConsent();
         break;
       case 'audit':
         this.view.display('audit');
@@ -141,7 +138,7 @@ class BindingProviders extends BindingViewOnly<TransmissionResult, Model, HTMLDi
     if (container !== null) {
       const item = <HTMLParagraphElement>document.createElement('div');
       item.className = 'ok-ui-provider';
-      item.innerHTML = providerTemplate({
+      item.innerHTML = providerComponent({
         ResultSVG: iconTick,
         Name: result.source.domain,
       });

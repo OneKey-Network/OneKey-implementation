@@ -6,37 +6,16 @@ import logoSvg from './images/OneKey.svg';
 import logoCenterSvg from './images/OneKeyCenter.svg';
 import tooltipsJs from './scripts/tooltips.js';
 import css from './css/ok-ui.css';
-import introTemplate from './views/intro.html';
-import aboutTemplate from './views/about.html';
-import settingsTemplate from './views/settings.html';
-import customizeTemplate from './views/customize.html';
-import itemTemplate from './views/item.html';
-import snackbarTemplate from './views/snackbar.html';
-import popupTemplate from './views/popup.html';
+import introTemplate from './html/cards/intro.html';
+import aboutTemplate from './html/cards/about.html';
+import settingsTemplate from './html/cards/settings.html';
+import customizeTemplate from './html/cards/customize.html';
+import itemTemplate from './html/components/customize.html';
+import snackbarTemplate from './html/cards/snackbar.html';
+import popupTemplate from './html/containers/popup.html';
 import { Locale } from './locale';
 import { Config } from './config';
 import { IView } from '@core/ui/binding';
-
-/**
- * Type to use with HTML views that support locale language customization.
- */
-type ViewTemplate = (l: Locale) => string;
-
-/**
- * Type to use with HTML containers that take a single string for the content.
- */
-type ContainerTemplate = (s: string) => string;
-
-/**
- * Item for display in the customize template.
- */
-interface ItemData {
-  Index: number;
-  Label: string;
-  Tip: string;
-}
-
-type ItemTemplate = (i: ItemData) => string;
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -150,7 +129,7 @@ export class View implements IView {
       const length = Math.min(this.locale.customizeLabels.length, this.locale.customizeTips.length);
       let items = '';
       for (let i = 0; i < length; i++) {
-        items += <ItemTemplate>itemTemplate({
+        items += itemTemplate({
           Index: i + 1,
           Label: this.locale.customizeLabels[i],
           Tip: this.locale.customizeTips[i],
@@ -165,7 +144,7 @@ export class View implements IView {
    * @param card name of the card which corresponds to the ./views file name
    * @returns the HTML string that represents the card
    */
-  private getTemplate(card: string): ViewTemplate {
+  private getTemplate(card: string): Card {
     switch (card) {
       case 'about':
         return aboutTemplate;
@@ -192,7 +171,7 @@ export class View implements IView {
    * @param card to be displayed
    * @returns template that will be the container
    */
-  private getTemplateContainer(card: string): ContainerTemplate {
+  private getTemplateContainer(card: string): Container {
     switch (card) {
       case 'snackbar':
         return null;

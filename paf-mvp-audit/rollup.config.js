@@ -12,25 +12,20 @@ import yaml from '@rollup/plugin-yaml';
 // HTML templates used to add language text.
 import postHTML from 'rollup-plugin-posthtml-template';
 
-// Reduces the size of the HTML.
-import minifyHTML from 'rollup-plugin-minify-html-literals';
-
 // Embed the CSS into the bundle.
 import { string } from 'rollup-plugin-string';
 
 export default {
   input: './src/main.ts',
   plugins: [
-    commonjs(),
-    nodeResolve(),
+    string({ include: ['**/*.css', '**/*.svg' ] }),
     postHTML({ template: true }),
-    minifyHTML(),
-    string({ include: ['**/*.css', '**/*.svg', '**/*.js'] }),
+    yaml(),
+    nodeResolve(),
+    commonjs(),
     typescript({
-      sourceMap: false,
-      tsconfig: './tsconfig.json'
-    }),
-    yaml()
+      tsconfig: '../tsconfig.json'
+    })
   ],
   treeshake: 'smallest',
   output: [

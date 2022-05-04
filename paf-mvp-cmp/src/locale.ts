@@ -42,7 +42,7 @@ export class Locale extends Values {
     super();
 
     // Use US english as the default locale.
-    Object.assign(this, <Values>en_us);
+    Object.assign(this, en_us);
 
     // Replace any values with the users chosen locale.
     Object.assign(this, this.getLocale(languages));
@@ -61,11 +61,11 @@ export class Locale extends Values {
     for (const locale of locales) {
       switch (locale) {
         case 'en-GB':
-          return <Values>en_gb;
+          return en_gb;
         case 'en-US':
-          return <Values>en_us;
+          return en_us;
       }
     }
-    return <Values>en_us;
+    return en_us;
   }
 }

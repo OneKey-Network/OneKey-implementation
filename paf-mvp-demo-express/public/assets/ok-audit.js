@@ -345,7 +345,7 @@
       }
   }
 
-  var providerTemplate = (_) => `${ _.ResultSVG }
+  var providerComponent = (_) => `${ _.ResultSVG }
 <h2 class="ok-ui-heading-1">${ _.Name }</h2>
 <button type="button" class="ok-ui-button ok-ui-button--text ok-ui-button--small ok-ui-button--icon-only ok-ui-button--icon-start">
     <svg width="1.167em" height="1em" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -360,6 +360,8 @@
 
   var iconTick = "<svg width=\"1.5em\" height=\"1.5em\" viewBox=\"0 0 18 18\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\r\n    <path d=\"M9.00001 17.3333C4.39763 17.3333 0.666672 13.6023 0.666672 8.99996C0.666672 4.39759 4.39763 0.666626 9.00001 0.666626C13.6024 0.666626 17.3333 4.39759 17.3333 8.99996C17.3283 13.6002 13.6003 17.3282 9.00001 17.3333ZM8.98667 15.6666H9.00001C12.6806 15.6629 15.6618 12.6772 15.66 8.99663C15.6582 5.31603 12.6739 2.3333 8.99334 2.3333C5.31274 2.3333 2.32851 5.31603 2.32667 8.99663C2.32483 12.6772 5.30608 15.6629 8.98667 15.6666ZM7.33334 13.1666L4.00001 9.83329L5.17501 8.65829L7.33334 10.8083L12.825 5.31663L14 6.49996L7.33334 13.1666Z\" fill=\"#4AD23E\" />\r\n</svg>";
 
+  // TODO: Add back when full audit information is available.
+  // import iconCross from './images/iconCross.svg';
   /**
    * Controller class used with the model and views. Uses paf-lib for data access services.
    */
@@ -368,13 +370,11 @@
        * Constructs a new instance of Controller and displays the audit popup.
        * @param locale the language file to use with the UI
        * @param advert to bind the audit viewer to
-       * @param okUiCtrl instance to use if the settings need to be displayed
        * @param log
        */
-      constructor(locale, advert, okUiCtrl, log) {
+      constructor(locale, advert, log) {
           this.locale = locale;
           this.element = advert;
-          this.okUiCtrl = okUiCtrl;
           this.log = log;
           // TODO: Replace this with a fetch for the real audit log once available.
           const auditLog = JSON.parse(advert.getAttribute('auditLog'));
@@ -424,7 +424,7 @@
               case 'settings':
                   this.view.display('button');
                   this.bindActions();
-                  this.okUiCtrl.display('settings').catch((e) => this.log.Error(e));
+                  window.PAFUI.promptConsent();
                   break;
               case 'audit':
                   this.view.display('audit');
@@ -461,7 +461,7 @@
           if (container !== null) {
               const item = document.createElement('div');
               item.className = 'ok-ui-provider';
-              item.innerHTML = providerTemplate({
+              item.innerHTML = providerComponent({
                   ResultSVG: iconTick,
                   Name: result.source.domain,
               });
@@ -507,7 +507,6 @@
   Log.label = (color) => `display: inline-block; color: #fff; background: ${color}; padding: 1px 4px; border-radius: 3px;`;
 
   const log = new Log('audit', '#18a9e1');
-  const uiCtrl = window.PAFUI.controller;
   document.querySelectorAll('[auditLog]').forEach((e) => {
       if (e instanceof HTMLDivElement) {
           log.Message('register', e.id);
@@ -517,7 +516,7 @@
               if (content !== e.innerHTML) {
                   log.Message('adding', e.id);
                   clearInterval(e.timer);
-                  new Controller(new Locale(window.navigator.languages), e, uiCtrl, log);
+                  new Controller(new Locale(window.navigator.languages), e, log);
               }
           }, 1000);
       }

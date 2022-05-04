@@ -4,16 +4,11 @@
  */
 import logoSvg from './images/OneKey.svg';
 import css from './css/ok-ui.css';
-import auditTemplate from './views/audit.html';
-import buttonTemplate from './views/button.html';
+import auditTemplate from './html/containers/audit.html';
+import buttonTemplate from './html/components/button.html';
 import { Locale } from './locale';
 import { IView } from '@core/ui/binding';
 import { Log } from '@core/log';
-
-/**
- * Type to use with HTML views that support locale language customization.
- */
-type ViewTemplate = (l: Locale) => string;
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -81,7 +76,7 @@ export class View implements IView {
    * Sets the HTML in the container for the template.
    */
   private setContainerCard(card: string): void {
-    let template: ViewTemplate;
+    let template: Language;
     switch (card) {
       case 'audit':
         template = auditTemplate;
