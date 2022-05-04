@@ -1493,7 +1493,7 @@
   };
 
   const isBrowserKnownToSupport3PC = (browser) => {
-      return (browser === null || browser === void 0 ? void 0 : browser.name) && !browser.name.includes('Safari');
+      return browser && browser !== 'safari';
   };
 
   var QSParam;
@@ -2407,29 +2407,23 @@
        * If some of the data is persisted and others not then show the settings card.
        */
       display(card) {
-          return __awaiter(this, void 0, void 0, function* () {
-              if (card === null || card === undefined) {
-                  if (this.model.status !== PafStatus.NOT_PARTICIPATING) {
-                      if (this.model.allPersisted === true && this.model.status === PafStatus.PARTICIPATING) {
-                          this.setCard('snackbar');
-                      }
-                      else if (this.model.nonePersisted === true) {
-                          if (this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
-                              this.setCard('intro');
-                          }
-                          else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
-                              this.setCard('settings');
-                          }
-                      }
-                      else if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
-                          this.setCard('settings');
-                      }
-                  }
-              }
-              else {
-                  this.setCard(card);
-              }
-          });
+          this.setCard(card !== null && card !== void 0 ? card : this.getCard());
+      }
+      /**
+       * Works out given the state of the model the card to display.
+       * @returns the card to display, or null if no card should be displayed
+       */
+      getCard() {
+          if (this.model.status === PafStatus.NOT_PARTICIPATING) {
+              return null;
+          }
+          if (this.model.allPersisted && this.model.status === PafStatus.PARTICIPATING) {
+              return 'snackbar';
+          }
+          if (this.model.nonePersisted && this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
+              return 'intro';
+          }
+          return 'settings';
       }
       /**
        * Set the card based on the template binding the model fields to the UI elements. Uses the locale provided in the
