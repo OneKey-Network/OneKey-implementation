@@ -31,7 +31,7 @@ import { pifMarketApp } from './pif-market';
 import { pofMarketApp } from './pof-market';
 import { pifCmpApp } from './pif-cmp';
 import { pofCmpApp } from './pof-cmp';
-import { criteoTestsApp, criteoTestPAFClientPublicConfig } from './ad-tags.de';
+import { criteoTestsApp, criteoTestPAFClientPublicConfig } from './criteo-paf-client-test';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
