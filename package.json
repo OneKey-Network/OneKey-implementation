@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --passWithNoTests",
-    "build-front": "npm run build --prefix paf-mvp-audit && npm run build --prefix paf-mvp-frontend && npm run build --prefix paf-mvp-cmp",
+    "build-front": "npm run build --prefix paf-mvp-frontend && npm run build --prefix paf-mvp-cmp && npm run build --prefix paf-mvp-audit",
     "start:watch": "nodemon --debug .",
     "lint": "eslint .",
     "lint:all": "npm run lint && npm run lint:frontend",
