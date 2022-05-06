@@ -13,7 +13,7 @@ import {
   PrivateConfig,
 } from './config';
 import { getTimeStampInSec } from '@core/timestamp';
-import { criteoTestPAFClientPublicConfig } from './ad-tags.de';
+import { criteoTestPAFClientPublicConfig } from './criteo-paf-client-test';
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {
