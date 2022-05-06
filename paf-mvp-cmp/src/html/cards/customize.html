@@ -1,0 +1,41 @@
+<form>
+    <section class="ok-ui-card">
+        <header class="ok-ui-card__header">
+            <div class="ok-ui-card__actions">
+                <a href="#" data-card="about">${ _.Logo }</a>
+            </div>
+            <p class="ok-ui-heading-2">${ _.customizeCurrent }</p>
+            <h1 class="ok-ui-heading-1 ok-ui-mb-2" id="ok-ui-display-marketing"></h1>
+            <div class="ok-ui-toggle-wrapper">
+                <div class="ok-ui-toggle ok-ui-toggle--input-end">
+                    <input class="ok-ui-toggle__input" type="checkbox" name="only-this-site" value="1650375977702"
+                        id="ok-ui-preference-all" />
+                    <label class="ok-ui-toggle__input-facade" for="ok-ui-preference-all"></label>
+                    <div class="ok-ui-toggle__content">
+                        <label class="ok-ui-toggle__label ok-ui-toggle__label--emphasis"
+                            aria-described-by="ok-ui-preference-all-tooltip" for="ok-ui-preference-all">
+                            ${ _.customizeAll }
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="ok-ui-card__body">
+            ${ _.customizeHtml }
+        </main>
+        <footer class="ok-ui-card__footer">
+            <div class="ok-ui-card__actions">
+                <button type="button" class="ok-ui-button ok-ui-button--outlined" data-card="settings">
+                    <svg width="1em" height="0.667em" viewBox="0 0 12 8" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M3.22 3.33382L5.60667 0.940488L4.66667 0.000488281L0.666666 4.00049L4.66667 8.00049L5.60667 7.06049L3.22 4.66716H11.3333V3.33382H3.22Z" />
+                    </svg>
+                    <span class="ok-ui-button__label">${ _.back }</span>
+                </button>
+                <button type="button" class="ok-ui-button ok-ui-button--filled" id="ok-ui-button-save" data-action="save">
+                    <span class="ok-ui-button__label">${ _.save }</span>
+                </button>
+            </div>
+        </footer>
+    </section>
+</form>

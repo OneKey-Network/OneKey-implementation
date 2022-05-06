@@ -57,8 +57,6 @@ export default [
     },
     treeshake: 'recommended', // remove unused code
     plugins: [ // a list of plugins we apply to the source code
-      nodeResolve(),
-      commonjs(),
       alias({ // create aliases to replace import sources
         entries: [
           {find: 'react', replacement: 'preact/compat'},
@@ -133,10 +131,5 @@ export default [
         }
       })(),
     ],
-    onwarn(warning, warn) {
-      // Ignore warning "this = undefined" in detect-browser
-      if (warning.code === 'THIS_IS_UNDEFINED') return;
-      warn(warning); // this requires Rollup 0.46
-    }
   })
 ];

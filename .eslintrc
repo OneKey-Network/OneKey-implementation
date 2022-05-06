@@ -19,6 +19,7 @@
     "linebreak-style": "off",
     "semi": "warn",
     "quotes": ["warn", "single"],
+    "eqeqeq": "warn",
     "no-restricted-imports": ["error", { "patterns": ["paf-mvp-demo-express"] }]
   },
   "ignorePatterns": [

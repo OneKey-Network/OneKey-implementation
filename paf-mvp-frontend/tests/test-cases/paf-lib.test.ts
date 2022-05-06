@@ -15,7 +15,7 @@ import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
 
 jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
-jest.mock('detect-browser', () => ({ browserName: () => 'JEST-DOM' }));
+jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
 
 const proxyHostName = 'http://localhost';
 

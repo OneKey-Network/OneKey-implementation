@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html lang="html">
 <head>
+
+{{#if cmp}}
+
+    <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
+    <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
+
+{{else}}
+
     <!-- PAF integration -->
     <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
     <link rel="preload" href="https://{{cdnHost}}/assets/paf-lib.js" as="script" />
+
+{{/if}}
 
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
     <meta name="viewport" content="width=device-width"/>
@@ -15,9 +25,29 @@
     {{/if}}
 </head>
 <body>
+
+{{#if cmp}}
+
+<!-- CMP -->
+<!-- See paf-mvp-cmp/README.md for details -->
+<!-- <script src="https://{{cdnHost}}/assets/cmp/ok-ui.js" -->
+<script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js" 
+    data-display-intro="false"
+    data-snackbar-timeout-ms="5000" 
+    data-proxy-host-name="{{proxyHostName}}" 
+    data-brand-name="Demo Advertiser"
+    data-site-only-cookie-tcf-core="core-tcf"
+    data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
+    data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
+
+{{else}}
+
 <script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}"></script>
 <script src="https://{{cdnHost}}/assets/paf-lib.js"
         onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{proxyHostName}}', showPrompt: 'doNotPrompt'});"></script>
+
+{{/if}}
+
 <script>
   const redirectIfNeeded = () => PAF.refreshIdsAndPreferences({proxyHostName: '{{proxyHostName}}', triggerRedirectIfNeeded: true})
 </script>
