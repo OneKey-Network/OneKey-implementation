@@ -5,6 +5,8 @@ import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
+// This configuration is for testing PAF client node by Criteo (the web site using this client is not part of this repo)
+
 const criteoTestPAFClientPrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
