@@ -13,6 +13,7 @@ import {
   PrivateConfig,
 } from './config';
 import { getTimeStampInSec } from '@core/timestamp';
+import { criteoTestPAFClientPublicConfig } from './ad-tags.de';
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {
@@ -51,6 +52,8 @@ addOperatorApi(
     [pafMarketConfig.host]: [Permission.READ, Permission.WRITE],
     [pifMarketConfig.host]: [Permission.READ, Permission.WRITE],
     [pofMarketConfig.host]: [Permission.READ, Permission.WRITE],
+    // Criteo tests
+    [criteoTestPAFClientPublicConfig.host]: [Permission.READ, Permission.WRITE],
   },
   operatorPrivateConfig.dpoEmailAddress,
   new URL(operatorPrivateConfig.privacyPolicyUrl),

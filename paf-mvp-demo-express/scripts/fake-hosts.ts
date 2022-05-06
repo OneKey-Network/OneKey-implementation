@@ -15,6 +15,7 @@ import {
   portalConfig,
   PublicConfig,
 } from '../src/config';
+import { criteoTestPAFClientPublicConfig } from '../src/criteo-paf-client-test';
 
 if (!(process.argv[2]?.length > 0)) {
   const scriptName = path.basename(__filename);
@@ -56,6 +57,7 @@ const hostsFile = '/etc/hosts';
     addConfig(pafCmpConfig);
     addConfig(pifCmpConfig);
     addConfig(pofCmpConfig);
+    addConfig(criteoTestPAFClientPublicConfig);
   } else {
     console.error(`Unsupported action ${action}`);
     process.exit(1);

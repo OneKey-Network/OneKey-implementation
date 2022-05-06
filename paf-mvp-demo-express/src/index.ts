@@ -31,6 +31,7 @@ import { pifMarketApp } from './pif-market';
 import { pofMarketApp } from './pof-market';
 import { pifCmpApp } from './pif-cmp';
 import { pofCmpApp } from './pof-cmp';
+import { criteoTestsApp, criteoTestPAFClientPublicConfig } from './ad-tags.de';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -92,6 +93,7 @@ addApp(pofDemoPublisherConfig, pofDemoPublisherApp);
 addApp(pafCmpConfig, pafCmpApp);
 addApp(pifCmpConfig, pifCmpApp);
 addApp(pofCmpConfig, pofCmpApp);
+addApp(criteoTestPAFClientPublicConfig, criteoTestsApp);
 
 // Warmup Requests to Improve Performance on Google Cloud Platform
 mainApp.get('/_ah/warmup', (req, res) => {
