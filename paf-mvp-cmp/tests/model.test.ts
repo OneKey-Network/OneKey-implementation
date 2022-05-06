@@ -1,4 +1,4 @@
-import { FieldSingleAlwaysTrue, Marketing, Model } from '../src/model';
+import { Marketing, Model } from '../src/model';
 
 let model: Model;
 
