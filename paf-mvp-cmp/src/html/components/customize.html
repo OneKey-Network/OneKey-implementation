@@ -1,0 +1,24 @@
+<div class="ok-ui-toggle-wrapper">
+    <div class="ok-ui-toggle ok-ui-toggle--input-end">
+        <input class="ok-ui-toggle__input" type="checkbox" name="preference" value="${ _.Index }"
+            id="ok-ui-preference-${ _.Index }" />
+        <label class="ok-ui-toggle__input-facade" for="ok-ui-preference-${ _.Index }"></label>
+        <div class="ok-ui-toggle__content">
+            <label class="ok-ui-toggle__label " aria-described-by="ok-ui-preference-${ _.Index }-tooltip"
+                for="ok-ui-preference-${ _.Index }">
+                ${ _.Label }
+            </label>
+            <button class="ok-ui-tooltip" tabindex="0">
+                <svg width="1.167em" height="1.167em" viewBox="0 0 14 14" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M6.33325 3.66659H7.66659V4.99992H6.33325V3.66659ZM6.33325 6.33325H7.66659V10.3333H6.33325V6.33325ZM6.99992 0.333252C3.31992 0.333252 0.333252 3.31992 0.333252 6.99992C0.333252 10.6799 3.31992 13.6666 6.99992 13.6666C10.6799 13.6666 13.6666 10.6799 13.6666 6.99992C13.6666 3.31992 10.6799 0.333252 6.99992 0.333252ZM6.99992 12.3333C4.05992 12.3333 1.66659 9.93992 1.66659 6.99992C1.66659 4.05992 4.05992 1.66659 6.99992 1.66659C9.93992 1.66659 12.3333 4.05992 12.3333 6.99992C12.3333 9.93992 9.93992 12.3333 6.99992 12.3333Z"
+                        fill="#B6BCCA" />
+                </svg>
+                <span class="ok-ui-tooltip__message-wrapper">
+                    <span id="ok-ui-preference-${ _.Index }-tooltip" class="ok-ui-tooltip__message">${ _.Tip }</span>
+                </span>
+            </button>
+        </div>
+    </div>
+</div>

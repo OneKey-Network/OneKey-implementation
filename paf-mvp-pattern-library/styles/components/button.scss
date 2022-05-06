@@ -1,0 +1,136 @@
+.ok-ui-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  padding: em(8px) em(12px);
+  border-radius: $button-border-radius;
+
+  text-align: center;
+  line-height: 1.333;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.ok-ui-button[disabled] {
+  cursor: default;
+}
+
+.ok-ui-button--filled {
+  color: #FFFFFF;
+  background-color: $brand-primary;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    background-color: $brand-600;
+  }
+
+  &:active {
+    background-color: $brand-800;
+  }
+
+  &[disabled] {
+    background-color: $grey-200;
+  }
+}
+
+.ok-ui-button--outlined {
+  color: $brand-primary;
+  border: solid em(1px) $brand-primary;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    color: $brand-600;
+    border-color: $brand-600;
+  }
+
+  &:active {
+    color: $brand-800;
+    border-color: $brand-800;
+    background-color: $brand-50;
+  }
+
+  &[disabled] {
+    color: $grey-200;
+    border-color: $grey-200;
+  }
+}
+
+.ok-ui-button--text {
+  color: $brand-primary;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    color: $brand-600;
+  }
+
+  &:active {
+    color: $brand-800;
+    background-color: $brand-50;
+  }
+
+  &[disabled] {
+    color: $grey-200;
+  }
+}
+
+.ok-ui-button--small {
+  padding: em(4px) em(8px);
+}
+
+.ok-ui-button > svg {
+  fill: currentColor;
+  margin-right: em(4px);
+}
+
+.ok-ui-button--icon-end > .ok-ui-button__label {
+  order: -1;
+}
+
+.ok-ui-button--icon-end > svg {
+  margin-right: 0;
+  margin-left: em(4px);
+}
+
+.ok-ui-button--icon-only {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+
+   > svg {
+     margin-right: 0;
+   }
+}
+
+.ok-ui-button.ok-ui-button--icon-only {
+  padding: em(8px);
+  min-width: em(32px);
+  min-height: em(32px);
+}
+
+.ok-ui-button--small.ok-ui-button--icon-only {
+  padding: em(4px);
+  min-width: em(24px);
+  min-height: em(24px);
+}
+
+// any button that follows another one, or a divider, should have a gap before it
+.ok-ui-button + .ok-ui-button,
+.ok-ui-spacer + .ok-ui-button {
+  margin-left: em(8px);
+}

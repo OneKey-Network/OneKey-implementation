@@ -17,7 +17,6 @@ import { Refresh } from '../../components/svg/refresh/Refresh';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
 import { currentScript } from '@frontend/utils/current-script';
-import { getIdsAndPreferences, getNewId, updateIdsAndPreferences } from '@frontend/lib/paf-lib';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
@@ -28,7 +27,7 @@ export interface IWelcomeWidgetProps {
 export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
-  const originalData = getIdsAndPreferences();
+  const originalData = window.PAF.getIdsAndPreferences();
 
   const originalIdentifier = originalData?.identifiers?.[0];
   const originalConsent = originalData?.preferences?.data?.use_browsing_for_personalization;
@@ -55,7 +54,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
 
   const updateIdentifier = async () => {
     setAppIdentifier(undefined);
-    const newIdentifier = await getNewId({ proxyHostName });
+    const newIdentifier = await window.PAF.getNewId({ proxyHostName });
     setAppIdentifier(newIdentifier);
   };
 
@@ -63,7 +62,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
     // Remove previous PAF id from the list
     const identifiers = (originalData?.identifiers ?? []).filter((id) => id.type !== 'paf_browser_id');
     identifiers.push(appIdentifier);
-    await updateIdsAndPreferences(proxyHostName, consent, identifiers);
+    await window.PAF.updateIdsAndPreferences(proxyHostName, consent, identifiers);
     closeWidget();
   };
 

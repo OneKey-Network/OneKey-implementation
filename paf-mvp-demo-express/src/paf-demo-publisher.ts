@@ -10,5 +10,6 @@ pafDemoPublisherApp.get('/', (req, res) => {
     cdnDomain: pafDemoPublisherConfig.cdnHost,
     // Using the CMP backend as a PAF operator proxy
     proxyHostName: pafCmpConfig.host,
+    cmp: false,
   });
 });

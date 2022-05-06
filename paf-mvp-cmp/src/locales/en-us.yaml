@@ -1,0 +1,90 @@
+# Intro text
+introHeading: Manage your data and cookies (US)
+introBody: 
+  - Advertising funds your access to our site.
+  - We've partnered with OneKey to manage whether you prefer standard or personalized marketing when accessing
+    participating websites. OneKey relies on a random digital ID that is an essential part of how our website
+    operates and is used to ensure all recipients understand your preferences.
+  - We and our partners may also use information linked to these IDs to improve our overall service. By
+    opting-into personalized content and ads, we can improve your online experience.
+  - If you choose not to participate, you will receive targeted content that is unrelated to your browsing
+    activity or interactions.
+  - You can learn more or manage your choices at any time by going to 'Privacy settings' at the bottom of any
+    page on our site.
+
+# About text
+aboutHeading: Learn more about (US)
+aboutBody: 
+  - We believe you should have transparency and control over how, where, and why your data is used.
+  - We partnered with OneKey, a non-profit technology, to manage your marketing preferences when accessing [BrandName].
+  - OneKey relies on digital IDs to understand your activity and sends your preferences to our partner websites in order to customize the ads you see. IDs like these are an essential part of how [BrandName]'s website operates and provides you with a more relevant experience.
+  - You may change your preferences at any time.
+  - Your consent will automatically expire 2 years after you provide it. You have the right to be forgotten, which you can exercise at any time, and on any OneKey partner website simply by resetting your ID. You can also get a temporary ID by using the incognito/private browsing function of your browser.
+  - If you choose not to participate, you will still see ads unrelated to your browsing activity.
+  - You can learn more and manage your choices at any time by going to "Privacy settings" at the bottom of any page. See our Privacy Policy and Privacy Notice.
+
+# Settings text
+settingsHeading: Choose your marketing preferences
+settingsBody: 
+  - OneKey signals your preferences that can enhance your experience across partner websites, without bothering you with future prompts or directly identifying you.
+  - By saving your preferences, you also agree to our <a href="[BrandPrivacyUrl]" class="ok-ui-link">site's privacy policy</a>.
+settingsBrowsingId: Your browsing ID
+settingsBrowsingIdTip: <strong>OneKey</strong> links your preferences to a random, pseudonymous ID that lasts 6 months. Use your right to be forgotten at any time by refreshing your browsing ID.
+settingsPersonalizedLabel: Turn on personalized marketing
+settingsPersonalizedBody: See more relevant content and ads.
+settingsStandardLabel: Turn on standard marketing
+settingsStandardBody: See generic content and ads.
+settingsThisSite: Apply preferences to this site only and re-ask on other OneKey sites
+
+# Customize text
+customizeCurrent: "Your current choice:"
+customizeAll: Select all / unselect all
+customizeStandard: Standard marketing
+customizePersonalized: Personalized marketing
+customizeCustomized: Site specific marketing
+
+# Customize text labels
+customizeLabels:
+  - Select basic ads
+  - Create a personalized ad profile
+  - Select personalized ads
+  - Create a personalized content profile
+  - Select personalized content
+  - Measure ad performance
+  - Measure content performance
+  - Apply market research to generate audience insights
+  - Develop & improve products
+  - Select and/or access information on a device
+  - Ensure security, prevent fraud, and debug
+  - Technically deliver ads or content
+
+# Customize text tool tips
+customizeTips:
+  - Select basic ads
+  - Create a personalized ad profile
+  - Select personalized ads
+  - Create a personalized content profile
+  - Select personalized content
+  - Measure ad performance
+  - Measure content performance
+  - Apply market research to generate audience insights
+  - Develop & improve products
+  - Store and/or access information on a device
+  - Ensure security, prevent fraud, and debug
+  - Technically deliver ads or content
+
+# Snackbar text
+snackbarHeadingPersonalized: You choose to see personalized content and relevant ads on [BrandName]
+snackbarHeadingStandard: You choose to see standard marketing on [BrandName]
+snackbarHeadingCustomized: You've chosen customized marketing on [BrandName]
+snackbarBodyPersonalized: <a href="#" data-card='settings' class="ok-ui-link">Review your preferences</a> at any time.
+snackbarBodyStandard: Turn <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> on at any time to make your ads more relevant.
+snackbarBodyCustomized: Turn <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> on at any time to make your ads more relevant.
+
+# Button text
+refuseAll: Refuse All
+proceed: Proceed
+save: Save
+customize: Customize your experience
+back: Back
+cancel: Cancel

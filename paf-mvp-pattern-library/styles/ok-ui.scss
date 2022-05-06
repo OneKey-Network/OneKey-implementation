@@ -1,0 +1,17 @@
+.ok-ui {
+  @import "base";
+
+  @import "components/browsing-id.scss";
+  @import "components/button.scss";
+  @import "components/card.scss";
+  @import "components/link.scss";
+  @import "components/option.scss";
+  @import "components/popup.scss";
+  @import "components/provider.scss";
+  @import "components/snackbar.scss";
+  @import "components/spacer.scss";
+  @import "components/toggle.scss";
+  @import "components/tooltip.scss";
+
+  @import "utils";
+}

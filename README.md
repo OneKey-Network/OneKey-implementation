@@ -47,3 +47,5 @@ flowchart TB
 | [paf-mvp-operator-client-express](./paf-mvp-operator-client-express) | A NodeJS (Express) implementation of the [operator backend client and proxy](https://github.com/criteo/addressable-network-proposals/blob/main/mvp-spec/operator-client.md) |
 | [paf-mvp-operator-express](./paf-mvp-operator-express)               | A NodeJS (Express) implementation of the [operator API](https://github.com/criteo/addressable-network-proposals/blob/main/mvp-spec/operator-api.md)                         |
 | [paf-mvp-core-js](./paf-mvp-core-js)                                 | The Javascript fondation (**data model**, endpoint paths...) used by all other projects                                                                                     |
+
+To run a demo project of PAF, visit [paf-mvp-demo-express](./paf-mvp-demo-express)

@@ -44,10 +44,11 @@ export class PublicKeyStore {
 
     const responseData = response.data as GetIdentityResponse;
 
-    const currentKey = responseData.keys
-      .filter((key) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)) // valid keys
-      .sort((a, b) => b.end - a.end) // order by the one that ends furthest from now
-      .at(0); // take the first one (the one that ends as far as possible from now)
+    const filtered = responseData.keys.filter(
+      (key) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)
+    ); // valid keys
+    const sorted = filtered.sort((a, b) => b.end - a.end); // order by the one that ends furthest from now
+    const currentKey = sorted[0]; // take the first one (the one that ends as far as possible from now)
 
     if (currentKey === undefined) {
       throw new Error(`No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`);

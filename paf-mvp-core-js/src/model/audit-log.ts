@@ -7,7 +7,7 @@ export const buildAuditLog = (
   response: TransmissionResponse,
   contentId: string
 ): AuditLog | undefined => {
-  if (response.version != CurrentModelVersion) {
+  if (response.version !== CurrentModelVersion) {
     return undefined;
   }
   const path = findTransactionPath(response, contentId);
@@ -64,7 +64,7 @@ const findTransactionPath = (response: TransmissionResponse, contentId: string):
     // Go to next leaf
     while (current !== undefined) {
       stack.push(current);
-      const content = current.node.contents.find((c) => c.content_id == contentId);
+      const content = current.node.contents.find((c) => c.content_id === contentId);
       if (content !== undefined) {
         return {
           results: stack.map((t) => fromResponseToResult(t.node)),

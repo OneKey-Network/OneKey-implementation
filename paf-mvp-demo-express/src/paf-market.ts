@@ -28,6 +28,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 
 export const pafMarketApp = express();
 
+/*
 const client = new OperatorBackendClient(
   crtoOneOperatorConfig.host,
   pafMarketConfig.host,
@@ -35,6 +36,7 @@ const client = new OperatorBackendClient(
   RedirectType.http,
   new PublicKeyStore(s2sOptions)
 );
+ */
 
 pafMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';

@@ -1,0 +1,32 @@
+<div class="ok-ui-popup ok-ui-popup--open">
+  <div class="ok-ui-popup__block"></div>
+  <div class="ok-ui-popup__content">
+    <form>
+      <section class="ok-ui-card">
+        <header class="ok-ui-card__header">
+          <div class="ok-ui-card__actions">
+            <div class="ok-ui-card__header-logo">
+              ${ _.Logo }
+            </div>
+            <button type="button" class="ok-ui-button ok-ui-button--text ok-ui-button--icon-end" data-action="close">
+              <svg width="0.667em" height="0.667em" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6.39332 0.666748L3.99999 3.06008L1.60666 0.666748L0.666656 1.60675L3.05999 4.00008L0.666656 6.39341L1.60666 7.33341L3.99999 4.94008L6.39332 7.33341L7.33332 6.39341L4.93999 4.00008L7.33332 1.60675L6.39332 0.666748Z" fill="currentColor" />
+              </svg>
+              <span class="ok-ui-button__label">Close</span>
+            </button>
+          </div>
+          <h1 class="ok-ui-heading-1 ok-ui-mb-2">${ _.auditHeading }</h1>
+          <p>${ _.auditBodyHTML }</p>
+        </header>
+        <main class="ok-ui-card__body" id="ok-ui-providers">
+        </main>
+        <footer class="ok-ui-card__footer">
+          <button type="button" class="ok-ui-button ok-ui-button--outlined">
+            <span class="ok-ui-button__label">${ _.download }</span>
+          </button>
+          <p class="ok-ui-mt-2">${ _.auditFooter }</p>
+        </footer>
+      </section>
+    </form>
+  </div>
+</div>

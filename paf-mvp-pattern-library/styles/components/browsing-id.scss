@@ -1,0 +1,81 @@
+.ok-ui-browsing-id-wrapper {
+  display: flex;
+  align-items: center;
+  margin-top: em(4px); // to ensure the focus shadow shows correctly
+  margin-bottom: em(8px);
+}
+
+.ok-ui-browsing-id-label {
+  font-weight: 600;
+}
+
+.ok-ui-browsing-id-wrapper .ok-ui-browsing-id {
+  margin-left: auto;
+}
+
+.ok-ui-browsing-id {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  max-width: 10em; // roughly enough to allow a 9 char ID plus the icon
+  padding: em(4px) em(8px);
+  border-radius: $border-radius;
+  
+  font-family: Arial, sans-serif;
+  font-weight: 600;
+  color: $brand-primary;
+  
+  overflow: hidden;
+  background-color: $brand-50;
+
+  transition: max-width .3s ease-out;
+
+  &:focus {
+    @include focusable;
+  }
+
+  > svg {
+    fill: currentColor;
+  }
+
+  > * {
+    opacity: 1;
+    transition: opacity .3s ease-out;
+  }
+}
+
+.ok-ui-browsing-id > svg {
+  margin-left: em(8px);
+}
+
+.ok-ui-browsing-id--loading {
+  max-width: em(36px);
+
+  > * {
+    opacity: 0;
+  }
+
+  &::after {
+    content: '\00B7..';
+
+    position: absolute;
+    top: 0;
+    left: em(1px);
+    right: 0;
+    bottom: 0;
+
+    font-size: em(20px);
+    line-height: 1;
+
+    animation: ok-ui-browsing-id-loading 1s infinite;
+  }
+}
+
+@keyframes ok-ui-browsing-id-loading {
+  0%  { content: '\00B7..' }
+  25% { content: '.\00B7.' }
+  50% { content: '..\00B7' }
+  75% { content: '...'     }
+}
