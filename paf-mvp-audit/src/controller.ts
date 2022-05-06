@@ -5,7 +5,7 @@ import { Model } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@core/ui/binding';
 import providerComponent from './html/components/provider.html';
-import iconTick from './images/iconTick.svg';
+import iconTick from './images/IconTick.svg';
 
 // TODO: Add back when full audit information is available.
 // import iconCross from './images/iconCross.svg';
