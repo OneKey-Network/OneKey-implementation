@@ -18,7 +18,7 @@ import { string } from 'rollup-plugin-string';
 export default {
   input: './src/main.ts',
   plugins: [
-    string({ include: ['**/*.css', '**/*.svg' ] }),
+    string({ include: ['**/*.css', '**/*.svg'] }),
     postHTML({ template: true }),
     yaml(),
     nodeResolve(),
@@ -27,7 +27,7 @@ export default {
       tsconfig: '../tsconfig.json'
     })
   ],
-  treeshake: 'smallest',
+  treeshake: true,
   output: [
     {
       file: './dist/ok-audit.js',
