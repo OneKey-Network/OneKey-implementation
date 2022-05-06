@@ -1,5 +1,5 @@
 import express from 'express';
-import { crtoOneOperatorConfig, pofMarketConfig, portalConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
 import {
@@ -30,7 +30,6 @@ import { IdsAndPreferencesVerifier, MessageVerifier, Verifier } from '@core/cryp
 import { UnsignedMessage } from '@core/model/model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { getTimeStampInSec } from '@core/timestamp';
-import { pofMarketApp } from './pof-market';
 
 const portalPrivateConfig: PrivateConfig = {
   type: 'vendor',

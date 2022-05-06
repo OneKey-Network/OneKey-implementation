@@ -38,7 +38,7 @@ const hostsFile = '/etc/hosts';
 
   if (action === 'remove') {
     // The content is already cleaned
-  } else if (action == 'add') {
+  } else if (action === 'add') {
     const addConfig = (config: PublicConfig) => {
       content += `127.0.0.1 ${config.host} ${pattern} ${config.name}${EOL}`;
       if (config.cdnHost) {

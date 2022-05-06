@@ -42,7 +42,7 @@ const addMiddleware = (app: Express) => {
   app.set('views', relative('/views'));
   app.use(
     express.static(relative('../public'), {
-      setHeaders: (res, path, stat) => {
+      setHeaders: (res, path) => {
         if (/(woff|woff2|ttf|css)$/.test(path)) {
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.setHeader('Cache-Control', 'public, max-age=604800');

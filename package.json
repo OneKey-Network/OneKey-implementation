@@ -12,7 +12,7 @@
     "lint:staged": "lint-staged",
     "lint:fix": "eslint . --fix",
     "lint:frontend": "npm run lint --prefix paf-mvp-frontend && npm run lint --prefix paf-mvp-cmp && npm run lint --prefix paf-mvp-audit",
-    "lint:all:fix": "npm run lint:fix && npm run lint:fix --prefix paf-mvp-frontend",
+    "lint:all:fix": "npm run lint:fix && npm run lint:fix --prefix paf-mvp-frontend && npm run lint:fix --prefix paf-mvp-cmp && npm run lint:fix --prefix paf-mvp-audit",
     "lint:prettier": "prettier --list-different \"./paf-*/**/*.{tsx,ts}\"",
     "prettier:fix": "prettier --write \"./paf-*/**/*.{tsx,ts}\" --loglevel silent",
     "prepare": "husky install",
