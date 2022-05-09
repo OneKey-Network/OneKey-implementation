@@ -6,6 +6,9 @@ import { TcfCore } from './tcfcore';
  * Immutable UI specific options set via the script tag's attributes.
  */
 export class Config implements Options {
+  /** The default snack bar timeout if a value is not provided */
+  private static readonly DEFAULT_SNACKBAR_TIMEOUT_MS = 5000;
+
   /** Parent element */
   private readonly script: HTMLOrSVGScriptElement;
 
@@ -25,7 +28,10 @@ export class Config implements Options {
       false,
       'True to display the introduction card, or false to skip straight to the settings card after a possible redirect.'
     );
-    return Boolean(JSON.parse(value));
+    if (value !== null) {
+      return Boolean(JSON.parse(value));
+    }
+    return false;
   }
 
   /**
@@ -34,10 +40,13 @@ export class Config implements Options {
   get snackbarTimeoutMs(): number {
     const value = this.getValue(
       'data-snackbar-timeout-ms',
-      true,
+      false,
       'The number of milliseconds to wait for the snackbar to disappear.'
     );
-    return Number(JSON.parse(value));
+    if (value !== null) {
+      return Number(JSON.parse(value));
+    }
+    return Config.DEFAULT_SNACKBAR_TIMEOUT_MS;
   }
 
   /**
@@ -102,7 +111,9 @@ export class Config implements Options {
   get tcfCore(): TcfCore {
     if (this._tcfCore === null) {
       const value = this.getValue('data-template-tcf-core-string', false, 'The template TCF core string.');
-      this._tcfCore = new TcfCore(value);
+      if (value !== null) {
+        this._tcfCore = new TcfCore(value);
+      }
     }
     return this._tcfCore;
   }
