@@ -9,7 +9,7 @@ import {
   PostIdsPrefsResponse,
   Test3Pc,
 } from './generated-model';
-import { UnsignedMessage } from './model';
+import { Unsigned } from './model';
 import { getTimeStampInSec } from '../timestamp';
 import { setInQueryString } from '../express/utils';
 import { privateKeyFromString } from '@core/crypto/keys';
@@ -48,7 +48,7 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
     { identifiers, preferences }: IdsAndOptionalPreferences,
     timestampInSec = getTimeStampInSec()
   ): GetIdsPrefsResponse {
-    const data: UnsignedMessage<GetIdsPrefsResponse> = {
+    const request: Unsigned<GetIdsPrefsResponse> = {
       body: {
         identifiers,
         preferences,
@@ -59,8 +59,8 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
     };
 
     return {
-      ...data,
-      signature: this.signer.sign(data),
+      ...request,
+      signature: this.signer.sign(request),
     };
   }
 }
@@ -79,7 +79,7 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
     { identifiers, preferences }: IdsAndPreferences,
     timestampInSec = getTimeStampInSec()
   ): PostIdsPrefsResponse {
-    const data: UnsignedMessage<PostIdsPrefsResponse> = {
+    const request: Unsigned<PostIdsPrefsResponse> = {
       body: {
         identifiers,
         preferences,
@@ -90,8 +90,8 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
     };
 
     return {
-      ...data,
-      signature: this.signer.sign(data),
+      ...request,
+      signature: this.signer.sign(request),
     };
   }
 }
@@ -104,7 +104,7 @@ export class GetNewIdResponseBuilder {
   ) {}
 
   buildResponse(receiver: string, newId: Identifier, timestampInSec = getTimeStampInSec()): GetNewIdResponse {
-    const data: UnsignedMessage<GetNewIdResponse> = {
+    const request: Unsigned<GetNewIdResponse> = {
       body: {
         identifiers: [newId],
       },
@@ -114,8 +114,8 @@ export class GetNewIdResponseBuilder {
     };
 
     return {
-      ...data,
-      signature: this.signer.sign(data),
+      ...request,
+      signature: this.signer.sign(request),
     };
   }
 }

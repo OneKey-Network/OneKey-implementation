@@ -12,7 +12,7 @@ import {
   Preferences,
   Seed,
 } from '@core/model/generated-model';
-import { RedirectRequest, RedirectResponse, UnsignedData, UnsignedMessage } from '@core/model/model';
+import { UnsignedSource, Unsigned } from '@core/model/model';
 import { SignatureStringBuilder } from './signer';
 
 /**
@@ -35,7 +35,7 @@ export interface SigningDefinition<T, U = Partial<T>> extends SignatureStringBui
 export const SIGN_SEP = '\u2063';
 
 export interface SeedSignatureContainer {
-  seed: UnsignedData<Seed>;
+  seed: UnsignedSource<Seed>;
   idsAndPreferences: IdsAndPreferences;
 }
 
@@ -62,7 +62,7 @@ export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatur
 /**
  * Defines how to extract signature, signer domain and input string from an Identifier
  */
-export class IdentifierDefinition implements SigningDefinition<Identifier, UnsignedData<Identifier>> {
+export class IdentifierDefinition implements SigningDefinition<Identifier, UnsignedSource<Identifier>> {
   getSignature(data: Identifier) {
     return data.source.signature;
   }
@@ -71,7 +71,7 @@ export class IdentifierDefinition implements SigningDefinition<Identifier, Unsig
     return data.source.domain;
   }
 
-  getInputString(data: UnsignedData<Identifier>) {
+  getInputString(data: UnsignedSource<Identifier>) {
     // FIXME[security] add version
     return [data.source.domain, data.source.timestamp, data.type, data.value].join(SIGN_SEP);
   }
@@ -79,7 +79,7 @@ export class IdentifierDefinition implements SigningDefinition<Identifier, Unsig
 
 export interface IdsAndUnsignedPreferences {
   identifiers: Identifiers;
-  preferences: UnsignedData<Preferences>;
+  preferences: UnsignedSource<Preferences>;
 }
 
 /**
@@ -128,18 +128,18 @@ export class IdsAndPreferencesDefinition implements SigningDefinition<IdsAndPref
 /**
  * Defines how to extract signature, signer domain and input string from any message to or from the operator
  */
-export abstract class MessageDefinition<T extends MessageBase, U = UnsignedMessage<T>>
-  implements SigningDefinition<T, U>
+export abstract class RequestDefinition<T extends MessageBase>
+  implements SigningDefinition<RequestWithContext<T>, UnsignedRequestWithContext<T>>
 {
-  getSignature(data: T) {
-    return data.signature;
+  getSignature(request: RequestWithContext<T>) {
+    return request.request.signature;
   }
 
-  getSignerDomain(data: T) {
-    return data.sender;
+  getSignerDomain(request: RequestWithContext<T>) {
+    return request.request.sender;
   }
 
-  abstract getInputString(data: U): string;
+  abstract getInputString(request: UnsignedRequestWithContext<T>): string;
 }
 
 export interface JSONContext {
@@ -161,8 +161,14 @@ export interface RedirectContext {
   returnUrl: string;
 }
 
-export interface RequestWithContext<T extends MessageBase, U = UnsignedMessage<T>> {
-  request: U;
+export interface RequestWithContext<T extends MessageBase> {
+  request: T;
+  // FIXME FIXME FIXME make this mandatory
+  context?: JSONContext | RedirectContext;
+}
+
+export interface UnsignedRequestWithContext<T extends MessageBase> {
+  request: Unsigned<T>;
   // FIXME FIXME FIXME make this mandatory
   context?: JSONContext | RedirectContext;
 }
@@ -171,11 +177,8 @@ export interface RequestWithContext<T extends MessageBase, U = UnsignedMessage<T
  * Defines how to sign a message that doesn't have a "body" property.
  * Examples: GetIdsPrefsRequest, GetNewIdRequest
  */
-export class RequestWithoutBodyDefinition extends MessageDefinition<
-  GetIdsPrefsRequest | GetNewIdRequest,
-  RequestWithContext<GetIdsPrefsRequest | GetNewIdRequest>
-> {
-  getInputString({ request }: RequestWithContext<GetIdsPrefsRequest>): string {
+export class RequestWithoutBodyDefinition extends RequestDefinition<GetIdsPrefsRequest | GetNewIdRequest> {
+  getInputString({ request }: UnsignedRequestWithContext<GetIdsPrefsRequest>): string {
     // FIXME[security] add version
     // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
     return [request.sender, request.receiver, request.timestamp].join(SIGN_SEP);
@@ -186,11 +189,8 @@ export class RequestWithoutBodyDefinition extends MessageDefinition<
  * Defines how to sign a message with a "body" property.
  * Examples: GetIdsPrefsResponse, PostIdsPrefsResponse, PostIdsPrefsRequest, GetNewIdResponse
  */
-export class RequestWithBodyDefinition extends MessageDefinition<
-  PostIdsPrefsRequest,
-  RequestWithContext<PostIdsPrefsRequest>
-> {
-  getInputString({ request }: RequestWithContext<PostIdsPrefsRequest>): string {
+export class RequestWithBodyDefinition extends RequestDefinition<PostIdsPrefsRequest> {
+  getInputString({ request }: UnsignedRequestWithContext<PostIdsPrefsRequest>): string {
     // FIXME[security] add version
     // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
     const dataToSign = [request.sender, request.receiver];
@@ -209,66 +209,34 @@ export class RequestWithBodyDefinition extends MessageDefinition<
   }
 }
 
+export type ResponseType = GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse;
 /**
  * Defines how to sign a response with a "body" property.
  * Examples: GetIdsPrefsResponse, PostIdsPrefsResponse, PostIdsPrefsRequest, GetNewIdResponse
  */
-export class ResponseDefinition extends MessageDefinition<
-  GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse
-> {
-  getInputString(request: UnsignedMessage<GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse>): string {
-    // FIXME[security] add version
-    // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
-    const dataToSign = [request.sender, request.receiver];
+export class ResponseDefinition implements SigningDefinition<ResponseType> {
+  getSignature(response: ResponseType) {
+    return response.signature;
+  }
 
-    if ((request as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences) {
-      dataToSign.push((request as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences.source.signature);
+  getSignerDomain(response: ResponseType) {
+    return response.sender;
+  }
+
+  getInputString(response: Unsigned<GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse>): string {
+    // FIXME[security] add version
+    const dataToSign = [response.sender, response.receiver];
+
+    if ((response as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences) {
+      dataToSign.push((response as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences.source.signature);
     }
 
-    for (const id of request.body.identifiers ?? []) {
+    for (const id of response.body.identifiers ?? []) {
       dataToSign.push(id.source.signature);
     }
 
-    dataToSign.push(request.timestamp.toString());
+    dataToSign.push(response.timestamp.toString());
 
     return dataToSign.join(SIGN_SEP);
-  }
-}
-
-// FIXME should remove
-export class RedirectRequestDefinition<T extends MessageBase, U = Partial<T>>
-  implements SigningDefinition<RedirectRequest<T>, RedirectRequest<U>>
-{
-  constructor(protected requestDefinition: SigningDefinition<T, RequestWithContext<T, U>>) {}
-
-  getInputString(data: RedirectRequest<U>): string {
-    return this.requestDefinition.getInputString({ request: data.request });
-  }
-
-  getSignature(data: RedirectRequest<T>): string {
-    return this.requestDefinition.getSignature(data.request);
-  }
-
-  getSignerDomain(data: RedirectRequest<T>): string {
-    return this.requestDefinition.getSignerDomain(data.request);
-  }
-}
-
-// FIXME should remove
-export class RedirectResponseDefinition<T extends MessageBase, U = Partial<T>>
-  implements SigningDefinition<RedirectResponse<T>, RedirectResponse<U>>
-{
-  constructor(protected requestDefinition: SigningDefinition<T, U>) {}
-
-  getInputString(data: RedirectResponse<U>): string {
-    return this.requestDefinition.getInputString(data.response);
-  }
-
-  getSignature(data: RedirectResponse<T>): string {
-    return this.requestDefinition.getSignature(data.response);
-  }
-
-  getSignerDomain(data: RedirectResponse<T>): string {
-    return this.requestDefinition.getSignerDomain(data.response);
   }
 }

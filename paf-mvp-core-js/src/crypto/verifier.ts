@@ -4,9 +4,33 @@ import {
   IdsAndPreferencesDefinition,
   RequestWithContext,
   SigningDefinition,
+  UnsignedRequestWithContext,
 } from '@core/crypto/signing-definition';
 import { Identifier, IdsAndPreferences, MessageBase } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
+import winston, { format } from 'winston';
+import { Unsigned } from '@core/model/model';
+import util from 'util';
+import { TransformableInfo } from 'logform';
+
+const logger = winston.createLogger({
+  level: 'debug',
+  format: format.combine(
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
+    {
+      transform: (info: TransformableInfo) => {
+        const args = info[Symbol.for('splat') as unknown as string];
+        if (args) {
+          info.message = util.format(info.message, ...args);
+        }
+        return info;
+      },
+    },
+    format.colorize(),
+    format.printf(({ level, message, label, timestamp }) => `${timestamp} ${label || '-'} ${level}: ${message}`)
+  ),
+  transports: [new winston.transports.Console()],
+});
 
 export interface PublicKeyProvider {
   (domain: string): Promise<PublicKey>;
@@ -29,7 +53,11 @@ export class Verifier<T> {
     const signature = this.definition.getSignature(signedData);
     const toVerify = this.definition.getInputString(signedData);
 
-    return publicKey.verify(toVerify, signature);
+    const result = publicKey.verify(toVerify, signature);
+
+    logger.info('Verifying', signedData, result);
+
+    return result;
   }
 }
 
@@ -51,33 +79,14 @@ export class IdsAndPreferencesVerifier extends Verifier<IdsAndPreferences> {
   }
 }
 
-export class MessageVerifier<T extends MessageBase, R = RequestWithContext<T>> extends Verifier<T> {
+export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned<T>> extends Verifier<R> {
   /**
    * @param publicKeyProvider
    * @param definition
    * @param messageTTLinSec acceptable time to live for a message to be received
    */
-  constructor(publicKeyProvider: PublicKeyProvider, definition: SigningDefinition<T, R>, public messageTTLinSec = 30) {
+  constructor(publicKeyProvider: PublicKeyProvider, definition: SigningDefinition<R, U>, public messageTTLinSec = 30) {
     super(publicKeyProvider, definition);
-  }
-
-  /**
-   * Verify both the signature of the message and that its content is appropriate
-   * @param message
-   * @param senderHost
-   * @param receiverHost
-   * @param timestampInSec
-   */
-  async verifySignatureAndContent(
-    message: T,
-    senderHost: string,
-    receiverHost: string,
-    timestampInSec = getTimeStampInSec()
-  ): Promise<boolean> {
-    // Note: verify content first as it is less CPU-consuming
-    return (
-      this.verifyContent(message, senderHost, receiverHost, timestampInSec) && (await this.verifySignature(message))
-    );
   }
 
   /**
@@ -93,6 +102,60 @@ export class MessageVerifier<T extends MessageBase, R = RequestWithContext<T>> e
       timestampInSec - message.timestamp < this.messageTTLinSec &&
       message.sender === senderHost &&
       message.receiver === receiverHost
+    );
+  }
+
+  abstract verifySignatureAndContent(
+    request: R,
+    senderHost: string,
+    receiverHost: string,
+    timestampInSec: number
+  ): Promise<boolean>;
+}
+
+export class RequestVerifier<T extends MessageBase> extends MessageVerifier<
+  T,
+  RequestWithContext<T>,
+  UnsignedRequestWithContext<T>
+> {
+  /**
+   * Verify both the signature of the message and that its content is appropriate
+   * @param request
+   * @param senderHost
+   * @param receiverHost
+   * @param timestampInSec
+   */
+  async verifySignatureAndContent(
+    request: RequestWithContext<T>,
+    senderHost: string,
+    receiverHost: string,
+    timestampInSec = getTimeStampInSec()
+  ): Promise<boolean> {
+    // Note: verify content first as it is less CPU-consuming
+    return (
+      this.verifyContent(request.request, senderHost, receiverHost, timestampInSec) &&
+      (await this.verifySignature(request))
+    );
+  }
+}
+
+export class ResponseVerifier<T extends MessageBase> extends MessageVerifier<T> {
+  /**
+   * Verify both the signature of the message and that its content is appropriate
+   * @param request
+   * @param senderHost
+   * @param receiverHost
+   * @param timestampInSec
+   */
+  async verifySignatureAndContent(
+    request: T,
+    senderHost: string,
+    receiverHost: string,
+    timestampInSec = getTimeStampInSec()
+  ): Promise<boolean> {
+    // Note: verify content first as it is less CPU-consuming
+    return (
+      this.verifyContent(request, senderHost, receiverHost, timestampInSec) && (await this.verifySignature(request))
     );
   }
 }

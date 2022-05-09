@@ -5,6 +5,7 @@ import { Cookies, typedCookie } from '@core/cookies';
 import {
   _ as Model,
   Identifiers,
+  MessageBase,
   PostIdsPrefsRequest,
   Preferences,
   RedirectGetIdsPrefsResponse,
@@ -23,14 +24,11 @@ import { PublicKeyStore } from '@core/crypto/key-store';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
-  RedirectRequestDefinition,
-  RedirectResponseDefinition,
   RequestWithBodyDefinition,
   RequestWithoutBodyDefinition,
   ResponseDefinition,
 } from '@core/crypto/signing-definition';
-import { IdsAndPreferencesVerifier, MessageVerifier, Verifier } from '@core/crypto/verifier';
-import { UnsignedMessage } from '@core/model/model';
+import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier } from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -160,9 +158,12 @@ portalApp.get(optOutUrl, (req, res) => {
   }
 });
 
-const requestWithoutBodyVerifier = new MessageVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
-const requestWithBodyVerifier = new MessageVerifier(keyStore.provider, new RequestWithBodyDefinition());
-const responseVerifier = new MessageVerifier(keyStore.provider, new ResponseDefinition());
+const requestWithoutBodyVerifier = (payload: MessageBase) =>
+  new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition()).verifySignature({ request: payload });
+const postIdsPrefsRequestVerifier = (payload: PostIdsPrefsRequest) =>
+  new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature({ request: payload });
+const responseVerifier = new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature;
+/*
 const redirectResponseVerifier = new Verifier(
   keyStore.provider,
   new RedirectResponseDefinition(new ResponseDefinition())
@@ -176,19 +177,25 @@ const redirectRequestWithBodyVerifier = new Verifier(
   new RedirectRequestDefinition(new RequestWithBodyDefinition())
 );
 
-const verifiers: { [name in keyof Model]?: Verifier<unknown> } = {
-  identifier: new Verifier(keyStore.provider, new IdentifierDefinition()),
-  'ids-and-preferences': new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
+ */
+
+const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<boolean> } = {
+  identifier: new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature,
+  'ids-and-preferences': new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition())
+    .verifySignature,
   'get-ids-prefs-request': requestWithoutBodyVerifier,
   'get-ids-prefs-response': responseVerifier,
   'get-new-id-request': requestWithoutBodyVerifier,
   'get-new-id-response': responseVerifier,
-  'post-ids-prefs-request': requestWithBodyVerifier,
+  'post-ids-prefs-request': postIdsPrefsRequestVerifier,
   'post-ids-prefs-response': responseVerifier,
+  /*
   'redirect-get-ids-prefs-request': redirectRequestWithoutBodyVerifier,
   'redirect-get-ids-prefs-response': redirectResponseVerifier,
   'redirect-post-ids-prefs-request': redirectRequestWithBodyVerifier,
   'redirect-post-ids-prefs-response': redirectResponseVerifier,
+
+   */
 };
 
 type Mappings = { [host: string]: { [path: string]: keyof Model } };
@@ -233,7 +240,7 @@ portalApp.post(verify, async (req, res) => {
         return;
       }
 
-      response.result = await verifier.verifySignature(request.payload);
+      response.result = await verifier(request.payload);
       response.details = response.result ? 'Valid signature' : 'Invalid signature';
     } catch (e) {
       response.details = `Error verifying signature: ${e.message}`;

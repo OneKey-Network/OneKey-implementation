@@ -1,5 +1,5 @@
 import { GetIdsPrefsRequest, GetNewIdRequest, IdsAndPreferences, PostIdsPrefsRequest } from './generated-model';
-import { UnsignedMessage } from './model';
+import { Unsigned } from './model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '../endpoints';
 import { getTimeStampInSec } from '../timestamp';
 import { RestAndRedirectRequestBuilder, SignedRestRequestBuilder } from '@core/model/request-builders';
@@ -18,7 +18,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
   }
 
   buildRequest(timestamp = getTimeStampInSec()): GetIdsPrefsRequest {
-    const request: UnsignedMessage<GetIdsPrefsRequest> = {
+    const request: Unsigned<GetIdsPrefsRequest> = {
       sender: this.clientHost,
       receiver: this.serverHost,
       timestamp,
@@ -41,7 +41,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
   }
 
   buildRequest(idsAndPreferences: IdsAndPreferences, timestamp = getTimeStampInSec()): PostIdsPrefsRequest {
-    const request: UnsignedMessage<PostIdsPrefsRequest> = {
+    const request: Unsigned<PostIdsPrefsRequest> = {
       body: idsAndPreferences,
       sender: this.clientHost,
       receiver: this.serverHost,
@@ -72,7 +72,7 @@ export class GetNewIdRequestBuilder extends SignedRestRequestBuilder<GetNewIdReq
   }
 
   buildRequest(timestamp = getTimeStampInSec()): GetNewIdRequest {
-    const request: UnsignedMessage<GetNewIdRequest> = {
+    const request: Unsigned<GetNewIdRequest> = {
       sender: this.clientHost,
       receiver: this.serverHost,
       timestamp,

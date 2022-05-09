@@ -7,7 +7,7 @@ import {
   Signature,
   TransactionId,
 } from '@core/model/generated-model';
-import { CurrentModelVersion, UnsignedData } from '@core/model/model';
+import { CurrentModelVersion, UnsignedSource } from '@core/model/model';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
@@ -15,12 +15,11 @@ import { Signer } from '@core/crypto/signer';
 import {
   IdsAndPreferencesDefinition,
   IdsAndUnsignedPreferences,
-  RequestWithBodyDefinition,
   ResponseDefinition,
   SeedSignatureBuilder,
   SeedSignatureContainer,
 } from '@core/crypto/signing-definition';
-import { MessageVerifier } from '@core/crypto/verifier';
+import { ResponseVerifier } from '@core/crypto/verifier';
 import { getTimeStampInSec } from '@core/timestamp';
 
 // FIXME should probably be moved to core library
@@ -34,16 +33,16 @@ export class OperatorClient {
     private clientHost: string,
     privateKey: string,
     private readonly keyStore: PublicKeyStore,
-    private readonly readVerifier = new MessageVerifier(keyStore.provider, new ResponseDefinition())
+    private readonly readVerifier = new ResponseVerifier(keyStore.provider, new ResponseDefinition())
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
     this.seedSigner = new Signer(privateKeyFromString(privateKey), new SeedSignatureBuilder());
   }
 
-  async verifyReadResponse(message: GetIdsPrefsResponse): Promise<boolean> {
+  async verifyReadResponse(request: GetIdsPrefsResponse): Promise<boolean> {
     // Signature + timestamp + sender + receiver are valid
-    return this.readVerifier.verifySignatureAndContent(message, this.operatorHost, this.clientHost);
+    return this.readVerifier.verifySignatureAndContent(request, this.operatorHost, this.clientHost);
   }
 
   buildPreferences(
@@ -51,7 +50,7 @@ export class OperatorClient {
     data: { use_browsing_for_personalization: boolean },
     timestamp = getTimeStampInSec()
   ): Preferences {
-    const unsignedPreferences: UnsignedData<Preferences> = {
+    const unsignedPreferences: UnsignedSource<Preferences> = {
       version: '0.1',
       data,
       source: {
@@ -91,7 +90,7 @@ export class OperatorClient {
     return this.getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson);
   }
 
-  private createUnsignedSeed(transactionIds: TransactionId[], timestamp = getTimeStampInSec()): UnsignedData<Seed> {
+  private createUnsignedSeed(transactionIds: TransactionId[], timestamp = getTimeStampInSec()): UnsignedSource<Seed> {
     return {
       version: CurrentModelVersion,
       transaction_ids: transactionIds,
@@ -103,7 +102,7 @@ export class OperatorClient {
     };
   }
 
-  private addSignatureToSeed(unsigned: UnsignedData<Seed>, signature: Signature): Seed {
+  private addSignatureToSeed(unsigned: UnsignedSource<Seed>, signature: Signature): Seed {
     return {
       ...unsigned,
       source: {

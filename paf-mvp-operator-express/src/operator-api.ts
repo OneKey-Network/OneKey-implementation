@@ -21,7 +21,7 @@ import {
   RedirectPostIdsPrefsRequest,
   Test3Pc,
 } from '@core/model/generated-model';
-import { UnsignedData } from '@core/model/model';
+import { UnsignedSource } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { privateKeyFromString } from '@core/crypto/keys';
@@ -35,7 +35,6 @@ import {
 import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { AxiosRequestConfig } from 'axios';
-import domainParser from 'tld-extract';
 import { Signer } from '@core/crypto/signer';
 import {
   IdentifierDefinition,
@@ -43,7 +42,7 @@ import {
   RequestWithBodyDefinition,
   RequestWithoutBodyDefinition,
 } from '@core/crypto/signing-definition';
-import { MessageVerifier, Verifier } from '@core/crypto/verifier';
+import { RequestVerifier, Verifier } from '@core/crypto/verifier';
 
 // Expiration: now + 3 months
 const getOperatorExpiration = (date: Date = new Date()) => {
@@ -114,7 +113,7 @@ export const addOperatorApi = (
 
     if (
       !(await operatorApi.getIdsPrefsRequestVerifier.verifySignatureAndContent(
-        request,
+        { request },
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
       ))
@@ -134,8 +133,8 @@ export const addOperatorApi = (
     return getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
   };
 
-  const getWriteResponse = async (input: PostIdsPrefsRequest, res: Response) => {
-    const sender = input.sender;
+  const getWriteResponse = async (request: PostIdsPrefsRequest, res: Response) => {
+    const sender = request.sender;
 
     if (!allowedDomains[sender]?.includes(Permission.WRITE)) {
       throw `Domain not allowed to write data: ${sender}`;
@@ -144,7 +143,7 @@ export const addOperatorApi = (
     // Verify message
     if (
       !(await operatorApi.postIdsPrefsRequestVerifier.verifySignatureAndContent(
-        input,
+        { request },
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
       ))
@@ -153,7 +152,7 @@ export const addOperatorApi = (
       throw 'Write request verification failed';
     }
 
-    const { identifiers, preferences } = input.body;
+    const { identifiers, preferences } = request.body;
 
     // because default value is true, we just remove it to save space
     identifiers[0].persisted = undefined;
@@ -166,11 +165,11 @@ export const addOperatorApi = (
     }
 
     // Verify preferences FIXME optimization here: PAF_ID has already been verified in previous step
-    if (!(await prefsVerifier.verifySignature(input.body))) {
+    if (!(await prefsVerifier.verifySignature(request.body))) {
       throw 'Preferences verification failed';
     }
 
-    writeAsCookies(input, res);
+    writeAsCookies(request, res);
 
     return postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
   };
@@ -237,7 +236,7 @@ export const addOperatorApi = (
 
     if (
       !(await operatorApi.getNewIdRequestVerifier.verifySignatureAndContent(
-        request,
+        { request },
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
       ))
@@ -297,15 +296,15 @@ export class OperatorApi {
     privateKey: string,
     keyStore: PublicKeyStore,
     private readonly idSigner = new Signer(privateKeyFromString(privateKey), new IdentifierDefinition()),
-    public readonly postIdsPrefsRequestVerifier = new MessageVerifier(
+    public readonly postIdsPrefsRequestVerifier = new RequestVerifier<PostIdsPrefsRequest>(
       keyStore.provider,
       new RequestWithBodyDefinition() // POST ids and prefs has body property
     ),
-    public readonly getIdsPrefsRequestVerifier = new MessageVerifier(
+    public readonly getIdsPrefsRequestVerifier = new RequestVerifier(
       keyStore.provider,
       new RequestWithoutBodyDefinition()
     ),
-    public readonly getNewIdRequestVerifier = new MessageVerifier(keyStore.provider, new RequestWithoutBodyDefinition())
+    public readonly getNewIdRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition())
   ) {}
 
   generateNewId(timestamp = getTimeStampInSec()): Identifier {
@@ -316,7 +315,7 @@ export class OperatorApi {
   }
 
   signId(value: string, timestampInSec = getTimeStampInSec()): Identifier {
-    const unsignedId: UnsignedData<Identifier> = {
+    const unsignedId: UnsignedSource<Identifier> = {
       version: '0.1',
       type: 'paf_browser_id',
       value,
