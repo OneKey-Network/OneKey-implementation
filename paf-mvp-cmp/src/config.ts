@@ -53,11 +53,15 @@ export class Config implements Options {
    * The host name to use when reading and writing data from the global storage.
    */
   get proxyHostName(): string {
-    return this.getValue(
+    const value = this.getValue(
       'data-proxy-host-name',
-      true,
+      false,
       'The host name to use when reading and writing data from the global storage. Usually obtained from the CMP provider.'
     );
+    if (value !== null) {
+      return value;
+    }
+    return new URL(this.script.getAttribute('src')).hostname;
   }
 
   /**
