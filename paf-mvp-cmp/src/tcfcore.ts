@@ -7,8 +7,8 @@
 import { Base64Url } from './base64url';
 
 export class TcfCore {
-  // The bit index where the created date field starts.
-  private static readonly startCreated = 6;
+  // The bit index where the created date field starts. Public for testing.
+  public static readonly startCreated = 6;
 
   // The bit index where the last updated date field starts.
   private static readonly startLastUpdated = 42;
@@ -23,18 +23,15 @@ export class TcfCore {
   // https://github.com/InteractiveAdvertisingBureau/iabtcf-es/blob/1eeb3f92321aa241ac768d0a580f3378c70cacd8/modules/core/src/encoder/BitLength.ts#L15
   private static readonly purposesSpec = 24;
 
-  // The number of bits needed to form a date.
-  private static readonly dateLength = 36;
-
-  // The number of bits to ignore at the start of the bit int.
-  private static dateBitIntDiff = 64 - TcfCore.dateLength;
+  // The number of bits needed to form a date. Public for testing.
+  public static readonly dateLength = 36;
 
   // The maximum length of a cookie which is where the TCF string will be stored.
   // See https://www.ietf.org/rfc/rfc2965.txt
   private static readonly maxLength = 4096;
 
-  // The current value of the TCF core as a boolean array.
-  private buffer: boolean[];
+  // The current value of the TCF core as a boolean array. Public for testing.
+  public buffer: boolean[];
 
   /**
    * Constructs a new instance of TcfCore.
@@ -109,20 +106,6 @@ export class TcfCore {
       this.buffer[i + TcfCore.startCreated] = value;
       this.buffer[i + TcfCore.startLastUpdated] = value;
     }
-  }
-
-  /**
-   * Returns the date that the TCF string was created. Used only for testing purposes and should be optimized out of the
-   * production build.
-   * @remarks uses the parseInt method to avoid complexity with bit packing
-   * @param date Returns the date that the TCF string was created.
-   */
-  getDate(): Date {
-    let str = '';
-    for (let i = 0; i < TcfCore.dateLength; i++) {
-      str += this.buffer[i + TcfCore.startCreated] ? '1' : '0';
-    }
-    return new Date(parseInt(str, 2) * 100);
   }
 
   /**

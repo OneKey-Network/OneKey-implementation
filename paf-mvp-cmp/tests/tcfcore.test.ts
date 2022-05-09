@@ -10,7 +10,7 @@ const realCoreString = 'CPYkmiwPYkmiwEGAAAENAwCAAP_AAAAAAAAAAAAAAAAA';
 describe('testing Tcf file', () => {
   test('check real date', () => {
     const expectedDate = new IabTcfCore(realCoreString).getDate();
-    const actualDate = new TcfCore(realCoreString).getDate();
+    const actualDate = getDate(new TcfCore(realCoreString));
     expect(actualDate).toEqual(expectedDate);
   });
   test('check current date', () => {
@@ -18,7 +18,7 @@ describe('testing Tcf file', () => {
     iab.setDate(new Date());
     const currentCoreString = iab.toString();
     const expectedDate = new IabTcfCore(currentCoreString).getDate();
-    const actualDate = new TcfCore(currentCoreString).getDate();
+    const actualDate = getDate(new TcfCore(currentCoreString));
     expect(actualDate).toEqual(expectedDate);
   });
   test('empty string should result in exception', () => {
@@ -89,19 +89,6 @@ const setPurposesConsent = (base: string, purposes: boolean[]): string => {
 };
 
 /**
- * Same as setPurposesConsent but does not check with the TCF core version. This is legitimate when the purposes being
- * changed can not be changed because the user can not unselect them. For example; storing data on the device.
- * @param base
- * @param purposes
- * @returns
- */
-const setPurposesConsentNoCompare = (base: string, purposes: boolean[]): string => {
-  const a = new TcfCore(base);
-  a.setPurposesConsent(purposes);
-  return a.toString();
-};
-
-/**
  * Checks that the date encoded matches the date decoded.
  * @param date
  */
@@ -110,9 +97,21 @@ const checkDate = (date: Date) => {
   const b = new IabTcfCore(realCoreString);
   a.setDate(date);
   b.setDate(date);
-  expect(a.getDate()).toEqual(date);
+  expect(getDate(a)).toEqual(date);
   expect(b.getDate()).toEqual(date);
   showIABTCFCheck(a.toString());
+};
+
+/**
+ * Returns the date that the TCF string was created. Used only for testing purposes.
+ * @remarks uses the parseInt method to avoid complexity with bit packing
+ */
+const getDate = (core: TcfCore) => {
+  let str = '';
+  for (let i = 0; i < TcfCore.dateLength; i++) {
+    str += core.buffer[i + TcfCore.startCreated] ? '1' : '0';
+  }
+  return new Date(parseInt(str, 2) * 100);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
