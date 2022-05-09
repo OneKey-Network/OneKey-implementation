@@ -2,8 +2,6 @@
  * Resources used by the controller for HTML views and CSS.
  * TODO: fix the warning associated with can't find module or type.
  */
-import logoSvg from './images/OneKey.svg';
-import logoCenterSvg from './images/OneKeyCenter.svg';
 import tooltipsJs from './scripts/tooltips.js';
 import css from './css/ok-ui.css';
 import introTemplate from './html/cards/intro.html';
@@ -13,9 +11,9 @@ import customizeTemplate from './html/cards/customize.html';
 import itemTemplate from './html/components/customize.html';
 import snackbarTemplate from './html/cards/snackbar.html';
 import popupTemplate from './html/containers/popup.html';
-import { Locale } from './locale';
 import { Config } from './config';
 import { IView } from '@core/ui/binding';
+import { ILocale } from './ILocale.js';
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -34,7 +32,7 @@ export class View implements IView {
   private outerContainer: HTMLElement = null;
 
   // The locale that the UI should adopt.
-  private readonly locale: Locale;
+  private readonly locale: ILocale;
 
   // The options provided to the controller.
   private readonly config: Config;
@@ -42,17 +40,13 @@ export class View implements IView {
   /**
    * Constructs a new instance of View
    * @param script element this method is contained within
-   * @param locale the language file to use with the UI
+   * @param locale the language text to use with the UI
    * @param config the configuration for the controller
    */
-  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config) {
+  constructor(script: HTMLOrSVGScriptElement, locale: ILocale, config: Config) {
     this.script = script;
     this.config = config;
-    this.locale = locale;
-
-    // Setup the locale with the text and images to use.
-    this.locale.Logo = logoSvg;
-    this.locale.LogoCenter = logoCenterSvg;
+    this.locale = <ILocale>locale;
   }
 
   /**
@@ -122,10 +116,10 @@ export class View implements IView {
   }
 
   /**
-   * Adds all the HTML for the customize items to the current locale.
+   * Adds all the HTML for the customize items to customizeHtml property.
    */
   private setLocaleCustomizeHtml() {
-    if (this.locale.customizeHtml === null) {
+    if (this.locale.customizeHtml === undefined) {
       const length = Math.min(this.locale.customizeLabels.length, this.locale.customizeTips.length);
       let items = '';
       for (let i = 0; i < length; i++) {
