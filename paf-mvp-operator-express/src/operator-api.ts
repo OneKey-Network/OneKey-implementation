@@ -235,7 +235,16 @@ export const addOperatorApi = (
       throw `Domain not allowed to read data: ${sender}`;
     }
 
-    // FIXME verify signature
+    if (
+      !(await operatorApi.getNewIdRequestVerifier.verifySignatureAndContent(
+        request,
+        sender, // sender will always be ok
+        operatorHost // but operator needs to be verified
+      ))
+    ) {
+      // TODO [errors] finer error feedback
+      throw 'Read request verification failed';
+    }
 
     const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
 
