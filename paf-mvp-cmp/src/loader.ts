@@ -17,7 +17,7 @@ const baseUrl = thisScript.getAttribute('src');
  * @param language required
  * @returns URL for the language
  */
-const getUrlForLanguage = (language: string) => baseUrl.replace('ok-ui', `ok-ui-${language.toLowerCase()}`);
+const getUrlForLanguage = (language: string) => baseUrl.replace('ok-ui', `ok-ui-${language}`);
 
 /**
  * Insert the JavaScript at the provided URL into the document next to this loader script copying all the configuration
