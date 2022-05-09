@@ -2,11 +2,11 @@
 introHeading: Manage your data and cookies (US)
 introBody: 
   - Advertising funds your access to our site.
-  - We've partnered with OneKey to manage whether you prefer standard or personalized marketing when accessing
-    participating websites. OneKey relies on a random digital ID that is an essential part of how our website
-    operates and is used to ensure all recipients understand your preferences.
+  - We've partnered with OneKey to manage your marketing preferences when accessing
+    partner sites. OneKey relies on random digital IDs that are an essential part of how our website
+    Operates. They're used to ensure all recipients understand your preferences.
   - We and our partners may also use information linked to these IDs to improve our overall service. By
-    opting-into personalized content and ads, we can improve your online experience.
+    choosing personalized content and ads, we can improve your online experience.
   - If you choose not to participate, you will receive targeted content that is unrelated to your browsing
     activity or interactions.
   - You can learn more or manage your choices at any time by going to 'Privacy settings' at the bottom of any
@@ -17,24 +17,24 @@ aboutHeading: Learn more about (US)
 aboutBody: 
   - We believe you should have transparency and control over how, where, and why your data is used.
   - We partnered with OneKey, a non-profit technology, to manage your marketing preferences when accessing [BrandName].
-  - OneKey relies on digital IDs to understand your activity and sends your preferences to our partner websites in order to customize the ads you see. IDs like these are an essential part of how [BrandName]'s website operates and provides you with a more relevant experience.
-  - You may change your preferences at any time.
-  - Your consent will automatically expire 2 years after you provide it. You have the right to be forgotten, which you can exercise at any time, and on any OneKey partner website simply by resetting your ID. You can also get a temporary ID by using the incognito/private browsing function of your browser.
+  - OneKey relies on digital IDs to understand your activity and sends your preferences to our partner websites to customize the ads you see. IDs like these are an essential part of how [BrandName]'s website operates and provides you with a more relevant experience.
+  - You may change your preferences at any time. Your consent will automatically expire 6 months after you provide it. You have the right to be forgotten, which you can exercise at any time, and on any OneKey partner website simply by resetting your ID. You can also get a temporary ID by using the incognito/private browsing function of your browser.
   - If you choose not to participate, you will still see ads unrelated to your browsing activity.
-  - You can learn more and manage your choices at any time by going to "Privacy settings" at the bottom of any page. See our Privacy Policy and Privacy Notice.
+  - You can learn more and manage your choices at any time by going to "Privacy settings" at the bottom of any page. See our <a href="[BrandPrivacyUrl]" class="ok-ui-link">Privacy Policy</a> and Privacy Notice.
 
 # Settings text
 settingsHeading: Choose your marketing preferences
 settingsBody: 
-  - OneKey signals your preferences that can enhance your experience across partner websites, without bothering you with future prompts or directly identifying you.
-  - By saving your preferences, you also agree to our <a href="[BrandPrivacyUrl]" class="ok-ui-link">site's privacy policy</a>.
+  - Enjoy smoother navigation without annoying you with pop-ups. OneKey personalizes your experience without directly identifying you. Opt-out or make changes at any time.
+  - By saving your preferences, this <a href="[BrandPrivacyUrl]" class="ok-ui-link">site's privacy policy</a> will apply.
 settingsBrowsingId: Your browsing ID
-settingsBrowsingIdTip: <strong>OneKey</strong> links your preferences to a random, pseudonymous ID that lasts 6 months. Use your right to be forgotten at any time by refreshing your browsing ID.
+settingsBrowsingIdTip: <strong>OneKey</strong> links your preferences to a Random, ID. Your ID resets after 6 months. You can reset it sooner at any time by clicking the refresh icon.
 settingsPersonalizedLabel: Turn on personalized marketing
 settingsPersonalizedBody: See more relevant content and ads.
 settingsStandardLabel: Turn on standard marketing
 settingsStandardBody: See generic content and ads.
-settingsThisSite: Apply preferences to this site only and re-ask on other OneKey sites
+settingsThisSite: Ask for preferences on each site I visit
+settingsThisSiteTip: OneKey will apply your preferences to only this site 
 
 # Customize text
 customizeCurrent: "Your current choice:"
@@ -55,7 +55,7 @@ customizeLabels:
   - Apply market research to generate audience insights
   - Develop & improve products
   - Select and/or access information on a device
-  - Ensure security, prevent fraud, and debug
+  - Ensure security, prevent fraud, & debug
   - Technically deliver ads or content
 
 # Customize text tool tips
@@ -70,16 +70,16 @@ customizeTips:
   - Apply market research to generate audience insights
   - Develop & improve products
   - Store and/or access information on a device
-  - Ensure security, prevent fraud, and debug
+  - Ensure security, prevent fraud, & debug
   - Technically deliver ads or content
 
 # Snackbar text
-snackbarHeadingPersonalized: You choose to see personalized content and relevant ads on [BrandName]
-snackbarHeadingStandard: You choose to see standard marketing on [BrandName]
+snackbarHeadingPersonalized: You chose to see personalized content and relevant ads on [BrandName]
+snackbarHeadingStandard: You chose to see standard marketing on [BrandName]
 snackbarHeadingCustomized: You've chosen customized marketing on [BrandName]
 snackbarBodyPersonalized: <a href="#" data-card='settings' class="ok-ui-link">Review your preferences</a> at any time.
-snackbarBodyStandard: Turn <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> on at any time to make your ads more relevant.
-snackbarBodyCustomized: Turn <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> on at any time to make your ads more relevant.
+snackbarBodyStandard: Switch to <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> at any time to make your ads more relevant.
+snackbarBodyCustomized: Switch to <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> at any time to make your ads more relevant.
 
 # Button text
 refuseAll: Refuse All
