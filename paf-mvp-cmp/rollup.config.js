@@ -11,6 +11,7 @@ import postHTML from 'rollup-plugin-posthtml-template';
 
 // Reduces the size of the HTML.
 import minifyHTML from 'rollup-plugin-minify-html-literals';
+import { defaultShouldMinify } from 'minify-html-literals';
 
 // Embed the CSS into the bundle.
 import { string } from 'rollup-plugin-string';
@@ -29,13 +30,8 @@ const terserOptions = {
   format: {
     comments: false
   },
-  compress: {
-    toplevel: true,
-    unsafe: true,
-  },
-  mangle: {
-    toplevel: true
-  }
+  compress: true,
+  mangle: true
 };
 
 // Adds the SVG images to the local. Could be expanded to support other images in the future.
@@ -78,6 +74,7 @@ function validateLocale(locale) {
   }
 }
 
+// Gets all the locale files as an array.
 function getLocaleFiles() {
   const directory = './src/locales';
   const localeFiles = [];
@@ -116,6 +113,7 @@ function getLocaleCodes() {
   return locales;
 }
 
+// Builds the loader working out from the locales directory the various options that will be available.
 function buildLoader() {
   return {
     input: './src/loader.ts',
@@ -170,18 +168,25 @@ function buildLocaleConfig(locale, object) {
         preventAssignment: true,
         __Locale__: object,
       }),
-      minifyHTML(),
       postHTML({ template: true }),
+      minifyHTML({
+        // Include string literals that contain the div or section element as well as the default check.
+        options: {
+          shouldMinify: (t) => defaultShouldMinify(t) || t.parts.some(p => 
+            p.text.includes('<div') || 
+            p.text.includes('<section'))
+        }
+      }),
       string({ include: ['**/*.css', '**/*.js'] }),
       typescript({
         tsconfig: '../tsconfig.json'
       }),
       commonjs({
-        preferBuiltins: true	
+        preferBuiltins: true
       }),
       nodeResolve({
         browser: true,
-        preferBuiltins: true	
+        preferBuiltins: true
       })
     ],
     treeshake: true,
