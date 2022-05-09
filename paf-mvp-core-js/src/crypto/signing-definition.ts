@@ -41,6 +41,7 @@ export interface SeedSignatureContainer {
 
 export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatureContainer> {
   getInputString(data: SeedSignatureContainer): string {
+    // FIXME[security] add version
     const seed = data.seed;
     const ids = data.idsAndPreferences.identifiers;
     const prefs = data.idsAndPreferences.preferences;
@@ -71,6 +72,7 @@ export class IdentifierDefinition implements SigningDefinition<Identifier, Unsig
   }
 
   getInputString(data: UnsignedData<Identifier>) {
+    // FIXME[security] add version
     return [data.source.domain, data.source.timestamp, data.type, data.value].join(SIGN_SEP);
   }
 }
@@ -107,6 +109,7 @@ export class IdsAndPreferencesDefinition implements SigningDefinition<IdsAndPref
   }
 
   getInputString(data: IdsAndUnsignedPreferences) {
+    // FIXME[security] add version
     const pafId = this.getPafId(data);
 
     const dataToSign = [data.preferences.source.domain, data.preferences.source.timestamp, pafId.source.signature];
@@ -145,6 +148,8 @@ export abstract class MessageDefinition<T extends MessageBase, U = UnsignedMessa
  */
 export class MessageWithoutBodyDefinition extends MessageDefinition<GetIdsPrefsRequest | GetNewIdRequest> {
   getInputString(data: UnsignedMessage<GetIdsPrefsRequest>): string {
+    // FIXME[security] add version
+    // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
     return [data.sender, data.receiver, data.timestamp].join(SIGN_SEP);
   }
 }
@@ -159,6 +164,8 @@ export class MessageWithBodyDefinition extends MessageDefinition<
   getInputString(
     data: UnsignedMessage<GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest | GetNewIdResponse>
   ): string {
+    // FIXME[security] add version
+    // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
     const dataToSign = [data.sender, data.receiver];
 
     if ((data as GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest).body.preferences) {
