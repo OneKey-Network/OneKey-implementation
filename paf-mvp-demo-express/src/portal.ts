@@ -4,11 +4,8 @@ import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
 import {
   _ as Model,
-  GetIdsPrefsRequest,
-  GetIdsPrefsResponse,
   Identifiers,
   PostIdsPrefsRequest,
-  PostIdsPrefsResponse,
   Preferences,
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
@@ -26,10 +23,11 @@ import { PublicKeyStore } from '@core/crypto/key-store';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
-  MessageWithBodyDefinition,
-  MessageWithoutBodyDefinition,
   RedirectRequestDefinition,
   RedirectResponseDefinition,
+  RequestWithBodyDefinition,
+  RequestWithoutBodyDefinition,
+  ResponseDefinition,
 } from '@core/crypto/signing-definition';
 import { IdsAndPreferencesVerifier, MessageVerifier, Verifier } from '@core/crypto/verifier';
 import { UnsignedMessage } from '@core/model/model';
@@ -162,38 +160,35 @@ portalApp.get(optOutUrl, (req, res) => {
   }
 });
 
-const emptyMessageVerifier = new MessageVerifier(keyStore.provider, new MessageWithoutBodyDefinition());
-const messageWithBodyVerifier = new MessageVerifier(keyStore.provider, new MessageWithBodyDefinition());
+const requestWithoutBodyVerifier = new MessageVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
+const requestWithBodyVerifier = new MessageVerifier(keyStore.provider, new RequestWithBodyDefinition());
+const responseVerifier = new MessageVerifier(keyStore.provider, new ResponseDefinition());
+const redirectResponseVerifier = new Verifier(
+  keyStore.provider,
+  new RedirectResponseDefinition(new ResponseDefinition())
+);
+const redirectRequestWithoutBodyVerifier = new Verifier(
+  keyStore.provider,
+  new RedirectRequestDefinition(new RequestWithoutBodyDefinition())
+);
+const redirectRequestWithBodyVerifier = new Verifier(
+  keyStore.provider,
+  new RedirectRequestDefinition(new RequestWithBodyDefinition())
+);
 
 const verifiers: { [name in keyof Model]?: Verifier<unknown> } = {
   identifier: new Verifier(keyStore.provider, new IdentifierDefinition()),
   'ids-and-preferences': new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
-  'get-ids-prefs-request': emptyMessageVerifier,
-  'get-ids-prefs-response': messageWithBodyVerifier,
-  'get-new-id-request': emptyMessageVerifier,
-  'get-new-id-response': messageWithBodyVerifier,
-  'post-ids-prefs-request': messageWithBodyVerifier,
-  'post-ids-prefs-response': messageWithBodyVerifier,
-  'redirect-get-ids-prefs-request': new Verifier(
-    keyStore.provider,
-    new RedirectRequestDefinition<GetIdsPrefsRequest>(new MessageWithoutBodyDefinition())
-  ),
-  'redirect-get-ids-prefs-response': new Verifier(
-    keyStore.provider,
-    new RedirectResponseDefinition<GetIdsPrefsResponse>(new MessageWithBodyDefinition())
-  ),
-  'redirect-post-ids-prefs-request': new Verifier(
-    keyStore.provider,
-    new RedirectRequestDefinition<PostIdsPrefsRequest, UnsignedMessage<PostIdsPrefsRequest>>(
-      new MessageWithBodyDefinition()
-    )
-  ),
-  'redirect-post-ids-prefs-response': new Verifier(
-    keyStore.provider,
-    new RedirectResponseDefinition<PostIdsPrefsResponse, UnsignedMessage<PostIdsPrefsResponse>>(
-      new MessageWithBodyDefinition()
-    )
-  ),
+  'get-ids-prefs-request': requestWithoutBodyVerifier,
+  'get-ids-prefs-response': responseVerifier,
+  'get-new-id-request': requestWithoutBodyVerifier,
+  'get-new-id-response': responseVerifier,
+  'post-ids-prefs-request': requestWithBodyVerifier,
+  'post-ids-prefs-response': responseVerifier,
+  'redirect-get-ids-prefs-request': redirectRequestWithoutBodyVerifier,
+  'redirect-get-ids-prefs-response': redirectResponseVerifier,
+  'redirect-post-ids-prefs-request': redirectRequestWithBodyVerifier,
+  'redirect-post-ids-prefs-response': redirectResponseVerifier,
 };
 
 type Mappings = { [host: string]: { [path: string]: keyof Model } };

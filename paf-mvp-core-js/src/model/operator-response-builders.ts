@@ -13,7 +13,7 @@ import { UnsignedMessage } from './model';
 import { getTimeStampInSec } from '../timestamp';
 import { setInQueryString } from '../express/utils';
 import { privateKeyFromString } from '@core/crypto/keys';
-import { MessageWithBodyDefinition } from '@core/crypto/signing-definition';
+import { RequestWithBodyDefinition, ResponseDefinition } from '@core/crypto/signing-definition';
 import { Signer } from '@core/crypto/signer';
 
 export abstract class ResponseBuilderWithRedirect<T> {
@@ -38,7 +38,7 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithBodyDefinition())
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
   ) {
     super(host);
   }
@@ -69,7 +69,7 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithBodyDefinition())
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
   ) {
     super(host);
   }
@@ -100,7 +100,7 @@ export class GetNewIdResponseBuilder {
   constructor(
     protected host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithBodyDefinition())
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
   ) {}
 
   buildResponse(receiver: string, newId: Identifier, timestampInSec = getTimeStampInSec()): GetNewIdResponse {

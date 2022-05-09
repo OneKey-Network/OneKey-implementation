@@ -1,5 +1,10 @@
 import { PublicKey } from '@core/crypto/keys';
-import { IdentifierDefinition, IdsAndPreferencesDefinition, SigningDefinition } from '@core/crypto/signing-definition';
+import {
+  IdentifierDefinition,
+  IdsAndPreferencesDefinition,
+  RequestWithContext,
+  SigningDefinition,
+} from '@core/crypto/signing-definition';
 import { Identifier, IdsAndPreferences, MessageBase } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -46,13 +51,13 @@ export class IdsAndPreferencesVerifier extends Verifier<IdsAndPreferences> {
   }
 }
 
-export class MessageVerifier<T extends MessageBase> extends Verifier<T> {
+export class MessageVerifier<T extends MessageBase, R = RequestWithContext<T>> extends Verifier<T> {
   /**
    * @param publicKeyProvider
    * @param definition
    * @param messageTTLinSec acceptable time to live for a message to be received
    */
-  constructor(publicKeyProvider: PublicKeyProvider, definition: SigningDefinition<T>, public messageTTLinSec = 30) {
+  constructor(publicKeyProvider: PublicKeyProvider, definition: SigningDefinition<T, R>, public messageTTLinSec = 30) {
     super(publicKeyProvider, definition);
   }
 

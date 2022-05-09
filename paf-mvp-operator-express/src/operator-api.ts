@@ -40,8 +40,8 @@ import { Signer } from '@core/crypto/signer';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
-  MessageWithBodyDefinition,
-  MessageWithoutBodyDefinition,
+  RequestWithBodyDefinition,
+  RequestWithoutBodyDefinition,
 } from '@core/crypto/signing-definition';
 import { MessageVerifier, Verifier } from '@core/crypto/verifier';
 
@@ -226,10 +226,10 @@ export const addOperatorApi = (
     }
   });
 
-  app.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), (req, res) => {
-    const input = getPafDataFromQueryString<GetNewIdRequest>(req);
+  app.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), async (req, res) => {
+    const request = getPafDataFromQueryString<GetNewIdRequest>(req);
 
-    const sender = input.sender;
+    const sender = request.sender;
 
     if (!allowedDomains[sender]?.includes(Permission.READ)) {
       throw `Domain not allowed to read data: ${sender}`;
@@ -237,7 +237,7 @@ export const addOperatorApi = (
 
     // FIXME verify signature
 
-    const response = getNewIdResponseBuilder.buildResponse(input.receiver, operatorApi.generateNewId());
+    const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
 
     res.send(response);
   });
@@ -290,12 +290,13 @@ export class OperatorApi {
     private readonly idSigner = new Signer(privateKeyFromString(privateKey), new IdentifierDefinition()),
     public readonly postIdsPrefsRequestVerifier = new MessageVerifier(
       keyStore.provider,
-      new MessageWithBodyDefinition() // POST ids and prefs has body property
+      new RequestWithBodyDefinition() // POST ids and prefs has body property
     ),
     public readonly getIdsPrefsRequestVerifier = new MessageVerifier(
       keyStore.provider,
-      new MessageWithoutBodyDefinition()
-    )
+      new RequestWithoutBodyDefinition()
+    ),
+    public readonly getNewIdRequestVerifier = new MessageVerifier(keyStore.provider, new RequestWithoutBodyDefinition())
   ) {}
 
   generateNewId(timestamp = getTimeStampInSec()): Identifier {

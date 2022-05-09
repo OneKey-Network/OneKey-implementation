@@ -15,7 +15,8 @@ import { Signer } from '@core/crypto/signer';
 import {
   IdsAndPreferencesDefinition,
   IdsAndUnsignedPreferences,
-  MessageWithBodyDefinition,
+  RequestWithBodyDefinition,
+  ResponseDefinition,
   SeedSignatureBuilder,
   SeedSignatureContainer,
 } from '@core/crypto/signing-definition';
@@ -33,7 +34,7 @@ export class OperatorClient {
     private clientHost: string,
     privateKey: string,
     private readonly keyStore: PublicKeyStore,
-    private readonly readVerifier = new MessageVerifier(keyStore.provider, new MessageWithBodyDefinition())
+    private readonly readVerifier = new MessageVerifier(keyStore.provider, new ResponseDefinition())
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());

@@ -142,15 +142,43 @@ export abstract class MessageDefinition<T extends MessageBase, U = UnsignedMessa
   abstract getInputString(data: U): string;
 }
 
+export interface JSONContext {
+  /**
+   * Value of the `origin` HTTP header
+   */
+  origin: string;
+}
+
+export interface RedirectContext {
+  /**
+   * Value of the `referer` HTTP header
+   */
+  referer: string;
+
+  /**
+   * return URL used as a "boomerang redirect"
+   */
+  returnUrl: string;
+}
+
+export interface RequestWithContext<T extends MessageBase, U = UnsignedMessage<T>> {
+  request: U;
+  // FIXME FIXME FIXME make this mandatory
+  context?: JSONContext | RedirectContext;
+}
+
 /**
  * Defines how to sign a message that doesn't have a "body" property.
  * Examples: GetIdsPrefsRequest, GetNewIdRequest
  */
-export class MessageWithoutBodyDefinition extends MessageDefinition<GetIdsPrefsRequest | GetNewIdRequest> {
-  getInputString(data: UnsignedMessage<GetIdsPrefsRequest>): string {
+export class RequestWithoutBodyDefinition extends MessageDefinition<
+  GetIdsPrefsRequest | GetNewIdRequest,
+  RequestWithContext<GetIdsPrefsRequest | GetNewIdRequest>
+> {
+  getInputString({ request }: RequestWithContext<GetIdsPrefsRequest>): string {
     // FIXME[security] add version
     // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
-    return [data.sender, data.receiver, data.timestamp].join(SIGN_SEP);
+    return [request.sender, request.receiver, request.timestamp].join(SIGN_SEP);
   }
 }
 
@@ -158,39 +186,63 @@ export class MessageWithoutBodyDefinition extends MessageDefinition<GetIdsPrefsR
  * Defines how to sign a message with a "body" property.
  * Examples: GetIdsPrefsResponse, PostIdsPrefsResponse, PostIdsPrefsRequest, GetNewIdResponse
  */
-export class MessageWithBodyDefinition extends MessageDefinition<
-  GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest | GetNewIdResponse
+export class RequestWithBodyDefinition extends MessageDefinition<
+  PostIdsPrefsRequest,
+  RequestWithContext<PostIdsPrefsRequest>
 > {
-  getInputString(
-    data: UnsignedMessage<GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest | GetNewIdResponse>
-  ): string {
+  getInputString({ request }: RequestWithContext<PostIdsPrefsRequest>): string {
     // FIXME[security] add version
     // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
-    const dataToSign = [data.sender, data.receiver];
+    const dataToSign = [request.sender, request.receiver];
 
-    if ((data as GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest).body.preferences) {
-      dataToSign.push(
-        (data as GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest).body.preferences.source.signature
-      );
+    if (request.body.preferences) {
+      dataToSign.push(request.body.preferences.source.signature);
     }
 
-    for (const id of data.body.identifiers ?? []) {
+    for (const id of request.body.identifiers ?? []) {
       dataToSign.push(id.source.signature);
     }
 
-    dataToSign.push(data.timestamp.toString());
+    dataToSign.push(request.timestamp.toString());
 
     return dataToSign.join(SIGN_SEP);
   }
 }
 
-export class RedirectRequestDefinition<T, U = Partial<T>>
+/**
+ * Defines how to sign a response with a "body" property.
+ * Examples: GetIdsPrefsResponse, PostIdsPrefsResponse, PostIdsPrefsRequest, GetNewIdResponse
+ */
+export class ResponseDefinition extends MessageDefinition<
+  GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse
+> {
+  getInputString(request: UnsignedMessage<GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse>): string {
+    // FIXME[security] add version
+    // FIXME[security] add {origin: string} | {returnUrl:string, referer: string}
+    const dataToSign = [request.sender, request.receiver];
+
+    if ((request as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences) {
+      dataToSign.push((request as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences.source.signature);
+    }
+
+    for (const id of request.body.identifiers ?? []) {
+      dataToSign.push(id.source.signature);
+    }
+
+    dataToSign.push(request.timestamp.toString());
+
+    return dataToSign.join(SIGN_SEP);
+  }
+}
+
+// FIXME should remove
+export class RedirectRequestDefinition<T extends MessageBase, U = Partial<T>>
   implements SigningDefinition<RedirectRequest<T>, RedirectRequest<U>>
 {
-  constructor(protected requestDefinition: SigningDefinition<T, U>) {}
+  constructor(protected requestDefinition: SigningDefinition<T, RequestWithContext<T, U>>) {}
 
   getInputString(data: RedirectRequest<U>): string {
-    return this.requestDefinition.getInputString(data.request);
+    return this.requestDefinition.getInputString({ request: data.request });
   }
 
   getSignature(data: RedirectRequest<T>): string {
@@ -202,7 +254,8 @@ export class RedirectRequestDefinition<T, U = Partial<T>>
   }
 }
 
-export class RedirectResponseDefinition<T, U = Partial<T>>
+// FIXME should remove
+export class RedirectResponseDefinition<T extends MessageBase, U = Partial<T>>
   implements SigningDefinition<RedirectResponse<T>, RedirectResponse<U>>
 {
   constructor(protected requestDefinition: SigningDefinition<T, U>) {}

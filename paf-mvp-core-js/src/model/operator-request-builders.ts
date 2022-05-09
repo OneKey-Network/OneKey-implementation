@@ -4,7 +4,7 @@ import { jsonOperatorEndpoints, redirectEndpoints } from '../endpoints';
 import { getTimeStampInSec } from '../timestamp';
 import { RestAndRedirectRequestBuilder, SignedRestRequestBuilder } from '@core/model/request-builders';
 import { Signer } from '@core/crypto/signer';
-import { MessageWithBodyDefinition, MessageWithoutBodyDefinition } from '@core/crypto/signing-definition';
+import { RequestWithBodyDefinition, RequestWithoutBodyDefinition } from '@core/crypto/signing-definition';
 import { privateKeyFromString } from '@core/crypto/keys';
 
 export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<GetIdsPrefsRequest> {
@@ -12,7 +12,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
     operatorHost: string,
     clientHost: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithoutBodyDefinition())
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new RequestWithoutBodyDefinition())
   ) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.read, redirectEndpoints.read, privateKey);
   }
@@ -25,7 +25,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
     };
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: this.signer.sign({ request }),
     };
   }
 }
@@ -35,7 +35,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
     operatorHost: string,
     clientHost: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithBodyDefinition())
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new RequestWithBodyDefinition())
   ) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.write, redirectEndpoints.write, privateKey);
   }
@@ -49,7 +49,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
     };
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: this.signer.sign({ request }),
     };
   }
 
@@ -66,7 +66,7 @@ export class GetNewIdRequestBuilder extends SignedRestRequestBuilder<GetNewIdReq
     operatorHost: string,
     clientHost: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new MessageWithoutBodyDefinition())
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new RequestWithoutBodyDefinition())
   ) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.newId, privateKey);
   }
@@ -79,7 +79,7 @@ export class GetNewIdRequestBuilder extends SignedRestRequestBuilder<GetNewIdReq
     };
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: this.signer.sign({ request }),
     };
   }
 }
