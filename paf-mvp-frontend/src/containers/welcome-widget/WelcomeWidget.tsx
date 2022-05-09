@@ -32,7 +32,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
 
   const originalIdentifier = originalData?.identifiers?.[0];
   const originalConsent = originalData?.preferences?.data?.use_browsing_for_personalization;
-  const pafNodeHost = currentScript.getData()?.proxy;
+  const pafClientNodeHost = currentScript.getData()?.proxy;
   const brandName = window.location.hostname;
 
   const [consent, setConsent] = useState(originalIdentifier && originalConsent);
@@ -55,7 +55,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
 
   const updateIdentifier = async () => {
     setAppIdentifier(undefined);
-    const newIdentifier = await window.PAF.getNewId({ proxyHostName: pafNodeHost });
+    const newIdentifier = await window.PAF.getNewId({ proxyHostName: pafClientNodeHost });
     setAppIdentifier(newIdentifier);
   };
 
@@ -63,7 +63,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
     // Remove previous PAF id from the list
     const identifiers = (originalData?.identifiers ?? []).filter((id) => id.type !== 'paf_browser_id');
     identifiers.push(appIdentifier);
-    await window.PAF.updateIdsAndPreferences(pafNodeHost, consent, identifiers);
+    await window.PAF.updateIdsAndPreferences(pafClientNodeHost, consent, identifiers);
     closeWidget();
   };
 
