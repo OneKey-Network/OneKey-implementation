@@ -3,12 +3,12 @@ import { addOperatorApi, Permission } from '@operator/operator-api';
 import { s2sOptions } from './server-config';
 import {
   crtoOneOperatorConfig,
-  pafCmpConfig,
-  pafMarketConfig,
-  pifCmpConfig,
-  pifMarketConfig,
-  pofCmpConfig,
-  pofMarketConfig,
+  pafPublisherClientNodeConfig,
+  pafMarketWebSiteConfig,
+  pifPublisherClientNodeConfig,
+  pifMarketWebSiteConfig,
+  pofPublisherClientNodeConfig,
+  pofMarketWebSiteConfig,
   portalConfig,
   PrivateConfig,
 } from './config';
@@ -48,13 +48,13 @@ addOperatorApi(
   crtoOneOperatorConfig.host,
   operatorPrivateConfig.privateKey,
   {
-    [pafCmpConfig.host]: [Permission.READ, Permission.WRITE],
-    [pifCmpConfig.host]: [Permission.READ, Permission.WRITE],
-    [pofCmpConfig.host]: [Permission.READ, Permission.WRITE],
+    [pafPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
-    [pafMarketConfig.host]: [Permission.READ, Permission.WRITE],
-    [pifMarketConfig.host]: [Permission.READ, Permission.WRITE],
-    [pofMarketConfig.host]: [Permission.READ, Permission.WRITE],
+    [pafMarketWebSiteConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifMarketWebSiteConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofMarketWebSiteConfig.host]: [Permission.READ, Permission.WRITE],
   },
   s2sOptions
 );

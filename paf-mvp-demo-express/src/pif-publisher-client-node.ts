@@ -1,10 +1,10 @@
 import express from 'express';
-import { crtoOneOperatorConfig, pifCmpConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pifPublisherClientNodeConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
-const pifCmpPrivateConfig: PrivateConfig = {
+const pifClientNodePrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-15T10:50:00.000Z')),
@@ -23,19 +23,19 @@ JyDD+ooj5HxZibrLkmoQ8klbnMaXBvkVkw==
   privacyPolicyUrl: 'https://www.pifdemopublisher.com/privacy',
 };
 
-export const pifCmpApp = express();
+export const pifPublisherClientNodeApp = express();
 
 addClientNodeEndpoints(
-  pifCmpApp,
+  pifPublisherClientNodeApp,
   {
-    name: pifCmpConfig.name,
-    currentPublicKey: pifCmpPrivateConfig.currentPublicKey,
-    dpoEmailAddress: pifCmpPrivateConfig.dpoEmailAddress,
-    privacyPolicyUrl: new URL(pifCmpPrivateConfig.privacyPolicyUrl),
+    name: pifPublisherClientNodeConfig.name,
+    currentPublicKey: pifClientNodePrivateConfig.currentPublicKey,
+    dpoEmailAddress: pifClientNodePrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pifClientNodePrivateConfig.privacyPolicyUrl),
   },
   {
-    hostName: pifCmpConfig.host,
-    privateKey: pifCmpPrivateConfig.privateKey,
+    hostName: pifPublisherClientNodeConfig.host,
+    privateKey: pifClientNodePrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,
   s2sOptions

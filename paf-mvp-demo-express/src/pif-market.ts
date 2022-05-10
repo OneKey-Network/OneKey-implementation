@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { crtoOneOperatorConfig, pifMarketConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pifMarketWebSiteConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
@@ -24,31 +24,31 @@ MfRbBTyw+3s7boL9UFmkpc366R8fFXZMjg==
   privacyPolicyUrl: 'https://www.pifmarket.shop/privacy',
 };
 
-export const pifMarketApp = express();
+export const pifMarketWebSiteApp = express();
 
 // Both a web server serving web content
-pifMarketApp.get('/', async (req: Request, res: Response) => {
+pifMarketWebSiteApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   res.render(view, {
-    title: pifMarketConfig.name,
-    pafNodeHost: pifMarketConfig.host,
-    cdnHost: pifMarketConfig.cdnHost,
+    title: pifMarketWebSiteConfig.name,
+    pafNodeHost: pifMarketWebSiteConfig.host,
+    cdnHost: pifMarketWebSiteConfig.cdnHost,
     cmp: false,
   });
 });
 
 // ...and also a PAF node
 addClientNodeEndpoints(
-  pifMarketApp,
+  pifMarketWebSiteApp,
   {
-    name: pifMarketConfig.name,
+    name: pifMarketWebSiteConfig.name,
     currentPublicKey: pifMarketPrivateConfig.currentPublicKey,
     dpoEmailAddress: pifMarketPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pifMarketPrivateConfig.privacyPolicyUrl),
   },
   {
-    hostName: pifMarketConfig.host,
+    hostName: pifMarketWebSiteConfig.host,
     privateKey: pifMarketPrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,

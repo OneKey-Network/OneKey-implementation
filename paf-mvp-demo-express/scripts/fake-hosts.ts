@@ -3,15 +3,15 @@ import fs from 'fs';
 import { EOL } from 'os';
 import {
   crtoOneOperatorConfig,
-  pafCmpConfig,
-  pafDemoPublisherConfig,
-  pafMarketConfig,
-  pifCmpConfig,
-  pifDemoPublisherConfig,
-  pifMarketConfig,
-  pofCmpConfig,
-  pofDemoPublisherConfig,
-  pofMarketConfig,
+  pafPublisherClientNodeConfig,
+  pafPublisherWebSiteConfig,
+  pafMarketWebSiteConfig,
+  pifPublisherClientNodeConfig,
+  pifPublisherWebSiteConfig,
+  pifMarketWebSiteConfig,
+  pofPublisherClientNodeConfig,
+  pofPublisherWebSiteConfig,
+  pofMarketWebSiteConfig,
   portalConfig,
   PublicConfig,
 } from '../src/config';
@@ -47,15 +47,15 @@ const hostsFile = '/etc/hosts';
     };
     addConfig(crtoOneOperatorConfig);
     addConfig(portalConfig);
-    addConfig(pafMarketConfig);
-    addConfig(pifMarketConfig);
-    addConfig(pofMarketConfig);
-    addConfig(pafDemoPublisherConfig);
-    addConfig(pifDemoPublisherConfig);
-    addConfig(pofDemoPublisherConfig);
-    addConfig(pafCmpConfig);
-    addConfig(pifCmpConfig);
-    addConfig(pofCmpConfig);
+    addConfig(pafMarketWebSiteConfig);
+    addConfig(pifMarketWebSiteConfig);
+    addConfig(pofMarketWebSiteConfig);
+    addConfig(pafPublisherWebSiteConfig);
+    addConfig(pifPublisherWebSiteConfig);
+    addConfig(pofPublisherWebSiteConfig);
+    addConfig(pafPublisherClientNodeConfig);
+    addConfig(pifPublisherClientNodeConfig);
+    addConfig(pofPublisherClientNodeConfig);
   } else {
     console.error(`Unsupported action ${action}`);
     process.exit(1);

@@ -1,11 +1,10 @@
 import express from 'express';
-import { crtoOneOperatorConfig, pofCmpConfig, pofDemoPublisherConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pofPublisherClientNodeConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
-import { getHttpsOriginFromHostName } from '@core/express/utils';
 
-const pofCmpPrivateConfig: PrivateConfig = {
+const pofClientNodePrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-15T10:50:00.000Z')),
@@ -24,19 +23,19 @@ k/MRohFL/ay2XJUUf7Jb9weRJH9CuSEYZQ==
   privacyPolicyUrl: 'https://www.pofdemopublisher.com/privacy',
 };
 
-export const pofCmpApp = express();
+export const pofPublisherClientNodeApp = express();
 
 addClientNodeEndpoints(
-  pofCmpApp,
+  pofPublisherClientNodeApp,
   {
-    name: pofCmpConfig.name,
-    currentPublicKey: pofCmpPrivateConfig.currentPublicKey,
-    dpoEmailAddress: pofCmpPrivateConfig.dpoEmailAddress,
-    privacyPolicyUrl: new URL(pofCmpPrivateConfig.privacyPolicyUrl),
+    name: pofPublisherClientNodeConfig.name,
+    currentPublicKey: pofClientNodePrivateConfig.currentPublicKey,
+    dpoEmailAddress: pofClientNodePrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pofClientNodePrivateConfig.privacyPolicyUrl),
   },
   {
-    hostName: pofCmpConfig.host,
-    privateKey: pofCmpPrivateConfig.privateKey,
+    hostName: pofPublisherClientNodeConfig.host,
+    privateKey: pofClientNodePrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,
   s2sOptions

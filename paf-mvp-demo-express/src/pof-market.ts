@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { crtoOneOperatorConfig, pofMarketConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pofMarketWebSiteConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
@@ -23,16 +23,16 @@ hshouUEPI2C2ti8j0s3K3JY2imY3DxKigw==
   privacyPolicyUrl: 'https://www.pofmarket.shop/privacy',
 };
 
-export const pofMarketApp = express();
+export const pofMarketWebSiteApp = express();
 
 // Both a web server serving web content
-pofMarketApp.get('/', async (req: Request, res: Response) => {
+pofMarketWebSiteApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   res.render(view, {
-    title: pofMarketConfig.name,
-    pafNodeHost: pofMarketConfig.host,
-    cdnHost: pofMarketConfig.cdnHost,
+    title: pofMarketWebSiteConfig.name,
+    pafNodeHost: pofMarketWebSiteConfig.host,
+    cdnHost: pofMarketWebSiteConfig.cdnHost,
     // True if the CMP is part of the demo page
     cmp: true,
   });
@@ -40,15 +40,15 @@ pofMarketApp.get('/', async (req: Request, res: Response) => {
 
 // ...and also a PAF node
 addClientNodeEndpoints(
-  pofMarketApp,
+  pofMarketWebSiteApp,
   {
-    name: pofMarketConfig.name,
+    name: pofMarketWebSiteConfig.name,
     currentPublicKey: pofMarketPrivateConfig.currentPublicKey,
     dpoEmailAddress: pofMarketPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pofMarketPrivateConfig.privacyPolicyUrl),
   },
   {
-    hostName: pofMarketConfig.host,
+    hostName: pofMarketWebSiteConfig.host,
     privateKey: pofMarketPrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,

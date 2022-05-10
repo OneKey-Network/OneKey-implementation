@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
-import { crtoOneOperatorConfig, pafMarketConfig, PrivateConfig } from './config';
+import { crtoOneOperatorConfig, pafMarketWebSiteConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
-const pafMarketPrivateConfig: PrivateConfig = {
+const pafMarketClientNodePrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T12:00:00.000Z')),
@@ -23,7 +23,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
   privacyPolicyUrl: 'https://www.pafmarket.shop/privacy',
 };
 
-export const pafMarketApp = express();
+export const pafMarketWebSiteApp = express();
 
 /*
 const client = new OperatorBackendClient(
@@ -36,32 +36,32 @@ const client = new OperatorBackendClient(
  */
 
 // Both a web server serving web content
-pafMarketApp.get('/', async (req: Request, res: Response) => {
+pafMarketWebSiteApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   // Act as an HTTP middleware
   // FIXME the usage of the backend client breaks logic for showing the notification. Need to decide how to fix.
   //if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
   res.render(view, {
-    title: pafMarketConfig.name,
-    pafNodeHost: pafMarketConfig.host,
-    cdnHost: pafMarketConfig.cdnHost,
+    title: pafMarketWebSiteConfig.name,
+    pafNodeHost: pafMarketWebSiteConfig.host,
+    cdnHost: pafMarketWebSiteConfig.cdnHost,
   });
   //}
 });
 
 // ...and also a PAF node
 addClientNodeEndpoints(
-  pafMarketApp,
+  pafMarketWebSiteApp,
   {
-    name: pafMarketConfig.name,
-    currentPublicKey: pafMarketPrivateConfig.currentPublicKey,
-    dpoEmailAddress: pafMarketPrivateConfig.dpoEmailAddress,
-    privacyPolicyUrl: new URL(pafMarketPrivateConfig.privacyPolicyUrl),
+    name: pafMarketWebSiteConfig.name,
+    currentPublicKey: pafMarketClientNodePrivateConfig.currentPublicKey,
+    dpoEmailAddress: pafMarketClientNodePrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pafMarketClientNodePrivateConfig.privacyPolicyUrl),
   },
   {
-    hostName: pafMarketConfig.host,
-    privateKey: pafMarketPrivateConfig.privateKey,
+    hostName: pafMarketWebSiteConfig.host,
+    privateKey: pafMarketClientNodePrivateConfig.privateKey,
   },
   crtoOneOperatorConfig.host,
   s2sOptions
