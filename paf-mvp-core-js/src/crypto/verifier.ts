@@ -19,7 +19,7 @@ export interface PublicKeyProvider {
  * Verifier class
  */
 export class Verifier<T> {
-  private logger = new Log('Verifier');
+  protected logger = new Log('Verifier', 'blue');
 
   /**
    * @param publicKeyProvider method to get a public key from a domain name
@@ -36,7 +36,8 @@ export class Verifier<T> {
 
     const result = publicKey.verify(toVerify, signature);
 
-    this.logger.Debug('Verifying', signedData, result);
+    if (result) this.logger.Debug('Verified', signedData);
+    else this.logger.Error('Verification failed for', signedData);
 
     return result;
   }
@@ -79,11 +80,32 @@ export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned
    * @protected
    */
   verifyContent(message: T, senderHost: string, receiverHost: string, timestampInSec: number): boolean {
-    return (
-      timestampInSec - message.timestamp < this.messageTTLinSec &&
-      message.sender === senderHost &&
-      message.receiver === receiverHost
-    );
+    const timeSpent = timestampInSec - message.timestamp;
+    const result =
+      timeSpent < this.messageTTLinSec && message.sender === senderHost && message.receiver === receiverHost;
+
+    if (result)
+      this.logger.Debug(
+        'As expected',
+        'time since timestamp',
+        timeSpent,
+        'sender',
+        message.sender,
+        'receiver',
+        message.receiver
+      );
+    else
+      this.logger.Error(
+        'Invalid message content',
+        'time since timestamp',
+        [timeSpent, this.messageTTLinSec],
+        'sender',
+        [message.sender, senderHost],
+        'receiver',
+        [message.receiver, receiverHost]
+      );
+
+    return result;
   }
 
   abstract verifySignatureAndContent(

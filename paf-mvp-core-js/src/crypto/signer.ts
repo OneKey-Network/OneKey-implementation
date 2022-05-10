@@ -14,7 +14,7 @@ export interface SignatureStringBuilder<U> {
  * U = Unsigned type (used for getting signature input)
  */
 export class Signer<U> {
-  private logger = new Log('Signer');
+  protected logger = new Log('Signer', 'red');
 
   /**
    * @param ecdsaPrivateKey the private key that will be used to sign

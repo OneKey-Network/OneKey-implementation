@@ -45,6 +45,7 @@ import {
   RestContext,
 } from '@core/crypto/signing-definition';
 import { RequestVerifier, Verifier } from '@core/crypto/verifier';
+import { Log } from '@core/log';
 
 // Expiration: now + 3 months
 const getOperatorExpiration = (date: Date = new Date()) => {
@@ -75,6 +76,7 @@ export const addOperatorApi = (
   s2sOptions?: AxiosRequestConfig
 ) => {
   const keyStore = new PublicKeyStore(s2sOptions);
+  const logger = new Log('Operator', 'black');
 
   // Start by adding identity endpoint
   addIdentityEndpoint(app, {
@@ -226,7 +228,10 @@ export const addOperatorApi = (
     setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: tld });
   };
 
-  app.get(jsonOperatorEndpoints.read, cors(corsOptionsAcceptAll), async (req, res) => {
+  let endpoint = jsonOperatorEndpoints.read;
+  app.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+    logger.Info(endpoint);
+
     // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
     setTest3pcCookie(res);
 
@@ -236,12 +241,15 @@ export const addOperatorApi = (
       const response = await getReadResponse(request, req);
       res.send(response);
     } catch (e) {
+      logger.Error(endpoint, e);
       res.status(400);
       res.send(e);
     }
   });
 
-  app.get(jsonOperatorEndpoints.verify3PC, cors(corsOptionsAcceptAll), (req, res) => {
+  endpoint = jsonOperatorEndpoints.verify3PC;
+  app.get(endpoint, cors(corsOptionsAcceptAll), (req, res) => {
+    logger.Info(endpoint);
     // Note: no signature verification here
 
     const cookies = req.cookies;
@@ -254,19 +262,24 @@ export const addOperatorApi = (
     res.send(response);
   });
 
-  app.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), async (req, res) => {
+  endpoint = jsonOperatorEndpoints.write;
+  app.post(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+    logger.Info(endpoint);
     const input = getPayload<PostIdsPrefsRequest>(req);
 
     try {
       const signedData = await getWriteResponse(input, req, res);
       res.send(signedData);
     } catch (e) {
+      logger.Error(endpoint, e);
       res.status(400);
       res.send(e);
     }
   });
 
-  app.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), async (req, res) => {
+  endpoint = jsonOperatorEndpoints.newId;
+  app.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+    logger.Info(endpoint);
     const request = getPafDataFromQueryString<GetNewIdRequest>(req);
     const context = { origin: req.header('origin') };
 
@@ -285,12 +298,13 @@ export const addOperatorApi = (
         ))
       ) {
         // TODO [errors] finer error feedback
-        throw 'Read request verification failed';
+        throw 'New Id request verification failed';
       }
 
       const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
       res.send(response);
     } catch (e) {
+      logger.Error(endpoint, e);
       res.status(400);
       res.send(e);
     }
@@ -300,7 +314,9 @@ export const addOperatorApi = (
   // ******************************************************************************************************* REDIRECTS
   // *****************************************************************************************************************
 
-  app.get(redirectEndpoints.read, async (req, res) => {
+  endpoint = redirectEndpoints.read;
+  app.get(endpoint, async (req, res) => {
+    logger.Info(endpoint);
     const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
     if (request?.returnUrl) {
@@ -319,6 +335,7 @@ export const addOperatorApi = (
         res.send(e);
       }
     } else {
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       res.sendStatus(400);
     }
   });
@@ -341,6 +358,7 @@ export const addOperatorApi = (
         res.send(e);
       }
     } else {
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       res.sendStatus(400);
     }
   });
