@@ -73,11 +73,14 @@ describe('Function getNewId', () => {
 
   test('should return new ID', async () => {
     const identifiers = getFakeIdentifiers(FAKE_ID);
-    fetch.mockResponseOnce(JSON.stringify({ body: { identifiers } }));
+    fetch.mockResponses(
+      'anyOperatorURL', // Call to the proxy to get the operator URL
+      JSON.stringify({ body: { identifiers } }) // Actual call to the operator
+    );
     try {
       const identifier: Identifier = await getNewId({ proxyHostName: pafClientNodeHost });
       expect(identifier.value).toBe(FAKE_ID);
-      expect(fetch.mock.calls.length).toEqual(1);
+      expect(fetch.mock.calls.length).toEqual(2);
     } catch (error) {
       throw new Error(error);
     }
@@ -161,6 +164,7 @@ describe('Function refreshIdsAndPreferences', () => {
     });
 
     test('should verify uriData', async () => {
+      // Just one call to the proxy to verify data
       fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
 
       await refreshIdsAndPreferences({
@@ -327,13 +331,14 @@ describe('Function refreshIdsAndPreferences', () => {
       });
 
       test('should return data from operator', async () => {
-        fetch.mockResponseOnce(
+        fetch.mockResponses(
+          'anyOperatorURL', // Call to the proxy to get the operator URL
           JSON.stringify({
             body: {
               identifiers: getFakeIdentifiers(),
               preferences: getFakePreferences(),
             },
-          })
+          }) // Actual call to the operator
         );
         const result = await refreshIdsAndPreferences({
           proxyHostName: pafClientNodeHost,
