@@ -31,6 +31,8 @@ import { pifMarketApp } from './pif-market';
 import { pofMarketApp } from './pof-market';
 import { pifCmpApp } from './pif-cmp';
 import { pofCmpApp } from './pof-cmp';
+import { url } from 'inspector';
+import { URL } from 'url';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -47,6 +49,12 @@ const addMiddleware = (app: Express) => {
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.setHeader('Cache-Control', 'public, max-age=604800');
         }
+        if (/(js)$/.test(path)) {
+          // Shorter cache for JS as this might change more during development.
+          // CORS needed to support easy publisher evaluation.
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Cache-Control', 'public, max-age=60');
+        }
       },
     })
   );
@@ -61,6 +69,17 @@ const addMiddleware = (app: Express) => {
   app.enable('trust proxy');
   app.use((req, res, next) => {
     req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
+  });
+
+  // Set the CORS access control allow origin if a proxy path and the origin is provided in the request.
+  // This is needed to support pages that are loaded form the file system to quickly demo the functionality. There
+  // may be better places to place this code.
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/paf-proxy/')) {
+      res.setHeader('Access-Control-Allow-Origin', req.headers.origin ? req.headers.origin : '*');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    next();
   });
 };
 
