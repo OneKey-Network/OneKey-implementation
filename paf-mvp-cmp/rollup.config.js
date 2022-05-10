@@ -24,6 +24,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 
+// Used to get the TCF core string from the environment.
+import { env } from 'process';
+
 // Options to pass to terser.
 const terserOptions = {
   toplevel: true,
@@ -74,6 +77,17 @@ function validateLocale(locale) {
   }
 }
 
+// Returns the TCF core template string to embed into the CMP.
+function getTCFCoreTemplate() {
+  const tcfCoreTemplate = env.TCF_CORE_TEMPLATE;
+  if (tcfCoreTemplate) {
+    console.info(`Using \'${tcfCoreTemplate}\' as TCF core template`);
+    return tcfCoreTemplate;
+  }
+  throw 'Add --environment TCF_CORE_TEMPLATE:YOUR_TCF_CORE_TEMPLATE to the rollup command line, or set the ' +
+    'TCF_CORE_TEMPLATE environment variable. This is needed to generate a TCF core string from the built CMP.';
+}
+
 // Gets all the locale files as an array.
 function getLocaleFiles() {
   const directory = './src/locales';
@@ -121,7 +135,7 @@ function buildLoader() {
       replace({
         include: './src/loader.ts',
         preventAssignment: true,
-        __Locales__: '[' + getLocaleCodes().join(',') + ']',
+        __Locales__: '[' + getLocaleCodes().join(',') + ']'
       }),
       typescript({
         tsconfig: '../tsconfig.json'
@@ -159,14 +173,19 @@ function buildLoader() {
   }
 }
 
-function buildLocaleConfig(locale, object) {
+// Returns configuration for a specific locale.
+// localeCode the code of the locale being built for. i.e. en-GB
+// localeContent the JSON object with the content
+// tcfCoreTemplate the template string for the CMP
+function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
   return {
     input: './src/main.ts',
     plugins: [
       replace({
         include: './src/main.ts',
         preventAssignment: true,
-        __Locale__: object,
+        __Locale__: localeContent,
+        __TcfCoreTemplate__: tcfCoreTemplate
       }),
       postHTML({ template: true }),
       minifyHTML({
@@ -192,23 +211,23 @@ function buildLocaleConfig(locale, object) {
     treeshake: true,
     output: [
       {
-        file: `./dist/ok-ui-${locale}.js`,
+        file: `./dist/ok-ui-${localeCode}.js`,
         sourcemap: true,
         format: 'iife'
       },
       {
-        file: `./dist/ok-ui-${locale}.min.js`,
+        file: `./dist/ok-ui-${localeCode}.min.js`,
         format: 'iife',
         sourcemap: false,
         plugins: [terser(terserOptions)]
       },
       {
-        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${locale}.js`,
+        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${localeCode}.js`,
         sourcemap: true,
         format: 'iife'
       },
       {
-        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${locale}.min.js`,
+        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${localeCode}.min.js`,
         format: 'iife',
         sourcemap: false,
         plugins: [terser(terserOptions)]
@@ -220,9 +239,10 @@ function buildLocaleConfig(locale, object) {
 // Create the template for each locale bundle and the loader if server side selection is not being used.
 async function getConfigs(locales) {
   const configs = [];
+  const tcfCoreTemplate = getTCFCoreTemplate();
   configs.push(buildLoader());
   locales.forEach((value, locale) => {
-    configs.push(buildLocaleConfig(locale, value));
+    configs.push(buildLocaleConfig(locale, value, tcfCoreTemplate));
   });
   return configs;
 }

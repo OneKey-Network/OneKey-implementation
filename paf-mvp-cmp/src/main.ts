@@ -10,6 +10,10 @@ import { NotificationEnum } from '@frontend/enums/notification.enum';
 // @ts-ignore rollup replaces this with the JS object for the language.
 const locale = <ILocale>__Locale__;
 
+// The TCF core template string. Populated from the environment variable TCF_CORE_TEMPLATE at build time. See
+// ../rollup.config.js for details.
+const tcfCoreTemplate = '__TcfCoreTemplate__';
+
 const log = new Log('ok-ui', '#18a9e1');
 let controller: Controller = null;
 
@@ -32,7 +36,12 @@ const showNotification = (type: NotificationEnum) => {
 };
 
 // Construct the controller with the loosely typed language object.
-controller = new Controller(document.currentScript, new Config(document.currentScript, log), locale, log);
+controller = new Controller(
+  document.currentScript,
+  new Config(document.currentScript, tcfCoreTemplate, log),
+  locale,
+  log
+);
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
