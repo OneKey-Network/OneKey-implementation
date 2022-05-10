@@ -1,8 +1,6 @@
 /**
  * Resources used by the controller for HTML views and CSS.
- * TODO: fix the warning associated with can't find module or type.
  */
-import tooltipsJs from './scripts/tooltips.js';
 import css from './css/ok-ui.css';
 import introTemplate from './html/cards/intro.html';
 import aboutTemplate from './html/cards/about.html';
@@ -14,6 +12,7 @@ import popupTemplate from './html/containers/popup.html';
 import { Config } from './config';
 import { IView } from '@core/ui/binding';
 import { ILocale } from './ILocale.js';
+import { Tooltip } from './tooltip.js';
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -112,6 +111,9 @@ export class View implements IView {
       html = template(this.locale);
     }
     this.getCardContainer().innerHTML = this.config.replace(html);
+
+    // Bind the tooltips to any tooltip controls in the new cards added.
+    Tooltip.bind(this.root);
     this.currentCard = card;
   }
 
@@ -209,19 +211,14 @@ export class View implements IView {
     // TODO: Fix CSS include to remove the magic character at the beginning of the CSS file.
     style.innerHTML = (<string>css).trim();
 
-    // Add a new javascript element for the tooltips.
-    const tooltipsScript = <HTMLScriptElement>document.createElement('script');
-    tooltipsScript.type = 'text/javascript';
-    tooltipsScript.innerHTML = tooltipsJs;
-
     // Create the new container with the templates.
     this.cardContainer = document.createElement('div');
     this.cardContainer.className = 'ok-ui';
 
-    // Append the style, tooltips, and container with a shadow root for encapsulation.
+    // Append the style and container with a shadow root for encapsulation. The mode must be open so that the tooltip
+    // bindings work.
     this.root = this.outerContainer.attachShadow({ mode: 'closed' });
     this.root.appendChild(style);
-    this.root.appendChild(tooltipsScript);
     this.root.appendChild(this.cardContainer);
   }
 }
