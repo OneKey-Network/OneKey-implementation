@@ -123,7 +123,6 @@ export const addClientNodeEndpoints = (
 
     try {
       const url = client.getReadRedirectUrl(req, returnUrl);
-
       httpRedirect(res, url.toString(), 302);
     } catch (e) {
       logger.Error(endpoint, e);
@@ -178,17 +177,25 @@ export const addClientNodeEndpoints = (
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
     if (!message.response) {
+      logger.Error(endpoint, message.error);
       // FIXME do something smart in case of error
-      throw message.error;
+      res.send(message.error);
     }
 
-    const verification = client.verifyReadResponse(message.response);
-    if (!verification) {
-      // TODO [errors] finer error feedback
-      const error: Error = { message: 'verification failed' };
-      res.send(error);
-    } else {
-      res.send(message.response);
+    try {
+      const verification = client.verifyReadResponse(message.response);
+      if (!verification) {
+        // TODO [errors] finer error feedback
+        const error: Error = { message: 'verification failed' };
+        logger.Error(endpoint, error);
+        res.send(error);
+      } else {
+        res.send(message.response);
+      }
+    } catch (e) {
+      logger.Error(endpoint, e);
+      res.status(400);
+      res.send(e);
     }
   });
 
