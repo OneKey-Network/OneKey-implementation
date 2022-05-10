@@ -13,20 +13,20 @@ flowchart TB
 
     Demo("Demo Project")
     style Demo fill:#f5f5f5,stroke:#d2d2d2,stroke-width:2px
-    click Demo "../paf-mvp-demo-express" "paf-mvp-demo-express"
+    click Demo "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-demo-express" "paf-mvp-demo-express"
     
     Core("Core Javascript")
-    click Core "../paf-mvp-core-js" "paf-mvp-core-js"
+    click Core "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-core-js" "paf-mvp-core-js"
     
     Frontend("Frontend library & widget<br>(you are here)")
     style Frontend fill:#ff9a36,stroke:#333,stroke-width:2px
-    click Frontend "../paf-mvp-frontend" "paf-mvp-frontend"
+    click Frontend "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-frontend" "paf-mvp-frontend"
     
     Operator("Operator API")
-    click Operator "../paf-mvp-operator-express" "paf-mvp-operator-express"
+    click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client("Operator client")
-    click Client "../paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
     
     Demo --> Frontend
     linkStyle 0 stroke:#d2d2d2,stroke-width:1px
