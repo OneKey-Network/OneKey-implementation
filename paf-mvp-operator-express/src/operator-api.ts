@@ -340,19 +340,22 @@ export const addOperatorApi = (
     }
   });
 
-  app.get(redirectEndpoints.write, async (req, res) => {
-    const { request, returnUrl } = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
+  endpoint = redirectEndpoints.write;
+  app.get(endpoint, async (req, res) => {
+    logger.Info(endpoint);
+    const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
 
-    if (returnUrl) {
+    if (request?.returnUrl) {
       // FIXME verify returnUrl is HTTPs
       try {
         const response = await getWriteResponse(request, req, res);
 
         const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-        const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(returnUrl), redirectResponse);
+        const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
 
         httpRedirect(res, redirectUrl.toString());
       } catch (e) {
+        logger.Error(endpoint, e);
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         res.status(400);
         res.send(e);
