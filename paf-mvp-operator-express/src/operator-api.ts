@@ -232,9 +232,13 @@ export const addOperatorApi = (
 
     const request = getPafDataFromQueryString<GetIdsPrefsRequest>(req);
 
-    const response = await getReadResponse(request, req);
-
-    res.send(response);
+    try {
+      const response = await getReadResponse(request, req);
+      res.send(response);
+    } catch (e) {
+      res.status(400);
+      res.send(e);
+    }
   });
 
   app.get(jsonOperatorEndpoints.verify3PC, cors(corsOptionsAcceptAll), (req, res) => {
@@ -247,7 +251,6 @@ export const addOperatorApi = (
     removeCookie(req, res, Cookies.test_3pc, { domain: tld });
 
     const response = get3PCResponseBuilder.buildResponse(testCookieValue);
-
     res.send(response);
   });
 
@@ -256,7 +259,6 @@ export const addOperatorApi = (
 
     try {
       const signedData = await getWriteResponse(input, req, res);
-
       res.send(signedData);
     } catch (e) {
       res.status(400);
@@ -274,20 +276,24 @@ export const addOperatorApi = (
       throw `Domain not allowed to read data: ${sender}`;
     }
 
-    if (
-      !(await operatorApi.getNewIdRequestVerifier.verifySignatureAndContent(
-        { request, context },
-        sender, // sender will always be ok
-        operatorHost // but operator needs to be verified
-      ))
-    ) {
-      // TODO [errors] finer error feedback
-      throw 'Read request verification failed';
+    try {
+      if (
+        !(await operatorApi.getNewIdRequestVerifier.verifySignatureAndContent(
+          { request, context },
+          sender, // sender will always be ok
+          operatorHost // but operator needs to be verified
+        ))
+      ) {
+        // TODO [errors] finer error feedback
+        throw 'Read request verification failed';
+      }
+
+      const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
+      res.send(response);
+    } catch (e) {
+      res.status(400);
+      res.send(e);
     }
-
-    const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
-
-    res.send(response);
   });
 
   // *****************************************************************************************************************
@@ -300,12 +306,18 @@ export const addOperatorApi = (
     if (request?.returnUrl) {
       // FIXME verify returnUrl is HTTPs
 
-      const response = await getReadResponse(request, req);
+      try {
+        const response = await getReadResponse(request, req);
 
-      const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-      const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
+        const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+        const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
 
-      httpRedirect(res, redirectUrl.toString());
+        httpRedirect(res, redirectUrl.toString());
+      } catch (e) {
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        res.status(400);
+        res.send(e);
+      }
     } else {
       res.sendStatus(400);
     }
@@ -316,13 +328,18 @@ export const addOperatorApi = (
 
     if (returnUrl) {
       // FIXME verify returnUrl is HTTPs
+      try {
+        const response = await getWriteResponse(request, req, res);
 
-      const response = await getWriteResponse(request, req, res);
+        const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+        const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(returnUrl), redirectResponse);
 
-      const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-      const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(returnUrl), redirectResponse);
-
-      httpRedirect(res, redirectUrl.toString());
+        httpRedirect(res, redirectUrl.toString());
+      } catch (e) {
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        res.status(400);
+        res.send(e);
+      }
     } else {
       res.sendStatus(400);
     }

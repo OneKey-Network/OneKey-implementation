@@ -8,29 +8,8 @@ import {
 } from '@core/crypto/signing-definition';
 import { Identifier, IdsAndPreferences, MessageBase } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
-import winston, { format } from 'winston';
 import { Unsigned } from '@core/model/model';
-import util from 'util';
-import { TransformableInfo } from 'logform';
-
-const logger = winston.createLogger({
-  level: 'debug',
-  format: format.combine(
-    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-    {
-      transform: (info: TransformableInfo) => {
-        const args = info[Symbol.for('splat') as unknown as string];
-        if (args) {
-          info.message = util.format(info.message, ...args);
-        }
-        return info;
-      },
-    },
-    format.colorize(),
-    format.printf(({ level, message, label, timestamp }) => `${timestamp} ${label || '-'} ${level}: ${message}`)
-  ),
-  transports: [new winston.transports.Console()],
-});
+import { Log } from '@core/log';
 
 export interface PublicKeyProvider {
   (domain: string): Promise<PublicKey>;
@@ -40,6 +19,8 @@ export interface PublicKeyProvider {
  * Verifier class
  */
 export class Verifier<T> {
+  private logger = new Log('Verifier');
+
   /**
    * @param publicKeyProvider method to get a public key from a domain name
    * @param definition data or message definition used to extract signature, signing domain, input string
@@ -55,7 +36,7 @@ export class Verifier<T> {
 
     const result = publicKey.verify(toVerify, signature);
 
-    logger.info('Verifying', signedData, result);
+    this.logger.Debug('Verifying', signedData, result);
 
     return result;
   }

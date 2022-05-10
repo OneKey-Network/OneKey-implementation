@@ -76,28 +76,26 @@ export const addClientNodeEndpoints = (
   app.get(jsonProxyEndpoints.read, cors(corsOptions), (req, res) => {
     const url = client.getReadRestUrl(req);
 
-    httpRedirect(res, url.toString(), 302);
+    res.send(url.toString());
   });
 
-  app.post(jsonProxyEndpoints.write, cors(corsOptions), (req, res) => {
+  app.get(jsonProxyEndpoints.write, cors(corsOptions), (req, res) => {
     const url = postIdsPrefsRequestBuilder.getRestUrl();
 
-    // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
-    // /!\ Notice return code 307!
-    httpRedirect(res, url.toString(), 307);
+    res.send(url.toString());
   });
 
   app.get(jsonProxyEndpoints.verify3PC, cors(corsOptions), (req, res) => {
     const url = get3PCRequestBuilder.getRestUrl();
 
-    httpRedirect(res, url.toString(), 302);
+    res.send(url.toString());
   });
 
   app.get(jsonProxyEndpoints.newId, cors(corsOptions), (req, res) => {
     const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
     const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
-    httpRedirect(res, url.toString(), 302);
+    res.send(url.toString());
   });
 
   // *****************************************************************************************************************

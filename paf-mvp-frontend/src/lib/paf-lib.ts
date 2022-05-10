@@ -384,7 +384,8 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
       log.Info('Browser known to support 3PC: YES');
 
       log.Info('Attempt to read from JSON');
-      const readResponse = await get(getUrl(jsonProxyEndpoints.read));
+      const readUrl = await get(getUrl(jsonProxyEndpoints.read));
+      const readResponse = await get(await readUrl.text());
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -415,7 +416,8 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
       log.Info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
-      const verifyResponse = await get(getUrl(jsonProxyEndpoints.verify3PC));
+      const verifyUrl = await get(getUrl(jsonProxyEndpoints.verify3PC));
+      const verifyResponse = await get(await verifyUrl.text());
       const testOk: Get3PcResponse | Error = await verifyResponse.json();
 
       // 4. 3d party cookie ok?
@@ -492,7 +494,8 @@ const writeIdsAndPref = async (
       const signedData = (await signedResponse.json()) as PostIdsPrefsRequest;
 
       // 2) send
-      const response = await postJson(getUrl(jsonProxyEndpoints.write), signedData);
+      const writeUrl = await get(getUrl(jsonProxyEndpoints.write));
+      const response = await postJson(await writeUrl.text(), signedData);
       const operatorData = (await response.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData?.body?.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -552,7 +555,8 @@ export const signPreferences = async (
 export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Identifier> => {
   const getUrl = getProxyUrl(proxyHostName);
 
-  const response = await get(getUrl(jsonProxyEndpoints.newId));
+  const newIdUrl = await get(getUrl(jsonProxyEndpoints.newId));
+  const response = await get(await newIdUrl.text());
   // Assume no error. FIXME should handle potential errors
   return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
 };
