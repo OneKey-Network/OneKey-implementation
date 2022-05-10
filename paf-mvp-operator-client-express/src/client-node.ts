@@ -10,13 +10,7 @@ import {
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import {
-  escapeRegExp,
-  getHttpsOriginFromHostName,
-  getPayload,
-  getTopLevelDomain,
-  httpRedirect,
-} from '@core/express/utils';
+import { escapeRegExp, getPayload, getTopLevelDomain, httpRedirect } from '@core/express/utils';
 import { fromDataToObject } from '@core/query-string';
 import {
   Get3PCRequestBuilder,
@@ -27,6 +21,7 @@ import { AxiosRequestConfig } from 'axios';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
 import { PAFNode } from '@core/model/model';
+import { Log } from '@core/log';
 
 /**
  * Add PAF client node endpoints to an Express app
@@ -50,6 +45,7 @@ export const addClientNodeEndpoints = (
     ...identity,
     type: 'vendor',
   });
+  const logger = new Log('Client node', '#bbb');
   const { hostName, privateKey } = pafNode;
   const client = new OperatorClient(operatorHost, hostName, privateKey, new PublicKeyStore(s2sOptions));
 
@@ -73,25 +69,33 @@ export const addClientNodeEndpoints = (
   // ************************************************************************************************************ JSON
   // *****************************************************************************************************************
 
-  app.get(jsonProxyEndpoints.read, cors(corsOptions), (req, res) => {
+  let endpoint = jsonProxyEndpoints.read;
+  app.get(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const url = client.getReadRestUrl(req);
 
     res.send(url.toString());
   });
 
-  app.get(jsonProxyEndpoints.write, cors(corsOptions), (req, res) => {
+  endpoint = jsonProxyEndpoints.write;
+  app.get(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const url = postIdsPrefsRequestBuilder.getRestUrl();
 
     res.send(url.toString());
   });
 
-  app.get(jsonProxyEndpoints.verify3PC, cors(corsOptions), (req, res) => {
+  endpoint = jsonProxyEndpoints.verify3PC;
+  app.get(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const url = get3PCRequestBuilder.getRestUrl();
 
     res.send(url.toString());
   });
 
-  app.get(jsonProxyEndpoints.newId, cors(corsOptions), (req, res) => {
+  endpoint = jsonProxyEndpoints.newId;
+  app.get(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
     const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
@@ -102,7 +106,9 @@ export const addClientNodeEndpoints = (
   // ******************************************************************************************************* REDIRECTS
   // *****************************************************************************************************************
 
-  app.get(redirectProxyEndpoints.read, cors(corsOptions), (req, res) => {
+  endpoint = redirectProxyEndpoints.read;
+  app.get(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const returnUrl = getReturnUrl(req, res);
 
     if (returnUrl) {
@@ -112,7 +118,9 @@ export const addClientNodeEndpoints = (
     }
   });
 
-  app.get(redirectProxyEndpoints.write, cors(corsOptions), (req, res) => {
+  endpoint = redirectProxyEndpoints.write;
+  app.get(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const returnUrl = getReturnUrl(req, res);
     const input = getMessageObject<IdsAndPreferences>(req, res);
 
@@ -136,7 +144,9 @@ export const addClientNodeEndpoints = (
   // *****************************************************************************************************************
   // ******************************************************************************************** JSON - SIGN & VERIFY
   // *****************************************************************************************************************
-  app.post(jsonProxyEndpoints.verifyRead, cors(corsOptions), (req, res) => {
+  endpoint = jsonProxyEndpoints.verifyRead;
+  app.post(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
     if (!message.response) {
@@ -154,17 +164,23 @@ export const addClientNodeEndpoints = (
     }
   });
 
-  app.post(jsonProxyEndpoints.signPrefs, cors(corsOptions), (req, res) => {
+  endpoint = jsonProxyEndpoints.signPrefs;
+  app.post(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
     res.send(client.buildPreferences(identifiers, unsignedPreferences.data));
   });
 
-  app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
+  endpoint = jsonProxyEndpoints.signWrite;
+  app.post(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const message = getPayload<IdsAndPreferences>(req);
     res.send(postIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') }, message));
   });
 
-  app.post(jsonProxyEndpoints.createSeed, cors(corsOptions), (req, res) => {
+  endpoint = jsonProxyEndpoints.createSeed;
+  app.post(endpoint, cors(corsOptions), (req, res) => {
+    logger.Info(endpoint);
     const request = JSON.parse(req.body as string) as PostSeedRequest;
     const seed = client.buildSeed(request.transaction_ids, request.data);
     const response = seed as PostSeedResponse; // For now, the response is only a Seed.

@@ -320,8 +320,6 @@ export const addOperatorApi = (
     const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
     if (request?.returnUrl) {
-      // FIXME verify returnUrl is HTTPs
-
       try {
         const response = await getReadResponse(request, req);
 
@@ -346,7 +344,6 @@ export const addOperatorApi = (
     const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
 
     if (request?.returnUrl) {
-      // FIXME verify returnUrl is HTTPs
       try {
         const response = await getWriteResponse(request, req, res);
 
