@@ -106,15 +106,30 @@ export const addClientNodeEndpoints = (
   // ******************************************************************************************************* REDIRECTS
   // *****************************************************************************************************************
 
+  const isValidReturnUrl = (returnUrl: URL): boolean => returnUrl?.protocol === 'https:';
+
   endpoint = redirectProxyEndpoints.read;
   app.get(endpoint, cors(corsOptions), (req, res) => {
     logger.Info(endpoint);
     const returnUrl = getReturnUrl(req, res);
 
-    if (returnUrl) {
+    if (!isValidReturnUrl(returnUrl)) {
+      const error = `Invalid return URL: ${returnUrl.toString()}`;
+      logger.Error(endpoint, error);
+      res.status(400);
+      res.send(error);
+      return;
+    }
+
+    try {
       const url = client.getReadRedirectUrl(req, returnUrl);
 
       httpRedirect(res, url.toString(), 302);
+    } catch (e) {
+      logger.Error(endpoint, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      res.status(400);
+      res.send(e);
     }
   });
 
@@ -124,20 +139,33 @@ export const addClientNodeEndpoints = (
     const returnUrl = getReturnUrl(req, res);
     const input = getMessageObject<IdsAndPreferences>(req, res);
 
-    if (input && returnUrl) {
-      // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
+    if (!isValidReturnUrl(returnUrl)) {
+      const error = `Invalid return URL: ${returnUrl.toString()}`;
+      logger.Error(endpoint, error);
+      res.status(400);
+      res.send(error);
+      return;
+    }
 
-      const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
-        {
-          returnUrl: returnUrl.toString(),
-          referer: req.header('referer'),
-        },
-        input
-      );
+    if (input) {
+      try {
+        const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
+          {
+            returnUrl: returnUrl.toString(),
+            referer: req.header('referer'),
+          },
+          input
+        );
 
-      const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
+        const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
 
-      httpRedirect(res, url.toString(), 302);
+        httpRedirect(res, url.toString(), 302);
+      } catch (e) {
+        logger.Error(endpoint, e);
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        res.status(400);
+        res.send(e);
+      }
     }
   });
 
