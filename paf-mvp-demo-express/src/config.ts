@@ -20,16 +20,31 @@ export const pafMarketWebSiteConfig: PublicConfig = {
   cdnHost: 'cdn.pafmarket.shop',
 };
 
+export const pafMarketClientNodeConfig: PublicConfig = {
+  name: 'PAF advertiser',
+  host: 'paf.pafmarket.shop',
+};
+
 export const pifMarketWebSiteConfig: PublicConfig = {
   name: 'PIF advertiser',
   host: 'www.pifmarket.shop',
   cdnHost: 'cdn.pifmarket.shop',
 };
 
+export const pifMarketClientNodeConfig: PublicConfig = {
+  name: 'PIF advertiser',
+  host: 'paf.pifmarket.shop',
+};
+
 export const pofMarketWebSiteConfig: PublicConfig = {
   name: 'POF advertiser',
   host: 'www.pofmarket.shop',
   cdnHost: 'cdn.pofmarket.shop',
+};
+
+export const pofMarketClientNodeConfig: PublicConfig = {
+  name: 'POF advertiser',
+  host: 'paf.pofmarket.shop',
 };
 
 export const pafPublisherWebSiteConfig: PublicConfig = {

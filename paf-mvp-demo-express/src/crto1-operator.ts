@@ -11,6 +11,9 @@ import {
   pofMarketWebSiteConfig,
   portalConfig,
   PrivateConfig,
+  pofMarketClientNodeConfig,
+  pifMarketClientNodeConfig,
+  pafMarketClientNodeConfig,
 } from './config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -52,9 +55,9 @@ addOperatorApi(
     [pifPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [pofPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
-    [pafMarketWebSiteConfig.host]: [Permission.READ, Permission.WRITE],
-    [pifMarketWebSiteConfig.host]: [Permission.READ, Permission.WRITE],
-    [pofMarketWebSiteConfig.host]: [Permission.READ, Permission.WRITE],
+    [pafMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
   },
   s2sOptions
 );

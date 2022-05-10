@@ -14,6 +14,9 @@ import {
   pofMarketWebSiteConfig,
   portalConfig,
   PublicConfig,
+  pifMarketClientNodeConfig,
+  pofMarketClientNodeConfig,
+  pafMarketClientNodeConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -48,8 +51,11 @@ const hostsFile = '/etc/hosts';
     addConfig(crtoOneOperatorConfig);
     addConfig(portalConfig);
     addConfig(pafMarketWebSiteConfig);
+    addConfig(pafMarketClientNodeConfig);
     addConfig(pifMarketWebSiteConfig);
+    addConfig(pifMarketClientNodeConfig);
     addConfig(pofMarketWebSiteConfig);
+    addConfig(pofMarketClientNodeConfig);
     addConfig(pafPublisherWebSiteConfig);
     addConfig(pifPublisherWebSiteConfig);
     addConfig(pofPublisherWebSiteConfig);

@@ -16,6 +16,9 @@ import {
   pofMarketWebSiteConfig,
   portalConfig,
   PublicConfig,
+  pafMarketClientNodeConfig,
+  pifMarketClientNodeConfig,
+  pofMarketClientNodeConfig,
 } from './config';
 import { join } from 'path';
 import { pafPublisherClientNodeApp } from './paf-publisher-client-node';
@@ -31,6 +34,9 @@ import { pifMarketWebSiteApp } from './pif-market';
 import { pofMarketWebSiteApp } from './pof-market';
 import { pifPublisherClientNodeApp } from './pif-publisher-client-node';
 import { pofPublisherClientNodeApp } from './pof-publisher-client-node';
+import { pifMarketClientNodeApp } from './pif-market-client-node';
+import { pafMarketClientNodeApp } from './paf-market-client-node';
+import { pofMarketClientNodeApp } from './pof-market-client-node';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -84,13 +90,16 @@ const addApp = (config: PublicConfig, app: Express) => {
 addApp(crtoOneOperatorConfig, crtoOneOperatorApp);
 addApp(portalConfig, portalApp);
 addApp(pafMarketWebSiteConfig, pafMarketWebSiteApp);
+addApp(pafMarketClientNodeConfig, pafMarketClientNodeApp);
 addApp(pifMarketWebSiteConfig, pifMarketWebSiteApp);
+addApp(pifMarketClientNodeConfig, pifMarketClientNodeApp);
 addApp(pofMarketWebSiteConfig, pofMarketWebSiteApp);
+addApp(pofMarketClientNodeConfig, pofMarketClientNodeApp);
 addApp(pafPublisherWebSiteConfig, pafPublisherWebSiteApp);
-addApp(pifPublisherWebSiteConfig, pifPublisherWebSiteApp);
-addApp(pofPublisherWebSiteConfig, pofPublisherWebSiteApp);
 addApp(pafPublisherClientNodeConfig, pafPublisherClientNodeApp);
+addApp(pifPublisherWebSiteConfig, pifPublisherWebSiteApp);
 addApp(pifPublisherClientNodeConfig, pifPublisherClientNodeApp);
+addApp(pofPublisherWebSiteConfig, pofPublisherWebSiteApp);
 addApp(pofPublisherClientNodeConfig, pofPublisherClientNodeApp);
 
 // Warmup Requests to Improve Performance on Google Cloud Platform
