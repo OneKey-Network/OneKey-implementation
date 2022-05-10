@@ -13,6 +13,7 @@ export interface RedirectResponse<T> {
 
 export interface RedirectRequest<T> {
   request: T;
+  returnUrl: string;
 }
 
 export interface PAFNode {

@@ -54,7 +54,7 @@ export const addClientNodeEndpoints = (
   const client = new OperatorClient(operatorHost, hostName, privateKey, new PublicKeyStore(s2sOptions));
 
   const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, privateKey);
-  const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, hostName, privateKey);
+  const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
   const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, privateKey);
 
   const tld = getTopLevelDomain(hostName);
@@ -74,7 +74,7 @@ export const addClientNodeEndpoints = (
   // *****************************************************************************************************************
 
   app.get(jsonProxyEndpoints.read, cors(corsOptions), (req, res) => {
-    const url = client.getReadRestUrl();
+    const url = client.getReadRestUrl(req);
 
     httpRedirect(res, url.toString(), 302);
   });
@@ -94,7 +94,7 @@ export const addClientNodeEndpoints = (
   });
 
   app.get(jsonProxyEndpoints.newId, cors(corsOptions), (req, res) => {
-    const getNewIdRequestJson = getNewIdRequestBuilder.buildRequest();
+    const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
     const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
     httpRedirect(res, url.toString(), 302);
@@ -108,7 +108,7 @@ export const addClientNodeEndpoints = (
     const returnUrl = getReturnUrl(req, res);
 
     if (returnUrl) {
-      const url = client.getReadRedirectUrl(returnUrl);
+      const url = client.getReadRedirectUrl(req, returnUrl);
 
       httpRedirect(res, url.toString(), 302);
     }
@@ -121,9 +121,12 @@ export const addClientNodeEndpoints = (
     if (input && returnUrl) {
       // Note: the message is assumed to be signed with jsonProxyEndpoints.signWrite beforehand
 
-      const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
-        postIdsPrefsRequestBuilder.buildRequest(input),
-        returnUrl
+      const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
+        {
+          returnUrl: returnUrl.toString(),
+          referer: req.header('referer'),
+        },
+        input
       );
 
       const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
@@ -160,7 +163,7 @@ export const addClientNodeEndpoints = (
 
   app.post(jsonProxyEndpoints.signWrite, cors(corsOptions), (req, res) => {
     const message = getPayload<IdsAndPreferences>(req);
-    res.send(postIdsPrefsRequestBuilder.buildRequest(message));
+    res.send(postIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') }, message));
   });
 
   app.post(jsonProxyEndpoints.createSeed, cors(corsOptions), (req, res) => {

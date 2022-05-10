@@ -39,8 +39,10 @@ import { Signer } from '@core/crypto/signer';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
+  RedirectContext,
   RequestWithBodyDefinition,
   RequestWithoutBodyDefinition,
+  RestContext,
 } from '@core/crypto/signing-definition';
 import { RequestVerifier, Verifier } from '@core/crypto/verifier';
 
@@ -104,7 +106,24 @@ export const addOperatorApi = (
 
   const operatorApi = new OperatorApi(operatorHost, privateKey, keyStore);
 
-  const getReadResponse = async (request: GetIdsPrefsRequest, req: Request) => {
+  const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
+    // Extract request from Redirect request, if needed
+    let request: GetIdsPrefsRequest;
+    let context: RestContext | RedirectContext;
+    if (
+      (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl &&
+      (topLevelRequest as RedirectGetIdsPrefsRequest).request
+    ) {
+      request = (topLevelRequest as RedirectGetIdsPrefsRequest).request;
+      context = {
+        returnUrl: (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl,
+        referer: req.header('referer'),
+      };
+    } else {
+      request = topLevelRequest as GetIdsPrefsRequest;
+      context = { origin: req.header('origin') };
+    }
+
     const sender = request.sender;
 
     if (!allowedDomains[sender]?.includes(Permission.READ)) {
@@ -113,7 +132,7 @@ export const addOperatorApi = (
 
     if (
       !(await operatorApi.getIdsPrefsRequestVerifier.verifySignatureAndContent(
-        { request },
+        { request, context },
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
       ))
@@ -133,7 +152,27 @@ export const addOperatorApi = (
     return getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
   };
 
-  const getWriteResponse = async (request: PostIdsPrefsRequest, res: Response) => {
+  const getWriteResponse = async (
+    topLevelRequest: PostIdsPrefsRequest | RedirectPostIdsPrefsRequest,
+    req: Request,
+    res: Response
+  ) => {
+    // Extract request from Redirect request, if needed
+    let request: PostIdsPrefsRequest;
+    let context: RestContext | RedirectContext;
+    if (
+      (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl &&
+      (topLevelRequest as RedirectPostIdsPrefsRequest).request
+    ) {
+      request = (topLevelRequest as RedirectPostIdsPrefsRequest).request;
+      context = {
+        returnUrl: (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl,
+        referer: req.header('referer'),
+      };
+    } else {
+      request = topLevelRequest as PostIdsPrefsRequest;
+      context = { origin: req.header('origin') };
+    }
     const sender = request.sender;
 
     if (!allowedDomains[sender]?.includes(Permission.WRITE)) {
@@ -143,7 +182,7 @@ export const addOperatorApi = (
     // Verify message
     if (
       !(await operatorApi.postIdsPrefsRequestVerifier.verifySignatureAndContent(
-        { request },
+        { request, context },
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
       ))
@@ -216,7 +255,7 @@ export const addOperatorApi = (
     const input = getPayload<PostIdsPrefsRequest>(req);
 
     try {
-      const signedData = await getWriteResponse(input, res);
+      const signedData = await getWriteResponse(input, req, res);
 
       res.send(signedData);
     } catch (e) {
@@ -227,6 +266,7 @@ export const addOperatorApi = (
 
   app.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), async (req, res) => {
     const request = getPafDataFromQueryString<GetNewIdRequest>(req);
+    const context = { origin: req.header('origin') };
 
     const sender = request.sender;
 
@@ -236,7 +276,7 @@ export const addOperatorApi = (
 
     if (
       !(await operatorApi.getNewIdRequestVerifier.verifySignatureAndContent(
-        { request },
+        { request, context },
         sender, // sender will always be ok
         operatorHost // but operator needs to be verified
       ))
@@ -255,15 +295,15 @@ export const addOperatorApi = (
   // *****************************************************************************************************************
 
   app.get(redirectEndpoints.read, async (req, res) => {
-    const { request, returnUrl } = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
+    const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
-    if (returnUrl) {
+    if (request?.returnUrl) {
       // FIXME verify returnUrl is HTTPs
 
       const response = await getReadResponse(request, req);
 
       const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-      const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(returnUrl), redirectResponse);
+      const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
 
       httpRedirect(res, redirectUrl.toString());
     } else {
@@ -277,7 +317,7 @@ export const addOperatorApi = (
     if (returnUrl) {
       // FIXME verify returnUrl is HTTPs
 
-      const response = await getWriteResponse(request, res);
+      const response = await getWriteResponse(request, req, res);
 
       const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
       const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(returnUrl), redirectResponse);

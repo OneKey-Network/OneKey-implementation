@@ -226,7 +226,11 @@ class Examples {
     );
     this.setRestMessage(
       'getIdsPrefsRequestJson',
-      getIdsPrefsRequestBuilder.buildRequest(getTimestamp('2022/01/24 17:19'))
+      getIdsPrefsRequestBuilder.buildRestRequest(
+        { origin: originalAdvertiserUrl.toString() },
+        undefined,
+        getTimestamp('2022/01/24 17:19')
+      )
     );
     this.getIdsPrefsRequestHttp = getGETUrl(getIdsPrefsRequestBuilder.getRestUrl(this.getIdsPrefsRequestJson));
     this.setRestMessage(
@@ -253,7 +257,11 @@ class Examples {
 
     this.setRedirectRequest(
       'redirectGetIdsPrefsRequestJson',
-      getIdsPrefsRequestBuilder.toRedirectRequest(this.getIdsPrefsRequestJson, originalAdvertiserUrl)
+      getIdsPrefsRequestBuilder.buildRedirectRequest(
+        { referer: originalAdvertiserUrl.toString(), returnUrl: originalAdvertiserUrl.toString() },
+        undefined,
+        getTimestamp('2022/01/24 17:19')
+      )
     );
     this.redirectGetIdsPrefsRequestHttp = getGETUrl(
       getIdsPrefsRequestBuilder.getRedirectUrl(this.redirectGetIdsPrefsRequestJson)
@@ -286,7 +294,8 @@ class Examples {
     );
     this.setRestMessage(
       'postIdsPrefsRequestJson',
-      postIdsPrefsRequestBuilder.buildRequest(
+      postIdsPrefsRequestBuilder.buildRestRequest(
+        { origin: originalAdvertiserUrl.toString() },
         {
           identifiers: [this.idJson],
           preferences: this.preferencesJson,
@@ -309,7 +318,14 @@ class Examples {
 
     this.setRedirectRequest(
       'redirectPostIdsPrefsRequestJson',
-      postIdsPrefsRequestBuilder.toRedirectRequest(this.postIdsPrefsRequestJson, originalAdvertiserUrl)
+      postIdsPrefsRequestBuilder.buildRedirectRequest(
+        { referer: originalAdvertiserUrl.toString(), returnUrl: originalAdvertiserUrl.toString() },
+        {
+          identifiers: [this.idJson],
+          preferences: this.preferencesJson,
+        },
+        getTimestamp('2022/01/25 09:01')
+      )
     );
     this.redirectPostIdsPrefsRequestHttp = getGETUrl(
       postIdsPrefsRequestBuilder.getRedirectUrl(this.redirectPostIdsPrefsRequestJson)
@@ -332,7 +348,13 @@ class Examples {
       crtoOneOperatorConfig.host,
       operatorPrivateConfig.privateKey
     );
-    this.setRestMessage('getNewIdRequestJson', getNewIdRequestBuilder.buildRequest(getTimestamp('2022/03/01 19:04')));
+    this.setRestMessage(
+      'getNewIdRequestJson',
+      getNewIdRequestBuilder.buildRestRequest(
+        { origin: originalAdvertiserUrl.toString() },
+        getTimestamp('2022/03/01 19:04')
+      )
+    );
     this.getNewIdRequestHttp = getGETUrl(getNewIdRequestBuilder.getRestUrl(this.getNewIdRequestJson));
 
     this.setRestMessage(
@@ -345,11 +367,7 @@ class Examples {
     );
 
     // **************************** Verify 3PC
-    const get3PCRequestBuilder = new Get3PCRequestBuilder(
-      crtoOneOperatorConfig.host,
-      pafCmpConfig.host,
-      pafCmpPrivateConfig.privateKey
-    );
+    const get3PCRequestBuilder = new Get3PCRequestBuilder(crtoOneOperatorConfig.host);
     const get3PCResponseBuilder = new Get3PCResponseBuilder();
     this.get3pcRequestHttp = getGETUrl(get3PCRequestBuilder.getRestUrl());
 

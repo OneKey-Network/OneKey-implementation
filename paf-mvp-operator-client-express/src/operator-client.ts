@@ -21,6 +21,7 @@ import {
 } from '@core/crypto/signing-definition';
 import { ResponseVerifier } from '@core/crypto/verifier';
 import { getTimeStampInSec } from '@core/timestamp';
+import { Request } from 'express';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
@@ -77,16 +78,16 @@ export class OperatorClient {
     return seed;
   }
 
-  getReadRestUrl(): URL {
-    const getIdsPrefsRequestJson = this.getIdsPrefsRequestBuilder.buildRequest();
+  getReadRestUrl(req: Request): URL {
+    const getIdsPrefsRequestJson = this.getIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
     return this.getIdsPrefsRequestBuilder.getRestUrl(getIdsPrefsRequestJson);
   }
 
-  getReadRedirectUrl(returnUrl: URL): URL {
-    const getIdsPrefsRequestJson = this.getIdsPrefsRequestBuilder.toRedirectRequest(
-      this.getIdsPrefsRequestBuilder.buildRequest(),
-      returnUrl
-    );
+  getReadRedirectUrl(req: Request, returnUrl: URL): URL {
+    const getIdsPrefsRequestJson = this.getIdsPrefsRequestBuilder.buildRedirectRequest({
+      referer: req.header('referer'),
+      returnUrl: returnUrl.toString(),
+    });
     return this.getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson);
   }
 

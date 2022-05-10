@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import { crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
@@ -78,21 +78,24 @@ const optOutUrl = '/redirect/opt-out';
 // Portal API endpoints: REST
 const verify = '/rest/verify';
 
-const getWritePrefsUrl = (identifiers: Identifiers, preferences: Preferences, returnUrl: URL) => {
-  const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
-    postIdsPrefsRequestBuilder.buildRequest({
+const getWritePrefsUrl = (req: Request, identifiers: Identifiers, preferences: Preferences, returnUrl: URL) => {
+  const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
+    {
+      returnUrl: returnUrl.toString(),
+      referer: req.header('referer'),
+    },
+    {
       identifiers,
       preferences,
-    }),
-    returnUrl
+    }
   );
 
   return postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
 };
 
-const getWritePrefsUrlFromOptin = (identifiers: Identifiers, optIn: boolean, returnUrl: URL) => {
+const getWritePrefsUrlFromOptin = (req: Request, identifiers: Identifiers, optIn: boolean, returnUrl: URL) => {
   const preferences = client.buildPreferences(identifiers, { use_browsing_for_personalization: optIn });
-  return getWritePrefsUrl(identifiers, preferences, returnUrl);
+  return getWritePrefsUrl(req, identifiers, preferences, returnUrl);
 };
 
 const tld = getTopLevelDomain(portalConfig.host);
@@ -113,7 +116,7 @@ portalApp.get(generateNewId, (req, res) => {
   const returnUrl = getRequestUrl(req, writeNewId);
 
   // First go to "read or init id" on operator, and then redirects to the local write endpoint, that itself calls the operator again
-  httpRedirect(res, client.getReadRedirectUrl(returnUrl).toString());
+  httpRedirect(res, client.getReadRedirectUrl(req, returnUrl).toString());
 });
 
 portalApp.get(writeNewId, (req, res) => {
@@ -129,7 +132,7 @@ portalApp.get(writeNewId, (req, res) => {
     // Assume opt out by default if no preferences
     client.buildPreferences(identifiers, { use_browsing_for_personalization: false });
 
-  httpRedirect(res, getWritePrefsUrl(identifiers, preferences, homeUrl).toString());
+  httpRedirect(res, getWritePrefsUrl(req, identifiers, preferences, homeUrl).toString());
 });
 
 portalApp.get(optInUrl, (req, res) => {
@@ -138,7 +141,7 @@ portalApp.get(optInUrl, (req, res) => {
 
   const homeUrl = getRequestUrl(req, '/');
   if (identifiers) {
-    httpRedirect(res, getWritePrefsUrlFromOptin(identifiers, true, homeUrl).toString());
+    httpRedirect(res, getWritePrefsUrlFromOptin(req, identifiers, true, homeUrl).toString());
   } else {
     // Shouldn't happen: redirect to home page
     httpRedirect(res, homeUrl.toString());
@@ -151,7 +154,7 @@ portalApp.get(optOutUrl, (req, res) => {
 
   const homeUrl = getRequestUrl(req, '/');
   if (identifiers) {
-    httpRedirect(res, getWritePrefsUrlFromOptin(identifiers, false, homeUrl).toString());
+    httpRedirect(res, getWritePrefsUrlFromOptin(req, identifiers, false, homeUrl).toString());
   } else {
     // Shouldn't happen: redirect to home page
     httpRedirect(res, homeUrl.toString());
