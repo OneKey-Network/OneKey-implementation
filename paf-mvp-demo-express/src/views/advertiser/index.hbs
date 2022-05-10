@@ -820,11 +820,11 @@
                   </span>
                 </a>
                 <script>
-                  document.querySelector('#preferences')
-                    .addEventListener('click', (e) => {
-                      e.preventDefault();
-                      PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}", showPrompt: 'doPrompt'});
-                    });
+                    document.querySelector('#preferences')
+                        .addEventListener('click', (e) => {
+                            e.preventDefault();
+                            window.PAFUI.promptConsent();
+                        });
                 </script>
               </div>
             </div>
