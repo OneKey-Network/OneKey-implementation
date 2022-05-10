@@ -149,8 +149,7 @@ export interface RedirectContext {
  */
 export interface RequestWithContext<T extends MessageBase> {
   request: T;
-  // FIXME FIXME FIXME make this mandatory
-  context?: RestContext | RedirectContext;
+  context: RestContext | RedirectContext;
 }
 
 /**
@@ -158,8 +157,7 @@ export interface RequestWithContext<T extends MessageBase> {
  */
 export interface UnsignedRequestWithContext<T extends MessageBase> {
   request: Unsigned<T>;
-  // FIXME FIXME FIXME make this mandatory
-  context?: RestContext | RedirectContext;
+  context: RestContext | RedirectContext;
 }
 
 /**
