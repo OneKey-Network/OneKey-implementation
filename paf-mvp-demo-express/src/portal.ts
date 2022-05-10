@@ -4,7 +4,9 @@ import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
 import {
   _ as Model,
+  Identifier,
   Identifiers,
+  IdsAndPreferences,
   MessageBase,
   PostIdsPrefsRequest,
   Preferences,
@@ -25,8 +27,10 @@ import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
   RequestWithBodyDefinition,
+  RequestWithContext,
   RequestWithoutBodyDefinition,
   ResponseDefinition,
+  ResponseType,
 } from '@core/crypto/signing-definition';
 import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier } from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
@@ -161,11 +165,12 @@ portalApp.get(optOutUrl, (req, res) => {
   }
 });
 
-const requestWithoutBodyVerifier = (payload: MessageBase) =>
-  new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition()).verifySignature({ request: payload });
-const postIdsPrefsRequestVerifier = (payload: PostIdsPrefsRequest) =>
-  new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature({ request: payload });
-const responseVerifier = new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature;
+const requestWithoutBodyVerifier = (request: RequestWithContext<MessageBase>) =>
+  new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition()).verifySignature(request);
+const postIdsPrefsRequestVerifier = (request: RequestWithContext<PostIdsPrefsRequest>) =>
+  new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature(request);
+const responseVerifier = (response: ResponseType) =>
+  new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature(response);
 /*
 const redirectResponseVerifier = new Verifier(
   keyStore.provider,
@@ -183,9 +188,9 @@ const redirectRequestWithBodyVerifier = new Verifier(
  */
 
 const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<boolean> } = {
-  identifier: new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature,
-  'ids-and-preferences': new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition())
-    .verifySignature,
+  identifier: (id: Identifier) => new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature(id),
+  'ids-and-preferences': (idAndPrefs: IdsAndPreferences) =>
+    new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()).verifySignature(idAndPrefs),
   'get-ids-prefs-request': requestWithoutBodyVerifier,
   'get-ids-prefs-response': responseVerifier,
   'get-new-id-request': requestWithoutBodyVerifier,
@@ -255,6 +260,13 @@ portalApp.post(verify, async (req, res) => {
 
 portalApp.get('/', (req, res) => {
   const cookies = req.cookies;
+  if (Object.keys(req.query).length > 0) {
+    // Make sure the page is always reloaded with empty query string, for a good reason:
+    // we want `referer` header to always be the root page without query string, to make it easier to integrate with the operator
+    // when building and signing requests
+    httpRedirect(res, '/');
+    return;
+  }
 
   const formatCookie = (value: string | undefined) => (value ? JSON.stringify(JSON.parse(value), null, 2) : undefined);
 
