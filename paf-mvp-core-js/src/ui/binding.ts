@@ -120,19 +120,28 @@ export abstract class BindingReadWrite<T, M extends IModel, E extends HTMLElemen
   protected abstract getValue(element: E): T;
 
   /**
-   * Binds all the elements to the events that matter for the binding. If the model doesn't update then reverses the
-   * UI change.
+   * Handles the event from the UI element. Can be overridden by the inheriting class.
+   * @param e event
+   */
+  protected eventHandler = (e: Event) => {
+    const element = <E>e.target;
+    if (this.field !== null && this.field.disabled === false) {
+      this.field.value = this.getValue(element);
+    }
+  };
+
+  /**
+   * Binds all the elements to the events that matter for the binding.
+   * @remarks removes any previous event listener before adding the new one to prevent the same event firing multiple
+   * times.
    * @returns the element that was refreshed if it exists
    */
   public refresh(): E {
     const element = super.getElement();
     if (element !== null) {
       this.events.forEach((event) => {
-        element.addEventListener(event, () => {
-          if (this.field !== null) {
-            this.field.value = this.getValue(element);
-          }
-        });
+        element.removeEventListener(event, this.eventHandler);
+        element.addEventListener(event, this.eventHandler);
       });
     }
     return element;
