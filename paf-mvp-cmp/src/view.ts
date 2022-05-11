@@ -215,8 +215,7 @@ export class View implements IView {
     this.cardContainer = document.createElement('div');
     this.cardContainer.className = 'ok-ui';
 
-    // Append the style and container with a shadow root for encapsulation. The mode must be open so that the tooltip
-    // bindings work.
+    // Append the style and container with a shadow root for encapsulation.
     this.root = this.outerContainer.attachShadow({ mode: 'closed' });
     this.root.appendChild(style);
     this.root.appendChild(this.cardContainer);
