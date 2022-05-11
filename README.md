@@ -4,6 +4,8 @@ Implementation repository for Prebid Addressability Framework (PAF).
 
 Reference implementation of the Minimum Viable Product (MVP) defined [here](https://github.com/criteo/addressable-network-proposals/tree/main/mvp-spec).
 
+The demo website can be visited here [publisher-demo](https://www.pafdemopublisher.com/)
+
 ```mermaid
 
 flowchart TB
