@@ -71,15 +71,6 @@
   border-color: $grey-400;
 }
 
-.ok-ui-toggle__input:disabled ~ .ok-ui-toggle__input-facade,
-.ok-ui-toggle__input:disabled ~ .ok-ui-toggle__content .ok-ui-toggle__label {
-  cursor: default;
-}
-
-.ok-ui-toggle__input:disabled ~ .ok-ui-toggle__input-facade {
-  background-color: $grey-50;
-}
-
 .ok-ui-toggle__input:focus ~ .ok-ui-toggle__input-facade {
   @include focusable;
 }
@@ -88,5 +79,17 @@
   &::before {
     left: em(15px);
     background-color: $brand-primary;
+  }
+}
+
+.ok-ui-toggle__input:disabled ~ .ok-ui-toggle__input-facade,
+.ok-ui-toggle__input:disabled ~ .ok-ui-toggle__content .ok-ui-toggle__label {
+  cursor: default;
+}
+
+.ok-ui-toggle__input:disabled ~ .ok-ui-toggle__input-facade {
+  background-color: $grey-50;
+  &::before {
+    background-color: $grey-400;
   }
 }
