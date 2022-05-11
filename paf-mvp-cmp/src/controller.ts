@@ -69,11 +69,14 @@ export class Controller {
    * If some of the data is persisted and others not then show the settings card.
    */
   public display(card?: string) {
-    this.setCard(card ?? this.getCard());
+    card = card ?? this.getCard();
+    if (card !== null) {
+      this.setCard(card);
+    }
   }
 
   /**
-   * Works out given the state of the model the card to display.
+   * Works out given the state of the model the card to display if any.
    * @returns the card to display, or null if no card should be displayed
    */
   private getCard(): string | null {
