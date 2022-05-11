@@ -15,16 +15,12 @@ export class BindingThisSiteOnly extends BindingViewOnly<boolean, Model, HTMLDiv
     this.enabled = config.siteOnlyEnabled;
   }
 
-  public bind(): void {
-    const element = this.getElement();
+  refresh(): HTMLDivElement {
+    const element = super.getElement();
     if (element !== null) {
       element.style.display = this.enabled ? '' : 'none';
     }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setValue(value: boolean): void {
-    // Do nothing.
+    return element;
   }
 }
 
@@ -39,21 +35,15 @@ export class BindingShowRandomId extends BindingViewOnly<PreferencesData, Model,
     this.model = model;
   }
 
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
-  }
-
   /**
    * If the preferences are persisted then show the identifier.
-   * @param value of the identifier being displayed
    */
-  public setValue(value: PreferencesData) {
+  public refresh(): HTMLDivElement {
     const element = super.getElement();
     if (element !== null) {
-      const visible = value !== null && this.model.rid?.value?.value !== undefined;
+      const visible = this.field.value !== null && this.model.rid?.value?.value !== undefined;
       element.style.display = visible ? '' : 'none';
     }
+    return element;
   }
 }

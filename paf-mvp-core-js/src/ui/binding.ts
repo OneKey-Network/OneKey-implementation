@@ -24,15 +24,9 @@ import { Field, FieldReadOnly, IModel } from './fields';
  */
 export interface IBindingField<T, M extends IModel> {
   /**
-   * Sets the value in the HTML element.
-   * @param value
+   * Informs the binding that something about the field status has changed and the UI should refresh.
    */
-  setValue(value: T): void;
-
-  /**
-   * Binds the event listener to any new elements that might now exist in the DOM.
-   */
-  bind(): void;
+  refresh(): void;
 
   /**
    * The field that the binding relates to.
@@ -96,12 +90,12 @@ export abstract class BindingViewOnly<T, M extends IModel, E extends HTMLElement
   protected field: Field<T, M> | null = null;
 
   /**
-   * Sets the UI of the bound element to reflect the value provided. Must be implemented in the inheriting class to
+   * Sets the UI of the bound element to reflect the value in the field. Must be implemented in the inheriting class to
    * update the UI element for the specific field in question. Some times complex types require manipulation before
    * display or are set in the UI via attributes or other methods meaning a "one size fits all" solution isn't possible.
-   * @param value
+   * @returns the element that was refreshed if it exists
    */
-  abstract setValue(value: T): void;
+  abstract refresh(): E;
 
   /**
    * Sets the field that the binding is associated with.
@@ -125,23 +119,23 @@ export abstract class BindingReadWrite<T, M extends IModel, E extends HTMLElemen
    */
   protected abstract getValue(element: E): T;
 
-  // Binds all the elements to the events that matter for the binding. If the model doesn't update then reverses the
-  // UI change.
-  public bind(): void {
-    const element = this.getElement();
+  /**
+   * Binds all the elements to the events that matter for the binding. If the model doesn't update then reverses the
+   * UI change.
+   * @returns the element that was refreshed if it exists
+   */
+  public refresh(): E {
+    const element = super.getElement();
     if (element !== null) {
       this.events.forEach((event) => {
         element.addEventListener(event, () => {
           if (this.field !== null) {
-            const newValue = this.getValue(element);
-            this.field.value = newValue;
-            if (this.field.value !== newValue) {
-              this.setValue(this.field.value);
-            }
+            this.field.value = this.getValue(element);
           }
         });
       });
     }
+    return element;
   }
 }
 
@@ -159,19 +153,13 @@ export class BindingChecked<M extends IModel>
     return element.checked;
   }
 
-  public setValue(value: boolean) {
-    const element = super.getElement();
+  public refresh(): HTMLInputElement {
+    const element = super.refresh();
     if (element !== null) {
-      element.checked = value;
+      element.checked = this.field.value;
       element.disabled = this.field.disabled;
     }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
-    super.bind();
+    return element;
   }
 }
 
@@ -210,21 +198,13 @@ export class BindingCheckedMap<T, M extends IModel>
    * @remarks
    * JSON string comparison method is needed for non native types where we want to compare the value for equality
    * rather than the reference to the instance.
-   *
-   * @param value to use when determine the display state
    */
-  public setValue(value: T) {
-    const element = super.getElement();
+  public refresh(): HTMLInputElement {
+    const element = super.refresh();
     if (element !== null) {
-      element.checked = JSON.stringify(value) === JSON.stringify(this.trueValue);
+      element.checked = JSON.stringify(this.field.value) === JSON.stringify(this.trueValue);
     }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
-    super.bind();
+    return element;
   }
 }
 
@@ -252,22 +232,17 @@ export class BindingElement<T, M extends IModel>
     this.pairs = Array.from(map);
   }
 
-  public setValue(key: T) {
+  public refresh(): HTMLElement {
     const element = super.getElement();
     if (element !== null) {
-      const text = this.getString(key);
+      const text = this.getString(this.field.value);
       if (text !== null) {
         element.innerHTML = text;
       } else {
         element.innerHTML = '';
       }
     }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
+    return element;
   }
 
   private getString(key: T): string | null {
@@ -282,16 +257,11 @@ export class BindingElement<T, M extends IModel>
 }
 
 export class BindingButton<M extends IModel> extends BindingViewOnly<boolean, M, HTMLButtonElement> {
-  public setValue(value: boolean) {
+  public refresh(): HTMLButtonElement {
     const element = super.getElement();
     if (element !== null) {
-      element.disabled = value !== true;
+      element.disabled = this.field.value !== true;
     }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
+    return element;
   }
 }

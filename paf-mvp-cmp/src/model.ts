@@ -123,9 +123,6 @@ export class FieldPreferences extends Field<PreferencesData, Model> {
    * If the preferences has changed update the other fields in the model.
    */
   protected updateOthers() {
-    // Always reset all the custom fields to false. The ones that should be true will be altered.
-    this.model.customFields.forEach((f) => (f.value = false));
-
     if (Marketing.equals(this.value, Marketing.personalized)) {
       // If personalized is true then standard must be false. Also all the
       // customized options will be true.
@@ -136,9 +133,7 @@ export class FieldPreferences extends Field<PreferencesData, Model> {
       // customized options will also be false.
       this.model.all.value = false;
       this.model.standardFields.forEach((f) => (f.value = true));
-    } else {
-      // No marketing option is selected so must be customized.
-      this.model.all.value = false;
+      this.model.nonStandardFields.forEach((f) => (f.value = false));
     }
 
     // The save button state needs to be checked.
@@ -240,6 +235,13 @@ export class FieldSingle extends FieldCustom {
  * Field represents a consent purpose that can't be switched off.
  */
 export class FieldSingleAlwaysTrue extends FieldSingle {
+  set disabled(value: boolean) {
+    // Do nothing.
+  }
+  get disabled(): boolean {
+    return true;
+  }
+
   set value(newValue: boolean) {
     // Do nothing.
   }
@@ -306,6 +308,7 @@ export class Model implements IModel {
   readonly allFields: IField[];
   readonly personalizedFields: FieldSingle[];
   readonly standardFields: FieldSingle[];
+  readonly nonStandardFields: FieldSingle[];
   readonly customFields: FieldSingle[];
   readonly changableFields: FieldSingle[];
 
@@ -361,6 +364,9 @@ export class Model implements IModel {
       this.tcf.get(11),
       this.tcf.get(12),
     ];
+
+    // The custom fields that are not part of standard marketing.
+    this.nonStandardFields = [this.tcf.get(7), this.tcf.get(8), this.tcf.get(9), this.tcf.get(10)];
 
     // The custom fields that can be changed.
     this.changableFields = [];

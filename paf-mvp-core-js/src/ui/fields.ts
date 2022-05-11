@@ -50,7 +50,7 @@ export abstract class FieldReadOnly<T, M extends IModel> implements IFieldBind {
    * are updated and vice versa.
    */
   bind() {
-    this.bindings.forEach((b) => b.bind());
+    this.bindings.forEach((b) => b.refresh());
   }
 
   /**
@@ -73,14 +73,6 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
 
   // The current value of the field used with the getter and setter.
   private _value: T;
-
-  /**
-   * True if the field is disabled and can't have it's value changed. Should be overridden in inheriting classes if the
-   * ability to disable a field is needed.
-   */
-  public get disabled(): boolean {
-    return false;
-  }
 
   /**
    * The model and default value for the field.
@@ -112,12 +104,27 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
    */
   public set value(value: T) {
     this._value = value;
-    this.bindings.forEach((b) => b.setValue(value));
+    this.bindings.forEach((b) => b.refresh());
     if (this.model.settingValues === false) {
       this.model.settingValues = true;
       this.updateOthers();
       this.model.settingValues = false;
     }
+  }
+
+  /**
+   * True if the field is disabled and can't have it's value changed. Should be overridden in inheriting classes if the
+   * ability to disable a field is needed.
+   */
+  public get disabled(): boolean {
+    return false;
+  }
+
+  /**
+   * Ensures the UI components are updated if the disabled status of the field changes.
+   */
+  public set disabled(value: boolean) {
+    this.bindings.forEach((b) => b.refresh());
   }
 
   /**
@@ -133,6 +140,6 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
    */
   addBinding(binding: IBindingField<T, M>) {
     super.addBinding(binding);
-    binding.setValue(this._value);
+    binding.refresh();
   }
 }

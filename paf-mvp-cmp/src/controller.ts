@@ -549,22 +549,16 @@ export class Controller {
 class BindingDisplayRandomId extends BindingViewOnly<Identifier, Model, HTMLSpanElement> {
   /**
    * Adds the identifier text to the bound elements inner text.
-   * @param value of the identifier
    */
-  public setValue(value: Identifier) {
+  public refresh(): HTMLSpanElement {
     const element = super.getElement();
     if (element !== null) {
-      if (value !== null && value.value !== null) {
-        element.innerText = value.value.substring(0, 6);
+      if (this.field.value !== null && this.field.value !== null) {
+        element.innerText = this.field.value.value.substring(0, 6);
       } else {
         element.innerText = '';
       }
     }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
+    return element;
   }
 }
