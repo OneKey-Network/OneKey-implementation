@@ -122,11 +122,11 @@ export class Controller {
       new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-display-marketing',
-        new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(<string>this.locale.customizePersonalized)],
-          [Marketing.standard, this.config.replace(<string>this.locale.customizeStandard)],
-          [Marketing.custom, this.config.replace(<string>this.locale.customizeCustomized)],
-          [Marketing.notSet, this.config.replace(<string>this.locale.customizeCustomized)],
+        this.buildMap([
+          <string>this.locale.customizePersonalized,
+          <string>this.locale.customizeStandard,
+          <string>this.locale.customizeCustomized,
+          <string>this.locale.customizeCustomized,
         ])
       )
     );
@@ -134,11 +134,11 @@ export class Controller {
       new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-snackbar-heading',
-        new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(<string>this.locale.snackbarHeadingPersonalized)],
-          [Marketing.standard, this.config.replace(<string>this.locale.snackbarHeadingStandard)],
-          [Marketing.custom, this.config.replace(<string>this.locale.snackbarHeadingCustomized)],
-          [Marketing.notSet, this.config.replace(<string>this.locale.snackbarHeadingCustomized)],
+        this.buildMap([
+          <string>this.locale.snackbarHeadingPersonalized,
+          <string>this.locale.snackbarHeadingStandard,
+          <string>this.locale.snackbarHeadingCustomized,
+          <string>this.locale.snackbarHeadingCustomized,
         ])
       )
     );
@@ -146,11 +146,11 @@ export class Controller {
       new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-snackbar-body',
-        new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(<string>this.locale.snackbarBodyPersonalized)],
-          [Marketing.standard, this.config.replace(<string>this.locale.snackbarBodyStandard)],
-          [Marketing.custom, this.config.replace(<string>this.locale.snackbarBodyCustomized)],
-          [Marketing.notSet, this.config.replace(<string>this.locale.snackbarBodyCustomized)],
+        this.buildMap([
+          <string>this.locale.snackbarBodyPersonalized,
+          <string>this.locale.snackbarBodyStandard,
+          <string>this.locale.snackbarBodyCustomized,
+          <string>this.locale.snackbarBodyCustomized,
         ])
       )
     );
@@ -165,6 +165,20 @@ export class Controller {
     this.model.all.addBinding(new BindingChecked(this.view, 'ok-ui-preference-all'));
     this.model.canSave.addBinding(new BindingButton(this.view, 'ok-ui-button-save'));
     this.model.rid.addBinding(new BindingDisplayRandomId(this.view, 'ok-ui-display-rid'));
+  }
+
+  /**
+   * Builds a map of marketing preferences to UI text.
+   * @param text array of four text values
+   * @returns
+   */
+  private buildMap(text: string[]): Map<PreferencesData, string> {
+    return new Map<PreferencesData, string>([
+      [Marketing.personalized, this.config.replace(text[0])],
+      [Marketing.standard, this.config.replace(text[1])],
+      [Marketing.custom, this.config.replace(text[2])],
+      [Marketing.notSet, this.config.replace(text[3])],
+    ]);
   }
 
   /**
