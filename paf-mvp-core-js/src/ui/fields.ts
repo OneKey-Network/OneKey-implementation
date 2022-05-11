@@ -16,19 +16,18 @@ import { IBindingField } from './binding';
  */
 
 export interface IFieldBind {
-  bind(): void;
+  refresh(): void;
 }
 
 export interface IFieldReset {
   reset(): void;
+  get hasChanged(): boolean;
 }
 
 export interface IModel {
   get settingValues(): boolean;
   set settingValues(value: boolean);
 }
-
-export interface IField extends IFieldBind, IFieldReset {}
 
 export abstract class FieldReadOnly<T, M extends IModel> implements IFieldBind {
   // List of bindings to HTML elements for the field.
@@ -46,10 +45,10 @@ export abstract class FieldReadOnly<T, M extends IModel> implements IFieldBind {
   }
 
   /**
-   * Binds the elements that are associated with the field to the field so that when the value changes the HTML elements
-   * are updated and vice versa.
+   * Refreshes the elements that are associated with the field to the field so that when the value changes the HTML
+   * elements are updated and vice versa.
    */
-  bind() {
+  refresh() {
     this.bindings.forEach((b) => b.refresh());
   }
 
@@ -74,6 +73,9 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
   // The current value of the field used with the getter and setter.
   private _value: T;
 
+  // The first value that was passed to set value. Used to determine if the field has changed.
+  private firstValue: T = undefined;
+
   /**
    * The model and default value for the field.
    * @param model
@@ -82,7 +84,7 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
   constructor(model: M, defaultValue: T) {
     super(model);
     this.defaultValue = defaultValue;
-    this._value = defaultValue;
+    this.reset();
   }
 
   /**
@@ -90,6 +92,13 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
    * altered.
    */
   protected abstract updateOthers(): void;
+
+  /**
+   * True if the value of the field has changed since the first time it was set.
+   */
+  public get hasChanged(): boolean {
+    return this.firstValue !== undefined && this.value !== this.firstValue;
+  }
 
   /**
    * Gets the current value.
@@ -104,6 +113,9 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
    */
   public set value(value: T) {
     this._value = value;
+    if (this.firstValue === undefined) {
+      this.firstValue = value;
+    }
     this.bindings.forEach((b) => b.refresh());
     if (this.model.settingValues === false) {
       this.model.settingValues = true;
@@ -132,6 +144,7 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
    */
   reset() {
     this.value = this.defaultValue;
+    this.firstValue = undefined;
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Field, IField, IModel } from '@core/ui/fields';
+import { Field, FieldReadOnly, IFieldReset, IFieldBind, IModel } from '@core/ui/fields';
 import {
   Identifier,
   IdsAndOptionalPreferences,
@@ -78,7 +78,7 @@ export class FieldId extends Field<Identifier, Model> {
    * If the random Id field changes then the save button should become enabled.
    */
   protected updateOthers(): void {
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
+    this.model.canSave.refresh();
   }
 
   /**
@@ -136,8 +136,11 @@ export class FieldPreferences extends Field<PreferencesData, Model> {
       this.model.nonStandardFields.forEach((f) => (f.value = false));
     }
 
+    // The state of the this site only toggle might have changed so bind to the UI.
+    this.model.onlyThisSite.refresh();
+
     // The save button state needs to be checked.
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
+    this.model.canSave.refresh();
   }
 
   /**
@@ -163,14 +166,10 @@ export class FieldThisSiteOnly extends Field<boolean, Model> {
   }
 
   /**
-   * When the this site only option is set to false then all the other values need to be reset. This does not apply when
-   * the model is being loaded for the first time.
+   * Updates the change state of the model.
    */
   protected updateOthers() {
-    if (this.value === false) {
-      this.model.reset();
-    }
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
+    this.model.canSave.refresh();
   }
 }
 
@@ -196,11 +195,7 @@ export abstract class FieldCustom extends Field<boolean, Model> {
    * should be changed.
    */
   protected setThisSiteOnly() {
-    if (
-      this.model.onlyThisSiteEnabled &&
-      this.model.onlyThisSite.value === false &&
-      Marketing.equals(this.model.pref.value, Marketing.custom)
-    ) {
+    if (this.model.onlyThisSiteEnabled && Marketing.equals(this.model.pref.value, Marketing.custom)) {
       this.model.onlyThisSite.value = true;
     }
   }
@@ -226,8 +221,8 @@ export class FieldSingle extends FieldCustom {
   protected updateOthers() {
     this.setMarketing();
     this.setThisSiteOnly();
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
     this.model.all.value = this.allTrue(this.model.customFields);
+    this.model.canSave.refresh();
   }
 }
 
@@ -274,9 +269,9 @@ export class Model implements IModel {
    */
   public static readonly MaxId = 12;
 
-  // Set to true when model update operations are occurring. Results in the
-  // methods to update other properties being disabled.
-  settingValues = false;
+  // Set to true when model update operations are occurring. Results in the methods to update other properties being
+  // disabled. Starts with true until after the constructor has completed.
+  settingValues = true;
 
   // The data fields that relate to the data model.
   rid = new FieldId(this, null, ['paf_browser_id']); // The random id
@@ -285,7 +280,7 @@ export class Model implements IModel {
   onlyThisSiteEnabled = false; // True if only this site is enabled.
   tcf: Map<number, FieldSingle>;
   all = new FieldAll(this, false);
-  canSave = new FieldSingle(this, false); // True when the model can be saved
+  canSave = new FieldCanSave(this); // True when the model can be saved
   email: string | null = null; // Not currently used.
   salt: string | null = null; // Not currently used.
   status: PafStatus = null; // The status following the last fetch.
@@ -305,19 +300,21 @@ export class Model implements IModel {
   }
 
   // Fields that are used internally to relate values to one another.
-  readonly allFields: IField[];
+  readonly allBindable: IFieldBind[];
+  readonly allResetable: IFieldReset[];
   readonly personalizedFields: FieldSingle[];
   readonly standardFields: FieldSingle[];
   readonly nonStandardFields: FieldSingle[];
   readonly customFields: FieldSingle[];
   readonly changableFields: FieldSingle[];
+  readonly persistedFields: IFieldReset[];
 
   constructor() {
     // Add the TCF fields.
     this.tcf = this.BuildTcfFields();
 
     // All the fields. Used for the reset and bind methods.
-    this.allFields = [
+    this.allBindable = [
       this.onlyThisSite,
       this.tcf.get(1),
       this.tcf.get(2),
@@ -332,7 +329,27 @@ export class Model implements IModel {
       this.tcf.get(11),
       this.tcf.get(12),
       this.all,
+      this.rid,
+      this.pref,
       this.canSave,
+    ];
+
+    // All the fields that can be reset.
+    this.allResetable = [
+      this.onlyThisSite,
+      this.tcf.get(1),
+      this.tcf.get(2),
+      this.tcf.get(3),
+      this.tcf.get(4),
+      this.tcf.get(5),
+      this.tcf.get(6),
+      this.tcf.get(7),
+      this.tcf.get(8),
+      this.tcf.get(9),
+      this.tcf.get(10),
+      this.tcf.get(11),
+      this.tcf.get(12),
+      this.all,
       this.rid,
       this.pref,
     ];
@@ -378,13 +395,25 @@ export class Model implements IModel {
 
     // The custom fields that are set to true when personalized marketing is enabled.
     this.personalizedFields = this.customFields;
+
+    // The fields that impact persistence to storage.
+    this.persistedFields = [];
+    this.persistedFields.push(this.onlyThisSite);
+    this.persistedFields.push(this.rid);
+    this.persistedFields.push(this.pref);
+    this.changableFields.forEach((f) => {
+      this.persistedFields.push(f);
+    });
+
+    // Enable normal setting operation.
+    this.settingValues = false;
   }
 
   /**
    * Calls the bind method on all the fields in the model to connect them to the currently displayed UI.
    */
   public bind() {
-    this.allFields.forEach((f) => f.bind());
+    this.allBindable.forEach((f) => f.refresh());
   }
 
   /**
@@ -393,7 +422,7 @@ export class Model implements IModel {
    */
   public reset() {
     this.settingValues = true;
-    this.allFields.forEach((f) => f.reset());
+    this.allResetable.forEach((f) => f.reset());
     this.settingValues = false;
   }
 
@@ -407,9 +436,11 @@ export class Model implements IModel {
       if (data.identifiers !== undefined && data.identifiers.length > 0) {
         Validate.Identifiers(data.identifiers);
         this.rid.setPersisted(data.identifiers);
+        this.onlyThisSite.value = false;
       }
       if (data.preferences !== undefined) {
         this.pref.setPersisted(data.preferences);
+        this.onlyThisSite.value = false;
       }
     }
   }
@@ -452,17 +483,16 @@ export class Model implements IModel {
 /**
  * Static class used to determine if the save button should be enabled.
  */
-class ButtonState {
+class FieldCanSave extends FieldReadOnly<boolean, Model> {
   /**
-   * True if the model is in a state where the data can be saved, otherwise false.
-   * @param model
-   * @returns
+   * True if the model can be saved. This can be as a result of the has changed property being set on a field and either
+   * PAF personalized or standard marketing being selected or the custom preferences.
    */
-  static isEnabled(model: Model) {
+  public get value(): boolean {
     return (
-      (model.onlyThisSite.value === true && model.onlyThisSiteEnabled === true) ||
-      model.pref.hasChanged === true ||
-      model.rid.persisted === false
+      this.model.persistedFields.some((i) => i.hasChanged) &&
+      (Marketing.equals(this.model.pref.value, Marketing.custom) === false ||
+        this.model.customFields.some((i) => i.hasChanged))
     );
   }
 }

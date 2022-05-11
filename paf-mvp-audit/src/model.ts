@@ -40,6 +40,6 @@ export class Model {
    * Calls the bind method on all the fields in the model to connect them to the currently displayed UI.
    */
   public bind() {
-    this.allFields.forEach((f) => f.bind());
+    this.allFields.forEach((f) => f.refresh());
   }
 }
