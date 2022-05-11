@@ -22,7 +22,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
 cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
 j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
-  dpoEmailAddress: 'contact@www.pafmarket.shop',
+  dpoEmailAddress: 'contact@pafmarket.shop',
   privacyPolicyUrl: 'https://www.pafmarket.shop/privacy',
 };
 

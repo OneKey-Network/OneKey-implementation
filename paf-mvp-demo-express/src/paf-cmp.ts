@@ -21,7 +21,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg0X8r0PYAm3mq206o
 CdMHwZ948ONyVJToeFbLqBDKi7OhRANCAASXTbvyly6lrFR+Kocn0Ab2BUzIg76f
 Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 -----END PRIVATE KEY-----`,
-  dpoEmailAddress: 'contact@www.pafdemopublisher.com',
+  dpoEmailAddress: 'contact@pafdemopublisher.com',
   privacyPolicyUrl: 'https://www.pafdemopublisher.com/privacy',
 };
 
