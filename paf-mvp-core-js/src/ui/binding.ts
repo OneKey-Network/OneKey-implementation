@@ -163,6 +163,7 @@ export class BindingChecked<M extends IModel>
     const element = super.getElement();
     if (element !== null) {
       element.checked = value;
+      element.disabled = this.field.disabled;
     }
   }
 

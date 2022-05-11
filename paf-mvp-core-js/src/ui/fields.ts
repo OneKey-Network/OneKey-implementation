@@ -75,6 +75,14 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
   private _value: T;
 
   /**
+   * True if the field is disabled and can't have it's value changed. Should be overridden in inheriting classes if the
+   * ability to disable a field is needed.
+   */
+  public get disabled(): boolean {
+    return false;
+  }
+
+  /**
    * The model and default value for the field.
    * @param model
    * @param defaultValue

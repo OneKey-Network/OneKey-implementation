@@ -161,6 +161,13 @@ export class FieldPreferences extends Field<PreferencesData, Model> {
  */
 export class FieldThisSiteOnly extends Field<boolean, Model> {
   /**
+   * True if the this site only toggle is disabled and can't be changed because the user has selected custom marketing.
+   */
+  public get disabled(): boolean {
+    return Marketing.equals(this.model.pref.value, Marketing.custom);
+  }
+
+  /**
    * When the this site only option is set to false then all the other values need to be reset. This does not apply when
    * the model is being loaded for the first time.
    */
@@ -190,7 +197,8 @@ export abstract class FieldCustom extends Field<boolean, Model> {
   }
 
   /**
-   * If custom marketing is selected then the preferences are only for this site.
+   * If custom marketing is selected then the preferences are only for this site and the this site only field value
+   * should be changed.
    */
   protected setThisSiteOnly() {
     if (
@@ -272,7 +280,7 @@ export class Model implements IModel {
   rid = new FieldId(this, null, ['paf_browser_id']); // The random id
   pref = new FieldPreferences(this, Marketing.notSet); // The preferences
   onlyThisSite = new FieldThisSiteOnly(this, false);
-  onlyThisSiteEnabled: boolean; // True if only this site is enabled.
+  onlyThisSiteEnabled = false; // True if only this site is enabled.
   tcf: Map<number, FieldSingle>;
   all = new FieldAll(this, false);
   canSave = new FieldSingle(this, false); // True when the model can be saved
