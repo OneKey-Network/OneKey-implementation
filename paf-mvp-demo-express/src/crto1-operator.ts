@@ -1,4 +1,3 @@
-import { addOperatorApi, Permission } from '@operator/operator-api';
 import { s2sOptions } from './server-config';
 import {
   crtoOneOperatorConfig,
@@ -12,7 +11,7 @@ import {
   PrivateConfig,
 } from './config';
 import { getTimeStampInSec } from '@core/timestamp';
-import { App } from '@core/express/express-apps';
+import { OperatorNode, Permission } from '@operator/operator-node';
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {
@@ -34,11 +33,8 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
   privacyPolicyUrl: 'https://crto-poc-1.onekey.network/privacy',
 };
 
-export const crtoOneOperatorApp = new App(crtoOneOperatorConfig.name).setHostName(crtoOneOperatorConfig.host);
-
 // This host supports the Operator API
-addOperatorApi(
-  crtoOneOperatorApp.app,
+export const crtoOneOperatorApp = new OperatorNode(
   {
     name: crtoOneOperatorConfig.name,
     currentPublicKey: operatorPrivateConfig.currentPublicKey,

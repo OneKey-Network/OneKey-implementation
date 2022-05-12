@@ -49,7 +49,7 @@ const mainApp = new App('', express());
 
 const apps: App[] = [];
 
-addApp(crtoOneOperatorApp);
+addApp(crtoOneOperatorApp.app);
 addApp(portalApp);
 
 addApp(pafMarketWebSiteApp);
