@@ -24,6 +24,36 @@ import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
 import { App } from '@core/express/express-apps';
 
+// TODO remove this automatic status return and do it explicitely outside of this method
+const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
+  const stringValue = req.query[paramName] as string;
+  if (stringValue === undefined) {
+    res.sendStatus(400); // TODO add message
+    return undefined;
+  }
+  return stringValue;
+};
+
+/**
+ * Get return URL parameter, otherwise set response code 400
+ * @param req
+ * @param res
+ */
+const getReturnUrl = (req: Request, res: Response): URL | undefined => {
+  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
+  return redirectStr ? new URL(redirectStr) : undefined;
+};
+
+/**
+ * Get request parameter, otherwise set response code 400
+ * @param req
+ * @param res
+ */
+const getMessageObject = <T>(req: Request, res: Response): T => {
+  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
+  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
+};
+
 export class ClientNode {
   /**
    * Add PAF client node endpoints to an Express app
@@ -357,33 +387,3 @@ export class ClientNode {
     });
   }
 }
-
-/**
- * Get return URL parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-const getReturnUrl = (req: Request, res: Response): URL | undefined => {
-  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
-  return redirectStr ? new URL(redirectStr) : undefined;
-};
-
-// TODO remove this automatic status return and do it explicitely outside of this method
-const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
-  const stringValue = req.query[paramName] as string;
-  if (stringValue === undefined) {
-    res.sendStatus(400); // TODO add message
-    return undefined;
-  }
-  return stringValue;
-};
-
-/**
- * Get request parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-const getMessageObject = <T>(req: Request, res: Response): T => {
-  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
-  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
-};

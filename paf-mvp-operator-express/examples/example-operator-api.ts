@@ -1,10 +1,8 @@
-import { addOperatorApi, Permission } from '@operator/operator-api';
-import express from 'express';
 import { getTimeStampInSec } from '@core/timestamp';
+import { OperatorNode, Permission } from '@operator/operator-node';
 
 // This is just an example of a basic operator node configuration
-addOperatorApi(
-  express(),
+export const operator = new OperatorNode(
   // Identity information: mandatory for any PAF interaction
   {
     // Name of the PAF participant
