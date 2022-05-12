@@ -12,7 +12,7 @@ export const addIdentityEndpoint = (app: Express, identity: Identity) => {
   ]);
 
   app.get(participantEndpoints.identity, cors(corsOptionsAcceptAll), (req, res) => {
-    res.send(response);
+    res.json(response);
   });
 };
 

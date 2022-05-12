@@ -255,7 +255,7 @@ portalApp.post(verify, async (req, res) => {
     }
   })();
 
-  res.send(response);
+  res.json(response);
 });
 
 portalApp.get('/', (req, res) => {

@@ -46,6 +46,7 @@ import {
 } from '@core/crypto/signing-definition';
 import { RequestVerifier, Verifier } from '@core/crypto/verifier';
 import { Log } from '@core/log';
+import { OperatorError, OperatorErrorType } from '@core/errors';
 
 // Expiration: now + 3 months
 const getOperatorExpiration = (date: Date = new Date()) => {
@@ -239,11 +240,16 @@ export const addOperatorApi = (
 
     try {
       const response = await getReadResponse(request, req);
-      res.send(response);
+      res.json(response);
     } catch (e) {
       logger.Error(endpoint, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
       res.status(400);
-      res.send(e);
+      res.json(error);
     }
   });
 
@@ -252,14 +258,25 @@ export const addOperatorApi = (
     logger.Info(endpoint);
     // Note: no signature verification here
 
-    const cookies = req.cookies;
-    const testCookieValue = typedCookie<Test3Pc>(cookies[Cookies.test_3pc]);
+    try {
+      const cookies = req.cookies;
+      const testCookieValue = typedCookie<Test3Pc>(cookies[Cookies.test_3pc]);
 
-    // Clean up
-    removeCookie(req, res, Cookies.test_3pc, { domain: tld });
+      // Clean up
+      removeCookie(req, res, Cookies.test_3pc, { domain: tld });
 
-    const response = get3PCResponseBuilder.buildResponse(testCookieValue);
-    res.send(response);
+      const response = get3PCResponseBuilder.buildResponse(testCookieValue);
+      res.json(response);
+    } catch (e) {
+      logger.Error(endpoint, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+    }
   });
 
   endpoint = jsonOperatorEndpoints.write;
@@ -269,11 +286,16 @@ export const addOperatorApi = (
 
     try {
       const signedData = await getWriteResponse(input, req, res);
-      res.send(signedData);
+      res.json(signedData);
     } catch (e) {
       logger.Error(endpoint, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
       res.status(400);
-      res.send(e);
+      res.json(error);
     }
   });
 
@@ -302,11 +324,16 @@ export const addOperatorApi = (
       }
 
       const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
-      res.send(response);
+      res.json(response);
     } catch (e) {
       logger.Error(endpoint, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
       res.status(400);
-      res.send(e);
+      res.json(error);
     }
   });
 
@@ -319,22 +346,34 @@ export const addOperatorApi = (
     logger.Info(endpoint);
     const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
-    if (request?.returnUrl) {
-      try {
-        const response = await getReadResponse(request, req);
-
-        const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-        const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
-
-        httpRedirect(res, redirectUrl.toString());
-      } catch (e) {
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        res.status(400);
-        res.send(e);
-      }
-    } else {
+    if (!request?.returnUrl) {
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      res.sendStatus(400);
+      const error: OperatorError = {
+        type: OperatorErrorType.INVALID_RETURN_URL,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      return;
+    }
+
+    try {
+      const response = await getReadResponse(request, req);
+
+      const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+      const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
+
+      httpRedirect(res, redirectUrl.toString());
+    } catch (e) {
+      logger.Error(endpoint, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
     }
   });
 
@@ -343,23 +382,34 @@ export const addOperatorApi = (
     logger.Info(endpoint);
     const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
 
-    if (request?.returnUrl) {
-      try {
-        const response = await getWriteResponse(request, req, res);
-
-        const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-        const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
-
-        httpRedirect(res, redirectUrl.toString());
-      } catch (e) {
-        logger.Error(endpoint, e);
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        res.status(400);
-        res.send(e);
-      }
-    } else {
+    if (!request?.returnUrl) {
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      res.sendStatus(400);
+      const error: OperatorError = {
+        type: OperatorErrorType.INVALID_RETURN_URL,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      return;
+    }
+
+    try {
+      const response = await getWriteResponse(request, req, res);
+
+      const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+      const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
+
+      httpRedirect(res, redirectUrl.toString());
+    } catch (e) {
+      logger.Error(endpoint, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
     }
   });
 };
