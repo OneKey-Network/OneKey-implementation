@@ -19,6 +19,7 @@ import {
   Preferences,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
+  ReturnUrl,
   Test3Pc,
 } from '@core/model/generated-model';
 import { UnsignedSource } from '@core/model/model';
@@ -216,6 +217,43 @@ export const addOperatorApi = (
     return postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
   };
 
+  const isValidOrigin = (origin: string) => origin?.length > 0;
+
+  const checkOrigin = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
+    const origin = req.header('origin');
+
+    if (isValidOrigin(origin)) {
+      next();
+    } else {
+      const error: OperatorError = {
+        type: OperatorErrorType.INVALID_ORIGIN,
+        details: `Origin is not allowed: ${origin}`,
+      };
+      logger.Error(endpoint, error);
+      res.status(400);
+      res.json(error);
+    }
+  };
+
+  const checkReferer = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
+    const referer = req.header('referer');
+
+    if (isValidOrigin(referer)) {
+      next();
+    } else {
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      const error: OperatorError = {
+        type: OperatorErrorType.INVALID_REFERER,
+        details: `Referer is not allowed: ${referer}`,
+      };
+      logger.Error(endpoint, error);
+      res.status(400);
+      res.json(error);
+    }
+  };
+
+  // TODO define **middlewares** for extracting the request body (and affect it to res.locals) then checking permissions
+
   // *****************************************************************************************************************
   // ************************************************************************************************************ JSON
   // *****************************************************************************************************************
@@ -230,7 +268,7 @@ export const addOperatorApi = (
   };
 
   let endpoint = jsonOperatorEndpoints.read;
-  app.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+  app.get(endpoint, cors(corsOptionsAcceptAll), checkOrigin(endpoint), async (req, res) => {
     logger.Info(endpoint);
 
     // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
@@ -254,7 +292,7 @@ export const addOperatorApi = (
   });
 
   endpoint = jsonOperatorEndpoints.verify3PC;
-  app.get(endpoint, cors(corsOptionsAcceptAll), (req, res) => {
+  app.get(endpoint, cors(corsOptionsAcceptAll), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
     // Note: no signature verification here
 
@@ -280,7 +318,7 @@ export const addOperatorApi = (
   });
 
   endpoint = jsonOperatorEndpoints.write;
-  app.post(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+  app.post(endpoint, cors(corsOptionsAcceptAll), checkOrigin(endpoint), async (req, res) => {
     logger.Info(endpoint);
     const input = getPayload<PostIdsPrefsRequest>(req);
 
@@ -300,7 +338,7 @@ export const addOperatorApi = (
   });
 
   endpoint = jsonOperatorEndpoints.newId;
-  app.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+  app.get(endpoint, cors(corsOptionsAcceptAll), checkOrigin(endpoint), async (req, res) => {
     logger.Info(endpoint);
     const request = getPafDataFromQueryString<GetNewIdRequest>(req);
     const context = { origin: req.header('origin') };
@@ -341,77 +379,107 @@ export const addOperatorApi = (
   // ******************************************************************************************************* REDIRECTS
   // *****************************************************************************************************************
 
+  const getRequestFromQS =
+    <T>(endpoint: string) =>
+    (req: Request, res: Response, next: () => unknown) => {
+      const request = getPafDataFromQueryString<T>(req);
+      if (request) {
+        res.locals.request = request;
+        next();
+      } else {
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        const error: OperatorError = {
+          type: OperatorErrorType.MISSING_PAF_PARAM,
+          details: 'Missing paf param in query string',
+        };
+        logger.Error(endpoint, error);
+        res.status(400);
+        res.json(error);
+      }
+    };
+
+  const checkReturnUrl =
+    <T extends { returnUrl: ReturnUrl }>(endpoint: string) =>
+    (req: Request, res: Response, next: () => unknown) => {
+      const request = <T>res.locals.request;
+
+      if (request?.returnUrl?.length > 0) {
+        next();
+      } else {
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        const error: OperatorError = {
+          type: OperatorErrorType.INVALID_RETURN_URL,
+          details: '',
+        };
+        logger.Error(endpoint, error);
+        res.status(400);
+        res.json(error);
+      }
+    };
+
   endpoint = redirectEndpoints.read;
-  app.get(endpoint, async (req, res) => {
-    logger.Info(endpoint);
-    const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
+  app.get(
+    endpoint,
+    checkReferer(endpoint),
+    getRequestFromQS<RedirectGetIdsPrefsRequest>(endpoint),
+    checkReturnUrl<RedirectGetIdsPrefsRequest>(endpoint),
+    async (req, res) => {
+      logger.Info(endpoint);
 
-    if (!request?.returnUrl) {
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: OperatorError = {
-        type: OperatorErrorType.INVALID_RETURN_URL,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      return;
+      const request = <RedirectGetIdsPrefsRequest>res.locals.request;
+
+      try {
+        const response = await getReadResponse(request, req);
+
+        const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+        const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
+
+        httpRedirect(res, redirectUrl.toString());
+      } catch (e) {
+        logger.Error(endpoint, e);
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
     }
-
-    try {
-      const response = await getReadResponse(request, req);
-
-      const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-      const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
-
-      httpRedirect(res, redirectUrl.toString());
-    } catch (e) {
-      logger.Error(endpoint, e);
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-    }
-  });
+  );
 
   endpoint = redirectEndpoints.write;
-  app.get(endpoint, async (req, res) => {
-    logger.Info(endpoint);
-    const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
+  app.get(
+    endpoint,
+    checkReferer(endpoint),
+    getRequestFromQS<RedirectPostIdsPrefsRequest>(endpoint),
+    checkReturnUrl<RedirectPostIdsPrefsRequest>(endpoint),
+    async (req, res) => {
+      logger.Info(endpoint);
 
-    if (!request?.returnUrl) {
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: OperatorError = {
-        type: OperatorErrorType.INVALID_RETURN_URL,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      return;
+      const request = <RedirectPostIdsPrefsRequest>res.locals.request;
+
+      try {
+        const response = await getWriteResponse(request, req, res);
+
+        const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+        const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
+
+        httpRedirect(res, redirectUrl.toString());
+      } catch (e) {
+        logger.Error(endpoint, e);
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
     }
-
-    try {
-      const response = await getWriteResponse(request, req, res);
-
-      const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-      const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
-
-      httpRedirect(res, redirectUrl.toString());
-    } catch (e) {
-      logger.Error(endpoint, e);
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-    }
-  });
+  );
 };
 
 // FIXME should probably be moved to core library

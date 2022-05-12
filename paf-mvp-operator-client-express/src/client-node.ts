@@ -9,7 +9,7 @@ import {
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import { escapeRegExp, getPayload, getTopLevelDomain, httpRedirect } from '@core/express/utils';
+import { escapeRegExp, getPayload, getTopLevelDomain } from '@core/express/utils';
 import { fromDataToObject } from '@core/query-string';
 import {
   Get3PCRequestBuilder,
@@ -56,7 +56,41 @@ export const addClientNodeEndpoints = (
   const tld = getTopLevelDomain(hostName);
 
   // Only allow calls from the same TLD+1, under HTTPS
-  const allowedOrigins = [new RegExp(`^https:\\/\\/.*\\.${escapeRegExp(tld)}(/?$|\\/.*$)`)];
+  const allowedOrigins: RegExp[] = [new RegExp(`^https:\\/\\/.*\\.${escapeRegExp(tld)}(/?$|\\/.*$)`)];
+
+  const isValidOrigin = (origin: string) => allowedOrigins.findIndex((regexp: RegExp) => regexp.test(origin)) !== -1;
+
+  const checkOrigin = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
+    const origin = req.header('origin');
+
+    if (isValidOrigin(origin)) {
+      next();
+    } else {
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.INVALID_ORIGIN,
+        details: `Origin is not allowed: ${origin}`,
+      };
+      logger.Error(endpoint, error);
+      res.status(400);
+      res.json(error);
+    }
+  };
+
+  const checkReferer = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
+    const referer = req.header('referer');
+
+    if (isValidOrigin(referer)) {
+      next();
+    } else {
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.INVALID_REFERER,
+        details: `Referer is not allowed: ${referer}`,
+      };
+      logger.Error(endpoint, error);
+      res.status(400);
+      res.json(error);
+    }
+  };
 
   const corsOptions: CorsOptions = {
     origin: allowedOrigins,
@@ -70,11 +104,11 @@ export const addClientNodeEndpoints = (
   // *****************************************************************************************************************
 
   let endpoint = jsonProxyEndpoints.read;
-  app.get(endpoint, cors(corsOptions), (req, res) => {
+  app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
+
     try {
       const url = client.getReadRestUrl(req);
-
       res.send(url.toString());
     } catch (e) {
       logger.Error(endpoint, e);
@@ -88,11 +122,11 @@ export const addClientNodeEndpoints = (
   });
 
   endpoint = jsonProxyEndpoints.write;
-  app.get(endpoint, cors(corsOptions), (req, res) => {
+  app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
+
     try {
       const url = postIdsPrefsRequestBuilder.getRestUrl();
-
       res.send(url.toString());
     } catch (e) {
       logger.Error(endpoint, e);
@@ -106,11 +140,11 @@ export const addClientNodeEndpoints = (
   });
 
   endpoint = jsonProxyEndpoints.verify3PC;
-  app.get(endpoint, cors(corsOptions), (req, res) => {
+  app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
+
     try {
       const url = get3PCRequestBuilder.getRestUrl();
-
       res.send(url.toString());
     } catch (e) {
       logger.Error(endpoint, e);
@@ -124,7 +158,7 @@ export const addClientNodeEndpoints = (
   });
 
   endpoint = jsonProxyEndpoints.newId;
-  app.get(endpoint, cors(corsOptions), (req, res) => {
+  app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
     try {
       const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
@@ -145,15 +179,12 @@ export const addClientNodeEndpoints = (
   // *****************************************************************************************************************
   // ******************************************************************************************************* REDIRECTS
   // *****************************************************************************************************************
-
-  const isValidReturnUrl = (returnUrl: URL): boolean => returnUrl?.protocol === 'https:';
-
-  endpoint = redirectProxyEndpoints.read;
-  app.get(endpoint, cors(corsOptions), (req, res) => {
-    logger.Info(endpoint);
+  const checkReturnUrl = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
     const returnUrl = getReturnUrl(req, res);
 
-    if (!isValidReturnUrl(returnUrl)) {
+    if (isValidOrigin(returnUrl.toString())) {
+      next();
+    } else {
       const error: ClientNodeError = {
         type: ClientNodeErrorType.INVALID_RETURN_URL,
         details: `Invalid return URL: ${returnUrl.toString()}`,
@@ -161,15 +192,20 @@ export const addClientNodeEndpoints = (
       logger.Error(endpoint, error);
       res.status(400);
       res.json(error);
-      return;
     }
+  };
+
+  endpoint = redirectProxyEndpoints.read;
+  app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
+    logger.Info(endpoint);
+
+    const returnUrl = getReturnUrl(req, res);
 
     try {
       const url = client.getReadRedirectUrl(req, returnUrl);
-      httpRedirect(res, url.toString(), 302);
+      res.send(url.toString());
     } catch (e) {
       logger.Error(endpoint, e);
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       const error: ClientNodeError = {
         type: ClientNodeErrorType.UNKNOWN_ERROR,
         details: '',
@@ -180,21 +216,10 @@ export const addClientNodeEndpoints = (
   });
 
   endpoint = redirectProxyEndpoints.write;
-  app.get(endpoint, cors(corsOptions), (req, res) => {
+  app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
     logger.Info(endpoint);
     const returnUrl = getReturnUrl(req, res);
     const input = getMessageObject<IdsAndPreferences>(req, res);
-
-    if (!isValidReturnUrl(returnUrl)) {
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.INVALID_RETURN_URL,
-        details: `Invalid return URL: ${returnUrl.toString()}`,
-      };
-      logger.Error(endpoint, error);
-      res.status(400);
-      res.json(error);
-      return;
-    }
 
     if (input) {
       try {
@@ -207,8 +232,7 @@ export const addClientNodeEndpoints = (
         );
 
         const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
-
-        httpRedirect(res, url.toString(), 302);
+        res.send(url.toString());
       } catch (e) {
         logger.Error(endpoint, e);
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
@@ -226,7 +250,7 @@ export const addClientNodeEndpoints = (
   // ******************************************************************************************** JSON - SIGN & VERIFY
   // *****************************************************************************************************************
   endpoint = jsonProxyEndpoints.verifyRead;
-  app.post(endpoint, cors(corsOptions), (req, res) => {
+  app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
@@ -269,7 +293,7 @@ export const addClientNodeEndpoints = (
   });
 
   endpoint = jsonProxyEndpoints.signPrefs;
-  app.post(endpoint, cors(corsOptions), (req, res) => {
+  app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
     try {
       const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
@@ -287,7 +311,7 @@ export const addClientNodeEndpoints = (
   });
 
   endpoint = jsonProxyEndpoints.signWrite;
-  app.post(endpoint, cors(corsOptions), (req, res) => {
+  app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
     try {
       const message = getPayload<IdsAndPreferences>(req);
@@ -305,7 +329,7 @@ export const addClientNodeEndpoints = (
   });
 
   endpoint = jsonProxyEndpoints.createSeed;
-  app.post(endpoint, cors(corsOptions), (req, res) => {
+  app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
     logger.Info(endpoint);
     try {
       const request = JSON.parse(req.body as string) as PostSeedRequest;
@@ -335,6 +359,7 @@ const getReturnUrl = (req: Request, res: Response): URL | undefined => {
   return redirectStr ? new URL(redirectStr) : undefined;
 };
 
+// TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
   const stringValue = req.query[paramName] as string;
   if (stringValue === undefined) {

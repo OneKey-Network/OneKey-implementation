@@ -12,7 +12,7 @@ import {
   Preferences,
   Seed,
 } from '@core/model/generated-model';
-import { UnsignedSource, Unsigned } from '@core/model/model';
+import { Unsigned, UnsignedSource } from '@core/model/model';
 import { SignatureStringBuilder } from './signer';
 
 /**
@@ -191,9 +191,9 @@ export class RequestWithoutBodyDefinition extends RequestDefinition<GetIdsPrefsR
 
     const inputData = [request.sender, request.receiver, request.timestamp];
 
-    if (restContext.origin) {
+    if (restContext.origin?.length > 0) {
       inputData.push(restContext.origin);
-    } else if (redirectContext.referer && redirectContext.returnUrl) {
+    } else if (redirectContext.referer?.length > 0 && redirectContext.returnUrl?.length > 0) {
       inputData.push(redirectContext.referer);
       inputData.push(redirectContext.returnUrl);
     } else {
