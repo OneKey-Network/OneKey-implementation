@@ -1,9 +1,12 @@
 import express from 'express';
 import { pifPublisherClientNodeConfig, pifPublisherWebSiteConfig } from './config';
+import { App } from '@core/express/express-apps';
 
-export const pifPublisherWebSiteApp = express();
+export const pifPublisherWebSiteApp = new App(pifPublisherWebSiteConfig.name).setHostName(
+  pifPublisherWebSiteConfig.host
+);
 
-pifPublisherWebSiteApp.get('/', (req, res) => {
+pifPublisherWebSiteApp.app.get('/', (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pifPublisherWebSiteConfig.name,
@@ -13,3 +16,7 @@ pifPublisherWebSiteApp.get('/', (req, res) => {
     cmp: false,
   });
 });
+
+export const pifPublisherCdnApp = new App(pifPublisherWebSiteConfig.name, express()).setHostName(
+  pifPublisherWebSiteConfig.cdnHost
+);

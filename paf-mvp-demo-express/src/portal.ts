@@ -35,6 +35,7 @@ import {
 import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier } from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { getTimeStampInSec } from '@core/timestamp';
+import { App } from '@core/express/express-apps';
 
 const portalPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -54,7 +55,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
   dpoEmailAddress: 'contact@portal.onekey.network',
   privacyPolicyUrl: 'https://portal.onekey.network/privacy',
 };
-export const portalApp = express();
+export const portalApp = new App(portalConfig.name).setHostName(portalConfig.host);
 
 const keyStore = new PublicKeyStore(s2sOptions);
 
@@ -104,26 +105,26 @@ const getWritePrefsUrlFromOptin = (req: Request, identifiers: Identifiers, optIn
 
 const tld = getTopLevelDomain(portalConfig.host);
 
-portalApp.get(removeIdUrl, (req, res) => {
+portalApp.app.get(removeIdUrl, (req, res) => {
   removeCookie(req, res, Cookies.identifiers, { domain: tld });
   const homeUrl = getRequestUrl(req, '/');
   httpRedirect(res, homeUrl.toString());
 });
 
-portalApp.get(removePrefsUrl, (req, res) => {
+portalApp.app.get(removePrefsUrl, (req, res) => {
   removeCookie(req, res, Cookies.preferences, { domain: tld });
   const homeUrl = getRequestUrl(req, '/');
   httpRedirect(res, homeUrl.toString());
 });
 
-portalApp.get(generateNewId, (req, res) => {
+portalApp.app.get(generateNewId, (req, res) => {
   const returnUrl = getRequestUrl(req, writeNewId);
 
   // First go to "read or init id" on operator, and then redirects to the local write endpoint, that itself calls the operator again
   httpRedirect(res, client.getReadRedirectUrl(req, returnUrl).toString());
 });
 
-portalApp.get(writeNewId, (req, res) => {
+portalApp.app.get(writeNewId, (req, res) => {
   const cookies = req.cookies;
 
   const redirectGetIdsPrefsResponse = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req);
@@ -139,7 +140,7 @@ portalApp.get(writeNewId, (req, res) => {
   httpRedirect(res, getWritePrefsUrl(req, identifiers, preferences, homeUrl).toString());
 });
 
-portalApp.get(optInUrl, (req, res) => {
+portalApp.app.get(optInUrl, (req, res) => {
   const cookies = req.cookies;
   const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
@@ -152,7 +153,7 @@ portalApp.get(optInUrl, (req, res) => {
   }
 });
 
-portalApp.get(optOutUrl, (req, res) => {
+portalApp.app.get(optOutUrl, (req, res) => {
   const cookies = req.cookies;
   const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
@@ -223,9 +224,9 @@ const mappings: Mappings = {
   },
 };
 
-portalApp.use(express.json());
+portalApp.app.use(express.json());
 
-portalApp.post(verify, async (req, res) => {
+portalApp.app.post(verify, async (req, res) => {
   const request: {
     type: keyof Model;
     payload: object;
@@ -258,7 +259,7 @@ portalApp.post(verify, async (req, res) => {
   res.json(response);
 });
 
-portalApp.get('/', (req, res) => {
+portalApp.app.get('/', (req, res) => {
   const cookies = req.cookies;
   if (Object.keys(req.query).length > 0) {
     // Make sure the page is always reloaded with empty query string, for a good reason:
@@ -307,7 +308,7 @@ portalApp.get('/', (req, res) => {
   res.render('portal/index', options);
 });
 
-addIdentityEndpoint(portalApp, {
+addIdentityEndpoint(portalApp.app, {
   name: portalConfig.name,
   type: portalPrivateConfig.type,
   currentPublicKey: portalPrivateConfig.currentPublicKey,
