@@ -15,33 +15,59 @@ import { IBindingField } from './binding';
  * limitations under the License.
  */
 
+/**
+ * A field that can be bound to a UI element.
+ */
 export interface IFieldBind {
-  refresh(): void;
+  /**
+   * Refreshes the bound UI elements to reflect the current state of the model.
+   */
+  updateUI(): void;
 }
 
-export interface IFieldReset {
+/**
+ * A field that can be changed.
+ */
+export interface IFieldChangable {
+  /**
+   * Resets the field to the default value.
+   */
   reset(): void;
+
+  /**
+   * True if the field now has a different value than the initial value.
+   */
   get hasChanged(): boolean;
 }
 
+/**
+ * The common properties for all models.
+ */
 export interface IModel {
   /**
-   * Indicates that the model is being updated.
+   * Indicates the model is being updated.
    */
   get settingValues(): boolean;
   set settingValues(value: boolean);
 
   /**
-   * Refreshes the user interface based on the current state of the model.
+   * Refreshes the bound UI elements to reflect the current state of the model.
    */
-  refresh(): void;
+  updateUI(): void;
 }
 
+/**
+ * Readonly base field class with features to bind the data to the UI elements only.
+ */
 export abstract class FieldReadOnly<T, M extends IModel> implements IFieldBind {
-  // List of bindings to HTML elements for the field.
+  /**
+   * Bindings to HTML elements associated with the field.
+   */
   protected bindings: IBindingField<T, M>[] = [];
 
-  // The model the field is part of.
+  /**
+   * Model the field is part of.
+   */
   protected readonly model: M;
 
   /**
@@ -53,10 +79,9 @@ export abstract class FieldReadOnly<T, M extends IModel> implements IFieldBind {
   }
 
   /**
-   * Refreshes the elements that are associated with the field to the field so that when the value changes the HTML
-   * elements are updated and vice versa.
+   * Refreshes the bound UI elements to reflect the current state of the model.
    */
-  refresh() {
+  public updateUI() {
     this.bindings.forEach((b) => b.refresh());
   }
 
@@ -65,27 +90,38 @@ export abstract class FieldReadOnly<T, M extends IModel> implements IFieldBind {
    * binding to the list for the field.
    * @param binding
    */
-  addBinding(binding: IBindingField<T, M>) {
+  public addBinding(binding: IBindingField<T, M>) {
     binding.setField(this);
     this.bindings.push(binding);
   }
 }
 
 /**
- * Field that can be bound to an HTML element.
+ * Field that can be bound to an HTML element and which might alter other fields in the model.
  */
-export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> implements IFieldReset {
-  // The default value for the field. Used when the field is reset.
+export class Field<T, M extends IModel> extends FieldReadOnly<T, M> implements IFieldChangable {
+  /**
+   * The default value for the field. Used when the field is reset.
+   */
   private readonly defaultValue: T;
 
-  // The current value of the field used with the getter and setter.
+  /**
+   *  The current value of the field used with the getter and setter.
+   */
   private _value: T;
 
-  // The first value that was passed to set value. Used to determine if the field has changed.
-  protected firstValue: T = undefined;
+  /**
+   * The value, if any, that is currently persisted to storage. Used to determine if the field value has changed.
+   */
+  private _persistedValue: T = undefined;
 
   /**
-   * The model and default value for the field.
+   * True if the field is disabled and can't have it's value changed, otherwise false. Defaults to false.
+   */
+  private _disabled = false;
+
+  /**
+   * Constructs a new instance of the readonly field for the model with the default value.
    * @param model
    * @param defaultValue
    */
@@ -99,13 +135,19 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
    * Called after the set value for this field has been actioned to determine if other fields in the model need to be
    * altered.
    */
-  protected abstract updateOthers(): void;
+  protected updateOthers() {
+    // Do nothing in base implementation
+  }
 
   /**
-   * True if the value of the field has changed since the first time it was set.
+   * Returns true if;
+   * - there is no persisted value and needs to be persisted; or
+   * - there is a persisted value and the current value is not equal to it.
+   * Otherwise false.
+   * @remarks should be overridden if the default equality operator should not be used.
    */
   public get hasChanged(): boolean {
-    return this.firstValue !== undefined && this.value !== this.firstValue;
+    return this.persistedValue === undefined || this.value !== this.persistedValue;
   }
 
   /**
@@ -116,20 +158,38 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
   }
 
   /**
-   * Sets the current value, updating any HTML elements that match the name value, then checks to see if any other
-   * fields need to be updated if the model is not already in a setting values operation.
+   * Sets the current value, then checks to see if any other fields need to be updated if the model is not already in a
+   * setting values operation. Finally updates any UI elements bound to the model.
+   * @remarks if the field is disabled an exception is thrown.
    */
   public set value(value: T) {
-    this._value = value;
-    if (this.firstValue === undefined) {
-      this.firstValue = value;
+    if (this._disabled) {
+      throw "Can't set value of disabled field";
     }
+    this._value = value;
     if (this.model.settingValues === false) {
       this.model.settingValues = true;
       this.updateOthers();
       this.model.settingValues = false;
     }
-    this.model.refresh();
+    this.model.updateUI();
+  }
+
+  /**
+   * Gets the value that was persisted, or undefined if there is no persisted value.
+   */
+  public get persistedValue(): T {
+    return this._persistedValue;
+  }
+
+  /**
+   * Sets the current value and the persisted value, then checks to see if any other fields need to be updated if the
+   * model is not already in a setting values operation. Finally updates any UI elements bound to the model.
+   * Should be used instead of the value property when setting a value from persisted storage.
+   */
+  public set persistedValue(value: T) {
+    this._persistedValue = value;
+    this.value = value;
   }
 
   /**
@@ -137,22 +197,23 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
    * ability to disable a field is needed.
    */
   public get disabled(): boolean {
-    return false;
+    return this._disabled;
   }
 
   /**
    * Ensures the UI components are updated if the disabled status of the field changes.
    */
   public set disabled(value: boolean) {
+    this._disabled = value;
     this.bindings.forEach((b) => b.refresh());
   }
 
   /**
-   * Resets the field to the original value.
+   * Resets the field and persisted value to the default value.
    */
   reset() {
     this.value = this.defaultValue;
-    this.firstValue = undefined;
+    this.persistedValue = undefined;
   }
 
   /**

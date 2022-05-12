@@ -1,6 +1,6 @@
 import { Config } from './config';
 import { BindingViewOnly } from '@core/ui/binding';
-import { PreferencesData } from '@core/model/generated-model';
+import { Identifier, PreferencesData } from '@core/model/generated-model';
 import { Model } from './model';
 import { View } from './view';
 
@@ -25,9 +25,9 @@ export class BindingThisSiteOnly extends BindingViewOnly<boolean, Model, HTMLDiv
 }
 
 /**
- * Custom UI binding to hide or show the area that displays the random identifier if preferences have been set.
+ * Custom UI binding to hide or show the div that displays the random identifier if preferences have been set.
  */
-export class BindingShowRandomId extends BindingViewOnly<PreferencesData, Model, HTMLDivElement> {
+export class BindingShowRandomIdDiv extends BindingViewOnly<PreferencesData, Model, HTMLDivElement> {
   protected readonly model: Model;
 
   constructor(view: View, id: string, model: Model) {
@@ -36,13 +36,32 @@ export class BindingShowRandomId extends BindingViewOnly<PreferencesData, Model,
   }
 
   /**
-   * If the preferences are persisted then show the identifier.
+   * If the this site only check field is true then don't display the random id.
    */
   public refresh(): HTMLDivElement {
     const element = super.getElement();
     if (element !== null) {
-      const visible = this.field.value !== null && this.model.rid?.value?.value !== undefined;
-      element.style.display = visible ? '' : 'none';
+      element.style.display = this.field.value ? 'none' : '';
+    }
+    return element;
+  }
+}
+
+/**
+ * Custom UI binding to display the random identifier in the button used to reset it.
+ */
+export class BindingDisplayRandomId extends BindingViewOnly<Identifier, Model, HTMLSpanElement> {
+  /**
+   * Adds the identifier text to the bound elements inner text.
+   */
+  public refresh(): HTMLSpanElement {
+    const element = super.getElement();
+    if (element !== null) {
+      if (this.field.value) {
+        element.innerText = this.field.value.value.substring(0, 6);
+      } else {
+        element.innerText = '';
+      }
     }
     return element;
   }

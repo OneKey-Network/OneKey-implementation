@@ -1,7 +1,28 @@
 import { FieldSingle, Marketing, Model } from '../src/model';
 import { PreferencesData } from '@core/model/generated-model';
+import { isModuleDeclaration } from 'typescript';
 
 let model: Model;
+
+const signedPersonalized = {
+  data: Marketing.personalized,
+  version: '0.1',
+  source: {
+    domain: 'test.com',
+    signature: 'signature',
+    timestamp: 12345,
+  },
+};
+
+const signedStandard = {
+  data: Marketing.standard,
+  version: '0.1',
+  source: {
+    domain: 'test.com',
+    signature: 'signature',
+    timestamp: 12345,
+  },
+};
 
 describe('testing model', () => {
   beforeEach(() => {
@@ -48,6 +69,7 @@ describe('testing model', () => {
   });
   test('customized results in this site only', () => {
     model.onlyThisSiteEnabled = true;
+    model.onlyThisSite.value = false;
     model.all.value = true;
     expect(model.onlyThisSite.value).toBe(false);
     model.tcf.get(5).value = false;
@@ -78,18 +100,91 @@ describe('testing model', () => {
   test('check setting customized marketing results in this site only toggle being disabled', () => {
     model.onlyThisSiteEnabled = true;
     model.all.value = true;
+    model.customFields.forEach((f) => expect(f.value).toBe(true));
     expect(model.pref.value).toBe(Marketing.personalized);
     model.tcf.get(2).value = false;
     expect(model.pref.value).toBe(Marketing.custom);
     expect(model.pref.value).toBe(Marketing.custom);
   });
+  test('check model can save when single field set', () => {
+    // No field values have been set in the model so it shouldn\'t be possible to save.
+    expect(model.canSave.value).toBe(false);
+    model.pref.value = Marketing.personalized;
+    expect(model.canSave.value).toBe(true);
+  }),
+    test('check 11 and 12 custom fields disabled', () => {
+      expect(model.tcf.get(11).disabled).toBe(true);
+      expect(model.tcf.get(12).disabled).toBe(true);
+    });
+  test('check 1 to 10 custom fields enabled', () => {
+    model.changableFields.forEach((f) => expect(f.disabled).toBe(false));
+  });
+  test('has changed for the preferences field', () => {
+    model.pref.value = Marketing.personalized;
+    expect(model.pref.hasChanged).toBe(true);
+  });
+  test('has changed against persisted for the preferences field', () => {
+    model.pref.persistedValue = Marketing.personalized;
+    expect(model.pref.hasChanged).toBe(false);
+    model.pref.value = Marketing.standard;
+    expect(model.pref.hasChanged).toBe(true);
+  });
+  test('has changed against signed persisted for the preferences field', () => {
+    model.pref.persistedSignedValue = signedPersonalized;
+    model.changableFields.forEach((f) => expect(f.hasChanged).toBe(false));
+    expect(model.pref.persistedValue).toBe(Marketing.personalized);
+    model.pref.value = Marketing.standard;
+    expect(model.pref.hasChanged).toBe(true);
+    expect(model.pref.persistedValue).toBe(Marketing.personalized);
+    expect(model.pref.value).toBe(Marketing.standard);
+  });
+  test('has changed for this site only field when custom field changes', () => {
+    model.onlyThisSiteEnabled = true;
+    model.onlyThisSite.persistedValue = false;
+    model.pref.persistedSignedValue = signedStandard;
+    expect(model.onlyThisSite.value).toBe(false);
+    expect(model.onlyThisSite.disabled).toBe(false);
+    model.tcf.get(1).value = false;
+    expect(model.onlyThisSite.value).toBe(true);
+    expect(model.onlyThisSite.disabled).toBe(true);
+    expect(model.onlyThisSite.hasChanged).toBe(true);
+  });
+  test('has changed for this site only field varies as other fields change', () => {
+    model.onlyThisSiteEnabled = true;
+    model.all.value = false;
+    model.onlyThisSite.persistedValue = true;
+    expect(model.onlyThisSite.value).toBe(true);
+    expect(model.onlyThisSite.disabled).toBe(true);
+    expect(model.onlyThisSite.hasChanged).toBe(false);
+    // Note this will reset the persisted value because it is signed persisted data.
+    model.pref.persistedSignedValue = signedStandard;
+    expect(model.onlyThisSite.value).toBe(false);
+    expect(model.onlyThisSite.disabled).toBe(false);
+    expect(model.onlyThisSite.hasChanged).toBe(false);
+    model.onlyThisSite.value = true;
+    expect(model.onlyThisSite.value).toBe(true);
+    expect(model.onlyThisSite.disabled).toBe(false);
+    expect(model.onlyThisSite.hasChanged).toBe(true);
+    model.onlyThisSite.value = false;
+    model.all.value = false;
+    expect(model.onlyThisSite.value).toBe(true);
+    expect(model.onlyThisSite.disabled).toBe(true);
+    expect(model.onlyThisSite.hasChanged).toBe(true);
+  });
 });
 
 function checkPreferenceChanges(preference: PreferencesData) {
+  // Enable the this site only feature.
   model.onlyThisSiteEnabled = true;
+  // Set all the custom changable fields to false.
   model.all.value = false;
+  // All the changable model fields should be false.
+  model.changableFields.forEach((f) => expect(f.value).toBe(false));
+  // This site only should be disabled.
   expect(model.onlyThisSite.disabled).toBe(true);
+  // Set the preferences.
   model.pref.value = preference;
+  // Check this site only is no longer disabled.
   expect(model.onlyThisSite.disabled).toBe(false);
 }
 
@@ -102,6 +197,8 @@ function customFieldChanges(customized: FieldSingle[], expected: Marketing) {
   model.onlyThisSiteEnabled = true;
   // Set all the custom fields to false.
   model.all.value = false;
+  // Check all the changable model custom fields are false.
+  model.changableFields.forEach((f) => expect(f.value).toBe(false));
   // Check that the this site only toggle is disabled.
   expect(model.onlyThisSite.disabled).toBe(true);
   // Check that custom marketing is set.

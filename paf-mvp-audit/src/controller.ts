@@ -101,7 +101,7 @@ export class Controller {
         break;
       case 'audit':
         this.view.display('audit');
-        this.model.bind();
+        this.model.updateUI();
         this.bindActions();
         break;
       case 'close':

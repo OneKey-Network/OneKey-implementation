@@ -1,5 +1,5 @@
 import { Config } from './config';
-import { BindingShowRandomId, BindingThisSiteOnly } from './bindings';
+import { BindingShowRandomIdDiv, BindingThisSiteOnly, BindingDisplayRandomId } from './bindings';
 import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement, BindingViewOnly } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
@@ -102,7 +102,7 @@ export class Controller {
     this.stopSnackbarHide();
     this.view.hidePopup();
     this.view.setCard(card);
-    this.model.refresh();
+    this.model.updateUI();
     this.bindActions();
     this.view.showPopup();
   }
@@ -154,7 +154,7 @@ export class Controller {
         ])
       )
     );
-    this.model.pref.addBinding(new BindingShowRandomId(this.view, 'ok-ui-settings-rid', this.model));
+    this.model.onlyThisSite.addBinding(new BindingShowRandomIdDiv(this.view, 'ok-ui-settings-rid', this.model));
     this.model.onlyThisSite.addBinding(new BindingChecked(this.view, 'ok-ui-only-this-site'));
     this.model.onlyThisSite.addBinding(
       new BindingThisSiteOnly(this.view, 'ok-ui-only-this-site-container', this.config)
@@ -287,10 +287,10 @@ export class Controller {
     for (let i = 0; i <= flags.length; i++) {
       const field = this.model.tcf.get(i + 1);
       if (field !== undefined) {
-        field.value = flags[i];
+        field.persistedValue = flags[i];
       }
     }
-    this.model.onlyThisSite.value = true;
+    this.model.onlyThisSite.persistedValue = true;
     this.model.status = PafStatus.NOT_PARTICIPATING;
     this.model.rid.value = null;
   }
@@ -437,7 +437,7 @@ export class Controller {
 
     // Sign the preferences if they have not been signed already.
     const p = await this.signIfNeeded();
-    this.model.pref.setPersisted(p);
+    this.model.pref.persistedSignedValue = p;
 
     // Write the Ids and preferences to storage.
     const w = await this.writeIdsAndPrefGlobal();
@@ -495,11 +495,9 @@ export class Controller {
     */
 
     // Update the ids and preferences.
-    await updateIdsAndPreferences(
-      this.config.proxyHostName,
-      this.model.pref.persisted.data.use_browsing_for_personalization,
-      [this.model.rid.value]
-    );
+    await updateIdsAndPreferences(this.config.proxyHostName, this.model.pref.value.use_browsing_for_personalization, [
+      this.model.rid.value,
+    ]);
 
     // Refresh the ids and preferences.
     const r = await refreshIdsAndPreferences({
@@ -553,26 +551,6 @@ export class Controller {
         }
       );
     }
-    return Promise.resolve<Preferences>(this.model.pref.persisted);
-  }
-}
-
-/**
- * Custom UI binding to display the random identifier in the button used to reset it.
- */
-class BindingDisplayRandomId extends BindingViewOnly<Identifier, Model, HTMLSpanElement> {
-  /**
-   * Adds the identifier text to the bound elements inner text.
-   */
-  public refresh(): HTMLSpanElement {
-    const element = super.getElement();
-    if (element !== null) {
-      if (this.field.value !== null && this.field.value !== null) {
-        element.innerText = this.field.value.value.substring(0, 6);
-      } else {
-        element.innerText = '';
-      }
-    }
-    return element;
+    return Promise.resolve<Preferences>(this.model.pref.persistedSignedValue);
   }
 }

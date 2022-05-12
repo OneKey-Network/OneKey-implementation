@@ -86,7 +86,9 @@ export abstract class BindingBase<E extends HTMLElement> {
  * Binding used only to display the value of a field and not update it.
  */
 export abstract class BindingViewOnly<T, M extends IModel, E extends HTMLElement> extends BindingBase<E> {
-  // The field that the binding relates to. Set when the binding is added to the field.
+  /**
+   * The field that the binding relates to. Set when the binding is added to the field.
+   */
   protected field: Field<T, M> | null = null;
 
   /**
@@ -110,7 +112,9 @@ export abstract class BindingViewOnly<T, M extends IModel, E extends HTMLElement
  * Binding used only to display the value of a field and provide a feedback mechanism to update it.
  */
 export abstract class BindingReadWrite<T, M extends IModel, E extends HTMLElement> extends BindingViewOnly<T, M, E> {
-  // Get the events that the binding is interested in.
+  /**
+   * The events that the binding is interested in listening to.
+   */
   protected abstract events: string[];
 
   /**
@@ -121,11 +125,13 @@ export abstract class BindingReadWrite<T, M extends IModel, E extends HTMLElemen
 
   /**
    * Handles the event from the UI element. Can be overridden by the inheriting class.
+   * @remarks must be an event object so that the add and remove listener methods don't create anoymous objects and
+   * therefore add multiple listeners for the same element and field.
    * @param e event
    */
-  protected eventHandler = (e: Event) => {
+  private eventHandler = (e: Event) => {
     const element = <E>e.target;
-    if (this.field !== null && this.field.disabled === false) {
+    if (this.field && this.field.disabled === false) {
       this.field.value = this.getValue(element);
     }
   };
@@ -172,6 +178,10 @@ export class BindingChecked<M extends IModel>
   }
 }
 
+/**
+ * Where a map contains many keys the true and the false keys are used to manipulate which key is selected when the
+ * UI element is checked or unchecked.
+ */
 export class BindingCheckedMap<T, M extends IModel>
   extends BindingReadWrite<T, M, HTMLInputElement>
   implements IBindingField<T, M>
@@ -218,8 +228,8 @@ export class BindingCheckedMap<T, M extends IModel>
 }
 
 /**
- * Binds a field with different values to display HTML. Used to change the contents of div elements and the like based
- * on the current state of fields that can have a known number of values.
+ * Binds a field with different values to display HTML. Used to change the contents of content elements based on the
+ * current state of fields that can have a known number of values.
  * @remarks
  * The key comparison is performed using JSON.Stringify to compare keys by value.
  */
@@ -227,7 +237,9 @@ export class BindingElement<T, M extends IModel>
   extends BindingViewOnly<T, M, HTMLElement>
   implements IBindingField<T, M>
 {
-  // Array of key value pairs.
+  /**
+   * Array of key value pairs.
+   */
   protected readonly pairs: [T, string][];
 
   /**
@@ -265,6 +277,10 @@ export class BindingElement<T, M extends IModel>
   }
 }
 
+/**
+ * Binding used to set the button disabled state based on the value of the field. Used to enable save buttons only when
+ * the data model is a state to support saving.
+ */
 export class BindingButton<M extends IModel> extends BindingViewOnly<boolean, M, HTMLButtonElement> {
   public refresh(): HTMLButtonElement {
     const element = super.getElement();
