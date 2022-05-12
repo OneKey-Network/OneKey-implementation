@@ -46,7 +46,7 @@ export class View implements IView {
   constructor(script: HTMLOrSVGScriptElement, locale: ILocale, config: Config) {
     this.script = script;
     this.config = config;
-    this.locale = <ILocale>locale;
+    this.locale = locale;
   }
 
   /**
