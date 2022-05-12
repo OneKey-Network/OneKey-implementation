@@ -25,8 +25,16 @@ export interface IFieldReset {
 }
 
 export interface IModel {
+  /**
+   * Indicates that the model is being updated.
+   */
   get settingValues(): boolean;
   set settingValues(value: boolean);
+
+  /**
+   * Refreshes the user interface based on the current state of the model.
+   */
+  refresh(): void;
 }
 
 export abstract class FieldReadOnly<T, M extends IModel> implements IFieldBind {
@@ -74,7 +82,7 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
   private _value: T;
 
   // The first value that was passed to set value. Used to determine if the field has changed.
-  private firstValue: T = undefined;
+  protected firstValue: T = undefined;
 
   /**
    * The model and default value for the field.
@@ -116,12 +124,12 @@ export abstract class Field<T, M extends IModel> extends FieldReadOnly<T, M> imp
     if (this.firstValue === undefined) {
       this.firstValue = value;
     }
-    this.bindings.forEach((b) => b.refresh());
     if (this.model.settingValues === false) {
       this.model.settingValues = true;
       this.updateOthers();
       this.model.settingValues = false;
     }
+    this.model.refresh();
   }
 
   /**

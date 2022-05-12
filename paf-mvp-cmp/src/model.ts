@@ -116,7 +116,7 @@ export class FieldPreferences extends Field<PreferencesData, Model> {
    * Returns true if the value has changed from the persisted value, otherwise false.
    */
   public get hasChanged(): boolean {
-    return Marketing.equals(this._persisted?.data, this.value) === false;
+    return this.firstValue !== undefined && Marketing.equals(this.value, this.firstValue) === false;
   }
 
   /**
@@ -135,12 +135,6 @@ export class FieldPreferences extends Field<PreferencesData, Model> {
       this.model.standardFields.forEach((f) => (f.value = true));
       this.model.nonStandardFields.forEach((f) => (f.value = false));
     }
-
-    // The state of the this site only toggle might have changed so bind to the UI.
-    this.model.onlyThisSite.refresh();
-
-    // The save button state needs to be checked.
-    this.model.canSave.refresh();
   }
 
   /**
@@ -300,7 +294,7 @@ export class Model implements IModel {
   }
 
   // Fields that are used internally to relate values to one another.
-  readonly allBindable: IFieldBind[];
+  readonly allUI: IFieldBind[];
   readonly allResetable: IFieldReset[];
   readonly personalizedFields: FieldSingle[];
   readonly standardFields: FieldSingle[];
@@ -314,7 +308,7 @@ export class Model implements IModel {
     this.tcf = this.BuildTcfFields();
 
     // All the fields. Used for the reset and bind methods.
-    this.allBindable = [
+    this.allUI = [
       this.onlyThisSite,
       this.tcf.get(1),
       this.tcf.get(2),
@@ -410,10 +404,10 @@ export class Model implements IModel {
   }
 
   /**
-   * Calls the bind method on all the fields in the model to connect them to the currently displayed UI.
+   * Refreshes the UI to reflect the current state of the model.
    */
-  public bind() {
-    this.allBindable.forEach((f) => f.refresh());
+  public refresh() {
+    this.allUI?.forEach((f) => f.refresh());
   }
 
   /**

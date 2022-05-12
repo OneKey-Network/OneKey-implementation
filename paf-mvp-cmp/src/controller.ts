@@ -102,7 +102,7 @@ export class Controller {
     this.stopSnackbarHide();
     this.view.hidePopup();
     this.view.setCard(card);
-    this.model.bind();
+    this.model.refresh();
     this.bindActions();
     this.view.showPopup();
   }
