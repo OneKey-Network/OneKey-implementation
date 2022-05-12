@@ -1,6 +1,5 @@
-import express from 'express';
 import { crtoOneOperatorConfig, pofPublisherClientNodeConfig, PrivateConfig } from './config';
-import { addClientNodeEndpoints } from '@operator-client/client-node';
+import { ClientNode } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -23,10 +22,7 @@ k/MRohFL/ay2XJUUf7Jb9weRJH9CuSEYZQ==
   privacyPolicyUrl: 'https://www.pofdemopublisher.com/privacy',
 };
 
-export const pofPublisherClientNodeApp = express();
-
-addClientNodeEndpoints(
-  pofPublisherClientNodeApp,
+export const pofPublisherClientNode = new ClientNode(
   {
     name: pofPublisherClientNodeConfig.name,
     currentPublicKey: pofClientNodePrivateConfig.currentPublicKey,

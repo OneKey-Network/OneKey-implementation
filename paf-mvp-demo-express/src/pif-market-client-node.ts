@@ -1,6 +1,5 @@
-import express from 'express';
 import { crtoOneOperatorConfig, pifMarketClientNodeConfig, PrivateConfig } from './config';
-import { addClientNodeEndpoints } from '@operator-client/client-node';
+import { ClientNode } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -23,10 +22,7 @@ MfRbBTyw+3s7boL9UFmkpc366R8fFXZMjg==
   privacyPolicyUrl: 'https://www.pifmarket.shop/privacy',
 };
 
-export const pifMarketClientNodeApp = express();
-
-addClientNodeEndpoints(
-  pifMarketClientNodeApp,
+export const pifMarketClientNode = new ClientNode(
   {
     name: pifMarketClientNodeConfig.name,
     currentPublicKey: pifMarketPrivateConfig.currentPublicKey,

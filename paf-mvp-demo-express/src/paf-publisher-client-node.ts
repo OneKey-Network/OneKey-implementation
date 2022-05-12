@@ -1,6 +1,5 @@
-import express from 'express';
 import { crtoOneOperatorConfig, pafPublisherClientNodeConfig, PrivateConfig } from './config';
-import { addClientNodeEndpoints } from '@operator-client/client-node';
+import { ClientNode } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -24,10 +23,7 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
   privacyPolicyUrl: 'https://www.pafdemopublisher.com/privacy',
 };
 
-export const pafPublisherClientNodeApp = express();
-
-addClientNodeEndpoints(
-  pafPublisherClientNodeApp,
+export const pafPublisherClientNode = new ClientNode(
   {
     name: pafPublisherClientNodeConfig.name,
     currentPublicKey: pafClientNodePrivateConfig.currentPublicKey,

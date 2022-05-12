@@ -1,6 +1,5 @@
-import express from 'express';
 import { crtoOneOperatorConfig, pofMarketClientNodeConfig, PrivateConfig } from './config';
-import { addClientNodeEndpoints } from '@operator-client/client-node';
+import { ClientNode } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -23,10 +22,7 @@ hshouUEPI2C2ti8j0s3K3JY2imY3DxKigw==
   privacyPolicyUrl: 'https://www.pofmarket.shop/privacy',
 };
 
-export const pofMarketClientNodeApp = express();
-
-addClientNodeEndpoints(
-  pofMarketClientNodeApp,
+export const pofMarketClientNode = new ClientNode(
   {
     name: pofMarketClientNodeConfig.name,
     currentPublicKey: pofMarketPrivateConfig.currentPublicKey,

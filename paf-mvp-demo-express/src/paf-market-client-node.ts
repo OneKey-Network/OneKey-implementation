@@ -1,6 +1,5 @@
-import express from 'express';
 import { crtoOneOperatorConfig, pafMarketClientNodeConfig, PrivateConfig } from './config';
-import { addClientNodeEndpoints } from '@operator-client/client-node';
+import { ClientNode } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -23,10 +22,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
   privacyPolicyUrl: 'https://www.pafmarket.shop/privacy',
 };
 
-export const pafMarketClientNodeApp = express();
-
-addClientNodeEndpoints(
-  pafMarketClientNodeApp,
+export const pafMarketClientNode = new ClientNode(
   {
     name: pafMarketClientNodeConfig.name,
     currentPublicKey: pafMarketClientNodePrivateConfig.currentPublicKey,
