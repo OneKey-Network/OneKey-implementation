@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import cors, { CorsOptions } from 'cors';
 import { OperatorClient } from './operator-client';
 import {
@@ -22,6 +22,7 @@ import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
 import { PAFNode } from '@core/model/model';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
+import { App } from '@core/express/express-apps';
 
 export class ClientNode {
   /**
@@ -36,13 +37,13 @@ export class ClientNode {
    */
   constructor(
     identity: Omit<Identity, 'type'>,
-    public pafNode: PAFNode,
+    pafNode: PAFNode,
     operatorHost: string,
     s2sOptions?: AxiosRequestConfig,
-    public app = express()
+    public app = new App(identity.name).setHostName(pafNode.hostName)
   ) {
     // Start by adding identity endpoint FIXME inheritence with IdentityNode
-    addIdentityEndpoint(app, {
+    addIdentityEndpoint(app.app, {
       ...identity,
       type: 'vendor',
     });
@@ -111,7 +112,7 @@ export class ClientNode {
     // *****************************************************************************************************************
 
     let endpoint = jsonProxyEndpoints.read;
-    app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       try {
@@ -129,7 +130,7 @@ export class ClientNode {
     });
 
     endpoint = jsonProxyEndpoints.write;
-    app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       try {
@@ -147,7 +148,7 @@ export class ClientNode {
     });
 
     endpoint = jsonProxyEndpoints.verify3PC;
-    app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       try {
@@ -165,7 +166,7 @@ export class ClientNode {
     });
 
     endpoint = jsonProxyEndpoints.newId;
-    app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
@@ -203,7 +204,7 @@ export class ClientNode {
     };
 
     endpoint = redirectProxyEndpoints.read;
-    app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
+    app.app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       const returnUrl = getReturnUrl(req, res);
@@ -223,7 +224,7 @@ export class ClientNode {
     });
 
     endpoint = redirectProxyEndpoints.write;
-    app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
+    app.app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
       logger.Info(endpoint);
       const returnUrl = getReturnUrl(req, res);
       const input = getMessageObject<IdsAndPreferences>(req, res);
@@ -257,7 +258,7 @@ export class ClientNode {
     // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************
     endpoint = jsonProxyEndpoints.verifyRead;
-    app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
@@ -300,7 +301,7 @@ export class ClientNode {
     });
 
     endpoint = jsonProxyEndpoints.signPrefs;
-    app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
@@ -318,7 +319,7 @@ export class ClientNode {
     });
 
     endpoint = jsonProxyEndpoints.signWrite;
-    app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const message = getPayload<IdsAndPreferences>(req);
@@ -336,7 +337,7 @@ export class ClientNode {
     });
 
     endpoint = jsonProxyEndpoints.createSeed;
-    app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const request = JSON.parse(req.body as string) as PostSeedRequest;

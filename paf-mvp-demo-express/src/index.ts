@@ -1,34 +1,17 @@
 import express, { Express } from 'express';
 import { crtoOneOperatorApp } from './crto1-operator';
-import { pafMarketWebSiteApp } from './paf-market';
-import {
-  crtoOneOperatorConfig,
-  pafMarketClientNodeConfig,
-  pafMarketWebSiteConfig,
-  pafPublisherClientNodeConfig,
-  pafPublisherWebSiteConfig,
-  pifMarketClientNodeConfig,
-  pifMarketWebSiteConfig,
-  pifPublisherClientNodeConfig,
-  pifPublisherWebSiteConfig,
-  pofMarketClientNodeConfig,
-  pofMarketWebSiteConfig,
-  pofPublisherClientNodeConfig,
-  pofPublisherWebSiteConfig,
-  portalConfig,
-  PublicConfig,
-} from './config';
+import { pafMarketCdnApp, pafMarketWebSiteApp } from './paf-market';
 import { join } from 'path';
-import { pafPublisherWebSiteApp } from './paf-publisher';
+import { pafPublisherCdnApp, pafPublisherWebSiteApp } from './paf-publisher';
 import { portalApp } from './portal';
 import { createServer } from 'https';
 import { isLocalDev, sslOptions } from './server-config';
 import { create } from 'express-handlebars';
-import { pifPublisherWebSiteApp } from './pif-publisher';
-import { pofPublisherWebSiteApp } from './pof-publisher';
-import { pifMarketWebSiteApp } from './pif-market';
-import { pofMarketWebSiteApp } from './pof-market';
-import { MainApp, VHostApp } from '@core/express/express-apps';
+import { pifPublisherCdnApp, pifPublisherWebSiteApp } from './pif-publisher';
+import { pofPublisherCdnApp, pofPublisherWebSiteApp } from './pof-publisher';
+import { pifMarketCdnApp, pifMarketWebSiteApp } from './pif-market';
+import { pofMarketCdnApp, pofMarketWebSiteApp } from './pof-market';
+import { App } from '@core/express/express-apps';
 import { pafMarketClientNode } from './paf-market-client-node';
 import { pifMarketClientNode } from './pif-market-client-node';
 import { pofMarketClientNode } from './pof-market-client-node';
@@ -56,42 +39,42 @@ const addDemoMiddleware = (app: Express) => {
   );
 };
 
-const addConfig = (config: PublicConfig, app: Express) => {
-  // TODO this object should be created earlier
-  const vHostApp = new VHostApp(config.host, app);
-
-  mainApp.addVhostApp(vHostApp);
-  addDemoMiddleware(vHostApp.app);
-
-  if (config.cdnHost) {
-    // Create a simplistic app for CDN
-    // TODO this object should be created earlier
-    const cdnVhostApp = new VHostApp(config.cdnHost);
-
-    mainApp.addVhostApp(cdnVhostApp);
-    addDemoMiddleware(cdnVhostApp.app);
-  }
-  configs.push(config);
+const addApp = (app: App) => {
+  mainApp.addVhostApp(app);
+  addDemoMiddleware(app.app);
+  apps.push(app);
 };
 
-const mainApp = new MainApp();
+const mainApp = new App('', express());
 
-const configs: PublicConfig[] = [];
+const apps: App[] = [];
 
-addConfig(crtoOneOperatorConfig, crtoOneOperatorApp);
-addConfig(portalConfig, portalApp);
-addConfig(pafMarketWebSiteConfig, pafMarketWebSiteApp);
-addConfig(pafMarketClientNodeConfig, pafMarketClientNode.app);
-addConfig(pifMarketWebSiteConfig, pifMarketWebSiteApp);
-addConfig(pifMarketClientNodeConfig, pifMarketClientNode.app);
-addConfig(pofMarketWebSiteConfig, pofMarketWebSiteApp);
-addConfig(pofMarketClientNodeConfig, pofMarketClientNode.app);
-addConfig(pafPublisherWebSiteConfig, pafPublisherWebSiteApp);
-addConfig(pafPublisherClientNodeConfig, pafPublisherClientNode.app);
-addConfig(pifPublisherWebSiteConfig, pifPublisherWebSiteApp);
-addConfig(pifPublisherClientNodeConfig, pifPublisherClientNode.app);
-addConfig(pofPublisherWebSiteConfig, pofPublisherWebSiteApp);
-addConfig(pofPublisherClientNodeConfig, pofPublisherClientNode.app);
+addApp(crtoOneOperatorApp);
+addApp(portalApp);
+
+addApp(pafMarketWebSiteApp);
+addApp(pafMarketCdnApp);
+addApp(pafMarketClientNode.app);
+
+addApp(pifMarketWebSiteApp);
+addApp(pifMarketCdnApp);
+addApp(pifMarketClientNode.app);
+
+addApp(pofMarketWebSiteApp);
+addApp(pofMarketCdnApp);
+addApp(pofMarketClientNode.app);
+
+addApp(pafPublisherWebSiteApp);
+addApp(pafPublisherCdnApp);
+addApp(pafPublisherClientNode.app);
+
+addApp(pifPublisherWebSiteApp);
+addApp(pifPublisherCdnApp);
+addApp(pifPublisherClientNode.app);
+
+addApp(pofPublisherWebSiteApp);
+addApp(pofPublisherCdnApp);
+addApp(pofPublisherClientNode.app);
 
 // Demo specific
 // Warmup Requests to Improve Performance on Google Cloud Platform
@@ -106,20 +89,14 @@ mainApp.app.listen(port, () => {
   console.log(`server started on port ${port}`);
   console.log('');
   console.log('Listening on:');
-  for (const config of configs) {
-    console.log(`${config.host} (${config.name})`);
-    if (config.cdnHost) {
-      console.log(`${config.cdnHost} (${config.name} - CDN)`);
-    }
+  for (const app of apps) {
+    console.log(`${app.hostName} (${app.name})`);
   }
   console.log('');
   if (isLocalDev) {
     console.log('Make sure you have added these lines to your /etc/hosts file or equivalent:');
-    for (const config of configs) {
-      console.log(`127.0.0.1 ${config.host} # [PAF] ${config.name}`);
-      if (config.cdnHost) {
-        console.log(`127.0.0.1 ${config.cdnHost} # [PAF] ${config.name} (CDN)`);
-      }
+    for (const app of apps) {
+      console.log(`127.0.0.1 ${app.hostName} # [PAF] ${app.name}`);
     }
   }
 });

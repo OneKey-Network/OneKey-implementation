@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express';
 import { pifMarketClientNodeConfig, pifMarketWebSiteConfig } from './config';
+import { App } from '@core/express/express-apps';
 
-export const pifMarketWebSiteApp = express();
+export const pifMarketWebSiteApp = new App(pifMarketWebSiteConfig.name).setHostName(pifMarketWebSiteConfig.host);
 
 // Both a web server serving web content
-pifMarketWebSiteApp.get('*', async (req: Request, res: Response) => {
+pifMarketWebSiteApp.app.get('*', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   res.render(view, {
@@ -14,3 +15,7 @@ pifMarketWebSiteApp.get('*', async (req: Request, res: Response) => {
     cmp: false,
   });
 });
+
+export const pifMarketCdnApp = new App(pifMarketWebSiteConfig.name, express()).setHostName(
+  pifMarketWebSiteConfig.cdnHost
+);

@@ -6,22 +6,20 @@ import vhost from 'vhost';
 /**
  * Encapsulate an Express App that listens on the local IP
  */
-export class MainApp {
-  constructor(public app = express()) {
+export class App {
+  public hostName: string | undefined;
+
+  setHostName(value: string): this {
+    this.hostName = value;
+    return this;
+  }
+
+  constructor(public name: string, public app = express()) {
     addMiddlewares(this.app);
   }
 
-  addVhostApp(vhostApp: VHostApp) {
-    this.app.use(vhost(vhostApp.vhostName, vhostApp.app));
-  }
-}
-
-/**
- * Encapsulate an Express App that declares a vhost
- */
-export class VHostApp {
-  constructor(public vhostName: string, public app = express()) {
-    addMiddlewares(this.app);
+  addVhostApp(vhostApp: App) {
+    this.app.use(vhost(vhostApp.hostName, vhostApp.app));
   }
 }
 

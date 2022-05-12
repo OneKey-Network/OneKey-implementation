@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import { pafMarketClientNodeConfig, pafMarketWebSiteConfig } from './config';
+import { App } from '@core/express/express-apps';
 
-export const pafMarketWebSiteApp = express();
+export const pafMarketWebSiteApp = new App(pafMarketWebSiteConfig.name).setHostName(pafMarketWebSiteConfig.host);
 
 /*
 const client = new OperatorBackendClient(
@@ -14,7 +15,7 @@ const client = new OperatorBackendClient(
  */
 
 // Both a web server serving web content
-pafMarketWebSiteApp.get('*', async (req: Request, res: Response) => {
+pafMarketWebSiteApp.app.get('*', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   // Act as an HTTP middleware
@@ -27,3 +28,7 @@ pafMarketWebSiteApp.get('*', async (req: Request, res: Response) => {
   });
   //}
 });
+
+export const pafMarketCdnApp = new App(pafMarketWebSiteConfig.name, express()).setHostName(
+  pafMarketWebSiteConfig.cdnHost
+);

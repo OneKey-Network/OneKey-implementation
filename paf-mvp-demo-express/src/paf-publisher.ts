@@ -1,9 +1,12 @@
 import express from 'express';
 import { pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from './config';
+import { App } from '@core/express/express-apps';
 
-export const pafPublisherWebSiteApp = express();
+export const pafPublisherWebSiteApp = new App(pafPublisherWebSiteConfig.name).setHostName(
+  pafPublisherWebSiteConfig.host
+);
 
-pafPublisherWebSiteApp.get('*', (req, res) => {
+pafPublisherWebSiteApp.app.get('*', (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pafPublisherWebSiteConfig.name,
@@ -16,3 +19,7 @@ pafPublisherWebSiteApp.get('*', (req, res) => {
   // Send full URL in referer header, for testing this config
   res.setHeader('Referrer-Policy', 'unsafe-url');
 });
+
+export const pafPublisherCdnApp = new App(pafPublisherWebSiteConfig.name, express()).setHostName(
+  pafPublisherWebSiteConfig.cdnHost
+);
