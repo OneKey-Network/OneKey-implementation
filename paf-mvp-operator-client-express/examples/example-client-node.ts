@@ -1,10 +1,8 @@
-import { addClientNodeEndpoints } from '@operator-client/client-node';
-import express from 'express';
+import { ClientNode } from '@operator-client/client-node';
 import { getTimeStampInSec } from '@core/timestamp';
 
 // This is just an example of a basic client node configuration
-addClientNodeEndpoints(
-  express(),
+export const pofPublisherClientNode = new ClientNode(
   // Identity information: mandatory for any PAF interaction
   {
     // Name of the PAF participant

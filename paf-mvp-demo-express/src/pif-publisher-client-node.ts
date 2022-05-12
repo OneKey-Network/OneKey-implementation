@@ -1,6 +1,5 @@
-import express from 'express';
 import { crtoOneOperatorConfig, pifPublisherClientNodeConfig, PrivateConfig } from './config';
-import { addClientNodeEndpoints } from '@operator-client/client-node';
+import { ClientNode } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -23,10 +22,7 @@ JyDD+ooj5HxZibrLkmoQ8klbnMaXBvkVkw==
   privacyPolicyUrl: 'https://www.pifdemopublisher.com/privacy',
 };
 
-export const pifPublisherClientNodeApp = express();
-
-addClientNodeEndpoints(
-  pifPublisherClientNodeApp,
+export const pifPublisherClientNode = new ClientNode(
   {
     name: pifPublisherClientNodeConfig.name,
     currentPublicKey: pifClientNodePrivateConfig.currentPublicKey,
