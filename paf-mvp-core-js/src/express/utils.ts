@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CookieOptions } from 'express-serve-static-core';
 import { encodeBase64, fromDataToObject, QSParam } from '../query-string';
 import { CorsOptions } from 'cors';
+import domainParser from 'tld-extract';
 
 export const setCookie = (
   res: Response,
@@ -88,3 +89,12 @@ export const escapeRegExp = (stringForRegex: string): string => stringForRegex.r
  */
 export const getHttpsOriginFromHostName = (hostName: string): RegExp =>
   new RegExp(`^https:\\/\\/${escapeRegExp(hostName)}(/?$|\\/.*$)`);
+
+/**
+ * Extract the TLD+1 from a hostname.
+ * Examples:
+ *  crto-poc-1.onekey.network => onekey.network
+ *  www.pafmarket.shop => pafmarket.shop
+ * @param host
+ */
+export const getTopLevelDomain = (host: string) => domainParser(`https://${host}`).domain;

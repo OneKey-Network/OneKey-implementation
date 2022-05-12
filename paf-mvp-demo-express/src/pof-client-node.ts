@@ -1,7 +1,6 @@
 import express from 'express';
 import { crtoOneOperatorConfig, pofCmpConfig, pofDemoPublisherConfig, PrivateConfig } from './config';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 import { getHttpsOriginFromHostName } from '@core/express/utils';
@@ -27,24 +26,18 @@ k/MRohFL/ay2XJUUf7Jb9weRJH9CuSEYZQ==
 
 export const pofCmpApp = express();
 
-// This PAF client node only allows calls from the corresponding publisher's website
-const allowedOrigins = [getHttpsOriginFromHostName(pofDemoPublisherConfig.host)];
-
 addClientNodeEndpoints(
   pofCmpApp,
+  {
+    name: pofCmpConfig.name,
+    currentPublicKey: pofCmpPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pofCmpPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pofCmpPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pofCmpConfig.host,
+    privateKey: pofCmpPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pofCmpConfig.host,
-  pofCmpPrivateConfig.privateKey,
-  allowedOrigins,
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pofCmpApp,
-  pofCmpConfig.name,
-  pofCmpPrivateConfig.type,
-  [pofCmpPrivateConfig.currentPublicKey],
-  pofCmpPrivateConfig.dpoEmailAddress,
-  new URL(pofCmpPrivateConfig.privacyPolicyUrl)
 );

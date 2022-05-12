@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pafMarketConfig, PrivateConfig } from './config';
 import { OperatorBackendClient, RedirectType } from '@operator-client/operator-backend-client';
 import { addClientNodeEndpoints } from '@operator-client/client-node';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { s2sOptions } from './server-config';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { getTimeStampInSec } from '@core/timestamp';
@@ -39,6 +38,7 @@ const client = new OperatorBackendClient(
 );
  */
 
+// Both a web server serving web content
 pafMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
@@ -53,22 +53,19 @@ pafMarketApp.get('/', async (req: Request, res: Response) => {
   //}
 });
 
-// ...and also as a JS proxy
+// ...and also a PAF node
 addClientNodeEndpoints(
   pafMarketApp,
+  {
+    name: pafMarketConfig.name,
+    currentPublicKey: pafMarketPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pafMarketPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pafMarketPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pafMarketConfig.host,
+    privateKey: pafMarketPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pafMarketConfig.host,
-  pafMarketPrivateConfig.privateKey,
-  [getHttpsOriginFromHostName(pafMarketConfig.host)],
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pafMarketApp,
-  pafMarketConfig.name,
-  pafMarketPrivateConfig.type,
-  [pafMarketPrivateConfig.currentPublicKey],
-  pafMarketPrivateConfig.dpoEmailAddress,
-  new URL(pafMarketPrivateConfig.privacyPolicyUrl)
 );
