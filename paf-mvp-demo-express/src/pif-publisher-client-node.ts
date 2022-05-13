@@ -19,7 +19,7 @@ MHcCAQEEIF4OKHOcZh3/XeLmP5yPtb0qiBc+8vuZf0bgVrOo/CbIoAoGCCqGSM49
 AwEHoUQDQgAEKwW/bVmi/yM2QRtPMKGeKMylxBBgQs9+mjSaivSEXR8VCCJfxdkt
 JyDD+ooj5HxZibrLkmoQ8klbnMaXBvkVkw==
 -----END EC PRIVATE KEY-----`,
-  dpoEmailAddress: 'contact@www.pifdemopublisher.com',
+  dpoEmailAddress: 'contact@pifdemopublisher.com',
   privacyPolicyUrl: 'https://www.pifdemopublisher.com/privacy',
 };
 
