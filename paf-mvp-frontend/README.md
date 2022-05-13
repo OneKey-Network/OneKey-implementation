@@ -82,10 +82,10 @@ Example usage:
   - write (persist) new preferences and ids to the PAF TLD+1 domain
 
 - `PAF.getNewId`
-  - calls the operator (via the operator proxy) to get a new PAF ID value
+  - calls the operator (via the PAF client node) to get a new PAF ID value
   - note that this id is **not** yet persisted: to persist it, a subsequent call to `PAF.writeIdsAndPref` must be made
 
-All these methods take at least a `proxyHostName` parameter to locate the operator backend proxy
+All these methods take at least a `proxyHostName` parameter to locate the PAF client node
 needed to sign and verify messages sent to and received from the operator.
 
 - `PAF.getIdsAndPreferences`

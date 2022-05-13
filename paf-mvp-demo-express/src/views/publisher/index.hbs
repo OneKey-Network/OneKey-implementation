@@ -101,7 +101,7 @@
                             {
                             name: "paf",
                             waitForIt: true,
-                            params: {proxyHostName: "cmp.pafdemopublisher.com"}
+                            params: {proxyHostName: "{{pafNodeHost}}" }
                         }
                     ]
                 },
@@ -163,10 +163,10 @@
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
-<script src="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js" 
+<script src="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js"
     data-display-intro="true"
     data-snackbar-timeout-ms="5000"
-    data-proxy-host-name="{{proxyHostName}}" 
+    data-proxy-host-name="{{pafNodeHost}}"
     data-brand-name="Demo Publisher"
     data-site-only-cookie-tcf-core="tcf-core"
     data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
@@ -175,7 +175,7 @@
 {{else}}
 
 <script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
-<script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script>
+<script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}" });'></script>
 
 {{/if}}
 

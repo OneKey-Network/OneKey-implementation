@@ -17,7 +17,7 @@ import { MockedFunction } from 'ts-jest';
 jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
 
-const proxyHostName = 'http://localhost';
+const pafClientNodeHost = 'http://localhost';
 
 afterEach(() => {
   // cleaning up the mess left behind the previous test
@@ -75,7 +75,7 @@ describe('Function getNewId', () => {
     const identifiers = getFakeIdentifiers(FAKE_ID);
     fetch.mockResponseOnce(JSON.stringify({ body: { identifiers } }));
     try {
-      const identifier: Identifier = await getNewId({ proxyHostName });
+      const identifier: Identifier = await getNewId({ proxyHostName: pafClientNodeHost });
       expect(identifier.value).toBe(FAKE_ID);
       expect(fetch.mock.calls.length).toEqual(1);
     } catch (error) {
@@ -153,7 +153,7 @@ describe('Function refreshIdsAndPreferences', () => {
       fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
 
       await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: true,
       });
 
@@ -164,7 +164,7 @@ describe('Function refreshIdsAndPreferences', () => {
       fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
 
       await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: true,
       });
 
@@ -175,7 +175,7 @@ describe('Function refreshIdsAndPreferences', () => {
       fetch.mockResponseOnce('null');
       await expect(
         refreshIdsAndPreferences({
-          proxyHostName,
+          proxyHostName: pafClientNodeHost,
           triggerRedirectIfNeeded: true,
         })
       ).rejects.toBe('Verification failed');
@@ -191,7 +191,7 @@ describe('Function refreshIdsAndPreferences', () => {
         })
       );
       await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: true,
       });
 
@@ -210,7 +210,7 @@ describe('Function refreshIdsAndPreferences', () => {
       );
 
       const result = await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: true,
       });
 
@@ -237,7 +237,7 @@ describe('Function refreshIdsAndPreferences', () => {
       );
 
       await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: true,
       });
 
@@ -265,7 +265,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
     test('should redirect', async () => {
       const result = await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: false,
       });
 
@@ -275,7 +275,7 @@ describe('Function refreshIdsAndPreferences', () => {
       });
 
       await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: true,
       });
 
@@ -298,7 +298,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
     test('should return cookies value', async () => {
       const result = await refreshIdsAndPreferences({
-        proxyHostName,
+        proxyHostName: pafClientNodeHost,
         triggerRedirectIfNeeded: true,
       });
 
@@ -336,7 +336,7 @@ describe('Function refreshIdsAndPreferences', () => {
           })
         );
         const result = await refreshIdsAndPreferences({
-          proxyHostName,
+          proxyHostName: pafClientNodeHost,
           triggerRedirectIfNeeded: false,
         });
 
@@ -374,7 +374,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
       test('triggers redirect', async () => {
         await refreshIdsAndPreferences({
-          proxyHostName,
+          proxyHostName: pafClientNodeHost,
           triggerRedirectIfNeeded: true,
         });
 
@@ -389,7 +389,7 @@ describe('Function signPreferences', () => {
     const mockResponse = { body: 'response' };
     fetch.mockResponseOnce(JSON.stringify(mockResponse));
     const input = { unsignedPreferences: getFakePreferences(), identifiers: getFakeIdentifiers() };
-    const result = await signPreferences({ proxyHostName }, input);
+    const result = await signPreferences({ proxyHostName: pafClientNodeHost }, input);
     expect(result).toEqual(mockResponse);
   });
 });
@@ -403,7 +403,7 @@ describe('Function createSeed', () => {
   const response: PostSeedResponse = {
     version: '0.1',
     transaction_ids: transmission_ids,
-    publisher: proxyHostName,
+    publisher: pafClientNodeHost,
     source: {
       domain: 'proxyHostName',
       timestamp: 123454,
@@ -423,18 +423,18 @@ describe('Function createSeed', () => {
   });
 
   test('with empty transmission_ids', async () => {
-    const seed = await createSeed({ proxyHostName }, []);
+    const seed = await createSeed({ proxyHostName: pafClientNodeHost }, []);
     expect(seed).toBeUndefined();
   });
 
   test('with no id and preferences', async () => {
     CookiesHelpers.clearPafCookies();
-    const seed = await createSeed({ proxyHostName }, transmission_ids);
+    const seed = await createSeed({ proxyHostName: pafClientNodeHost }, transmission_ids);
     expect(seed).toBeUndefined();
   });
 
   test('nominal path', async () => {
-    const entry = await createSeed({ proxyHostName }, transmission_ids);
+    const entry = await createSeed({ proxyHostName: pafClientNodeHost }, transmission_ids);
     expect(entry).toEqual({
       seed: response,
       idsAndPreferences,

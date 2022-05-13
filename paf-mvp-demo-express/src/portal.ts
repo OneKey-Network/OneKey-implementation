@@ -12,11 +12,16 @@ import {
   Preferences,
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
-import { getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie } from '@core/express/utils';
+import {
+  getPafDataFromQueryString,
+  getRequestUrl,
+  getTopLevelDomain,
+  httpRedirect,
+  removeCookie,
+} from '@core/express/utils';
 import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
 import { s2sOptions } from './server-config';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
-import domainParser from 'tld-extract';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import {
   IdentifierDefinition,
@@ -94,7 +99,7 @@ const getWritePrefsUrlFromOptin = (identifiers: Identifiers, optIn: boolean, ret
   return getWritePrefsUrl(identifiers, preferences, returnUrl);
 };
 
-const tld = domainParser(`https://${portalConfig.host}`).domain;
+const tld = getTopLevelDomain(portalConfig.host);
 
 portalApp.get(removeIdUrl, (req, res) => {
   removeCookie(req, res, Cookies.identifiers, { domain: tld });
@@ -285,11 +290,10 @@ portalApp.get('/', (req, res) => {
   res.render('portal/index', options);
 });
 
-addIdentityEndpoint(
-  portalApp,
-  portalConfig.name,
-  portalPrivateConfig.type,
-  [portalPrivateConfig.currentPublicKey],
-  portalPrivateConfig.dpoEmailAddress,
-  new URL(portalPrivateConfig.privacyPolicyUrl)
-);
+addIdentityEndpoint(portalApp, {
+  name: portalConfig.name,
+  type: portalPrivateConfig.type,
+  currentPublicKey: portalPrivateConfig.currentPublicKey,
+  dpoEmailAddress: portalPrivateConfig.dpoEmailAddress,
+  privacyPolicyUrl: new URL(portalPrivateConfig.privacyPolicyUrl),
+});

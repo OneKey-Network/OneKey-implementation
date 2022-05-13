@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pifMarketConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
+import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pifMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -26,33 +26,31 @@ MfRbBTyw+3s7boL9UFmkpc366R8fFXZMjg==
 
 export const pifMarketApp = express();
 
+// Both a web server serving web content
 pifMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   res.render(view, {
     title: pifMarketConfig.name,
-    proxyHostName: pifMarketConfig.host,
+    pafNodeHost: pifMarketConfig.host,
     cdnHost: pifMarketConfig.cdnHost,
     cmp: false,
   });
 });
 
-// Setup a JS proxy
-addOperatorClientProxyEndpoints(
+// ...and also a PAF node
+addClientNodeEndpoints(
   pifMarketApp,
+  {
+    name: pifMarketConfig.name,
+    currentPublicKey: pifMarketPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pifMarketPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pifMarketPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pifMarketConfig.host,
+    privateKey: pifMarketPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pifMarketConfig.host,
-  pifMarketPrivateConfig.privateKey,
-  [`https://${pifMarketConfig.host}`],
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pifMarketApp,
-  pifMarketConfig.name,
-  pifMarketPrivateConfig.type,
-  [pifMarketPrivateConfig.currentPublicKey],
-  pifMarketPrivateConfig.dpoEmailAddress,
-  new URL(pifMarketPrivateConfig.privacyPolicyUrl)
 );

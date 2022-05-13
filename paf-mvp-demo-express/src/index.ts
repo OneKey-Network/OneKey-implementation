@@ -18,7 +18,7 @@ import {
   PublicConfig,
 } from './config';
 import { join } from 'path';
-import { pafCmpApp } from './paf-cmp';
+import { pafCmpApp } from './paf-client-node';
 import { pafDemoPublisherApp } from './paf-demo-publisher';
 import { portalApp } from './portal';
 import bodyParser from 'body-parser';
@@ -29,8 +29,8 @@ import { pifDemoPublisherApp } from './pif-demo-publisher';
 import { pofDemoPublisherApp } from './pof-demo-publisher';
 import { pifMarketApp } from './pif-market';
 import { pofMarketApp } from './pof-market';
-import { pifCmpApp } from './pif-cmp';
-import { pofCmpApp } from './pof-cmp';
+import { pifCmpApp } from './pif-client-node';
+import { pofCmpApp } from './pof-client-node';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });

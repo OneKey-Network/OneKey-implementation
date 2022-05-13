@@ -10,7 +10,13 @@ import {
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import { getPayload, httpRedirect } from '@core/express/utils';
+import {
+  escapeRegExp,
+  getHttpsOriginFromHostName,
+  getPayload,
+  getTopLevelDomain,
+  httpRedirect,
+} from '@core/express/utils';
 import { fromDataToObject } from '@core/query-string';
 import {
   Get3PCRequestBuilder,
@@ -19,49 +25,42 @@ import {
 } from '@core/model/operator-request-builders';
 import { AxiosRequestConfig } from 'axios';
 import { PublicKeyStore } from '@core/crypto/key-store';
+import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
+import { PAFNode } from '@core/model/model';
 
 /**
- * Get return URL parameter, otherwise set response code 400
- * @param req
- * @param res
+ * Add PAF client node endpoints to an Express app
+ * @param app the Express app
+ * @param identity the identity attributes of this PAF node
+ * @param pafNode
+ *   hostName: the PAF client host name
+ *   privateKey: the PAF client private key string
+ * @param operatorHost the PAF operator host name
+ * @param s2sOptions? [optional] server to server configuration for local dev
  */
-const getReturnUrl = (req: Request, res: Response): URL | undefined => {
-  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
-  return redirectStr ? new URL(redirectStr) : undefined;
-};
-
-const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
-  const stringValue = req.query[paramName] as string;
-  if (stringValue === undefined) {
-    res.sendStatus(400); // TODO add message
-    return undefined;
-  }
-  return stringValue;
-};
-
-/**
- * Get request parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-export const getMessageObject = <T>(req: Request, res: Response): T => {
-  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
-  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
-};
-
-export const addOperatorClientProxyEndpoints = (
+export const addClientNodeEndpoints = (
   app: Express,
+  identity: Omit<Identity, 'type'>,
+  pafNode: PAFNode,
   operatorHost: string,
-  sender: string,
-  privateKey: string,
-  allowedOrigins: string[],
   s2sOptions?: AxiosRequestConfig
 ) => {
-  const client = new OperatorClient(operatorHost, sender, privateKey, new PublicKeyStore(s2sOptions));
+  // Start by adding identity endpoint
+  addIdentityEndpoint(app, {
+    ...identity,
+    type: 'vendor',
+  });
+  const { hostName, privateKey } = pafNode;
+  const client = new OperatorClient(operatorHost, hostName, privateKey, new PublicKeyStore(s2sOptions));
 
-  const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, sender, privateKey);
-  const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, sender, privateKey);
-  const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, sender, privateKey);
+  const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, privateKey);
+  const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost, hostName, privateKey);
+  const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, privateKey);
+
+  const tld = getTopLevelDomain(hostName);
+
+  // Only allow calls from the same TLD+1, under HTTPS
+  const allowedOrigins = [new RegExp(`^https:\\/\\/.*\\.${escapeRegExp(tld)}(/?$|\\/.*$)`)];
 
   const corsOptions: CorsOptions = {
     origin: allowedOrigins,
@@ -170,4 +169,33 @@ export const addOperatorClientProxyEndpoints = (
     const response = seed as PostSeedResponse; // For now, the response is only a Seed.
     res.send(response);
   });
+};
+
+/**
+ * Get return URL parameter, otherwise set response code 400
+ * @param req
+ * @param res
+ */
+const getReturnUrl = (req: Request, res: Response): URL | undefined => {
+  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
+  return redirectStr ? new URL(redirectStr) : undefined;
+};
+
+const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
+  const stringValue = req.query[paramName] as string;
+  if (stringValue === undefined) {
+    res.sendStatus(400); // TODO add message
+    return undefined;
+  }
+  return stringValue;
+};
+
+/**
+ * Get request parameter, otherwise set response code 400
+ * @param req
+ * @param res
+ */
+const getMessageObject = <T>(req: Request, res: Response): T => {
+  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
+  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
 };

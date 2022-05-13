@@ -13,9 +13,9 @@ import { PublicKeyStore } from '@core/crypto/key-store';
 import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
 import { Signer } from '@core/crypto/signer';
 import {
-  MessageWithBodyDefinition,
   IdsAndPreferencesDefinition,
   IdsAndUnsignedPreferences,
+  MessageWithBodyDefinition,
   SeedSignatureBuilder,
   SeedSignatureContainer,
 } from '@core/crypto/signing-definition';

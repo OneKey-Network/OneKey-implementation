@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import { crtoOneOperatorConfig, pafMarketConfig, PrivateConfig } from './config';
 import { OperatorBackendClient, RedirectType } from '@operator-client/operator-backend-client';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { getTimeStampInSec } from '@core/timestamp';
+import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pafMarketPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -38,6 +38,7 @@ const client = new OperatorBackendClient(
 );
  */
 
+// Both a web server serving web content
 pafMarketApp.get('/', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
@@ -46,28 +47,25 @@ pafMarketApp.get('/', async (req: Request, res: Response) => {
   //if (await client.getIdsAndPreferencesOrRedirect(req, res, view)) {
   res.render(view, {
     title: pafMarketConfig.name,
-    proxyHostName: pafMarketConfig.host,
+    pafNodeHost: pafMarketConfig.host,
     cdnHost: pafMarketConfig.cdnHost,
   });
   //}
 });
 
-// ...and also as a JS proxy
-addOperatorClientProxyEndpoints(
+// ...and also a PAF node
+addClientNodeEndpoints(
   pafMarketApp,
+  {
+    name: pafMarketConfig.name,
+    currentPublicKey: pafMarketPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pafMarketPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pafMarketPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pafMarketConfig.host,
+    privateKey: pafMarketPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pafMarketConfig.host,
-  pafMarketPrivateConfig.privateKey,
-  [`https://${pafMarketConfig.host}`],
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pafMarketApp,
-  pafMarketConfig.name,
-  pafMarketPrivateConfig.type,
-  [pafMarketPrivateConfig.currentPublicKey],
-  pafMarketPrivateConfig.dpoEmailAddress,
-  new URL(pafMarketPrivateConfig.privacyPolicyUrl)
 );

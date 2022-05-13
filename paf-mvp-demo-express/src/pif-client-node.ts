@@ -1,9 +1,9 @@
 import express from 'express';
 import { crtoOneOperatorConfig, pifCmpConfig, pifDemoPublisherConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
+import { getHttpsOriginFromHostName } from '@core/express/utils';
 
 const pifCmpPrivateConfig: PrivateConfig = {
   type: 'vendor',
@@ -26,24 +26,18 @@ JyDD+ooj5HxZibrLkmoQ8klbnMaXBvkVkw==
 
 export const pifCmpApp = express();
 
-// This pif proxy only allows calls from its clients
-const allowedOrigins = [`https://${pifDemoPublisherConfig.host}`];
-
-addOperatorClientProxyEndpoints(
+addClientNodeEndpoints(
   pifCmpApp,
+  {
+    name: pifCmpConfig.name,
+    currentPublicKey: pifCmpPrivateConfig.currentPublicKey,
+    dpoEmailAddress: pifCmpPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pifCmpPrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pifCmpConfig.host,
+    privateKey: pifCmpPrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pifCmpConfig.host,
-  pifCmpPrivateConfig.privateKey,
-  allowedOrigins,
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pifCmpApp,
-  pifCmpConfig.name,
-  pifCmpPrivateConfig.type,
-  [pifCmpPrivateConfig.currentPublicKey],
-  pifCmpPrivateConfig.dpoEmailAddress,
-  new URL(pifCmpPrivateConfig.privacyPolicyUrl)
 );
