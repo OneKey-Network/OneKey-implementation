@@ -56,7 +56,11 @@ export const addClientNodeEndpoints = (
   const tld = getTopLevelDomain(hostName);
 
   // Only allow calls from the same TLD+1, under HTTPS
-  const allowedOrigins: RegExp[] = [new RegExp(`^https:\\/\\/.*\\.${escapeRegExp(tld)}(/?$|\\/.*$)`)];
+  const allowedOrigins: RegExp[] = [
+    new RegExp(
+      `^https:\\/\\/(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*${escapeRegExp(tld)}(/?$|\\/.*$)`
+    ),
+  ];
 
   const isValidOrigin = (origin: string) => allowedOrigins.findIndex((regexp: RegExp) => regexp.test(origin)) !== -1;
 
