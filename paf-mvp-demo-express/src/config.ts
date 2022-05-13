@@ -9,7 +9,7 @@ export interface PublicConfig {
 export interface PrivateConfig {
   currentPublicKey: KeyInfo;
   privateKey: string;
-  type: 'vendor' | 'operator'; // TODO should support more
+  type: 'vendor' | 'operator';
   dpoEmailAddress: string;
   privacyPolicyUrl: string;
 }
