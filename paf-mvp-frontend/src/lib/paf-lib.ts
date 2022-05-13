@@ -138,6 +138,7 @@ export enum ShowPromptOption {
 
 export interface RefreshIdsAndPrefsOptions extends Options {
   triggerRedirectIfNeeded?: boolean;
+  returnUrl?: URL;
   showPrompt?: ShowPromptOption;
 }
 
@@ -254,14 +255,15 @@ async function updateDataWithPrompt(
  * @param options:
  * - proxyHostName: servername of the PAF client node. ex: paf.my-website.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
+ * - returnUrl: the URL that must be called in return (after a redirect to the operator) when no 3PC are available. Default = current page
  * @return a status and optional data
  */
 export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
-  const mergedOptions = {
+  const mergedOptions: RefreshIdsAndPrefsOptions = {
     ...defaultsRefreshIdsAndPrefsOptions,
     ...options,
   };
-  const { proxyHostName, triggerRedirectIfNeeded } = mergedOptions;
+  const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
   let { showPrompt } = mergedOptions;
 
   // Special query string param to remember the prompt must be shown
@@ -277,9 +279,13 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
   const redirectToRead = async () => {
     log.Info('Redirect to operator');
     const clientUrl = new URL(getUrl(redirectProxyEndpoints.read));
-    const currentUrl = new URL(location.href);
-    currentUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
-    clientUrl.searchParams.set(proxyUriParams.returnUrl, currentUrl.toString());
+    const currentPageUrl = new URL(location.href);
+
+    // Use provided URL or the current page URL as the final "return URL"
+    const boomerangUrl = returnUrl ?? currentPageUrl;
+    boomerangUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
+
+    clientUrl.searchParams.set(proxyUriParams.returnUrl, boomerangUrl.toString());
     const clientResponse = await get(clientUrl.toString());
     // TODO handle errors
     const operatorUrl = await clientResponse.text();
