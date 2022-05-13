@@ -10,6 +10,6 @@ pafDemoPublisherApp.get('/', (req, res) => {
     cdnDomain: pafDemoPublisherConfig.cdnHost,
     // Using the CMP backend as a PAF client node
     pafNodeHost: pafCmpConfig.host,
-    cmp: false,
+    cmp: true,
   });
 });
