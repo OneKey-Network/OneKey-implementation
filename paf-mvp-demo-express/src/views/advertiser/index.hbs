@@ -821,10 +821,10 @@
                 </a>
                 <script>
                     document.querySelector('#preferences')
-                        .addEventListener('click', (e) => {
-                            e.preventDefault();
-                            window.PAFUI.promptConsent();
-                        });
+                      .addEventListener('click', (e) => {
+                        e.preventDefault();
+                        PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}", showPrompt: 'doPrompt'});
+                      });
                 </script>
               </div>
             </div>
