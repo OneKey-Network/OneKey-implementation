@@ -821,7 +821,7 @@
                     document.querySelector('#preferences')
                       .addEventListener('click', (e) => {
                         e.preventDefault();
-                        window.PAFUI.promptConsent();
+                        PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}", showPrompt: 'doPrompt'});
                       });
                   </script>
                 </div>
