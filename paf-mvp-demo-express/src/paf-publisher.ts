@@ -3,7 +3,7 @@ import { pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from './confi
 
 export const pafPublisherWebSiteApp = express();
 
-pafPublisherWebSiteApp.get('/', (req, res) => {
+pafPublisherWebSiteApp.get('*', (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pafPublisherWebSiteConfig.name,
@@ -12,4 +12,7 @@ pafPublisherWebSiteApp.get('/', (req, res) => {
     pafNodeHost: pafPublisherClientNodeConfig.host,
     cmp: false,
   });
+
+  // Send full URL in referer header, for testing this config
+  res.setHeader('Referrer-Policy', 'unsafe-url');
 });

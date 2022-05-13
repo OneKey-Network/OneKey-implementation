@@ -3,7 +3,7 @@ import { pifPublisherClientNodeConfig, pifPublisherWebSiteConfig } from './confi
 
 export const pifPublisherWebSiteApp = express();
 
-pifPublisherWebSiteApp.get('/', (req, res) => {
+pifPublisherWebSiteApp.get('*', (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pifPublisherWebSiteConfig.name,

@@ -3,7 +3,7 @@ import { pofPublisherClientNodeConfig, pofPublisherWebSiteConfig } from './confi
 
 export const pofPublisherWebSiteApp = express();
 
-pofPublisherWebSiteApp.get('/', (req, res) => {
+pofPublisherWebSiteApp.get('*', (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pofPublisherWebSiteConfig.name,

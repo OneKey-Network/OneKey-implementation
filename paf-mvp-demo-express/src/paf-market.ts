@@ -14,7 +14,7 @@ const client = new OperatorBackendClient(
  */
 
 // Both a web server serving web content
-pafMarketWebSiteApp.get('/', async (req: Request, res: Response) => {
+pafMarketWebSiteApp.get('*', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   // Act as an HTTP middleware

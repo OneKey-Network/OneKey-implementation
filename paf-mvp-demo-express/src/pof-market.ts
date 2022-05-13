@@ -4,7 +4,7 @@ import { pofMarketClientNodeConfig, pofMarketWebSiteConfig } from './config';
 export const pofMarketWebSiteApp = express();
 
 // Both a web server serving web content
-pofMarketWebSiteApp.get('/', async (req: Request, res: Response) => {
+pofMarketWebSiteApp.get('*', async (req: Request, res: Response) => {
   const view = 'advertiser/index';
 
   res.render(view, {
