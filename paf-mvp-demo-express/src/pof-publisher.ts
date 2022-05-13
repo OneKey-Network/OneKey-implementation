@@ -11,6 +11,6 @@ pofPublisherWebSiteApp.get('*', (req, res) => {
     // Using the CMP backend as a PAF client node
     pafNodeHost: pofPublisherClientNodeConfig.host,
     // True if the CMP is part of the demo page
-    cmp: true,
+    cmp: false,
   });
 });

@@ -10,7 +10,7 @@ pafPublisherWebSiteApp.get('*', (req, res) => {
     cdnDomain: pafPublisherWebSiteConfig.cdnHost,
     // Using the CMP backend as a PAF client node
     pafNodeHost: pafPublisherClientNodeConfig.host,
-    cmp: false,
+    cmp: true,
   });
 
   // Send full URL in referer header, for testing this config
