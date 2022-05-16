@@ -2,7 +2,7 @@
 <html lang="html">
 <head>
 
-{{#if cmp}}
+{{#if useCmpUI}}
 
     <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
     <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
@@ -161,7 +161,7 @@
 </head>
 <body>
 
-{{#if cmp}}
+{{#if useCmpUI}}
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->

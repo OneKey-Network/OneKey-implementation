@@ -17,8 +17,7 @@ pafMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
     title: name,
     cdnHost,
     pafNodeHost,
-    // True if the CMP is part of the demo page
-    cmp: false,
+    useCmpUI: true,
   });
 });
 

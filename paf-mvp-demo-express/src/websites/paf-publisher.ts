@@ -17,8 +17,7 @@ pafPublisherWebSiteApp.app.get(anythingButAssets, (req, res) => {
     title: name,
     cdnHost,
     pafNodeHost,
-    // True if the CMP is part of the demo page
-    cmp: true,
+    useCmpUI: true,
   });
 
   // Send full URL in referer header, for testing this config
