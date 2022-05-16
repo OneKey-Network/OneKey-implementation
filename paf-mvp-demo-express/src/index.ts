@@ -5,20 +5,20 @@ import vhost from 'vhost';
 import { pafMarketWebSiteApp } from './paf-market';
 import {
   crtoOneOperatorConfig,
+  pafMarketClientNodeConfig,
+  pafMarketWebSiteConfig,
   pafPublisherClientNodeConfig,
   pafPublisherWebSiteConfig,
-  pafMarketWebSiteConfig,
+  pifMarketClientNodeConfig,
+  pifMarketWebSiteConfig,
   pifPublisherClientNodeConfig,
   pifPublisherWebSiteConfig,
-  pifMarketWebSiteConfig,
+  pofMarketClientNodeConfig,
+  pofMarketWebSiteConfig,
   pofPublisherClientNodeConfig,
   pofPublisherWebSiteConfig,
-  pofMarketWebSiteConfig,
   portalConfig,
   PublicConfig,
-  pafMarketClientNodeConfig,
-  pifMarketClientNodeConfig,
-  pofMarketClientNodeConfig,
 } from './config';
 import { join } from 'path';
 import { pafPublisherClientNodeApp } from './paf-publisher-client-node';

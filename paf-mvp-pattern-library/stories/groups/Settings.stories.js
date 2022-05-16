@@ -1,4 +1,4 @@
-import Card, { CardHeader, CardHeaderLogo, CardBody, CardFooter, CardActions } from '../components/Card';
+import Card, { CardActions, CardBody, CardFooter, CardHeader, CardHeaderLogo } from '../components/Card';
 import BrowsingID, { BrowsingIDWrapper } from '../components/BrowsingID';
 import Button from '../components/Button';
 import Option from '../components/Option';

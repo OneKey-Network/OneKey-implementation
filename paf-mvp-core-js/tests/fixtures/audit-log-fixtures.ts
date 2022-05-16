@@ -1,9 +1,9 @@
 import {
   AuditLog,
+  IdsAndPreferences,
+  Seed,
   TransmissionResponse,
   TransmissionResult,
-  Seed,
-  IdsAndPreferences,
 } from '@core/model/generated-model';
 
 import { fromResponseToResult } from '@core/model/audit-log';
