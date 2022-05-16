@@ -4,7 +4,6 @@ import { anythingButAssets } from './demo-utils';
 
 export const pofMarketWebSiteApp = new App(pofMarketWebSiteConfig.name).setHostName(pofMarketWebSiteConfig.host);
 
-// Both a web server serving web content
 pofMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
 

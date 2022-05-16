@@ -4,7 +4,6 @@ import { anythingButAssets } from './demo-utils';
 
 export const pifMarketWebSiteApp = new App(pifMarketWebSiteConfig.name).setHostName(pifMarketWebSiteConfig.host);
 
-// Both a web server serving web content
 pifMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
 
