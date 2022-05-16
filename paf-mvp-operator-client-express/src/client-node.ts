@@ -23,9 +23,7 @@ import { PAFNode } from '@core/model/model';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
 import { App, Node } from '@core/express/express-apps';
-import fs from 'fs';
-import { getKeys, IdentityConfig } from '@core/express/config';
-import { isValidKey } from '@core/crypto/keys';
+import { IdentityConfig, parseConfig } from '@core/express/config';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
@@ -397,31 +395,7 @@ export class ClientNode implements Node {
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
-    const config = JSON.parse((await fs.promises.readFile(configPath)).toString()) as ClientNodeConfig;
-
-    const keys = await getKeys(configPath, config.identity);
-
-    const currentPrivateKey = keys.find((pair) => isValidKey(pair))?.privateKey;
-
-    if (currentPrivateKey === undefined) {
-      throw (
-        `No valid keys found in ${configPath} with available dates:\n` +
-        config.identity.keyPairs
-          .map((pair) => [pair.startDateTimeISOString, pair.endDateTimeISOString].join(' - '))
-          .join('\n')
-      );
-    }
-
-    const identity: Omit<Identity, 'type'> = {
-      name: config.identity.name,
-      dpoEmailAddress: config.identity.dpoEmailAddress,
-      privacyPolicyUrl: new URL(config.identity.privacyPolicyUrl),
-      publicKeys: keys.map((pair) => ({
-        publicKey: pair.publicKey,
-        startTimestampInSec: pair.start,
-        endTimestampInSec: pair.end,
-      })),
-    };
+    const { config, identity, currentPrivateKey } = await parseConfig<ClientNodeConfig>(configPath);
 
     return new ClientNode(
       identity,

@@ -1,6 +1,12 @@
-import { pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from './old-config';
+import { WebSiteConfig } from './website-config';
 import { App } from '@core/express/express-apps';
 import { anythingButAssets } from './demo-utils';
+
+export const pafPublisherWebSiteConfig: WebSiteConfig = {
+  name: 'PAF publisher',
+  host: 'www.pafdemopublisher.com',
+  cdnHost: 'cdn.pafdemopublisher.com',
+};
 
 export const pafPublisherWebSiteApp = new App(pafPublisherWebSiteConfig.name).setHostName(
   pafPublisherWebSiteConfig.host
@@ -12,7 +18,7 @@ pafPublisherWebSiteApp.app.get(anythingButAssets, (req, res) => {
     title: pafPublisherWebSiteConfig.name,
     cdnDomain: pafPublisherWebSiteConfig.cdnHost,
     // Using the CMP backend as a PAF client node
-    pafNodeHost: pafPublisherClientNodeConfig.host,
+    pafNodeHost: 'cmp.pafdemopublisher.com',
     cmp: true,
   });
 

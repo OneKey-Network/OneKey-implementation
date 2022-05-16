@@ -33,8 +33,11 @@ export class OperatorApi {
   ) {}
 
   generateNewId(timestamp = getTimeStampInSec()): Identifier {
+    // Generate new UUID value
+    const pseudonymousId = uuidv4();
+
     return {
-      ...this.signId(uuidv4(), timestamp),
+      ...this.signId(pseudonymousId, timestamp),
       persisted: false,
     };
   }

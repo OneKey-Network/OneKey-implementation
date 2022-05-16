@@ -1,8 +1,8 @@
 import { App } from '@core/express/express-apps';
 import { anythingButAssets } from './demo-utils';
-import { PublicConfig } from './old-config';
+import { WebSiteConfig } from './website-config';
 
-const pafMarketWebSiteConfig: PublicConfig = {
+const pafMarketWebSiteConfig: WebSiteConfig = {
   name: 'PAF advertiser',
   host: 'www.pafmarket.shop',
   cdnHost: 'cdn.pafmarket.shop',
@@ -15,7 +15,7 @@ pafMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
 
   res.render(view, {
     title: pafMarketWebSiteConfig.name,
-    pafNodeHost: 'pafmarket-client',
+    pafNodeHost: 'paf.pafmarket.shop',
     cdnHost: pafMarketWebSiteConfig.cdnHost,
   });
 });

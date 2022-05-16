@@ -1,6 +1,12 @@
-import { pofPublisherClientNodeConfig, pofPublisherWebSiteConfig } from './old-config';
+import { WebSiteConfig } from './website-config';
 import { App } from '@core/express/express-apps';
 import { anythingButAssets } from './demo-utils';
+
+const pofPublisherWebSiteConfig: WebSiteConfig = {
+  name: 'POF publisher',
+  host: 'www.pofdemopublisher.com',
+  cdnHost: 'cdn.pofdemopublisher.com',
+};
 
 export const pofPublisherWebSiteApp = new App(pofPublisherWebSiteConfig.name).setHostName(
   pofPublisherWebSiteConfig.host
@@ -12,7 +18,7 @@ pofPublisherWebSiteApp.app.get(anythingButAssets, (req, res) => {
     title: pofPublisherWebSiteConfig.name,
     cdnDomain: pofPublisherWebSiteConfig.cdnHost,
     // Using the CMP backend as a PAF client node
-    pafNodeHost: pofPublisherClientNodeConfig.host,
+    pafNodeHost: 'cmp.pofdemopublisher.com',
     // True if the CMP is part of the demo page
     cmp: false,
   });

@@ -1,7 +1,12 @@
-import { pofMarketClientNodeConfig, pofMarketWebSiteConfig } from './old-config';
+import { WebSiteConfig } from './website-config';
 import { App } from '@core/express/express-apps';
 import { anythingButAssets } from './demo-utils';
 
+export const pofMarketWebSiteConfig: WebSiteConfig = {
+  name: 'POF advertiser',
+  host: 'www.pofmarket.shop',
+  cdnHost: 'cdn.pofmarket.shop',
+};
 export const pofMarketWebSiteApp = new App(pofMarketWebSiteConfig.name).setHostName(pofMarketWebSiteConfig.host);
 
 pofMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
@@ -9,7 +14,7 @@ pofMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
 
   res.render(view, {
     title: pofMarketWebSiteConfig.name,
-    pafNodeHost: pofMarketClientNodeConfig.host,
+    pafNodeHost: 'paf.pofmarket.shop',
     cdnHost: pofMarketWebSiteConfig.cdnHost,
     // True if the CMP is part of the demo page
     cmp: true,

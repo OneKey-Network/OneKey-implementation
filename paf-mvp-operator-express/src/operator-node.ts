@@ -44,9 +44,7 @@ import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
 import { OperatorApi } from '@operator/operator-api';
 import { App, Node } from '@core/express/express-apps';
-import { getKeys, IdentityConfig } from '@core/express/config';
-import { isValidKey } from '@core/crypto/keys';
-import fs from 'fs';
+import { IdentityConfig, parseConfig } from '@core/express/config';
 
 const getOperatorExpiration = (date: Date = new Date()) => {
   const expirationDate = new Date(date);
@@ -418,31 +416,7 @@ export class OperatorNode implements Node {
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
-    const config = JSON.parse((await fs.promises.readFile(configPath)).toString()) as OperatorConfig;
-
-    const keys = await getKeys(configPath, config.identity);
-
-    const currentPrivateKey = keys.find((pair) => isValidKey(pair))?.privateKey;
-
-    if (currentPrivateKey === undefined) {
-      throw (
-        `No valid keys found in ${configPath} with available dates:\n` +
-        config.identity.keyPairs
-          .map((pair) => [pair.startDateTimeISOString, pair.endDateTimeISOString].join(' - '))
-          .join('\n')
-      );
-    }
-
-    const identity: Omit<Identity, 'type'> = {
-      name: config.identity.name,
-      dpoEmailAddress: config.identity.dpoEmailAddress,
-      privacyPolicyUrl: new URL(config.identity.privacyPolicyUrl),
-      publicKeys: keys.map((pair) => ({
-        publicKey: pair.publicKey,
-        startTimestampInSec: pair.start,
-        endTimestampInSec: pair.end,
-      })),
-    };
+    const { config, identity, currentPrivateKey } = await parseConfig<OperatorConfig>(configPath);
 
     return new OperatorNode(identity, config.host, currentPrivateKey, config.allowedHosts, s2sOptions);
   }

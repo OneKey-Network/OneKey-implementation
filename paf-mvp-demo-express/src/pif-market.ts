@@ -1,8 +1,8 @@
 import { App } from '@core/express/express-apps';
 import { anythingButAssets } from './demo-utils';
-import { PublicConfig } from './old-config';
+import { WebSiteConfig } from './website-config';
 
-const pifMarketWebSiteConfig: PublicConfig = {
+const pifMarketWebSiteConfig: WebSiteConfig = {
   name: 'PIF advertiser',
   host: 'www.pifmarket.shop',
   cdnHost: 'cdn.pifmarket.shop',
@@ -16,7 +16,7 @@ pifMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
   res.render(view, {
     title: pifMarketWebSiteConfig.name,
     cdnHost: pifMarketWebSiteConfig.cdnHost,
-    pafNodeHost: 'pifmarket-client',
+    pafNodeHost: 'paf.pifmarket.shop',
     cmp: false,
   });
 });
