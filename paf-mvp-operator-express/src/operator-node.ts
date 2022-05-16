@@ -425,7 +425,12 @@ export class OperatorNode implements Node {
     const currentPrivateKey = keys.find((pair) => isValidKey(pair))?.privateKey;
 
     if (currentPrivateKey === undefined) {
-      throw 'Valid private key not found'; // FIXME improve
+      throw (
+        `No valid keys found in ${configPath} with available dates:\n` +
+        config.identity.keyPairs
+          .map((pair) => [pair.startDateTimeISOString, pair.endDateTimeISOString].join(' - '))
+          .join('\n')
+      );
     }
 
     const identity: Omit<Identity, 'type'> = {
