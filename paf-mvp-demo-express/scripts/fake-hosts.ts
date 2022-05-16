@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { EOL } from 'os';
 import { App } from '@core/express/express-apps';
-import { getAppsAndNodes } from '../src/config';
+import { getAppsAndNodes } from '../src/apps';
 
 if (!(process.argv[2]?.length > 0)) {
   const scriptName = path.basename(__filename);

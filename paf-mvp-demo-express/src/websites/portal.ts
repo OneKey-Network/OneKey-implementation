@@ -1,5 +1,5 @@
 import express, { Request } from 'express';
-import { WebSiteConfig } from './website-config';
+import { WebSiteConfig } from '../website-config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
 import {
@@ -20,7 +20,7 @@ import {
   removeCookie,
 } from '@core/express/utils';
 import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
-import { s2sOptions } from './demo-utils';
+import { s2sOptions } from '../demo-utils';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import {
   IdentifierDefinition,
@@ -37,26 +37,24 @@ import { App } from '@core/express/express-apps';
 import { ClientNodeConfig } from '@operator-client/client-node';
 import { parseConfig } from '@core/express/config';
 
-const portalConfig: WebSiteConfig = {
+const { name, host }: WebSiteConfig = {
   name: 'A PAF portal',
   host: 'portal.onekey.network',
 };
 
-export const portalWebSiteApp = new App(portalConfig.name).setHostName(portalConfig.host);
+export const portalWebSiteApp = new App(name).setHostName(host);
 
 (async () => {
   const keyStore = new PublicKeyStore(s2sOptions);
 
   // Little trick here, we use an OperatorClient object
-  const { config, identity, currentPrivateKey } = await parseConfig<ClientNodeConfig>(
-    'configs/portal-client/config.json'
-  );
+  const { config, currentPrivateKey } = await parseConfig<ClientNodeConfig>('configs/portal-client/config.json');
 
   const client = new OperatorClient(config.operatorHost, config.host, currentPrivateKey, keyStore);
 
   const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
     'crto-poc-1.onekey.network',
-    portalConfig.host,
+    host,
     currentPrivateKey
   );
 
@@ -91,7 +89,7 @@ export const portalWebSiteApp = new App(portalConfig.name).setHostName(portalCon
     return getWritePrefsUrl(req, identifiers, preferences, returnUrl);
   };
 
-  const tld = getTopLevelDomain(portalConfig.host);
+  const tld = getTopLevelDomain(host);
 
   portalWebSiteApp.app.get(removeIdUrl, (req, res) => {
     removeCookie(req, res, Cookies.identifiers, { domain: tld });

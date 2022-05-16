@@ -4,7 +4,7 @@ import { createServer } from 'https';
 import { isLocalDev, sslOptions } from './demo-utils';
 import { create } from 'express-handlebars';
 import { App } from '@core/express/express-apps';
-import { getAppsAndNodes } from './config';
+import { getAppsAndNodes } from './apps';
 
 const relative = (dir: string) => join(__dirname, dir);
 
