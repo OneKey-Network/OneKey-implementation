@@ -96,6 +96,20 @@
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
             pbjs.setConfig({
+                consentManagement: {
+                cmpApi: "static",
+                consentData: {
+                    getTCData: {
+                        tcString: "CO-HDlqO-HDlqAKAXCENBDCsAP_AAH_AACiQHKNd_X_fb39j-_59_9t0eY1f9_7_v20zjgeds-8Nyd_X_L8X42M7vF36pq4KuR4Eu3LBIQFlHOHcTUmw6IkVqTPsak2Mr7NKJ7PEinMbe2dYGHtfn9VTuZKYr97s___z__-__v__75f_r-3_3_vp9V---_fA5QAkw1L4CLMSxwJJo0qhRAhCuJDoAQAUUIwtE1hASuCnZXAR-ggYAIDUBGBECDEFGLIIAAAAAkoiAkAPBAIgCIBAACAFSAhAARoAgsAJAwCAAUA0LACKAIQJCDI4KjlMCAiRaKCeSMASi72MMIQyigBoFH4AAAAA.cAAAAAAAAAAA",
+                        cmpId: 10,
+                        cmpVersion: 23,
+                        tcfPolicyVersion: 2,
+                        gdprApplies: false,
+                        cmpStatus: "loaded",
+                        eventStatus: "tcloaded"
+                        }
+                    }
+                },
                 debug: true,
                 realTimeData: {
                     auctionDelay: 1000,
