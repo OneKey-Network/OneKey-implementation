@@ -1,4 +1,4 @@
-import { pifMarketClientNodeConfig, pifMarketWebSiteConfig } from './old-config';
+import { pifMarketWebSiteConfig } from './old-config';
 import { App } from '@core/express/express-apps';
 import { anythingButAssets } from './demo-utils';
 
@@ -9,7 +9,7 @@ pifMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
 
   res.render(view, {
     title: pifMarketWebSiteConfig.name,
-    pafNodeHost: pifMarketClientNodeConfig.host,
+    pafNodeHost: 'paf.pifmarket.shop',
     cdnHost: pifMarketWebSiteConfig.cdnHost,
     cmp: false,
   });

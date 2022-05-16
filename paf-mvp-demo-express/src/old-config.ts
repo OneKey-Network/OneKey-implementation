@@ -32,11 +32,6 @@ export const pifMarketWebSiteConfig: PublicConfig = {
   cdnHost: 'cdn.pifmarket.shop',
 };
 
-export const pifMarketClientNodeConfig: PublicConfig = {
-  name: 'PIF advertiser',
-  host: 'paf.pifmarket.shop',
-};
-
 export const pofMarketWebSiteConfig: PublicConfig = {
   name: 'POF advertiser',
   host: 'www.pofmarket.shop',

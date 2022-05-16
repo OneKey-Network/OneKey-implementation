@@ -23,6 +23,9 @@ import { PAFNode } from '@core/model/model';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
 import { App, Node } from '@core/express/express-apps';
+import fs from 'fs';
+import { getKeys, IdentityConfig } from '@core/express/config';
+import { isValidKey } from '@core/crypto/keys';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
@@ -53,6 +56,12 @@ const getMessageObject = <T>(req: Request, res: Response): T => {
   const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
   return requestStr ? (JSON.parse(requestStr) as T) : undefined;
 };
+
+export interface ClientNodeConfig {
+  identity: IdentityConfig;
+  host: string;
+  operatorHost: string;
+}
 
 export class ClientNode implements Node {
   /**
@@ -385,5 +394,43 @@ export class ClientNode implements Node {
         res.json(error);
       }
     });
+  }
+
+  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
+    const config = JSON.parse((await fs.promises.readFile(configPath)).toString()) as ClientNodeConfig;
+
+    const keys = await getKeys(configPath, config.identity);
+
+    const currentPrivateKey = keys.find((pair) => isValidKey(pair))?.privateKey;
+
+    if (currentPrivateKey === undefined) {
+      throw (
+        `No valid keys found in ${configPath} with available dates:\n` +
+        config.identity.keyPairs
+          .map((pair) => [pair.startDateTimeISOString, pair.endDateTimeISOString].join(' - '))
+          .join('\n')
+      );
+    }
+
+    const identity: Omit<Identity, 'type'> = {
+      name: config.identity.name,
+      dpoEmailAddress: config.identity.dpoEmailAddress,
+      privacyPolicyUrl: new URL(config.identity.privacyPolicyUrl),
+      publicKeys: keys.map((pair) => ({
+        publicKey: pair.publicKey,
+        startTimestampInSec: pair.start,
+        endTimestampInSec: pair.end,
+      })),
+    };
+
+    return new ClientNode(
+      identity,
+      {
+        privateKey: currentPrivateKey,
+        hostName: config.host,
+      },
+      config.operatorHost,
+      s2sOptions
+    );
   }
 }

@@ -9,7 +9,6 @@ import { pifMarketCdnApp, pifMarketWebSiteApp } from './pif-market';
 import { pofMarketCdnApp, pofMarketWebSiteApp } from './pof-market';
 import { portalWebSiteApp } from './portal';
 import { s2sOptions } from './demo-utils';
-import { pifMarketClientNode } from './pif-market-client-node';
 import { pafMarketClientNode } from './paf-market-client-node';
 import { pofMarketClientNode } from './pof-market-client-node';
 import { pifPublisherClientNode } from './pif-publisher-client-node';
@@ -46,6 +45,8 @@ export const getAppsAndNodes = async (): Promise<{
     s2sOptions
   );
   const operators: OperatorNode[] = [crtoOneOperatorNode];
+
+  const pifMarketClientNode = await ClientNode.fromConfig('configs/paf.pifmarket.shop/config.json', s2sOptions);
 
   const clientNodes: ClientNode[] = [
     pifMarketClientNode,
