@@ -86,8 +86,8 @@ export const retrieveTransmissionResults = (
   let responses: TransmissionResponse[] = [response];
   while (domains.length > 0) {
     const domain = domains.shift();
-    const response = responses.find((r) => r.source.domain == domain);
-    if (response == undefined) {
+    const response = responses.find((r) => r.source.domain === domain);
+    if (response === undefined) {
       return undefined;
     }
     results.push(fromResponseToResult(response));
