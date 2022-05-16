@@ -29,7 +29,7 @@ addClientNodeEndpoints(
   pofMarketClientNodeApp,
   {
     name: pofMarketClientNodeConfig.name,
-    currentPublicKey: pofMarketPrivateConfig.currentPublicKey,
+    publicKeys: [pofMarketPrivateConfig.currentPublicKey],
     dpoEmailAddress: pofMarketPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pofMarketPrivateConfig.privacyPolicyUrl),
   },

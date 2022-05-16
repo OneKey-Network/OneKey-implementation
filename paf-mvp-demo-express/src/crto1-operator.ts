@@ -41,7 +41,7 @@ addOperatorApi(
   crtoOneOperatorApp,
   {
     name: crtoOneOperatorConfig.name,
-    currentPublicKey: operatorPrivateConfig.currentPublicKey,
+    publicKeys: [operatorPrivateConfig.currentPublicKey],
     dpoEmailAddress: operatorPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(operatorPrivateConfig.privacyPolicyUrl),
   },

@@ -1,4 +1,4 @@
-import { KeyInfo } from '@core/crypto/identity';
+import { PublicKeyInfo } from '@core/crypto/identity';
 
 export interface PublicConfig {
   name: string;
@@ -7,7 +7,7 @@ export interface PublicConfig {
 }
 
 export interface PrivateConfig {
-  currentPublicKey: KeyInfo;
+  currentPublicKey: PublicKeyInfo;
   privateKey: string;
   type: 'vendor' | 'operator';
   dpoEmailAddress: string;

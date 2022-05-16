@@ -30,7 +30,7 @@ addClientNodeEndpoints(
   pafPublisherClientNodeApp,
   {
     name: pafPublisherClientNodeConfig.name,
-    currentPublicKey: pafClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pafClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pafClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pafClientNodePrivateConfig.privacyPolicyUrl),
   },

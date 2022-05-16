@@ -29,7 +29,7 @@ addClientNodeEndpoints(
   pifMarketClientNodeApp,
   {
     name: pifMarketClientNodeConfig.name,
-    currentPublicKey: pifMarketPrivateConfig.currentPublicKey,
+    publicKeys: [pifMarketPrivateConfig.currentPublicKey],
     dpoEmailAddress: pifMarketPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pifMarketPrivateConfig.privacyPolicyUrl),
   },
