@@ -2,35 +2,41 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import { crtoOneOperatorApp } from './crto1-operator';
 import vhost from 'vhost';
-import { pafMarketApp } from './paf-market';
+import { pafMarketWebSiteApp } from './paf-market';
 import {
   crtoOneOperatorConfig,
-  pafCmpConfig,
-  pafDemoPublisherConfig,
-  pafMarketConfig,
-  pifCmpConfig,
-  pifDemoPublisherConfig,
-  pifMarketConfig,
-  pofCmpConfig,
-  pofDemoPublisherConfig,
-  pofMarketConfig,
+  pafPublisherClientNodeConfig,
+  pafPublisherWebSiteConfig,
+  pafMarketWebSiteConfig,
+  pifPublisherClientNodeConfig,
+  pifPublisherWebSiteConfig,
+  pifMarketWebSiteConfig,
+  pofPublisherClientNodeConfig,
+  pofPublisherWebSiteConfig,
+  pofMarketWebSiteConfig,
   portalConfig,
   PublicConfig,
+  pafMarketClientNodeConfig,
+  pifMarketClientNodeConfig,
+  pofMarketClientNodeConfig,
 } from './config';
 import { join } from 'path';
-import { pafCmpApp } from './paf-client-node';
-import { pafDemoPublisherApp } from './paf-demo-publisher';
+import { pafPublisherClientNodeApp } from './paf-publisher-client-node';
+import { pafPublisherWebSiteApp } from './paf-publisher';
 import { portalApp } from './portal';
 import bodyParser from 'body-parser';
 import { createServer } from 'https';
 import { isLocalDev, sslOptions } from './server-config';
 import { create } from 'express-handlebars';
-import { pifDemoPublisherApp } from './pif-demo-publisher';
-import { pofDemoPublisherApp } from './pof-demo-publisher';
-import { pifMarketApp } from './pif-market';
-import { pofMarketApp } from './pof-market';
-import { pifCmpApp } from './pif-client-node';
-import { pofCmpApp } from './pof-client-node';
+import { pifPublisherWebSiteApp } from './pif-publisher';
+import { pofPublisherWebSiteApp } from './pof-publisher';
+import { pifMarketWebSiteApp } from './pif-market';
+import { pofMarketWebSiteApp } from './pof-market';
+import { pifPublisherClientNodeApp } from './pif-publisher-client-node';
+import { pofPublisherClientNodeApp } from './pof-publisher-client-node';
+import { pifMarketClientNodeApp } from './pif-market-client-node';
+import { pafMarketClientNodeApp } from './paf-market-client-node';
+import { pofMarketClientNodeApp } from './pof-market-client-node';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });
@@ -83,15 +89,18 @@ const addApp = (config: PublicConfig, app: Express) => {
 
 addApp(crtoOneOperatorConfig, crtoOneOperatorApp);
 addApp(portalConfig, portalApp);
-addApp(pafMarketConfig, pafMarketApp);
-addApp(pifMarketConfig, pifMarketApp);
-addApp(pofMarketConfig, pofMarketApp);
-addApp(pafDemoPublisherConfig, pafDemoPublisherApp);
-addApp(pifDemoPublisherConfig, pifDemoPublisherApp);
-addApp(pofDemoPublisherConfig, pofDemoPublisherApp);
-addApp(pafCmpConfig, pafCmpApp);
-addApp(pifCmpConfig, pifCmpApp);
-addApp(pofCmpConfig, pofCmpApp);
+addApp(pafMarketWebSiteConfig, pafMarketWebSiteApp);
+addApp(pafMarketClientNodeConfig, pafMarketClientNodeApp);
+addApp(pifMarketWebSiteConfig, pifMarketWebSiteApp);
+addApp(pifMarketClientNodeConfig, pifMarketClientNodeApp);
+addApp(pofMarketWebSiteConfig, pofMarketWebSiteApp);
+addApp(pofMarketClientNodeConfig, pofMarketClientNodeApp);
+addApp(pafPublisherWebSiteConfig, pafPublisherWebSiteApp);
+addApp(pafPublisherClientNodeConfig, pafPublisherClientNodeApp);
+addApp(pifPublisherWebSiteConfig, pifPublisherWebSiteApp);
+addApp(pifPublisherClientNodeConfig, pifPublisherClientNodeApp);
+addApp(pofPublisherWebSiteConfig, pofPublisherWebSiteApp);
+addApp(pofPublisherClientNodeConfig, pofPublisherClientNodeApp);
 
 // Warmup Requests to Improve Performance on Google Cloud Platform
 mainApp.get('/_ah/warmup', (req, res) => {

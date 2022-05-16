@@ -14,54 +14,69 @@ export interface PrivateConfig {
   privacyPolicyUrl: string;
 }
 
-export const pafMarketConfig: PublicConfig = {
+export const pafMarketWebSiteConfig: PublicConfig = {
   name: 'PAF advertiser',
   host: 'www.pafmarket.shop',
   cdnHost: 'cdn.pafmarket.shop',
 };
 
-export const pifMarketConfig: PublicConfig = {
+export const pafMarketClientNodeConfig: PublicConfig = {
+  name: 'PAF advertiser',
+  host: 'paf.pafmarket.shop',
+};
+
+export const pifMarketWebSiteConfig: PublicConfig = {
   name: 'PIF advertiser',
   host: 'www.pifmarket.shop',
   cdnHost: 'cdn.pifmarket.shop',
 };
 
-export const pofMarketConfig: PublicConfig = {
+export const pifMarketClientNodeConfig: PublicConfig = {
+  name: 'PIF advertiser',
+  host: 'paf.pifmarket.shop',
+};
+
+export const pofMarketWebSiteConfig: PublicConfig = {
   name: 'POF advertiser',
   host: 'www.pofmarket.shop',
   cdnHost: 'cdn.pofmarket.shop',
 };
 
-export const pafDemoPublisherConfig: PublicConfig = {
+export const pofMarketClientNodeConfig: PublicConfig = {
+  name: 'POF advertiser',
+  host: 'paf.pofmarket.shop',
+};
+
+export const pafPublisherWebSiteConfig: PublicConfig = {
   name: 'PAF publisher',
   host: 'www.pafdemopublisher.com',
   cdnHost: 'cdn.pafdemopublisher.com',
 };
 
-export const pifDemoPublisherConfig: PublicConfig = {
+export const pifPublisherWebSiteConfig: PublicConfig = {
   name: 'PIF publisher',
   host: 'www.pifdemopublisher.com',
   cdnHost: 'cdn.pifdemopublisher.com',
 };
 
-export const pofDemoPublisherConfig: PublicConfig = {
+export const pofPublisherWebSiteConfig: PublicConfig = {
   name: 'POF publisher',
   host: 'www.pofdemopublisher.com',
   cdnHost: 'cdn.pofdemopublisher.com',
 };
 
-export const pafCmpConfig: PublicConfig = {
-  name: 'CMP used by PAF publisher',
+export const pafPublisherClientNodeConfig: PublicConfig = {
+  name: 'PAF publisher',
   host: 'cmp.pafdemopublisher.com',
 };
 
-export const pifCmpConfig: PublicConfig = {
-  name: 'CMP used by PIF publisher',
+export const pifPublisherClientNodeConfig: PublicConfig = {
+  name: 'PIF publisher',
   host: 'cmp.pifdemopublisher.com',
 };
 
-export const pofCmpConfig: PublicConfig = {
-  name: 'CMP used by POF publisher',
+export const pofPublisherClientNodeConfig: PublicConfig = {
+  name: 'POF publisher',
   host: 'cmp.pofdemopublisher.com',
 };
 

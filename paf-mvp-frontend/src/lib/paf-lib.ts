@@ -138,7 +138,7 @@ export enum ShowPromptOption {
 
 export interface RefreshIdsAndPrefsOptions extends Options {
   triggerRedirectIfNeeded?: boolean;
-  redirectUrl?: URL;
+  returnUrl?: URL;
   showPrompt?: ShowPromptOption;
 }
 
@@ -255,15 +255,15 @@ async function updateDataWithPrompt(
  * @param options:
  * - proxyHostName: servername of the PAF client node. ex: paf.my-website.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
- * - redirectUrl: the redirectUrl that must be called in return when no 3PC are available. Default = current page
+ * - returnUrl: the URL that must be called in return (after a redirect to the operator) when no 3PC are available. Default = current page
  * @return a status and optional data
  */
 export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
-  const mergedOptions = {
+  const mergedOptions: RefreshIdsAndPrefsOptions = {
     ...defaultsRefreshIdsAndPrefsOptions,
     ...options,
   };
-  const { proxyHostName, triggerRedirectIfNeeded, redirectUrl } = mergedOptions;
+  const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
   let { showPrompt } = mergedOptions;
 
   // Special query string param to remember the prompt must be shown
@@ -276,13 +276,20 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
   };
   const getUrl = getProxyUrl(proxyHostName);
 
-  const redirectToRead = () => {
+  const redirectToRead = async () => {
     log.Info('Redirect to operator');
-    const url = redirectUrl ?? new URL(getUrl(redirectProxyEndpoints.read));
-    const currentUrl = new URL(location.href);
-    currentUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
-    url.searchParams.set(proxyUriParams.returnUrl, currentUrl.toString());
-    redirect(url.toString());
+    const clientUrl = new URL(getUrl(redirectProxyEndpoints.read));
+    const currentPageUrl = new URL(location.href);
+
+    // Use provided URL or the current page URL as the final "return URL"
+    const boomerangUrl = returnUrl ?? currentPageUrl;
+    boomerangUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
+
+    clientUrl.searchParams.set(proxyUriParams.returnUrl, boomerangUrl.toString());
+    const clientResponse = await get(clientUrl.toString());
+    // TODO handle errors
+    const operatorUrl = await clientResponse.text();
+    redirect(operatorUrl);
   };
 
   const processGetIdsAndPreferences = async (): Promise<RefreshResult> => {
@@ -357,7 +364,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
       log.Info('Redirect previously deferred');
 
       if (triggerRedirectIfNeeded) {
-        redirectToRead();
+        await redirectToRead();
       }
 
       return {
@@ -384,7 +391,8 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
       log.Info('Browser known to support 3PC: YES');
 
       log.Info('Attempt to read from JSON');
-      const readResponse = await get(getUrl(jsonProxyEndpoints.read));
+      const readUrl = await get(getUrl(jsonProxyEndpoints.read));
+      const readResponse = await get(await readUrl.text());
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
@@ -415,7 +423,8 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
       log.Info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
-      const verifyResponse = await get(getUrl(jsonProxyEndpoints.verify3PC));
+      const verifyUrl = await get(getUrl(jsonProxyEndpoints.verify3PC));
+      const verifyResponse = await get(await verifyUrl.text());
       const testOk: Get3PcResponse | Error = await verifyResponse.json();
 
       // 4. 3d party cookie ok?
@@ -441,7 +450,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     }
 
     if (triggerRedirectIfNeeded) {
-      redirectToRead();
+      await redirectToRead();
     } else {
       log.Info('Deffer redirect to later, in agreement with options');
       saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
@@ -492,8 +501,12 @@ const writeIdsAndPref = async (
       const signedData = (await signedResponse.json()) as PostIdsPrefsRequest;
 
       // 2) send
-      const response = await postJson(getUrl(jsonProxyEndpoints.write), signedData);
-      const operatorData = (await response.json()) as GetIdsPrefsResponse;
+      // TODO in fact, this post endpoint should take the unsigned input, sign it and return both the signed input and the url to call
+      const clientResponse = await postText(getUrl(jsonProxyEndpoints.write), '');
+      // TODO handle errors
+      const operatorUrl = await clientResponse.text();
+      const operatorResponse = await postJson(operatorUrl, signedData);
+      const operatorData = (await operatorResponse.json()) as GetIdsPrefsResponse;
 
       const persistedIds = operatorData?.body?.identifiers?.filter((identifier) => identifier?.persisted !== false);
       const hasPersistedId = persistedIds.length > 0;
@@ -509,13 +522,14 @@ const writeIdsAndPref = async (
     log.Info('3PC not supported: redirect');
 
     // Redirect. Signing of the request will happen on the backend proxy
-    const returnUrl = new URL(getUrl(redirectProxyEndpoints.write));
-    returnUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
-    returnUrl.searchParams.set(proxyUriParams.message, JSON.stringify(input));
+    const clientUrl = new URL(getUrl(redirectProxyEndpoints.write));
+    clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
+    clientUrl.searchParams.set(proxyUriParams.message, JSON.stringify(input));
 
-    const url = returnUrl.toString();
-
-    redirect(url);
+    const clientResponse = await get(clientUrl.toString());
+    // TODO handle errors
+    const operatorUrl = await clientResponse.text();
+    redirect(operatorUrl);
   };
 
   const idsAndPreferences = await processWriteIdsAndPref();
@@ -552,7 +566,8 @@ export const signPreferences = async (
 export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Identifier> => {
   const getUrl = getProxyUrl(proxyHostName);
 
-  const response = await get(getUrl(jsonProxyEndpoints.newId));
+  const newIdUrl = await get(getUrl(jsonProxyEndpoints.newId));
+  const response = await get(await newIdUrl.text());
   // Assume no error. FIXME should handle potential errors
   return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
 };

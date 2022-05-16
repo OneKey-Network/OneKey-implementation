@@ -3,7 +3,7 @@ export class Log {
   private readonly id: string;
   private readonly color: string;
 
-  constructor(id: string, color: string) {
+  constructor(id: string, color = 'black') {
     this.id = id;
     this.color = color;
   }
