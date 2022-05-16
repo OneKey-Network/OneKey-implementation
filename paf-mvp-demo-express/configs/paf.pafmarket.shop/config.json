@@ -1,0 +1,17 @@
+{
+  "identity": {
+    "name": "PAF advertiser",
+    "dpoEmailAddress": "contact@www.pafmarket.shop",
+    "privacyPolicyUrl": "https://www.pafmarket.shop/privacy",
+    "keyPairs": [
+      {
+        "startDateTimeISOString": "2022-01-01T12:00:00.000Z",
+        "endDateTimeISOString": "2022-12-31T12:00:00.000Z",
+        "privateKeyPath": "private-key.pem",
+        "publicKeyPath": "public-key.pem"
+      }
+    ]
+  },
+  "host": "paf.pafmarket.shop",
+  "operatorHost": "crto-poc-1.onekey.network"
+}

@@ -21,7 +21,7 @@ import {
 } from '@core/model/generated-model';
 import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
-import { pafMarketWebSiteConfig, pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from '../src/old-config';
+import { pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from '../src/old-config';
 import path from 'path';
 import { OperatorClient } from '@operator-client/operator-client';
 import {
@@ -94,7 +94,7 @@ const configPath = path.join(__dirname, '..', 'configs');
 
 // The examples are not supposed to look like a demo but a real environment
 pafPublisherClientNodeConfig.host = 'cmp.com';
-pafMarketWebSiteConfig.host = 'advertiser.com';
+const advertiserHost = 'advertiser.com';
 pafPublisherWebSiteConfig.host = 'publisher.com';
 
 class Examples {
@@ -187,7 +187,7 @@ class Examples {
     const keyStore = new PublicKeyStore();
     const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateKey, keyStore);
     const originalAdvertiserUrl = new URL(
-      `https://${pafMarketWebSiteConfig.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
+      `https://${advertiserHost}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
     );
 
     // **************************** Main data
@@ -249,7 +249,7 @@ class Examples {
     this.setRestMessage(
       'getIdsPrefsResponse_knownJson',
       getIdsPrefsResponseBuilder.buildResponse(
-        pafMarketWebSiteConfig.host,
+        advertiserHost,
         {
           identifiers: [this.idJson],
           preferences: this.preferencesJson,
@@ -260,7 +260,7 @@ class Examples {
     this.setRestMessage(
       'getIdsPrefsResponse_unknownJson',
       getIdsPrefsResponseBuilder.buildResponse(
-        pafMarketWebSiteConfig.host,
+        advertiserHost,
         {
           identifiers: [this.unpersistedIdJson],
         },

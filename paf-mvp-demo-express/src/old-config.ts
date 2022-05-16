@@ -15,23 +15,6 @@ export interface PrivateConfig {
   privacyPolicyUrl: string;
 }
 
-export const pafMarketWebSiteConfig: PublicConfig = {
-  name: 'PAF advertiser',
-  host: 'www.pafmarket.shop',
-  cdnHost: 'cdn.pafmarket.shop',
-};
-
-export const pafMarketClientNodeConfig: PublicConfig = {
-  name: 'PAF advertiser',
-  host: 'paf.pafmarket.shop',
-};
-
-export const pifMarketWebSiteConfig: PublicConfig = {
-  name: 'PIF advertiser',
-  host: 'www.pifmarket.shop',
-  cdnHost: 'cdn.pifmarket.shop',
-};
-
 export const pofMarketWebSiteConfig: PublicConfig = {
   name: 'POF advertiser',
   host: 'www.pofmarket.shop',

@@ -1,6 +1,12 @@
-import { pifMarketWebSiteConfig } from './old-config';
 import { App } from '@core/express/express-apps';
 import { anythingButAssets } from './demo-utils';
+import { PublicConfig } from './old-config';
+
+const pifMarketWebSiteConfig: PublicConfig = {
+  name: 'PIF advertiser',
+  host: 'www.pifmarket.shop',
+  cdnHost: 'cdn.pifmarket.shop',
+};
 
 export const pifMarketWebSiteApp = new App(pifMarketWebSiteConfig.name).setHostName(pifMarketWebSiteConfig.host);
 
@@ -9,8 +15,8 @@ pifMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
 
   res.render(view, {
     title: pifMarketWebSiteConfig.name,
-    pafNodeHost: 'paf.pifmarket.shop',
     cdnHost: pifMarketWebSiteConfig.cdnHost,
+    pafNodeHost: 'paf.pifmarket.shop',
     cmp: false,
   });
 });
