@@ -48,11 +48,11 @@ import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
-import { pafClientNodePrivateConfig } from '../src/paf-publisher-client-node';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { OperatorConfig } from '@operator/operator-node';
 import { getKeys } from '@core/express/config';
 import { isValidKey } from '@core/crypto/keys';
+import { ClientNodeConfig } from '@operator-client/client-node';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>
@@ -184,6 +184,15 @@ class Examples {
     const currentOperatorKeys = operatorKeys.find((pair) => isValidKey(pair));
     const operatorPrivateKey = currentOperatorKeys?.privateKey;
 
+    const clientNodeConfigPath = path.join(configPath, 'crto-poc-1-operator/config.json');
+    const clientNodeConfig = JSON.parse(
+      (await fs.promises.readFile(clientNodeConfigPath)).toString()
+    ) as ClientNodeConfig;
+    const clientNodeKeys = await getKeys(clientNodeConfigPath, clientNodeConfig.identity);
+    const currentClientNodeKeys = clientNodeKeys.find((pair) => isValidKey(pair));
+    const clientNodePrivateKey = currentClientNodeKeys?.privateKey;
+    const clientNodePublicKey = currentClientNodeKeys?.publicKey;
+
     const keyStore = new PublicKeyStore();
     const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateKey, keyStore);
     const originalAdvertiserUrl = new URL(
@@ -203,7 +212,7 @@ class Examples {
     const cmpClient = new OperatorClient(
       crtoOneOperatorConfig.host,
       pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey,
+      clientNodePrivateKey,
       keyStore
     );
     this.setObject(
@@ -231,12 +240,9 @@ class Examples {
     const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(
       crtoOneOperatorConfig.host,
       pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      clientNodePrivateKey
     );
-    const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(
-      crtoOneOperatorConfig.host,
-      pafClientNodePrivateConfig.privateKey
-    );
+    const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(crtoOneOperatorConfig.host, clientNodePrivateKey);
     this.setRestMessage(
       'getIdsPrefsRequestJson',
       getIdsPrefsRequestBuilder.buildRestRequest(
@@ -299,11 +305,11 @@ class Examples {
     const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
       crtoOneOperatorConfig.host,
       pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      clientNodePrivateKey
     );
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(
       crtoOneOperatorConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      clientNodePrivateKey
     );
     this.setRestMessage(
       'postIdsPrefsRequestJson',
@@ -355,7 +361,7 @@ class Examples {
     const getNewIdRequestBuilder = new GetNewIdRequestBuilder(
       crtoOneOperatorConfig.host,
       pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      clientNodePrivateKey
     );
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(crtoOneOperatorConfig.host, operatorPrivateKey);
     this.setRestMessage(
@@ -407,13 +413,17 @@ class Examples {
     const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(pafPublisherClientNodeConfig.host);
     const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(
       pafPublisherClientNodeConfig.name,
-      pafClientNodePrivateConfig.type,
-      pafClientNodePrivateConfig.dpoEmailAddress,
-      new URL(pafClientNodePrivateConfig.privacyPolicyUrl)
+      'vendor',
+      clientNodeConfig.identity.dpoEmailAddress,
+      new URL(clientNodeConfig.identity.privacyPolicyUrl)
     );
     this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined));
     this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
-      pafClientNodePrivateConfig.currentPublicKey,
+      {
+        publicKey: currentClientNodeKeys?.publicKey,
+        startTimestampInSec: currentClientNodeKeys?.start,
+        endTimestampInSec: currentClientNodeKeys?.end,
+      },
     ]);
 
     // **************************** Proxy
