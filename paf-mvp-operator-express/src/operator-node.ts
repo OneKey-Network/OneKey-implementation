@@ -44,6 +44,9 @@ import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
 import { OperatorApi } from '@operator/operator-api';
 import { App } from '@core/express/express-apps';
+import { IdentityConfig } from '@core/express/config';
+import { isValidKey } from '@core/crypto/keys';
+import fs from 'fs';
 
 const getOperatorExpiration = (date: Date = new Date()) => {
   const expirationDate = new Date(date);
@@ -56,14 +59,20 @@ export enum Permission {
   WRITE = 'WRITE',
 }
 
-export type AllowedDomains = { [domain: string]: Permission[] };
+export type AllowedHosts = { [host: string]: Permission[] };
+
+export interface OperatorConfig {
+  identity: IdentityConfig;
+  host: string;
+  allowedHosts: AllowedHosts;
+}
 
 export class OperatorNode {
   constructor(
     identity: Omit<Identity, 'type'>,
     operatorHost: string,
     privateKey: string,
-    allowedDomains: AllowedDomains,
+    allowedHosts: AllowedHosts,
     s2sOptions?: AxiosRequestConfig,
     public app: App = new App(identity.name).setHostName(operatorHost)
   ) {
@@ -123,7 +132,7 @@ export class OperatorNode {
 
       const sender = request.sender;
 
-      if (!allowedDomains[sender]?.includes(Permission.READ)) {
+      if (!allowedHosts[sender]?.includes(Permission.READ)) {
         throw `Domain not allowed to read data: ${sender}`;
       }
 
@@ -172,7 +181,7 @@ export class OperatorNode {
       }
       const sender = request.sender;
 
-      if (!allowedDomains[sender]?.includes(Permission.WRITE)) {
+      if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
         throw `Domain not allowed to write data: ${sender}`;
       }
 
@@ -301,7 +310,7 @@ export class OperatorNode {
 
       const sender = request.sender;
 
-      if (!allowedDomains[sender]?.includes(Permission.READ)) {
+      if (!allowedHosts[sender]?.includes(Permission.READ)) {
         throw `Domain not allowed to read data: ${sender}`;
       }
 
@@ -406,5 +415,37 @@ export class OperatorNode {
         res.json(error);
       }
     });
+  }
+
+  // TODO get rid of s2sOptions
+  static async fromConfig(config: OperatorConfig, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
+    // Add start and end timestamp in seconds, and load key values
+    const keys = await Promise.all(
+      config.identity.keyPairs.map(async (keyPair) => ({
+        publicKey: (await fs.promises.readFile(keyPair.publicKeyPath)).toString(),
+        privateKey: (await fs.promises.readFile(keyPair.privateKeyPath)).toString(),
+        start: getTimeStampInSec(new Date(keyPair.startDateTimeISOString)),
+        end: getTimeStampInSec(new Date(keyPair.endDateTimeISOString)),
+      }))
+    );
+
+    const currentPrivateKey = keys.find((pair) => isValidKey(pair))?.privateKey;
+
+    if (currentPrivateKey === undefined) {
+      throw 'Valid private key not found'; // FIXME improve
+    }
+
+    const identity: Omit<Identity, 'type'> = {
+      name: config.identity.name,
+      dpoEmailAddress: config.identity.dpoEmailAddress,
+      privacyPolicyUrl: new URL(config.identity.privacyPolicyUrl),
+      publicKeys: keys.map((pair) => ({
+        publicKey: pair.publicKey,
+        startTimestampInSec: pair.start,
+        endTimestampInSec: pair.end,
+      })),
+    };
+
+    return new OperatorNode(identity, config.host, currentPrivateKey, config.allowedHosts, s2sOptions);
   }
 }

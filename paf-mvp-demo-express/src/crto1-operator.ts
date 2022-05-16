@@ -47,10 +47,10 @@ export const crtoOneOperatorNode = new OperatorNode(
     [pafPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [pifPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [pofPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
-    [portalConfig.host]: [Permission.READ, Permission.WRITE],
     [pafMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [pifMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [pofMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [portalConfig.host]: [Permission.READ, Permission.WRITE],
   },
   s2sOptions
 );
