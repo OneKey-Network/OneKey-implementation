@@ -34,7 +34,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 };
 
 // This host supports the Operator API
-export const crtoOneOperatorApp = new OperatorNode(
+export const crtoOneOperatorNode = new OperatorNode(
   {
     name: crtoOneOperatorConfig.name,
     publicKeys: [operatorPrivateConfig.currentPublicKey],

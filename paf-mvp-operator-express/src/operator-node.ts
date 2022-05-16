@@ -8,14 +8,14 @@ import {
   Get3PCResponseBuilder,
   GetIdsPrefsResponseBuilder,
   GetNewIdResponseBuilder,
-  PostIdsPrefsResponseBuilder
+  PostIdsPrefsResponseBuilder,
 } from '@core/model/operator-response-builders';
 import { Verifier } from '@core/crypto/verifier';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
   RedirectContext,
-  RestContext
+  RestContext,
 } from '@core/crypto/signing-definition';
 import {
   corsOptionsAcceptAll,
@@ -24,7 +24,7 @@ import {
   getTopLevelDomain,
   httpRedirect,
   removeCookie,
-  setCookie
+  setCookie,
 } from '@core/express/utils';
 import {
   GetIdsPrefsRequest,
@@ -35,7 +35,7 @@ import {
   Preferences,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
-  Test3Pc
+  Test3Pc,
 } from '@core/model/generated-model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
@@ -67,7 +67,6 @@ export class OperatorNode {
     s2sOptions?: AxiosRequestConfig,
     public app: App = new App(identity.name).setHostName(operatorHost)
   ) {
-
     // Note that CORS is "disabled" here because the check is done via signature
     // So accept whatever the referer is
 
@@ -77,7 +76,7 @@ export class OperatorNode {
     // Start by adding identity endpoint
     addIdentityEndpoint(app.app, {
       ...identity,
-      type: 'operator'
+      type: 'operator',
     });
 
     const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey);
@@ -92,12 +91,12 @@ export class OperatorNode {
     const writeAsCookies = (input: PostIdsPrefsRequest, res: Response) => {
       if (input.body.identifiers !== undefined) {
         setCookie(res, Cookies.identifiers, JSON.stringify(input.body.identifiers), getOperatorExpiration(), {
-          domain: tld
+          domain: tld,
         });
       }
       if (input.body.preferences !== undefined) {
         setCookie(res, Cookies.preferences, JSON.stringify(input.body.preferences), getOperatorExpiration(), {
-          domain: tld
+          domain: tld,
         });
       }
     };
@@ -115,7 +114,7 @@ export class OperatorNode {
         request = (topLevelRequest as RedirectGetIdsPrefsRequest).request;
         context = {
           returnUrl: (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl,
-          referer: req.header('referer')
+          referer: req.header('referer'),
         };
       } else {
         request = topLevelRequest as GetIdsPrefsRequest;
@@ -165,7 +164,7 @@ export class OperatorNode {
         request = (topLevelRequest as RedirectPostIdsPrefsRequest).request;
         context = {
           returnUrl: (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl,
-          referer: req.header('referer')
+          referer: req.header('referer'),
         };
       } else {
         request = topLevelRequest as PostIdsPrefsRequest;
@@ -219,7 +218,7 @@ export class OperatorNode {
       const expirationDate = new Date(now);
       expirationDate.setTime(now.getTime() + 1000 * 60); // Lifespan: 1 minute
       const test3pc: Test3Pc = {
-        timestamp: getTimeStampInSec(now)
+        timestamp: getTimeStampInSec(now),
       };
       setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: tld });
     };
@@ -241,7 +240,7 @@ export class OperatorNode {
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);
@@ -267,7 +266,7 @@ export class OperatorNode {
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);
@@ -287,7 +286,7 @@ export class OperatorNode {
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);
@@ -325,7 +324,7 @@ export class OperatorNode {
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);
@@ -345,7 +344,7 @@ export class OperatorNode {
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         const error: OperatorError = {
           type: OperatorErrorType.INVALID_RETURN_URL,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);
@@ -365,7 +364,7 @@ export class OperatorNode {
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);
@@ -381,7 +380,7 @@ export class OperatorNode {
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         const error: OperatorError = {
           type: OperatorErrorType.INVALID_RETURN_URL,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);
@@ -401,7 +400,7 @@ export class OperatorNode {
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
-          details: ''
+          details: '',
         };
         res.status(400);
         res.json(error);

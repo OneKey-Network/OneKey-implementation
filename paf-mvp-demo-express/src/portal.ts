@@ -55,7 +55,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
   dpoEmailAddress: 'contact@portal.onekey.network',
   privacyPolicyUrl: 'https://portal.onekey.network/privacy',
 };
-export const portalApp = new App(portalConfig.name).setHostName(portalConfig.host);
+export const portalWebSiteApp = new App(portalConfig.name).setHostName(portalConfig.host);
 
 const keyStore = new PublicKeyStore(s2sOptions);
 
@@ -105,26 +105,26 @@ const getWritePrefsUrlFromOptin = (req: Request, identifiers: Identifiers, optIn
 
 const tld = getTopLevelDomain(portalConfig.host);
 
-portalApp.app.get(removeIdUrl, (req, res) => {
+portalWebSiteApp.app.get(removeIdUrl, (req, res) => {
   removeCookie(req, res, Cookies.identifiers, { domain: tld });
   const homeUrl = getRequestUrl(req, '/');
   httpRedirect(res, homeUrl.toString());
 });
 
-portalApp.app.get(removePrefsUrl, (req, res) => {
+portalWebSiteApp.app.get(removePrefsUrl, (req, res) => {
   removeCookie(req, res, Cookies.preferences, { domain: tld });
   const homeUrl = getRequestUrl(req, '/');
   httpRedirect(res, homeUrl.toString());
 });
 
-portalApp.app.get(generateNewId, (req, res) => {
+portalWebSiteApp.app.get(generateNewId, (req, res) => {
   const returnUrl = getRequestUrl(req, writeNewId);
 
   // First go to "read or init id" on operator, and then redirects to the local write endpoint, that itself calls the operator again
   httpRedirect(res, client.getReadRedirectUrl(req, returnUrl).toString());
 });
 
-portalApp.app.get(writeNewId, (req, res) => {
+portalWebSiteApp.app.get(writeNewId, (req, res) => {
   const cookies = req.cookies;
 
   const redirectGetIdsPrefsResponse = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req);
@@ -140,7 +140,7 @@ portalApp.app.get(writeNewId, (req, res) => {
   httpRedirect(res, getWritePrefsUrl(req, identifiers, preferences, homeUrl).toString());
 });
 
-portalApp.app.get(optInUrl, (req, res) => {
+portalWebSiteApp.app.get(optInUrl, (req, res) => {
   const cookies = req.cookies;
   const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
@@ -153,7 +153,7 @@ portalApp.app.get(optInUrl, (req, res) => {
   }
 });
 
-portalApp.app.get(optOutUrl, (req, res) => {
+portalWebSiteApp.app.get(optOutUrl, (req, res) => {
   const cookies = req.cookies;
   const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
@@ -224,9 +224,9 @@ const mappings: Mappings = {
   },
 };
 
-portalApp.app.use(express.json());
+portalWebSiteApp.app.use(express.json());
 
-portalApp.app.post(verify, async (req, res) => {
+portalWebSiteApp.app.post(verify, async (req, res) => {
   const request: {
     type: keyof Model;
     payload: object;
@@ -259,7 +259,7 @@ portalApp.app.post(verify, async (req, res) => {
   res.json(response);
 });
 
-portalApp.app.get('/', (req, res) => {
+portalWebSiteApp.app.get('/', (req, res) => {
   const cookies = req.cookies;
   if (Object.keys(req.query).length > 0) {
     // Make sure the page is always reloaded with empty query string, for a good reason:
@@ -308,7 +308,7 @@ portalApp.app.get('/', (req, res) => {
   res.render('portal/index', options);
 });
 
-addIdentityEndpoint(portalApp.app, {
+addIdentityEndpoint(portalWebSiteApp.app, {
   name: portalConfig.name,
   type: portalPrivateConfig.type,
   publicKeys: [portalPrivateConfig.currentPublicKey],
