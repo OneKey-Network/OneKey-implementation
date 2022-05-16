@@ -1,4 +1,3 @@
-import express from 'express';
 import { pifPublisherClientNodeConfig, pifPublisherWebSiteConfig } from './config';
 import { App } from '@core/express/express-apps';
 
@@ -17,6 +16,6 @@ pifPublisherWebSiteApp.app.get('*', (req, res) => {
   });
 });
 
-export const pifPublisherCdnApp = new App(pifPublisherWebSiteConfig.name, express()).setHostName(
+export const pifPublisherCdnApp = new App(pifPublisherWebSiteConfig.name).setHostName(
   pifPublisherWebSiteConfig.cdnHost
 );

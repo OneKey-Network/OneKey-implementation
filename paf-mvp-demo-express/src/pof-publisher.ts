@@ -1,4 +1,3 @@
-import express from 'express';
 import { pofPublisherClientNodeConfig, pofPublisherWebSiteConfig } from './config';
 import { App } from '@core/express/express-apps';
 
@@ -18,6 +17,6 @@ pofPublisherWebSiteApp.app.get('*', (req, res) => {
   });
 });
 
-export const pofPublisherCdnApp = new App(pofPublisherWebSiteConfig.name, express()).setHostName(
+export const pofPublisherCdnApp = new App(pofPublisherWebSiteConfig.name).setHostName(
   pofPublisherWebSiteConfig.cdnHost
 );

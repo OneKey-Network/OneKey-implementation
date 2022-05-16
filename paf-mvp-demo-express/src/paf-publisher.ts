@@ -1,4 +1,3 @@
-import express from 'express';
 import { pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from './config';
 import { App } from '@core/express/express-apps';
 
@@ -20,6 +19,6 @@ pafPublisherWebSiteApp.app.get('*', (req, res) => {
   res.setHeader('Referrer-Policy', 'unsafe-url');
 });
 
-export const pafPublisherCdnApp = new App(pafPublisherWebSiteConfig.name, express()).setHostName(
+export const pafPublisherCdnApp = new App(pafPublisherWebSiteConfig.name).setHostName(
   pafPublisherWebSiteConfig.cdnHost
 );

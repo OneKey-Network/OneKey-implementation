@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { pafMarketClientNodeConfig, pafMarketWebSiteConfig } from './config';
 import { App } from '@core/express/express-apps';
 
@@ -29,6 +29,4 @@ pafMarketWebSiteApp.app.get('*', async (req: Request, res: Response) => {
   //}
 });
 
-export const pafMarketCdnApp = new App(pafMarketWebSiteConfig.name, express()).setHostName(
-  pafMarketWebSiteConfig.cdnHost
-);
+export const pafMarketCdnApp = new App(pafMarketWebSiteConfig.name).setHostName(pafMarketWebSiteConfig.cdnHost);

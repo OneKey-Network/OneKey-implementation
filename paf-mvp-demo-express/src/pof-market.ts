@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { pofMarketClientNodeConfig, pofMarketWebSiteConfig } from './config';
 import { App } from '@core/express/express-apps';
 
@@ -17,6 +17,4 @@ pofMarketWebSiteApp.app.get('*', async (req: Request, res: Response) => {
   });
 });
 
-export const pofMarketCdnApp = new App(pofMarketWebSiteConfig.name, express()).setHostName(
-  pofMarketWebSiteConfig.cdnHost
-);
+export const pofMarketCdnApp = new App(pofMarketWebSiteConfig.name).setHostName(pofMarketWebSiteConfig.cdnHost);
