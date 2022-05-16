@@ -16,7 +16,7 @@ pifMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
   res.render(view, {
     title: pifMarketWebSiteConfig.name,
     cdnHost: pifMarketWebSiteConfig.cdnHost,
-    pafNodeHost: 'paf.pifmarket.shop',
+    pafNodeHost: 'pifmarket-client',
     cmp: false,
   });
 });

@@ -9,7 +9,6 @@ import { pifMarketCdnApp, pifMarketWebSiteApp } from './pif-market';
 import { pofMarketCdnApp, pofMarketWebSiteApp } from './pof-market';
 import { portalWebSiteApp } from './portal';
 import { s2sOptions } from './demo-utils';
-import { pofMarketClientNode } from './pof-market-client-node';
 import { pifPublisherClientNode } from './pif-publisher-client-node';
 import { pafPublisherClientNode } from './paf-publisher-client-node';
 import { pofPublisherClientNode } from './pof-publisher-client-node';
@@ -39,14 +38,12 @@ export const getAppsAndNodes = async (): Promise<{
     pofMarketCdnApp,
   ];
 
-  const crtoOneOperatorNode = await OperatorNode.fromConfig(
-    'configs/crto-poc-1.onekey.network/config.json',
-    s2sOptions
-  );
+  const crtoOneOperatorNode = await OperatorNode.fromConfig('configs/crto-poc-1-operator/config.json', s2sOptions);
   const operators: OperatorNode[] = [crtoOneOperatorNode];
 
-  const pifMarketClientNode = await ClientNode.fromConfig('configs/paf.pifmarket.shop/config.json', s2sOptions);
-  const pafMarketClientNode = await ClientNode.fromConfig('configs/paf.pafmarket.shop/config.json', s2sOptions);
+  const pifMarketClientNode = await ClientNode.fromConfig('configs/pifmarket-client/config.json', s2sOptions);
+  const pafMarketClientNode = await ClientNode.fromConfig('configs/pafmarket-client/config.json', s2sOptions);
+  const pofMarketClientNode = await ClientNode.fromConfig('configs/pofmarket-client/config.json', s2sOptions);
 
   const clientNodes: ClientNode[] = [
     pifMarketClientNode,

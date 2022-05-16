@@ -88,7 +88,7 @@ export const escapeRegExp = (stringForRegex: string): string => stringForRegex.r
 /**
  * Extract the TLD+1 from a hostname.
  * Examples:
- *  crto-poc-1.onekey.network => onekey.network
+ *  crto-poc-1-operator => onekey.network
  *  www.pafmarket.shop => pafmarket.shop
  * @param host
  */

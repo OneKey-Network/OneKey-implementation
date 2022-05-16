@@ -15,7 +15,7 @@ pafMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
 
   res.render(view, {
     title: pafMarketWebSiteConfig.name,
-    pafNodeHost: 'paf.pafmarket.shop',
+    pafNodeHost: 'pafmarket-client',
     cdnHost: pafMarketWebSiteConfig.cdnHost,
   });
 });

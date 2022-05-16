@@ -20,7 +20,7 @@ export const getFakeIdentifier = (fakeId: string, type = 'paf_browser_id'): Iden
   type: type as 'paf_browser_id',
   value: fakeId,
   source: {
-    domain: 'crto-poc-1.onekey.network',
+    domain: 'crto-poc-1-operator',
     timestamp,
     signature: 'cAudj1JsA2IqrOx8bt/1wiijLiAnsbALw+8c0h6Z8YrOIp/jsJoa5QHfvi+SL6wcorwwZifvfj0j0ERY3baiSg==',
   },

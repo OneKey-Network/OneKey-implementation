@@ -175,7 +175,7 @@ class Examples {
 
   protected async buildExamples() {
     // The examples are not supposed to look like a demo but a real environment
-    const operatorConfigPath = path.join(configPath, 'crto-poc-1.onekey.network/config.json');
+    const operatorConfigPath = path.join(configPath, 'crto-poc-1-operator/config.json');
     const crtoOneOperatorConfig = JSON.parse(
       (await fs.promises.readFile(operatorConfigPath)).toString()
     ) as OperatorConfig;

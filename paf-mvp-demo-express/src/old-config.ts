@@ -23,7 +23,7 @@ export const pofMarketWebSiteConfig: PublicConfig = {
 
 export const pofMarketClientNodeConfig: PublicConfig = {
   name: 'POF advertiser',
-  host: 'paf.pofmarket.shop',
+  host: 'pofmarket-client',
 };
 
 export const pafPublisherWebSiteConfig: PublicConfig = {
