@@ -1,5 +1,5 @@
 import { Cookies } from '@core/cookies';
-import { Identifiers, Preferences, IdsAndPreferences, Identifier } from '@core/model/generated-model';
+import { Identifier, Identifiers, IdsAndPreferences, Preferences } from '@core/model/generated-model';
 
 const timestamp = Date.now();
 

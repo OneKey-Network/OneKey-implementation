@@ -25,7 +25,7 @@ k/MRohFL/ay2XJUUf7Jb9weRJH9CuSEYZQ==
 export const pofPublisherClientNode = new ClientNode(
   {
     name: pofPublisherClientNodeConfig.name,
-    currentPublicKey: pofClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pofClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pofClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pofClientNodePrivateConfig.privacyPolicyUrl),
   },

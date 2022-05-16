@@ -25,7 +25,7 @@ hshouUEPI2C2ti8j0s3K3JY2imY3DxKigw==
 export const pofMarketClientNode = new ClientNode(
   {
     name: pofMarketClientNodeConfig.name,
-    currentPublicKey: pofMarketPrivateConfig.currentPublicKey,
+    publicKeys: [pofMarketPrivateConfig.currentPublicKey],
     dpoEmailAddress: pofMarketPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pofMarketPrivateConfig.privacyPolicyUrl),
   },

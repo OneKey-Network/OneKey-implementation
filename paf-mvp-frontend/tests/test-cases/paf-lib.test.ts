@@ -1,10 +1,9 @@
 import {
-  getNewId,
-  getIdsAndPreferences,
-  signPreferences,
-  refreshIdsAndPreferences,
   createSeed,
-  SeedEntry,
+  getIdsAndPreferences,
+  getNewId,
+  refreshIdsAndPreferences,
+  signPreferences,
 } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';

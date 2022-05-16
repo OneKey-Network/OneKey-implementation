@@ -1,4 +1,9 @@
-import Card, { CardHeader as CardHeaderComponent, CardActions, CardHeaderLogo, CardFooter as CardFooterComponent } from './Card';
+import Card, {
+  CardActions,
+  CardFooter as CardFooterComponent,
+  CardHeader as CardHeaderComponent,
+  CardHeaderLogo
+} from './Card';
 import Button from './Button';
 import { CrossIcon } from './Icons';
 

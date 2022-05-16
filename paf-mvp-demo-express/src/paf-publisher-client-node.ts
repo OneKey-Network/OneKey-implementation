@@ -26,7 +26,7 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
 export const pafPublisherClientNode = new ClientNode(
   {
     name: pafPublisherClientNodeConfig.name,
-    currentPublicKey: pafClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pafClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pafClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pafClientNodePrivateConfig.privacyPolicyUrl),
   },

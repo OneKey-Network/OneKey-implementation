@@ -25,7 +25,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 export const pafMarketClientNode = new ClientNode(
   {
     name: pafMarketClientNodeConfig.name,
-    currentPublicKey: pafMarketClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pafMarketClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pafMarketClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pafMarketClientNodePrivateConfig.privacyPolicyUrl),
   },

@@ -37,7 +37,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 export const crtoOneOperatorApp = new OperatorNode(
   {
     name: crtoOneOperatorConfig.name,
-    currentPublicKey: operatorPrivateConfig.currentPublicKey,
+    publicKeys: [operatorPrivateConfig.currentPublicKey],
     dpoEmailAddress: operatorPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(operatorPrivateConfig.privacyPolicyUrl),
   },

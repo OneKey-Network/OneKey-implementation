@@ -25,7 +25,7 @@ MfRbBTyw+3s7boL9UFmkpc366R8fFXZMjg==
 export const pifMarketClientNode = new ClientNode(
   {
     name: pifMarketClientNodeConfig.name,
-    currentPublicKey: pifMarketPrivateConfig.currentPublicKey,
+    publicKeys: [pifMarketPrivateConfig.currentPublicKey],
     dpoEmailAddress: pifMarketPrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pifMarketPrivateConfig.privacyPolicyUrl),
   },

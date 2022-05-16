@@ -25,7 +25,7 @@ JyDD+ooj5HxZibrLkmoQ8klbnMaXBvkVkw==
 export const pifPublisherClientNode = new ClientNode(
   {
     name: pifPublisherClientNodeConfig.name,
-    currentPublicKey: pifClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pifClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pifClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pifClientNodePrivateConfig.privacyPolicyUrl),
   },

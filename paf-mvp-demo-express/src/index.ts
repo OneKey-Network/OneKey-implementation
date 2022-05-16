@@ -1,6 +1,6 @@
 import express, { Express } from 'express';
 import { crtoOneOperatorApp } from './crto1-operator';
-import { pafMarketCdnApp, pafMarketWebSiteApp } from './paf-market';
+import { pafMarketWebSiteApp } from './paf-market';
 import { join } from 'path';
 import { pafPublisherCdnApp, pafPublisherWebSiteApp } from './paf-publisher';
 import { portalApp } from './portal';
@@ -18,6 +18,7 @@ import { pofMarketClientNode } from './pof-market-client-node';
 import { pafPublisherClientNode } from './paf-publisher-client-node';
 import { pifPublisherClientNode } from './pif-publisher-client-node';
 import { pofPublisherClientNode } from './pof-publisher-client-node';
+import { pafMarketCdnApp, pafMarketWebSiteApp } from './paf-market';
 
 const relative = (path: string) => join(__dirname, path);
 const hbs = create({ defaultLayout: false });

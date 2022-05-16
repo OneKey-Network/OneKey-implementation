@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import '@testing-library/jest-dom';
-import { render, fireEvent, RenderResult, cleanup } from '@testing-library/preact';
+import { cleanup, fireEvent, render, RenderResult } from '@testing-library/preact';
 import { Button } from '../../src/components/button/Button';
 
 describe('Button Component', () => {

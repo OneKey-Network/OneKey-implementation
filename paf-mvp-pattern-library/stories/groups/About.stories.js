@@ -1,4 +1,4 @@
-import Card, { CardHeader, CardHeaderLogo, CardBody, CardFooter, CardActions } from '../components/Card';
+import Card, { CardActions, CardBody, CardFooter, CardHeader, CardHeaderLogo } from '../components/Card';
 import Button from '../components/Button';
 import { BackIcon } from '../components/Icons';
 
