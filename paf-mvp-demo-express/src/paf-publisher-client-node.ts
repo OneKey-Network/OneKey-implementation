@@ -1,6 +1,6 @@
-import { crtoOneOperatorConfig, pafPublisherClientNodeConfig, PrivateConfig } from './config';
+import { pafPublisherClientNodeConfig, PrivateConfig } from './old-config';
 import { ClientNode } from '@operator-client/client-node';
-import { s2sOptions } from './server-config';
+import { s2sOptions } from './demo-utils';
 import { getTimeStampInSec } from '@core/timestamp';
 
 // Only exported for generate-examples.ts
@@ -34,6 +34,6 @@ export const pafPublisherClientNode = new ClientNode(
     hostName: pafPublisherClientNodeConfig.host,
     privateKey: pafClientNodePrivateConfig.privateKey,
   },
-  crtoOneOperatorConfig.host,
+  'crto-poc-1.onekey.network',
   s2sOptions
 );

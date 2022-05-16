@@ -1,12 +1,12 @@
-import { Request, Response } from 'express';
-import { pafMarketClientNodeConfig, pafMarketWebSiteConfig } from './config';
+import { pafMarketClientNodeConfig, pafMarketWebSiteConfig } from './old-config';
 import { App } from '@core/express/express-apps';
+import { anythingButAssets } from './demo-utils';
 
 export const pafMarketWebSiteApp = new App(pafMarketWebSiteConfig.name).setHostName(pafMarketWebSiteConfig.host);
 
 /*
 const client = new OperatorBackendClient(
-  crtoOneOperatorConfig.host,
+  'crto-poc-1.onekey.network',
   pafMarketConfig.host,
   pafMarketPrivateConfig.privateKey,
   RedirectType.http,
@@ -15,7 +15,7 @@ const client = new OperatorBackendClient(
  */
 
 // Both a web server serving web content
-pafMarketWebSiteApp.app.get('*', async (req: Request, res: Response) => {
+pafMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
 
   // Act as an HTTP middleware

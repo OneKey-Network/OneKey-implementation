@@ -1,5 +1,5 @@
 import express, { Request } from 'express';
-import { crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
+import { portalConfig, PrivateConfig } from './old-config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
 import {
@@ -20,7 +20,7 @@ import {
   removeCookie,
 } from '@core/express/utils';
 import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
-import { s2sOptions } from './server-config';
+import { s2sOptions } from './demo-utils';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import {
@@ -61,13 +61,13 @@ const keyStore = new PublicKeyStore(s2sOptions);
 
 // The portal is a client of the operator API
 const client = new OperatorClient(
-  crtoOneOperatorConfig.host,
+  'crto-poc-1.onekey.network',
   portalConfig.host,
   portalPrivateConfig.privateKey,
   keyStore
 );
 const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
-  crtoOneOperatorConfig.host,
+  'crto-poc-1.onekey.network',
   portalConfig.host,
   portalPrivateConfig.privateKey
 );
@@ -211,7 +211,7 @@ type Mappings = { [host: string]: { [path: string]: keyof Model } };
 
 // Mapping of paths => types
 const mappings: Mappings = {
-  [crtoOneOperatorConfig.host]: {
+  ['crto-poc-1.onekey.network']: {
     [jsonOperatorEndpoints.read]: 'get-ids-prefs-request',
     // [jsonOperatorEndpoints.write]: 'post-ids-prefs-request', cannot happen because is POST payload
     [jsonOperatorEndpoints.newId]: 'get-new-id-request',

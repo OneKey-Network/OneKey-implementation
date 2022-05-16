@@ -1,17 +1,5 @@
-import { s2sOptions } from './server-config';
-import {
-  crtoOneOperatorConfig,
-  pafMarketClientNodeConfig,
-  pafPublisherClientNodeConfig,
-  pifMarketClientNodeConfig,
-  pifPublisherClientNodeConfig,
-  pofMarketClientNodeConfig,
-  pofPublisherClientNodeConfig,
-  portalConfig,
-  PrivateConfig,
-} from './config';
+import { PrivateConfig } from './old-config';
 import { getTimeStampInSec } from '@core/timestamp';
-import { OperatorNode, Permission } from '@operator/operator-node';
 
 // Only exported for generate-examples.ts
 export const operatorPrivateConfig: PrivateConfig = {
@@ -32,25 +20,3 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
   dpoEmailAddress: 'contact@crto-poc-1.onekey.network',
   privacyPolicyUrl: 'https://crto-poc-1.onekey.network/privacy',
 };
-
-// This host supports the Operator API
-export const crtoOneOperatorNode = new OperatorNode(
-  {
-    name: crtoOneOperatorConfig.name,
-    publicKeys: [operatorPrivateConfig.currentPublicKey],
-    dpoEmailAddress: operatorPrivateConfig.dpoEmailAddress,
-    privacyPolicyUrl: new URL(operatorPrivateConfig.privacyPolicyUrl),
-  },
-  crtoOneOperatorConfig.host,
-  operatorPrivateConfig.privateKey,
-  {
-    [pafPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
-    [pifPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
-    [pofPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
-    [pafMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
-    [pifMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
-    [pofMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
-    [portalConfig.host]: [Permission.READ, Permission.WRITE],
-  },
-  s2sOptions
-);

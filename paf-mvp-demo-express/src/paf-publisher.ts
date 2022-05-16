@@ -1,11 +1,12 @@
-import { pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from './config';
+import { pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from './old-config';
 import { App } from '@core/express/express-apps';
+import { anythingButAssets } from './demo-utils';
 
 export const pafPublisherWebSiteApp = new App(pafPublisherWebSiteConfig.name).setHostName(
   pafPublisherWebSiteConfig.host
 );
 
-pafPublisherWebSiteApp.app.get('*', (req, res) => {
+pafPublisherWebSiteApp.app.get(anythingButAssets, (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pafPublisherWebSiteConfig.name,

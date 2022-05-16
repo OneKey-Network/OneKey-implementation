@@ -1,91 +1,60 @@
-import { PublicKeyInfo } from '@core/crypto/identity';
+import { OperatorNode } from '@operator/operator-node';
+import { ClientNode } from '@operator-client/client-node';
+import { App } from '@core/express/express-apps';
+import { pafPublisherCdnApp, pafPublisherWebSiteApp } from './paf-publisher';
+import { pifPublisherCdnApp, pifPublisherWebSiteApp } from './pif-publisher';
+import { pofPublisherCdnApp, pofPublisherWebSiteApp } from './pof-publisher';
+import { pafMarketCdnApp, pafMarketWebSiteApp } from './paf-market';
+import { pifMarketCdnApp, pifMarketWebSiteApp } from './pif-market';
+import { pofMarketCdnApp, pofMarketWebSiteApp } from './pof-market';
+import { portalWebSiteApp } from './portal';
+import { s2sOptions } from './demo-utils';
+import { pifMarketClientNode } from './pif-market-client-node';
+import { pafMarketClientNode } from './paf-market-client-node';
+import { pofMarketClientNode } from './pof-market-client-node';
+import { pifPublisherClientNode } from './pif-publisher-client-node';
+import { pafPublisherClientNode } from './paf-publisher-client-node';
+import { pofPublisherClientNode } from './pof-publisher-client-node';
 
-export interface PublicConfig {
-  name: string;
-  host: string;
-  cdnHost?: string;
-}
+export const getAppsAndNodes = async (): Promise<{
+  operators: OperatorNode[];
+  clientNodes: ClientNode[];
+  cdns: App[];
+  websites: App[];
+}> => {
+  const websites: App[] = [
+    pafPublisherWebSiteApp,
+    pifPublisherWebSiteApp,
+    pofPublisherWebSiteApp,
+    pafMarketWebSiteApp,
+    pifMarketWebSiteApp,
+    pofMarketWebSiteApp,
+    portalWebSiteApp,
+  ];
 
-export interface PrivateConfig {
-  currentPublicKey: PublicKeyInfo;
-  privateKey: string;
-  type: 'vendor' | 'operator';
-  dpoEmailAddress: string;
-  privacyPolicyUrl: string;
-}
+  const cdns: App[] = [
+    pifPublisherCdnApp,
+    pafPublisherCdnApp,
+    pofPublisherCdnApp,
+    pifMarketCdnApp,
+    pafMarketCdnApp,
+    pofMarketCdnApp,
+  ];
 
-export const pafMarketWebSiteConfig: PublicConfig = {
-  name: 'PAF advertiser',
-  host: 'www.pafmarket.shop',
-  cdnHost: 'cdn.pafmarket.shop',
-};
+  const crtoOneOperatorNode = await OperatorNode.fromConfig(
+    'configs/crto-poc-1.onekey.network/config.json',
+    s2sOptions
+  );
+  const operators: OperatorNode[] = [crtoOneOperatorNode];
 
-export const pafMarketClientNodeConfig: PublicConfig = {
-  name: 'PAF advertiser',
-  host: 'paf.pafmarket.shop',
-};
+  const clientNodes: ClientNode[] = [
+    pifMarketClientNode,
+    pafMarketClientNode,
+    pofMarketClientNode,
+    pifPublisherClientNode,
+    pafPublisherClientNode,
+    pofPublisherClientNode,
+  ];
 
-export const pifMarketWebSiteConfig: PublicConfig = {
-  name: 'PIF advertiser',
-  host: 'www.pifmarket.shop',
-  cdnHost: 'cdn.pifmarket.shop',
-};
-
-export const pifMarketClientNodeConfig: PublicConfig = {
-  name: 'PIF advertiser',
-  host: 'paf.pifmarket.shop',
-};
-
-export const pofMarketWebSiteConfig: PublicConfig = {
-  name: 'POF advertiser',
-  host: 'www.pofmarket.shop',
-  cdnHost: 'cdn.pofmarket.shop',
-};
-
-export const pofMarketClientNodeConfig: PublicConfig = {
-  name: 'POF advertiser',
-  host: 'paf.pofmarket.shop',
-};
-
-export const pafPublisherWebSiteConfig: PublicConfig = {
-  name: 'PAF publisher',
-  host: 'www.pafdemopublisher.com',
-  cdnHost: 'cdn.pafdemopublisher.com',
-};
-
-export const pifPublisherWebSiteConfig: PublicConfig = {
-  name: 'PIF publisher',
-  host: 'www.pifdemopublisher.com',
-  cdnHost: 'cdn.pifdemopublisher.com',
-};
-
-export const pofPublisherWebSiteConfig: PublicConfig = {
-  name: 'POF publisher',
-  host: 'www.pofdemopublisher.com',
-  cdnHost: 'cdn.pofdemopublisher.com',
-};
-
-export const pafPublisherClientNodeConfig: PublicConfig = {
-  name: 'PAF publisher',
-  host: 'cmp.pafdemopublisher.com',
-};
-
-export const pifPublisherClientNodeConfig: PublicConfig = {
-  name: 'PIF publisher',
-  host: 'cmp.pifdemopublisher.com',
-};
-
-export const pofPublisherClientNodeConfig: PublicConfig = {
-  name: 'POF publisher',
-  host: 'cmp.pofdemopublisher.com',
-};
-
-export const crtoOneOperatorConfig: PublicConfig = {
-  name: 'Some PAF operator',
-  host: 'crto-poc-1.onekey.network',
-};
-
-export const portalConfig: PublicConfig = {
-  name: 'A PAF portal',
-  host: 'portal.onekey.network',
+  return { websites, cdns, operators, clientNodes };
 };

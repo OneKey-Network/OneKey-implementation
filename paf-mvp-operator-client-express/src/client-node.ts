@@ -22,7 +22,7 @@ import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
 import { PAFNode } from '@core/model/model';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
-import { App } from '@core/express/express-apps';
+import { App, Node } from '@core/express/express-apps';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
@@ -54,7 +54,7 @@ const getMessageObject = <T>(req: Request, res: Response): T => {
   return requestStr ? (JSON.parse(requestStr) as T) : undefined;
 };
 
-export class ClientNode {
+export class ClientNode implements Node {
   /**
    * Add PAF client node endpoints to an Express app
    * @param app the Express app

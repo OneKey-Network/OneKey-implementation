@@ -30,3 +30,13 @@ if (isLocalDev) {
     ...sslOptions,
   });
 }
+
+// Regexp that exclude any file under /assets/ directory
+// Examples of accepted paths:
+//  /
+//  /index.html
+//  /some-page/under/path#anchro
+// Examples of refused paths:
+//  /assets/
+//  /assets/favicon.ico
+export const anythingButAssets = /^(?!\/assets\/).*/;

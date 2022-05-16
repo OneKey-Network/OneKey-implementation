@@ -1,11 +1,12 @@
-import { pifPublisherClientNodeConfig, pifPublisherWebSiteConfig } from './config';
+import { pifPublisherClientNodeConfig, pifPublisherWebSiteConfig } from './old-config';
 import { App } from '@core/express/express-apps';
+import { anythingButAssets } from './demo-utils';
 
 export const pifPublisherWebSiteApp = new App(pifPublisherWebSiteConfig.name).setHostName(
   pifPublisherWebSiteConfig.host
 );
 
-pifPublisherWebSiteApp.app.get('*', (req, res) => {
+pifPublisherWebSiteApp.app.get(anythingButAssets, (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pifPublisherWebSiteConfig.name,

@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
-import { pifMarketClientNodeConfig, pifMarketWebSiteConfig } from './config';
+import { pifMarketClientNodeConfig, pifMarketWebSiteConfig } from './old-config';
 import { App } from '@core/express/express-apps';
+import { anythingButAssets } from './demo-utils';
 
 export const pifMarketWebSiteApp = new App(pifMarketWebSiteConfig.name).setHostName(pifMarketWebSiteConfig.host);
 
 // Both a web server serving web content
-pifMarketWebSiteApp.app.get('*', async (req: Request, res: Response) => {
+pifMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
 
   res.render(view, {

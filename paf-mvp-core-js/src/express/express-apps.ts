@@ -40,3 +40,7 @@ const addMiddlewares = (app: Express) => {
     req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
   });
 };
+
+export interface Node {
+  app: App;
+}

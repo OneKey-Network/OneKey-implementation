@@ -1,11 +1,12 @@
-import { pofPublisherClientNodeConfig, pofPublisherWebSiteConfig } from './config';
+import { pofPublisherClientNodeConfig, pofPublisherWebSiteConfig } from './old-config';
 import { App } from '@core/express/express-apps';
+import { anythingButAssets } from './demo-utils';
 
 export const pofPublisherWebSiteApp = new App(pofPublisherWebSiteConfig.name).setHostName(
   pofPublisherWebSiteConfig.host
 );
 
-pofPublisherWebSiteApp.app.get('*', (req, res) => {
+pofPublisherWebSiteApp.app.get(anythingButAssets, (req, res) => {
   const view = 'publisher/index';
   res.render(view, {
     title: pofPublisherWebSiteConfig.name,

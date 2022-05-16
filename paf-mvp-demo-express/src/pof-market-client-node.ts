@@ -1,6 +1,6 @@
-import { crtoOneOperatorConfig, pofMarketClientNodeConfig, PrivateConfig } from './config';
+import { pofMarketClientNodeConfig, PrivateConfig } from './old-config';
 import { ClientNode } from '@operator-client/client-node';
-import { s2sOptions } from './server-config';
+import { s2sOptions } from './demo-utils';
 import { getTimeStampInSec } from '@core/timestamp';
 
 const pofMarketPrivateConfig: PrivateConfig = {
@@ -33,6 +33,6 @@ export const pofMarketClientNode = new ClientNode(
     hostName: pofMarketClientNodeConfig.host,
     privateKey: pofMarketPrivateConfig.privateKey,
   },
-  crtoOneOperatorConfig.host,
+  'crto-poc-1.onekey.network',
   s2sOptions
 );

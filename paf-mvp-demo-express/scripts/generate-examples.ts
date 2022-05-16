@@ -21,12 +21,7 @@ import {
 } from '@core/model/generated-model';
 import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
-import {
-  crtoOneOperatorConfig,
-  pafMarketWebSiteConfig,
-  pafPublisherClientNodeConfig,
-  pafPublisherWebSiteConfig,
-} from '../src/config';
+import { pafMarketWebSiteConfig, pafPublisherClientNodeConfig, pafPublisherWebSiteConfig } from '../src/old-config';
 import path from 'path';
 import { OperatorClient } from '@operator-client/operator-client';
 import {
@@ -54,8 +49,10 @@ import cloneDeep from 'lodash.clonedeep';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { pafClientNodePrivateConfig } from '../src/paf-publisher-client-node';
-import { operatorPrivateConfig } from '../src/crto1-operator';
 import { PublicKeyStore } from '@core/crypto/key-store';
+import { OperatorConfig } from '@operator/operator-node';
+import { getKeys } from '@core/express/config';
+import { isValidKey } from '@core/crypto/keys';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>
@@ -93,8 +90,9 @@ if (!fs.existsSync(outputDir)) {
   throw `Output dir not found: "${outputDir}"`;
 }
 
+const configPath = path.join(__dirname, '..', 'configs');
+
 // The examples are not supposed to look like a demo but a real environment
-crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
 pafPublisherClientNodeConfig.host = 'cmp.com';
 pafMarketWebSiteConfig.host = 'advertiser.com';
 pafPublisherWebSiteConfig.host = 'publisher.com';
@@ -175,9 +173,19 @@ class Examples {
 
   constructor(protected outputDir: string) {}
 
-  protected buildExamples() {
+  protected async buildExamples() {
+    // The examples are not supposed to look like a demo but a real environment
+    const operatorConfigPath = path.join(configPath, 'crto-poc-1.onekey.network/config.json');
+    const crtoOneOperatorConfig = JSON.parse(
+      (await fs.promises.readFile(operatorConfigPath)).toString()
+    ) as OperatorConfig;
+    crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
+    const operatorKeys = await getKeys(operatorConfigPath, crtoOneOperatorConfig.identity);
+    const currentOperatorKeys = operatorKeys.find((pair) => isValidKey(pair));
+    const operatorPrivateKey = currentOperatorKeys?.privateKey;
+
     const keyStore = new PublicKeyStore();
-    const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateConfig.privateKey, keyStore);
+    const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateKey, keyStore);
     const originalAdvertiserUrl = new URL(
       `https://${pafMarketWebSiteConfig.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
     );
@@ -349,10 +357,7 @@ class Examples {
       pafPublisherClientNodeConfig.host,
       pafClientNodePrivateConfig.privateKey
     );
-    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(
-      crtoOneOperatorConfig.host,
-      operatorPrivateConfig.privateKey
-    );
+    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(crtoOneOperatorConfig.host, operatorPrivateKey);
     this.setRestMessage(
       'getNewIdRequestJson',
       getNewIdRequestBuilder.buildRestRequest(
@@ -384,14 +389,18 @@ class Examples {
     // **************************** Identity
     const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(crtoOneOperatorConfig.host);
     const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(
-      crtoOneOperatorConfig.name,
-      operatorPrivateConfig.type,
-      operatorPrivateConfig.dpoEmailAddress,
-      new URL(operatorPrivateConfig.privacyPolicyUrl)
+      crtoOneOperatorConfig.identity.name,
+      'operator',
+      crtoOneOperatorConfig.identity.dpoEmailAddress,
+      new URL(crtoOneOperatorConfig.identity.privacyPolicyUrl)
     );
     this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined));
     this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([
-      operatorPrivateConfig.currentPublicKey,
+      {
+        publicKey: currentOperatorKeys?.publicKey,
+        startTimestampInSec: currentOperatorKeys?.start,
+        endTimestampInSec: currentOperatorKeys?.end,
+      },
     ]);
 
     // TODO add examples with multiple keys
@@ -517,7 +526,7 @@ class Examples {
   async updateFiles() {
     await this.loadExistingFiles();
 
-    this.buildExamples();
+    await this.buildExamples();
 
     const dict = this.getObjectAsDict();
     for (const key of Object.keys(this)) {

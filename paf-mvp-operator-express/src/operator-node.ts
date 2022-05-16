@@ -43,8 +43,8 @@ import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
 import { OperatorApi } from '@operator/operator-api';
-import { App } from '@core/express/express-apps';
-import { IdentityConfig } from '@core/express/config';
+import { App, Node } from '@core/express/express-apps';
+import { getKeys, IdentityConfig } from '@core/express/config';
 import { isValidKey } from '@core/crypto/keys';
 import fs from 'fs';
 
@@ -67,7 +67,7 @@ export interface OperatorConfig {
   allowedHosts: AllowedHosts;
 }
 
-export class OperatorNode {
+export class OperatorNode implements Node {
   constructor(
     identity: Omit<Identity, 'type'>,
     operatorHost: string,
@@ -417,17 +417,10 @@ export class OperatorNode {
     });
   }
 
-  // TODO get rid of s2sOptions
-  static async fromConfig(config: OperatorConfig, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
-    // Add start and end timestamp in seconds, and load key values
-    const keys = await Promise.all(
-      config.identity.keyPairs.map(async (keyPair) => ({
-        publicKey: (await fs.promises.readFile(keyPair.publicKeyPath)).toString(),
-        privateKey: (await fs.promises.readFile(keyPair.privateKeyPath)).toString(),
-        start: getTimeStampInSec(new Date(keyPair.startDateTimeISOString)),
-        end: getTimeStampInSec(new Date(keyPair.endDateTimeISOString)),
-      }))
-    );
+  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
+    const config = JSON.parse((await fs.promises.readFile(configPath)).toString()) as OperatorConfig;
+
+    const keys = await getKeys(configPath, config.identity);
 
     const currentPrivateKey = keys.find((pair) => isValidKey(pair))?.privateKey;
 
