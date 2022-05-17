@@ -1,4 +1,4 @@
-// TODO refactor to group by operator / operator proxy
+// TODO refactor to group by operator / PAF client node
 
 // Endpoints exposed by the operator API
 const pafPrefix = '/paf';
@@ -26,7 +26,7 @@ export const participantEndpoints = {
   identity: `${pafPrefix}${identity}`,
 };
 
-// Endpoints exposed by the operator proxy
+// Endpoints exposed by the PAF client node
 const proxyPrefix = '/paf-proxy';
 const jsonVerifyRead = '/v1/verify/read';
 const jsonSignWrite = '/v1/sign/write';

@@ -1,11 +1,10 @@
 import express from 'express';
-import { crtoOneOperatorConfig, pifCmpConfig, pifDemoPublisherConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import { crtoOneOperatorConfig, pifPublisherClientNodeConfig, PrivateConfig } from './config';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
-const pifCmpPrivateConfig: PrivateConfig = {
+const pifClientNodePrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-15T10:50:00.000Z')),
@@ -20,30 +19,24 @@ MHcCAQEEIF4OKHOcZh3/XeLmP5yPtb0qiBc+8vuZf0bgVrOo/CbIoAoGCCqGSM49
 AwEHoUQDQgAEKwW/bVmi/yM2QRtPMKGeKMylxBBgQs9+mjSaivSEXR8VCCJfxdkt
 JyDD+ooj5HxZibrLkmoQ8klbnMaXBvkVkw==
 -----END EC PRIVATE KEY-----`,
-  dpoEmailAddress: 'contact@www.pifdemopublisher.com',
+  dpoEmailAddress: 'contact@pifdemopublisher.com',
   privacyPolicyUrl: 'https://www.pifdemopublisher.com/privacy',
 };
 
-export const pifCmpApp = express();
+export const pifPublisherClientNodeApp = express();
 
-// This pif proxy only allows calls from its clients
-const allowedOrigins = [`https://${pifDemoPublisherConfig.host}`];
-
-addOperatorClientProxyEndpoints(
-  pifCmpApp,
+addClientNodeEndpoints(
+  pifPublisherClientNodeApp,
+  {
+    name: pifPublisherClientNodeConfig.name,
+    currentPublicKey: pifClientNodePrivateConfig.currentPublicKey,
+    dpoEmailAddress: pifClientNodePrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pifClientNodePrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pifPublisherClientNodeConfig.host,
+    privateKey: pifClientNodePrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pifCmpConfig.host,
-  pifCmpPrivateConfig.privateKey,
-  allowedOrigins,
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pifCmpApp,
-  pifCmpConfig.name,
-  pifCmpPrivateConfig.type,
-  [pifCmpPrivateConfig.currentPublicKey],
-  pifCmpPrivateConfig.dpoEmailAddress,
-  new URL(pifCmpPrivateConfig.privacyPolicyUrl)
 );

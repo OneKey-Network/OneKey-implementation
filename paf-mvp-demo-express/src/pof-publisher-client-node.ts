@@ -1,11 +1,10 @@
 import express from 'express';
-import { crtoOneOperatorConfig, pofCmpConfig, pofDemoPublisherConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import { crtoOneOperatorConfig, pofPublisherClientNodeConfig, PrivateConfig } from './config';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
-const pofCmpPrivateConfig: PrivateConfig = {
+const pofClientNodePrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-15T10:50:00.000Z')),
@@ -20,30 +19,24 @@ MHcCAQEEIIodhppYa0SJtSzEKntZM5Dr0xh/5xcbk9QRzqvmp1eEoAoGCCqGSM49
 AwEHoUQDQgAE1CAIeic0n0aSLczizA1xzhxDPRBDEoKX2OO3IeuyAyVAOmcb9Rab
 k/MRohFL/ay2XJUUf7Jb9weRJH9CuSEYZQ==
 -----END EC PRIVATE KEY-----`,
-  dpoEmailAddress: 'contact@www.pofdemopublisher.com',
+  dpoEmailAddress: 'contact@pofdemopublisher.com',
   privacyPolicyUrl: 'https://www.pofdemopublisher.com/privacy',
 };
 
-export const pofCmpApp = express();
+export const pofPublisherClientNodeApp = express();
 
-// This pof proxy only allows calls from its clients
-const allowedOrigins = [`https://${pofDemoPublisherConfig.host}`];
-
-addOperatorClientProxyEndpoints(
-  pofCmpApp,
+addClientNodeEndpoints(
+  pofPublisherClientNodeApp,
+  {
+    name: pofPublisherClientNodeConfig.name,
+    currentPublicKey: pofClientNodePrivateConfig.currentPublicKey,
+    dpoEmailAddress: pofClientNodePrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pofClientNodePrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pofPublisherClientNodeConfig.host,
+    privateKey: pofClientNodePrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pofCmpConfig.host,
-  pofCmpPrivateConfig.privateKey,
-  allowedOrigins,
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pofCmpApp,
-  pofCmpConfig.name,
-  pofCmpPrivateConfig.type,
-  [pofCmpPrivateConfig.currentPublicKey],
-  pofCmpPrivateConfig.dpoEmailAddress,
-  new URL(pofCmpPrivateConfig.privacyPolicyUrl)
 );
