@@ -1,7 +1,7 @@
 import { Config } from './config';
 import { BindingViewOnly } from '@core/ui/binding';
 import { Identifier, PreferencesData } from '@core/model/generated-model';
-import { Model } from './model';
+import { Marketing, Model } from './model';
 import { View } from './view';
 
 /**
@@ -36,12 +36,18 @@ export class BindingShowRandomIdDiv extends BindingViewOnly<PreferencesData, Mod
   }
 
   /**
-   * If the this site only check field is true then don't display the random id.
+   * If the this site only check field is true, or marketing preferences are not standard or personalized then don't
+   * display the random id.
    */
   public refresh(): HTMLDivElement {
     const element = super.getElement();
     if (element !== null) {
-      element.style.display = this.field.value ? 'none' : '';
+      element.style.display =
+        this.model.onlyThisSite.value === false &&
+        (Marketing.equals(this.model.pref.value, Marketing.standard) ||
+          Marketing.equals(this.model.pref.value, Marketing.personalized))
+          ? ''
+          : 'none';
     }
     return element;
   }

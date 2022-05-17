@@ -154,6 +154,7 @@ export class Controller {
         ])
       )
     );
+    this.model.pref.addBinding(new BindingShowRandomIdDiv(this.view, 'ok-ui-settings-rid', this.model));
     this.model.onlyThisSite.addBinding(new BindingShowRandomIdDiv(this.view, 'ok-ui-settings-rid', this.model));
     this.model.onlyThisSite.addBinding(new BindingChecked(this.view, 'ok-ui-only-this-site'));
     this.model.onlyThisSite.addBinding(
