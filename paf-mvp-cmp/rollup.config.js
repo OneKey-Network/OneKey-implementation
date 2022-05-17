@@ -15,10 +15,18 @@ import postHTML from 'rollup-plugin-posthtml-template';
 // Embed the CSS into the bundle.
 import { string } from 'rollup-plugin-string';
 
+import replace from '@rollup/plugin-replace';
+
+const DEV = process.env.ROLLUP_WATCH;
+
 export default {
   input: './src/main.ts',
   plugins: [
-    string({ include: ['**/*.css', '**/*.svg', '**/*.js'] }),
+    string({ include: ['**/*.css', '**/*.svg'] }),
+    replace({
+      preventAssignment: true,
+      'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
+    }),
     postHTML({ template: true }),
     yaml(),
     nodeResolve(),
