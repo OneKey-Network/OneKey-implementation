@@ -1,12 +1,11 @@
 import express from 'express';
-import { crtoOneOperatorConfig, pafCmpConfig, pafDemoPublisherConfig, PrivateConfig } from './config';
-import { addOperatorClientProxyEndpoints } from '@operator-client/operator-client-proxy';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
+import { crtoOneOperatorConfig, pafPublisherClientNodeConfig, PrivateConfig } from './config';
+import { addClientNodeEndpoints } from '@operator-client/client-node';
 import { s2sOptions } from './server-config';
 import { getTimeStampInSec } from '@core/timestamp';
 
 // Only exported for generate-examples.ts
-export const pafCmpPrivateConfig: PrivateConfig = {
+export const pafClientNodePrivateConfig: PrivateConfig = {
   type: 'vendor',
   currentPublicKey: {
     startTimestampInSec: getTimeStampInSec(new Date('2022-01-15T10:50:00.000Z')),
@@ -25,26 +24,20 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
   privacyPolicyUrl: 'https://www.pafdemopublisher.com/privacy',
 };
 
-export const pafCmpApp = express();
+export const pafPublisherClientNodeApp = express();
 
-// This PAF proxy only allows calls from its clients
-const allowedOrigins = [`https://${pafDemoPublisherConfig.host}`];
-
-addOperatorClientProxyEndpoints(
-  pafCmpApp,
+addClientNodeEndpoints(
+  pafPublisherClientNodeApp,
+  {
+    name: pafPublisherClientNodeConfig.name,
+    currentPublicKey: pafClientNodePrivateConfig.currentPublicKey,
+    dpoEmailAddress: pafClientNodePrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(pafClientNodePrivateConfig.privacyPolicyUrl),
+  },
+  {
+    hostName: pafPublisherClientNodeConfig.host,
+    privateKey: pafClientNodePrivateConfig.privateKey,
+  },
   crtoOneOperatorConfig.host,
-  pafCmpConfig.host,
-  pafCmpPrivateConfig.privateKey,
-  allowedOrigins,
   s2sOptions
-);
-
-// Add identity endpoint
-addIdentityEndpoint(
-  pafCmpApp,
-  pafCmpConfig.name,
-  pafCmpPrivateConfig.type,
-  [pafCmpPrivateConfig.currentPublicKey],
-  pafCmpPrivateConfig.dpoEmailAddress,
-  new URL(pafCmpPrivateConfig.privacyPolicyUrl)
 );

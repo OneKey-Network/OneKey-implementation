@@ -5,7 +5,7 @@ import { Button } from '../button/Button';
 import classes from './style.scss';
 import layout from '../../styles/layouts.scss';
 import { Cross } from '../svg/cross/Cross';
-import { useState, useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 
 interface ISubPanelProps {
   isOpen?: boolean;

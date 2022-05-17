@@ -12,7 +12,7 @@ import {
   Preferences,
   Seed,
 } from '@core/model/generated-model';
-import { RedirectRequest, RedirectResponse, UnsignedData, UnsignedMessage } from '@core/model/model';
+import { Unsigned, UnsignedSource } from '@core/model/model';
 import { SignatureStringBuilder } from './signer';
 
 /**
@@ -35,12 +35,13 @@ export interface SigningDefinition<T, U = Partial<T>> extends SignatureStringBui
 export const SIGN_SEP = '\u2063';
 
 export interface SeedSignatureContainer {
-  seed: UnsignedData<Seed>;
+  seed: UnsignedSource<Seed>;
   idsAndPreferences: IdsAndPreferences;
 }
 
 export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatureContainer> {
   getInputString(data: SeedSignatureContainer): string {
+    // FIXME[security] add version
     const seed = data.seed;
     const ids = data.idsAndPreferences.identifiers;
     const prefs = data.idsAndPreferences.preferences;
@@ -61,7 +62,7 @@ export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatur
 /**
  * Defines how to extract signature, signer domain and input string from an Identifier
  */
-export class IdentifierDefinition implements SigningDefinition<Identifier, UnsignedData<Identifier>> {
+export class IdentifierDefinition implements SigningDefinition<Identifier, UnsignedSource<Identifier>> {
   getSignature(data: Identifier) {
     return data.source.signature;
   }
@@ -70,14 +71,15 @@ export class IdentifierDefinition implements SigningDefinition<Identifier, Unsig
     return data.source.domain;
   }
 
-  getInputString(data: UnsignedData<Identifier>) {
+  getInputString(data: UnsignedSource<Identifier>) {
+    // FIXME[security] add version
     return [data.source.domain, data.source.timestamp, data.type, data.value].join(SIGN_SEP);
   }
 }
 
 export interface IdsAndUnsignedPreferences {
   identifiers: Identifiers;
-  preferences: UnsignedData<Preferences>;
+  preferences: UnsignedSource<Preferences>;
 }
 
 /**
@@ -107,6 +109,7 @@ export class IdsAndPreferencesDefinition implements SigningDefinition<IdsAndPref
   }
 
   getInputString(data: IdsAndUnsignedPreferences) {
+    // FIXME[security] add version
     const pafId = this.getPafId(data);
 
     const dataToSign = [data.preferences.source.domain, data.preferences.source.timestamp, pafId.source.signature];
@@ -122,30 +125,82 @@ export class IdsAndPreferencesDefinition implements SigningDefinition<IdsAndPref
   }
 }
 
+export interface RestContext {
+  /**
+   * Value of the `origin` HTTP header
+   */
+  origin: string;
+}
+
+export interface RedirectContext {
+  /**
+   * Value of the `referer` HTTP header
+   */
+  referer: string;
+
+  /**
+   * return URL used as a "boomerang redirect"
+   */
+  returnUrl: string;
+}
+
+/**
+ * Represents a request message, plus extra context that is not part of the message, but can be used for signing
+ */
+export interface RequestWithContext<T extends MessageBase> {
+  request: T;
+  context: RestContext | RedirectContext;
+}
+
+/**
+ * Similar to RequestWithContext but with a request that does not contain a "signature" property
+ */
+export interface UnsignedRequestWithContext<T extends MessageBase> {
+  request: Unsigned<T>;
+  context: RestContext | RedirectContext;
+}
+
 /**
  * Defines how to extract signature, signer domain and input string from any message to or from the operator
  */
-export abstract class MessageDefinition<T extends MessageBase, U = UnsignedMessage<T>>
-  implements SigningDefinition<T, U>
+export abstract class RequestDefinition<T extends MessageBase>
+  implements SigningDefinition<RequestWithContext<T>, UnsignedRequestWithContext<T>>
 {
-  getSignature(data: T) {
-    return data.signature;
+  getSignature(request: RequestWithContext<T>) {
+    return request.request.signature;
   }
 
-  getSignerDomain(data: T) {
-    return data.sender;
+  getSignerDomain(request: RequestWithContext<T>) {
+    return request.request.sender;
   }
 
-  abstract getInputString(data: U): string;
+  abstract getInputString(request: UnsignedRequestWithContext<T>): string;
 }
 
 /**
  * Defines how to sign a message that doesn't have a "body" property.
  * Examples: GetIdsPrefsRequest, GetNewIdRequest
  */
-export class MessageWithoutBodyDefinition extends MessageDefinition<GetIdsPrefsRequest | GetNewIdRequest> {
-  getInputString(data: UnsignedMessage<GetIdsPrefsRequest>): string {
-    return [data.sender, data.receiver, data.timestamp].join(SIGN_SEP);
+export class RequestWithoutBodyDefinition extends RequestDefinition<GetIdsPrefsRequest | GetNewIdRequest> {
+  getInputString(requestAndContext: UnsignedRequestWithContext<GetIdsPrefsRequest>): string {
+    const context = requestAndContext.context;
+    const request = requestAndContext.request;
+
+    const restContext = context as RestContext;
+    const redirectContext = context as RedirectContext;
+
+    const inputData = [request.sender, request.receiver, request.timestamp];
+
+    if (restContext.origin?.length > 0) {
+      inputData.push(restContext.origin);
+    } else if (redirectContext.referer?.length > 0 && redirectContext.returnUrl?.length > 0) {
+      inputData.push(redirectContext.referer);
+      inputData.push(redirectContext.returnUrl);
+    } else {
+      throw `Missing origin or referer in ${JSON.stringify(requestAndContext)}`;
+    }
+
+    return inputData.join(SIGN_SEP);
   }
 }
 
@@ -153,62 +208,67 @@ export class MessageWithoutBodyDefinition extends MessageDefinition<GetIdsPrefsR
  * Defines how to sign a message with a "body" property.
  * Examples: GetIdsPrefsResponse, PostIdsPrefsResponse, PostIdsPrefsRequest, GetNewIdResponse
  */
-export class MessageWithBodyDefinition extends MessageDefinition<
-  GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest | GetNewIdResponse
-> {
-  getInputString(
-    data: UnsignedMessage<GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest | GetNewIdResponse>
-  ): string {
-    const dataToSign = [data.sender, data.receiver];
+export class RequestWithBodyDefinition extends RequestDefinition<PostIdsPrefsRequest> {
+  getInputString(requestAndContext: UnsignedRequestWithContext<PostIdsPrefsRequest>): string {
+    const context = requestAndContext.context;
+    const request = requestAndContext.request;
 
-    if ((data as GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest).body.preferences) {
-      dataToSign.push(
-        (data as GetIdsPrefsResponse | PostIdsPrefsResponse | PostIdsPrefsRequest).body.preferences.source.signature
-      );
+    const restContext = context as RestContext;
+    const redirectContext = context as RedirectContext;
+
+    const inputData = [request.sender, request.receiver];
+
+    if (request.body.preferences) {
+      inputData.push(request.body.preferences.source.signature);
     }
 
-    for (const id of data.body.identifiers ?? []) {
+    for (const id of request.body.identifiers ?? []) {
+      inputData.push(id.source.signature);
+    }
+
+    inputData.push(request.timestamp.toString());
+
+    if (restContext.origin) {
+      inputData.push(restContext.origin);
+    } else if (redirectContext.referer && redirectContext.returnUrl) {
+      inputData.push(redirectContext.referer);
+      inputData.push(redirectContext.returnUrl);
+    } else {
+      throw `Missing origin or referer in ${JSON.stringify(requestAndContext)}`;
+    }
+
+    return inputData.join(SIGN_SEP);
+  }
+}
+
+export type ResponseType = GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse;
+
+/**
+ * Defines how to sign a response with a "body" property.
+ * Examples: GetIdsPrefsResponse, PostIdsPrefsResponse, PostIdsPrefsRequest, GetNewIdResponse
+ */
+export class ResponseDefinition implements SigningDefinition<ResponseType> {
+  getSignature(response: ResponseType) {
+    return response.signature;
+  }
+
+  getSignerDomain(response: ResponseType) {
+    return response.sender;
+  }
+
+  getInputString(response: Unsigned<GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse>): string {
+    const dataToSign = [response.sender, response.receiver];
+
+    if ((response as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences) {
+      dataToSign.push((response as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences.source.signature);
+    }
+
+    for (const id of response.body.identifiers ?? []) {
       dataToSign.push(id.source.signature);
     }
 
-    dataToSign.push(data.timestamp.toString());
+    dataToSign.push(response.timestamp.toString());
 
     return dataToSign.join(SIGN_SEP);
-  }
-}
-
-export class RedirectRequestDefinition<T, U = Partial<T>>
-  implements SigningDefinition<RedirectRequest<T>, RedirectRequest<U>>
-{
-  constructor(protected requestDefinition: SigningDefinition<T, U>) {}
-
-  getInputString(data: RedirectRequest<U>): string {
-    return this.requestDefinition.getInputString(data.request);
-  }
-
-  getSignature(data: RedirectRequest<T>): string {
-    return this.requestDefinition.getSignature(data.request);
-  }
-
-  getSignerDomain(data: RedirectRequest<T>): string {
-    return this.requestDefinition.getSignerDomain(data.request);
-  }
-}
-
-export class RedirectResponseDefinition<T, U = Partial<T>>
-  implements SigningDefinition<RedirectResponse<T>, RedirectResponse<U>>
-{
-  constructor(protected requestDefinition: SigningDefinition<T, U>) {}
-
-  getInputString(data: RedirectResponse<U>): string {
-    return this.requestDefinition.getInputString(data.response);
-  }
-
-  getSignature(data: RedirectResponse<T>): string {
-    return this.requestDefinition.getSignature(data.response);
-  }
-
-  getSignerDomain(data: RedirectResponse<T>): string {
-    return this.requestDefinition.getSignerDomain(data.response);
   }
 }

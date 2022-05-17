@@ -48,6 +48,11 @@ The demo is currently made of a set of websites accessible to anyone.
   - [PAF advertiser](https://www.pafmarket.shop/)
   - [POF advertiser](https://www.pofmarket.shop/)
 
+Note: all sites can be accessed on the "root url"
+(ex: [https://www.pafdemopublisher.com/](https://www.pafdemopublisher.com/))
+or on any sub-path (ex: [https://www.pafdemopublisher.com/some-page/under-path?with-query-string=something](https://www.pafdemopublisher.com/some-page/under-path?with-query-string=something)).
+All pages will look exactly the same, but this can be the opportunity to test the solution under different circumstances.
+
 What makes a difference between these two types of websites is related to **first visits** and in particular how **unknown users** are handled:
 - publisher websites will ask for consent before anything
 - advertiser websites will only query PAF: if the user is recognized, preferences are stored and a notification snackbar is displayed. Otherwise, the user is considered opt out.
