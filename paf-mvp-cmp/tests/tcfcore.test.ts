@@ -1,4 +1,4 @@
-import { TcfCore } from '../src/TcfCore';
+import { TcfCore } from '../src/tcfcore';
 import { IabTcfCore } from './iabtcfcore';
 
 const falseArray = [false, false, false, false, false, false, false, false, false, false, false, false];
