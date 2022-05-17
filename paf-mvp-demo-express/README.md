@@ -10,19 +10,19 @@ flowchart TB
 
     Demo("Demo Project<br>(you are here)")
     style Demo fill:#ff9a36,stroke:#333,stroke-width:2px
-    click Demo "../paf-mvp-demo-express" "paf-mvp-demo-express"
+    click Demo "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-demo-express" "paf-mvp-demo-express"
     
     Core(Core Javascript)
-    click Core "../paf-mvp-core-js" "paf-mvp-core-js"
+    click Core "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-core-js" "paf-mvp-core-js"
     
     Frontend(Frontend library & widget)
-    click Frontend "../paf-mvp-frontend" "paf-mvp-frontend"
+    click Frontend "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-frontend" "paf-mvp-frontend"
     
     Operator(Operator API)
-    click Operator "../paf-mvp-operator-express" "paf-mvp-operator-express"
+    click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client(Operator client)
-    click Client "../paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
     
     Demo --> Frontend
     Demo --> Operator
@@ -47,6 +47,11 @@ The demo is currently made of a set of websites accessible to anyone.
   - [PIF advertiser](https://www.pifmarket.shop/)
   - [PAF advertiser](https://www.pafmarket.shop/)
   - [POF advertiser](https://www.pofmarket.shop/)
+
+Note: all sites can be accessed on the "root url"
+(ex: [https://www.pafdemopublisher.com/](https://www.pafdemopublisher.com/))
+or on any sub-path (ex: [https://www.pafdemopublisher.com/some-page/under-path?with-query-string=something](https://www.pafdemopublisher.com/some-page/under-path?with-query-string=something)).
+All pages will look exactly the same, but this can be the opportunity to test the solution under different circumstances.
 
 What makes a difference between these two types of websites is related to **first visits** and in particular how **unknown users** are handled:
 - publisher websites will ask for consent before anything
@@ -75,10 +80,18 @@ To install and run the demo project locally, follow these instructions:
 
 0. Clone the repository
 
-1. Prepare SSL
+1. Make sure you have **node** installed, on the version defined in [.nvmrc](../.nvmrc)
+
+2. Go to this directory
+
+```shell
+cd paf-mvp-demo-express
+```
+
+4. Prepare SSL
 
 Generate certificates
-```sh
+```shell
 openssl req -out paf.csr -newkey rsa:2048 -nodes -keyout paf.key -extensions req_ext -config paf-mvp-demo-express/openssl-csr.conf
 openssl x509 -req -days 3650 -in paf.csr -signkey paf.key -out paf.crt -extensions req_ext -extfile paf-mvp-demo-express/openssl-csr.conf
 ```
@@ -96,19 +109,22 @@ Windows
 CertUtil -addStore Root paf.crt
 ```
 
-3. Launch the server locally
+3. Launch the server locally in the root directory of this repository
 
 ```shell
+cd ..
 npm install
 npm run build-front
 npm run start
 ```
 
-3. Edit your `/etc/hosts` file or equivalent to fake your web browser to target `localhost`.
+3. Edit your `/etc/hosts` file (or `C:\Windows\System32\Drivers\etc\hosts` on Windows) to fake your web browser to target `localhost`.
     1. See console logs when starting the server for details
     2. On Linux / MacOS, use the following script:
 
 ```shell
+cd paf-mvp-demo-express
+
 # Target localhost
 sudo ts-node -r tsconfig-paths/register scripts/fake-hosts.ts add
 
