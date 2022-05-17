@@ -34,10 +34,10 @@ alter their choices is a requirement of the Model Terms.
 ```HTML
 <script>
 document.querySelector('#preferences')
-  .addEventListener('click', (e) => {
-	e.preventDefault();
-	window.PAFUI.promptConsent();
-  });
+    .addEventListener('click', (e) => {
+    e.preventDefault();
+    PAF.refreshIdsAndPreferences({ proxyHostName: "[proxy-host-name]", showPrompt: 'doPrompt'});
+    });
 </script>
 ```
 
