@@ -13,6 +13,7 @@ import popupTemplate from './html/containers/popup.html';
 import { Config } from './config';
 import { IView } from '@core/ui/binding';
 import { ILocale } from './ILocale';
+import { Tooltip } from './tooltip';
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -111,6 +112,10 @@ export class View implements IView {
       html = template(this.locale);
     }
     this.getCardContainer().innerHTML = this.config.replace(html);
+
+    // Bind the tooltips to any tooltip controls in the new cards added.
+    Tooltip.bind(this.root);
+
     this.currentCard = card;
   }
 
