@@ -9,10 +9,14 @@ export class Config implements Options {
   /** Parent element */
   private readonly script: HTMLOrSVGScriptElement;
 
+  /** TCF core template string */
+  private readonly tcfCoreTemplate: string;
+
   private readonly log: Log;
 
-  constructor(script: HTMLOrSVGScriptElement, log: Log) {
+  constructor(script: HTMLOrSVGScriptElement, tcfCoreTemplate: string, log: Log) {
     this.script = script;
+    this.tcfCoreTemplate = tcfCoreTemplate;
     this.log = log;
   }
 
@@ -94,15 +98,16 @@ export class Config implements Options {
 
   /**
    * The template TCF core string. This project will change the purpose consents, created, and the last updated fields
-   * of the provided value when writing the TCF core string to the cookie.
+   * of the provided value when writing the TCF core string to the cookie. The template string is provided at build time
+   * via the environment variable TCF_CORE_TEMPLATE. See ../rollup.config.js.
    * @remarks
    * See the following documentation for information on the construction of the TCF core string.
    * https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20Consent%20string%20and%20vendor%20list%20formats%20v2.md?msclkid=5236f9f5c47b11ec8a04e36f3dd976c9#the-core-string
    */
   get tcfCore(): TcfCore {
-    if (this._tcfCore === null) {
-      const value = this.getValue('data-template-tcf-core-string', false, 'The template TCF core string.');
-      this._tcfCore = new TcfCore(value);
+    if (this._tcfCore === null && this.tcfCoreTemplate.length > 0) {
+      this.log.Info('TCF core template', this.tcfCoreTemplate);
+      this._tcfCore = new TcfCore(this.tcfCoreTemplate);
     }
     return this._tcfCore;
   }
