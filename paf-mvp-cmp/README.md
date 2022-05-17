@@ -194,14 +194,6 @@ The CSS, images, and JS needed by the view is included in the `./src/css`,
 template strings and added to the DOM when the UI is loaded. There are no
 external dependent resources.
 
-### Note on JavaScript
-
-Where the JavaScript is created as part of the pattern library and unrelated to
-the module the script from the pattern library is part of the “skin” and is a
-resource consumed by the module. The reference implementation uses Popper for
-the tooltips and is an example of such a resource. These resources are not
-managed as part of the module.
-
 ## Model
 
 The data model is contained in the class `./src/model`. Two way binding between
