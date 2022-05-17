@@ -13,7 +13,6 @@ import popupTemplate from './html/containers/popup.html';
 import { Config } from './config';
 import { IView } from '@core/ui/binding';
 import { ILocale } from './ILocale';
-import { Tooltip } from './tooltip';
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -46,7 +45,7 @@ export class View implements IView {
   constructor(script: HTMLOrSVGScriptElement, locale: ILocale, config: Config) {
     this.script = script;
     this.config = config;
-    this.locale = <ILocale>locale;
+    this.locale = locale;
   }
 
   /**
@@ -112,10 +111,6 @@ export class View implements IView {
       html = template(this.locale);
     }
     this.getCardContainer().innerHTML = this.config.replace(html);
-
-    // Bind the tooltips to any tooltip controls in the new cards added.
-    Tooltip.bind(this.root);
-
     this.currentCard = card;
   }
 
@@ -217,8 +212,7 @@ export class View implements IView {
     this.cardContainer = document.createElement('div');
     this.cardContainer.className = 'ok-ui';
 
-    // Append the style and container with a shadow root for encapsulation. The mode must be open so that the tooltip
-    // bindings work.
+    // Append the style, tooltips, and container with a shadow root for encapsulation.
     this.root = this.outerContainer.attachShadow({ mode: 'closed' });
     this.root.appendChild(style);
     this.root.appendChild(this.cardContainer);
