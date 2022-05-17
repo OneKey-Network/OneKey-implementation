@@ -1,33 +1,38 @@
-import express from 'express';
+import express, { Request } from 'express';
 import { crtoOneOperatorConfig, portalConfig, PrivateConfig } from './config';
 import { OperatorClient } from '@operator-client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
 import {
   _ as Model,
-  GetIdsPrefsRequest,
-  GetIdsPrefsResponse,
+  Identifier,
   Identifiers,
+  IdsAndPreferences,
+  MessageBase,
   PostIdsPrefsRequest,
-  PostIdsPrefsResponse,
   Preferences,
   RedirectGetIdsPrefsResponse,
 } from '@core/model/generated-model';
-import { getPafDataFromQueryString, getRequestUrl, httpRedirect, removeCookie } from '@core/express/utils';
+import {
+  getPafDataFromQueryString,
+  getRequestUrl,
+  getTopLevelDomain,
+  httpRedirect,
+  removeCookie,
+} from '@core/express/utils';
 import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
 import { s2sOptions } from './server-config';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
-import domainParser from 'tld-extract';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
-  MessageWithBodyDefinition,
-  MessageWithoutBodyDefinition,
-  RedirectRequestDefinition,
-  RedirectResponseDefinition,
+  RequestWithBodyDefinition,
+  RequestWithContext,
+  RequestWithoutBodyDefinition,
+  ResponseDefinition,
+  ResponseType,
 } from '@core/crypto/signing-definition';
-import { IdsAndPreferencesVerifier, MessageVerifier, Verifier } from '@core/crypto/verifier';
-import { UnsignedMessage } from '@core/model/model';
+import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier } from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -77,24 +82,27 @@ const optOutUrl = '/redirect/opt-out';
 // Portal API endpoints: REST
 const verify = '/rest/verify';
 
-const getWritePrefsUrl = (identifiers: Identifiers, preferences: Preferences, returnUrl: URL) => {
-  const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.toRedirectRequest(
-    postIdsPrefsRequestBuilder.buildRequest({
+const getWritePrefsUrl = (req: Request, identifiers: Identifiers, preferences: Preferences, returnUrl: URL) => {
+  const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
+    {
+      returnUrl: returnUrl.toString(),
+      referer: req.header('referer'),
+    },
+    {
       identifiers,
       preferences,
-    }),
-    returnUrl
+    }
   );
 
   return postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
 };
 
-const getWritePrefsUrlFromOptin = (identifiers: Identifiers, optIn: boolean, returnUrl: URL) => {
+const getWritePrefsUrlFromOptin = (req: Request, identifiers: Identifiers, optIn: boolean, returnUrl: URL) => {
   const preferences = client.buildPreferences(identifiers, { use_browsing_for_personalization: optIn });
-  return getWritePrefsUrl(identifiers, preferences, returnUrl);
+  return getWritePrefsUrl(req, identifiers, preferences, returnUrl);
 };
 
-const tld = domainParser(`https://${portalConfig.host}`).domain;
+const tld = getTopLevelDomain(portalConfig.host);
 
 portalApp.get(removeIdUrl, (req, res) => {
   removeCookie(req, res, Cookies.identifiers, { domain: tld });
@@ -112,7 +120,7 @@ portalApp.get(generateNewId, (req, res) => {
   const returnUrl = getRequestUrl(req, writeNewId);
 
   // First go to "read or init id" on operator, and then redirects to the local write endpoint, that itself calls the operator again
-  httpRedirect(res, client.getReadRedirectUrl(returnUrl).toString());
+  httpRedirect(res, client.getReadRedirectUrl(req, returnUrl).toString());
 });
 
 portalApp.get(writeNewId, (req, res) => {
@@ -128,7 +136,7 @@ portalApp.get(writeNewId, (req, res) => {
     // Assume opt out by default if no preferences
     client.buildPreferences(identifiers, { use_browsing_for_personalization: false });
 
-  httpRedirect(res, getWritePrefsUrl(identifiers, preferences, homeUrl).toString());
+  httpRedirect(res, getWritePrefsUrl(req, identifiers, preferences, homeUrl).toString());
 });
 
 portalApp.get(optInUrl, (req, res) => {
@@ -137,7 +145,7 @@ portalApp.get(optInUrl, (req, res) => {
 
   const homeUrl = getRequestUrl(req, '/');
   if (identifiers) {
-    httpRedirect(res, getWritePrefsUrlFromOptin(identifiers, true, homeUrl).toString());
+    httpRedirect(res, getWritePrefsUrlFromOptin(req, identifiers, true, homeUrl).toString());
   } else {
     // Shouldn't happen: redirect to home page
     httpRedirect(res, homeUrl.toString());
@@ -150,45 +158,52 @@ portalApp.get(optOutUrl, (req, res) => {
 
   const homeUrl = getRequestUrl(req, '/');
   if (identifiers) {
-    httpRedirect(res, getWritePrefsUrlFromOptin(identifiers, false, homeUrl).toString());
+    httpRedirect(res, getWritePrefsUrlFromOptin(req, identifiers, false, homeUrl).toString());
   } else {
     // Shouldn't happen: redirect to home page
     httpRedirect(res, homeUrl.toString());
   }
 });
 
-const emptyMessageVerifier = new MessageVerifier(keyStore.provider, new MessageWithoutBodyDefinition());
-const messageWithBodyVerifier = new MessageVerifier(keyStore.provider, new MessageWithBodyDefinition());
+const requestWithoutBodyVerifier = (request: RequestWithContext<MessageBase>) =>
+  new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition()).verifySignature(request);
+const postIdsPrefsRequestVerifier = (request: RequestWithContext<PostIdsPrefsRequest>) =>
+  new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature(request);
+const responseVerifier = (response: ResponseType) =>
+  new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature(response);
+/*
+const redirectResponseVerifier = new Verifier(
+  keyStore.provider,
+  new RedirectResponseDefinition(new ResponseDefinition())
+);
+const redirectRequestWithoutBodyVerifier = new Verifier(
+  keyStore.provider,
+  new RedirectRequestDefinition(new RequestWithoutBodyDefinition())
+);
+const redirectRequestWithBodyVerifier = new Verifier(
+  keyStore.provider,
+  new RedirectRequestDefinition(new RequestWithBodyDefinition())
+);
 
-const verifiers: { [name in keyof Model]?: Verifier<unknown> } = {
-  identifier: new Verifier(keyStore.provider, new IdentifierDefinition()),
-  'ids-and-preferences': new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()),
-  'get-ids-prefs-request': emptyMessageVerifier,
-  'get-ids-prefs-response': messageWithBodyVerifier,
-  'get-new-id-request': emptyMessageVerifier,
-  'get-new-id-response': messageWithBodyVerifier,
-  'post-ids-prefs-request': messageWithBodyVerifier,
-  'post-ids-prefs-response': messageWithBodyVerifier,
-  'redirect-get-ids-prefs-request': new Verifier(
-    keyStore.provider,
-    new RedirectRequestDefinition<GetIdsPrefsRequest>(new MessageWithoutBodyDefinition())
-  ),
-  'redirect-get-ids-prefs-response': new Verifier(
-    keyStore.provider,
-    new RedirectResponseDefinition<GetIdsPrefsResponse>(new MessageWithBodyDefinition())
-  ),
-  'redirect-post-ids-prefs-request': new Verifier(
-    keyStore.provider,
-    new RedirectRequestDefinition<PostIdsPrefsRequest, UnsignedMessage<PostIdsPrefsRequest>>(
-      new MessageWithBodyDefinition()
-    )
-  ),
-  'redirect-post-ids-prefs-response': new Verifier(
-    keyStore.provider,
-    new RedirectResponseDefinition<PostIdsPrefsResponse, UnsignedMessage<PostIdsPrefsResponse>>(
-      new MessageWithBodyDefinition()
-    )
-  ),
+ */
+
+const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<boolean> } = {
+  identifier: (id: Identifier) => new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature(id),
+  'ids-and-preferences': (idAndPrefs: IdsAndPreferences) =>
+    new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()).verifySignature(idAndPrefs),
+  'get-ids-prefs-request': requestWithoutBodyVerifier,
+  'get-ids-prefs-response': responseVerifier,
+  'get-new-id-request': requestWithoutBodyVerifier,
+  'get-new-id-response': responseVerifier,
+  'post-ids-prefs-request': postIdsPrefsRequestVerifier,
+  'post-ids-prefs-response': responseVerifier,
+  /*
+  'redirect-get-ids-prefs-request': redirectRequestWithoutBodyVerifier,
+  'redirect-get-ids-prefs-response': redirectResponseVerifier,
+  'redirect-post-ids-prefs-request': redirectRequestWithBodyVerifier,
+  'redirect-post-ids-prefs-response': redirectResponseVerifier,
+
+   */
 };
 
 type Mappings = { [host: string]: { [path: string]: keyof Model } };
@@ -233,18 +248,25 @@ portalApp.post(verify, async (req, res) => {
         return;
       }
 
-      response.result = await verifier.verifySignature(request.payload);
+      response.result = await verifier(request.payload);
       response.details = response.result ? 'Valid signature' : 'Invalid signature';
     } catch (e) {
       response.details = `Error verifying signature: ${e.message}`;
     }
   })();
 
-  res.send(response);
+  res.json(response);
 });
 
 portalApp.get('/', (req, res) => {
   const cookies = req.cookies;
+  if (Object.keys(req.query).length > 0) {
+    // Make sure the page is always reloaded with empty query string, for a good reason:
+    // we want `referer` header to always be the root page without query string, to make it easier to integrate with the operator
+    // when building and signing requests
+    httpRedirect(res, '/');
+    return;
+  }
 
   const formatCookie = (value: string | undefined) => (value ? JSON.stringify(JSON.parse(value), null, 2) : undefined);
 
@@ -285,11 +307,10 @@ portalApp.get('/', (req, res) => {
   res.render('portal/index', options);
 });
 
-addIdentityEndpoint(
-  portalApp,
-  portalConfig.name,
-  portalPrivateConfig.type,
-  [portalPrivateConfig.currentPublicKey],
-  portalPrivateConfig.dpoEmailAddress,
-  new URL(portalPrivateConfig.privacyPolicyUrl)
-);
+addIdentityEndpoint(portalApp, {
+  name: portalConfig.name,
+  type: portalPrivateConfig.type,
+  currentPublicKey: portalPrivateConfig.currentPublicKey,
+  dpoEmailAddress: portalPrivateConfig.dpoEmailAddress,
+  privacyPolicyUrl: new URL(portalPrivateConfig.privacyPolicyUrl),
+});

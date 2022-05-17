@@ -154,7 +154,7 @@ export class OperatorBackendClient {
   }
 
   private redirectToRead(req: Request, res: Response, view: string) {
-    const redirectUrl = this.client.getReadRedirectUrl(getRequestUrl(req)).toString();
+    const redirectUrl = this.client.getReadRedirectUrl(req, getRequestUrl(req)).toString();
     switch (this.redirectType) {
       case RedirectType.http:
         httpRedirect(res, redirectUrl);

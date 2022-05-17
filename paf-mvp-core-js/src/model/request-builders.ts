@@ -1,7 +1,17 @@
 import { setInQueryString } from '@core/express/utils';
-import { PrivateKey, privateKeyFromString } from '@core/crypto/keys';
+import { GetIdsPrefsRequest, MessageBase } from '@core/model/generated-model';
+import { RedirectRequest, Unsigned } from '@core/model/model';
+import {
+  RedirectContext,
+  RequestDefinition,
+  RequestWithoutBodyDefinition,
+  RestContext,
+} from '@core/crypto/signing-definition';
+import { getTimeStampInSec } from '@core/timestamp';
+import { Signer } from '@core/crypto/signer';
+import { privateKeyFromString } from '@core/crypto/keys';
 
-export abstract class RestRequestBuilder<T extends object | undefined> {
+export abstract class RestRequestBuilder<R extends object | undefined> {
   constructor(public serverHost: string, protected restEndpoint: string) {}
 
   protected getUrl(endpoint: string, pafQuery: object | undefined = undefined): URL {
@@ -14,45 +24,81 @@ export abstract class RestRequestBuilder<T extends object | undefined> {
     return url;
   }
 
-  getRestUrl(request: T): URL {
+  /**
+   * Get the full operator URL to call, in REST mode
+   * @param request
+   */
+  getRestUrl(request: R): URL {
     return this.getUrl(this.restEndpoint, request);
   }
 }
 
-export abstract class SignedRestRequestBuilder<T extends object | undefined> extends RestRequestBuilder<T> {
-  protected ecdsaKey: PrivateKey;
-
-  protected constructor(
-    public serverHost: string,
+export abstract class RestAndRedirectRequestBuilder<
+  T extends MessageBase,
+  D = undefined
+> extends RestRequestBuilder<T> {
+  constructor(
+    public operatorHost: string,
     protected clientHost: string,
     protected restEndpoint: string,
-    privateKey: string
-  ) {
-    super(serverHost, restEndpoint);
-    // FIXME could be removed?
-    this.ecdsaKey = privateKeyFromString(privateKey);
-  }
-}
-
-export abstract class RestAndRedirectRequestBuilder<T extends object | undefined> extends SignedRestRequestBuilder<T> {
-  protected constructor(
-    operatorHost: string,
-    clientHost: string,
-    restEndpoint: string,
     protected redirectEndpoint: string,
-    privateKey: string
+    privateKey: string,
+    definition: RequestDefinition<T>,
+    private readonly signer = new Signer(privateKeyFromString(privateKey), definition)
   ) {
-    super(operatorHost, clientHost, restEndpoint, privateKey);
+    super(operatorHost, restEndpoint);
   }
 
-  getRedirectUrl(redirectRequest: { request: T; returnUrl: string }): URL {
+  getRedirectUrl(redirectRequest: RedirectRequest<T>): URL {
     return this.getUrl(this.redirectEndpoint, redirectRequest);
   }
 
+  /**
+   * @deprecated
+   * @param request
+   * @param returnUrl
+   */
   toRedirectRequest(request: T, returnUrl: URL) {
     return {
       request,
       returnUrl: returnUrl.toString(),
+    };
+  }
+
+  protected abstract buildUnsignedRequest(data: D, timestamp: number): Unsigned<T>;
+
+  /**
+   * Build a request to be used to call the REST endpoint
+   * @param context
+   * @param data
+   * @param timestamp
+   */
+  buildRestRequest(context: RestContext, data: D = undefined, timestamp = getTimeStampInSec()): T {
+    const request = this.buildUnsignedRequest(data, timestamp);
+    return {
+      ...request,
+      signature: this.signer.sign({ request, context }),
+    } as T;
+  }
+
+  /**
+   * Build a request to be used to call the redirect endpoint
+   * @param context
+   * @param data
+   * @param timestamp
+   */
+  buildRedirectRequest(
+    context: RedirectContext,
+    data: D = undefined,
+    timestamp = getTimeStampInSec()
+  ): RedirectRequest<T> {
+    const request = this.buildUnsignedRequest(data, timestamp);
+    return {
+      returnUrl: context.returnUrl,
+      request: {
+        ...request,
+        signature: this.signer.sign({ request, context }),
+      } as T,
     };
   }
 }
