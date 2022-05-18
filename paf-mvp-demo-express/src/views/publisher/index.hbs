@@ -93,6 +93,9 @@
         var pbjs = pbjs || {};
         pbjs.que = pbjs.que || [];
 
+        var PAF = PAF || {};
+        PAF.queue = PAF.queue || [];
+
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
             pbjs.setConfig({
@@ -138,11 +141,14 @@
                 if (pafObj === undefined) {
                     return;
                 }
-                PAF.registerTransmissionResponse({
+
+                PAF.queue.push(() => {
+                    PAF.registerTransmissionResponse({
                         prebidTransactionId: bid.transactionId,
                         adUnitCode: bid.adUnitCode,
                         contentId: pafObj.contentId
                     }, pafObj.transmission);
+                });
             });
 
             pbjs.requestBids({
