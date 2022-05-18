@@ -5,9 +5,14 @@ import { notificationService } from './services/notification.service';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
 import { currentScript } from '@frontend/utils/current-script';
 import {
+  generateSeed,
+  getAuditLogByDivId,
+  getAuditLogByTransaction,
   getIdsAndPreferences,
   getNewId,
+  queue,
   refreshIdsAndPreferences,
+  registerTransmissionResponse,
   signPreferences,
   updateIdsAndPreferences,
 } from './lib/paf-lib';
@@ -19,4 +24,15 @@ const showNotification = (type: NotificationEnum) => notificationService.showNot
 
 // TODO: avoid global declaration
 window.PAFUI ??= { promptConsent, showNotification };
-window.PAF ??= { getNewId, signPreferences, getIdsAndPreferences, refreshIdsAndPreferences, updateIdsAndPreferences };
+window.PAF ??= {
+  getNewId,
+  signPreferences,
+  getIdsAndPreferences,
+  refreshIdsAndPreferences,
+  updateIdsAndPreferences,
+  generateSeed,
+  registerTransmissionResponse,
+  getAuditLogByTransaction,
+  getAuditLogByDivId,
+  queue,
+};

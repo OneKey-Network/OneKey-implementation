@@ -26,6 +26,7 @@ import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
+import { CommandQueue, processCommands } from '@frontend/utils/queue';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
@@ -757,3 +758,7 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
   }
   return getAuditLogByTransaction(prebidTransactionId);
 };
+
+// Set up the queue of asynchronous commands
+export const queue: CommandQueue = window.PAF.queue || [];
+window.PAF.queue = processCommands(queue);
