@@ -38,13 +38,13 @@ export default [
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
       name: 'PAF',
-      sourcemap: DEV
+      sourcemap: DEV !== undefined
     },
     treeshake: 'smallest', // remove unused code
     plugins: [
       typescript({
         tsconfig: relative('../tsconfig.json'),
-        sourceMap: DEV,
+        sourceMap: DEV !== undefined,
       }),
       commonjs(),
       nodeResolve(),
@@ -66,7 +66,7 @@ export default [
       file: getDestFolder(`/app.bundle.js`),
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
-      sourcemap: DEV,
+      sourcemap: DEV !== undefined,
     },
     treeshake: 'recommended', // remove unused code
     plugins: [ // a list of plugins we apply to the source code
@@ -100,7 +100,7 @@ export default [
       }),
       typescript({
           tsconfig: relative('../tsconfig.json'),
-          sourceMap: DEV,
+          sourceMap: DEV !== undefined,
         }
       ), // compile typescript => js
       ...(() => {
