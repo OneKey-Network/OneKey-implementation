@@ -37,7 +37,7 @@ export default {
     {
       file: './dist/ok-audit.min.js',
       format: 'iife',
-      sourcemap: false,
+      sourcemap: true,
       plugins: [
         terser()
       ]
@@ -50,7 +50,7 @@ export default {
     {
       file: '../paf-mvp-demo-express/public/assets/ok-audit.min.js',
       format: 'iife',
-      sourcemap: false,
+      sourcemap: true,
       plugins: [
         terser()
       ]

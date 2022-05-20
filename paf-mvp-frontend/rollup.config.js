@@ -19,9 +19,20 @@ const DIST = 'dist';
 const relative = path => join(__dirname, path);
 const getDestFolder = (path) => (DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
 
+const sharedConfig = {
+  external: [ 
+    // googletag is an external dependency: we verify if it exist at runtime and
+    // behave depending of it. Thefore, we use it declarations without actually
+    // importing its module. So we consider it as external
+    // https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency
+    'googletag',
+  ],
+};
+
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
+    ...sharedConfig,
     input: relative('src/lib/paf-lib.ts'),
     output: {
       file: getDestFolder(`/paf-lib.js`),
@@ -32,7 +43,8 @@ export default [
     treeshake: 'smallest', // remove unused code
     plugins: [
       typescript({
-        tsconfig: relative('../tsconfig.json')
+        tsconfig: relative('../tsconfig.json'),
+        sourceMap: DEV,
       }),
       commonjs(),
       nodeResolve(),
@@ -48,6 +60,7 @@ export default [
     ]
   }),
   defineConfig({
+    ...sharedConfig,
     input: relative('src/main.ts'), // entry file
     output: {
       file: getDestFolder(`/app.bundle.js`),
@@ -86,7 +99,8 @@ export default [
         resolvePreactCompat: true,
       }),
       typescript({
-          tsconfig: relative('../tsconfig.json')
+          tsconfig: relative('../tsconfig.json'),
+          sourceMap: DEV,
         }
       ), // compile typescript => js
       ...(() => {
