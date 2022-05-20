@@ -9,34 +9,36 @@ const log = new Log('PAF', '#3bb8c3');
 // <script>
 //  var PAF = PAF || {};
 //  PAF.queue = PAF.queue || [];
-//  PAF.queue.push(functionToExecuteOncePrebidLoads);
+//  PAF.queue.push(functionToExecuteOncePAFLoads);
 // </script>
 //
-// In asynchronous code:
+//  Call of the PAF-lib when loaded asynchronously:
 //  export const queue: CommandQueue = window.PAF.queue || [];
 //  window.PAF.queue = processCommands(queue);
 
 /** An operation executed asynchronously after the PAF-lib is loaded. */
 export type Command = () => void;
 
+export type DeferredCommand = Command[];
+
 /** Interface for processing every pushed commands as soon as possible.  */
-export interface ICommandProcessor {
+export interface IImediateCommandProcessor {
   push(...ops: Command[]): void;
 }
 
 /** Type for handling a duck-typing approach on 'push' function.  */
-export type CommandQueue = Command[] | ICommandProcessor;
+export type CommandQueue = DeferredCommand | IImediateCommandProcessor;
 
 /**
- * @param pusher Commands to process or Processor that is already in place.
+ * @param queue Commands to process or Processor that is already in place.
  * @returns The given processor or a new one that has just processed the given commands.
  */
-export const processCommands = (queue: CommandQueue): ICommandProcessor => {
-  if (queue instanceof CommandProcessor) {
+export const processCommands = (queue: CommandQueue): ImediateCommandProcessor => {
+  if (queue instanceof ImediateCommandProcessor) {
     return queue;
   }
 
-  const processor = new CommandProcessor();
+  const processor = new ImediateCommandProcessor();
 
   if (queue && Array.isArray(queue)) {
     processor.push(...queue);
@@ -45,7 +47,7 @@ export const processCommands = (queue: CommandQueue): ICommandProcessor => {
   return processor;
 };
 
-class CommandProcessor implements ICommandProcessor {
+class ImediateCommandProcessor implements IImediateCommandProcessor {
   push(...ops: Command[]): void {
     if (ops === undefined) {
       return;
