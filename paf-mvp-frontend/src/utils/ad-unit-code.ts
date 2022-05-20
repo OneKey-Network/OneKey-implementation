@@ -1,5 +1,11 @@
 import 'googletag';
 
+declare global {
+  interface Window {
+    googletag: any;
+  }
+}
+
 /**
  * @param adUnitCode Google Publisher Tag Ad Unit Code
  * @returns divId associated to the adUnitCode in GPT if exist, undefined otherwise.
@@ -9,7 +15,7 @@ export function mapAdUnitCodeToDivId(adUnitCode: string): string | undefined {
     return undefined;
   }
 
-  const slots = window.googletag.pubads().getSlots();
+  const slots: googletag.Slot[] = window.googletag.pubads().getSlots();
   const found = slots.find((s) => {
     return s.getAdUnitPath() === adUnitCode || s.getSlotElementId() === adUnitCode;
   });
