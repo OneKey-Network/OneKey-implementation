@@ -2,28 +2,19 @@ import { TestWatcher } from 'jest';
 import { isExportDeclaration } from 'typescript';
 import { Command, CommandQueue, processCommands } from '../../src/utils/queue';
 
-class CommandMocker {
-  public called = false;
-
-  func(): Command {
-    return () => {
-      this.called = true;
-    };
-  }
-}
-
 describe('queue', () => {
-  let cmd1: CommandMocker;
-  let cmd2: CommandMocker;
-  let cmd3: CommandMocker;
+  let cmd1: jest.Mock;
+  let cmd2: jest.Mock;
+  let cmd3: jest.Mock;
   const lib = {
     queue: [] as CommandQueue,
   };
 
   beforeEach(() => {
-    cmd1 = new CommandMocker();
-    cmd2 = new CommandMocker();
-    cmd3 = new CommandMocker();
+    cmd1 = jest.fn();
+    cmd2 = jest.fn();
+    cmd3 = jest.fn();
+    lib.queue = [];
   });
 
   test('processCommands undefined do not crash', () => {
@@ -35,54 +26,33 @@ describe('queue', () => {
   });
 
   test('processCommands 2 commands', () => {
-    lib.queue = processCommands([cmd1.func(), cmd2.func()]);
+    lib.queue = processCommands([cmd1, cmd2]);
 
-    expect(cmd1.called).toBeTruthy();
-    expect(cmd2.called).toBeTruthy();
+    expect(cmd1.mock.calls.length).toBe(1);
+    expect(cmd2.mock.calls.length).toBe(1);
   });
 
   test('returned processor process correctly', () => {
     lib.queue = processCommands(lib.queue);
-    lib.queue.push(cmd1.func(), cmd2.func());
-    lib.queue.push(cmd3.func());
+    lib.queue.push(cmd1, cmd2);
+    lib.queue.push(cmd3);
 
-    expect(cmd1.called).toBeTruthy();
-    expect(cmd2.called).toBeTruthy();
-    expect(cmd3.called).toBeTruthy();
+    expect(cmd1.mock.calls.length).toBe(1);
+    expect(cmd2.mock.calls.length).toBe(1);
+    expect(cmd3.mock.calls.length).toBe(1);
   });
 
   test('documented setup', () => {
     // directly in page
-    lib.queue.push(cmd1.func());
-    lib.queue.push(cmd2.func());
+    lib.queue.push(cmd1);
+    lib.queue.push(cmd2);
 
     // in asynchronous script
     lib.queue = processCommands(lib.queue);
-    lib.queue.push(cmd3.func());
+    lib.queue.push(cmd3);
 
-    expect(cmd1.called).toBeTruthy();
-    expect(cmd2.called).toBeTruthy();
-    expect(cmd3.called).toBeTruthy();
-  });
-
-  test('nested before processor', () => {
-    lib.queue.push(() => {
-      lib.queue.push(cmd1.func());
-    });
-
-    // in asynchronous script
-    lib.queue = processCommands(lib.queue);
-
-    expect(cmd1.called).toBeTruthy();
-  });
-
-  test('nested after processor', () => {
-    lib.queue = processCommands(lib.queue);
-
-    lib.queue.push(() => {
-      lib.queue.push(cmd1.func());
-    });
-
-    expect(cmd1.called).toBeTruthy();
+    expect(cmd1.mock.calls.length).toBe(1);
+    expect(cmd2.mock.calls.length).toBe(1);
+    expect(cmd3.mock.calls.length).toBe(1);
   });
 });
