@@ -25,7 +25,7 @@ import { getCookieValue } from '../utils/cookie';
 import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
-import { mapAdUnitCodeToDivId } from '@frontend/utils/ad-unit-code';
+import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 
 // TODO: avoid global declaration
 declare const PAFUI: {

@@ -27,16 +27,6 @@ import * as yaml from 'js-yaml';
 // Used to get the TCF core string from the environment.
 import { env } from 'process';
 
-const sharedConfig = {
-  external: [ 
-    // googletag is an external dependency: we verify if it exist at runtime and
-    // behave depending of it. Thefore, we use it declarations without actually
-    // importing its module. So we consider it as external
-    // https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency
-    'googletag',
-  ],
-};
-
 // Options to pass to terser.
 const terserOptions = {
   toplevel: true,
@@ -140,7 +130,6 @@ function getLocaleCodes() {
 // Builds the loader working out from the locales directory the various options that will be available.
 function buildLoader() {
   return {
-    ...sharedConfig,
     input: './src/loader.ts',
     plugins: [
       replace({
@@ -190,7 +179,6 @@ function buildLoader() {
 // tcfCoreTemplate the template string for the CMP
 function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
   return {
-    ...sharedConfig,
     input: './src/main.ts',
     plugins: [
       replace({

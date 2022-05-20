@@ -1,5 +1,3 @@
-import 'googletag';
-
 declare global {
   interface Window {
     googletag: any;
@@ -15,7 +13,7 @@ export function mapAdUnitCodeToDivId(adUnitCode: string): string | undefined {
     return undefined;
   }
 
-  const slots: googletag.Slot[] = window.googletag.pubads().getSlots();
+  const slots: any[] = window.googletag.pubads().getSlots();
   const found = slots.find((s) => {
     return s.getAdUnitPath() === adUnitCode || s.getSlotElementId() === adUnitCode;
   });
