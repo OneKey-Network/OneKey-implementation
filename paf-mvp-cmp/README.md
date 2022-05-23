@@ -255,10 +255,11 @@ are called out here.
     increased the size of the minified bundle by around 50kb. Treeshaking and
     other optimisation techniques could not be used to reduce this. The
     `./src/tcfcore` class is a light weight alternative containing just the
-    features the CMP needs. The tests compare the functionality to the IAB Tech
-    Lab module to verify the output is identical. Like the IAB Tech Lab the
-    project does not use the Node.js Buffer class because it is not supported in
-    the browser environment, and instead uses a custom base64 string encoder.
+    features the CMP needs. The `./tests/tcfcore.test.ts` tests compare the 
+    functionality to the IAB Tech Lab module to verify the output is identical. 
+    Like the IAB Tech Lab the project does not use the Node.js Buffer class
+    because it is not supported in the browser environment, and instead uses a 
+    custom base64 string encoder.
 -   **Rollup** – Creating a single bundle would be simple but involve all the
     possible languages being embedded increasing bundle size. The
     `./rollup.config.js` contains the logic to create a config for each language
