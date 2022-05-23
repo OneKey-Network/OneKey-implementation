@@ -1,0 +1,37 @@
+.ok-ui-download-data {
+  @include phone-only {
+    > * + * {
+      margin-top: em(16px);
+    }
+  }
+
+  @include tablet-plus {
+    display: flex;
+
+    > * + * {
+      margin-left: em(16px);
+    }
+  }
+}
+
+.ok-ui-download-datum {
+  padding: em(24px);
+  border: solid em(1px) $grey-200;
+  border-radius: $border-radius;
+
+  .ok-ui-heading-2 {
+    margin: em(8px) 0;
+  }
+}
+
+.ok-ui-download-data__action {
+  margin-top: em(16px);
+
+  @include tablet-plus {
+    margin-top: em(24px);
+
+    .ok-ui-button {
+      margin: 0 auto;
+    }
+  }
+}

@@ -1,0 +1,88 @@
+.ok-ui-advert {
+  text-align: center;
+}
+
+.ok-ui-advert__image {
+  width: em(100px);
+  height: em(200px);
+
+  @include phone-only {
+    margin-bottom: em(24px);
+  }
+}
+
+.ok-ui-advert-status {
+  padding: em(16px);
+  border-radius: $border-radius;
+
+  @include tablet-plus {
+    padding: em(24px);
+  }
+
+  &--loading {
+    background-color: $grey-50;
+  }
+
+  &--good {
+    background-color: $status-good-50;
+
+    .ok-ui-icon--lg {
+      color: $status-good;
+    }
+  }
+
+  &--suspicious {
+    background-color: $status-warning-50;
+
+    .ok-ui-icon--lg {
+      color: $status-warning;
+    }
+  }
+
+  &--violation {
+    background-color: $status-bad-50;
+
+    .ok-ui-icon--lg {
+      color: $status-bad;
+    }
+  }
+}
+
+.ok-ui-advert-status__footer {
+  margin-top: em(16px);
+
+  @include phone-only {
+    .ok-ui-divide {
+      margin: em(16px) 0;
+    }
+  }
+
+  @include tablet-plus {
+    display: flex;
+    padding-top: em(16px);
+    border-top: solid 1px rgba($grey-800, 0.1);
+
+    .ok-ui-divide {
+      display: none;
+    }
+
+    .ok-ui-divide + .ok-ui-button {
+      margin-left: em(16px);
+    }
+  }
+}
+
+@include tablet-plus {
+  .ok-ui-advert-wrapper {
+    display: flex;
+  }
+
+  .ok-ui-advert__image {
+    width: em(256px);
+    height: em(480px);
+    padding: em(16px);
+    margin-right: em(40px);
+    border: solid em(1px) $grey-200;
+    border-radius: $border-radius;
+  }
+}

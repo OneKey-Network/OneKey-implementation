@@ -1,0 +1,4 @@
+@for $i from 0 through 4 {
+  .ok-ui-mt-#{$i} { margin-top: calc(8px * $i); }
+  .ok-ui-mb-#{$i} { margin-bottom: calc(8px * $i); }
+}
