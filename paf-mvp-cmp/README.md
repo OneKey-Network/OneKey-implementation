@@ -74,7 +74,7 @@ The following attributes are optional.
     available to users.
 -   **data-snackbar-timeout-ms**: The number of milliseconds to wait for the
     snackbar to disappear. Defaults to 5000.
--   data-template-tcf-core-string: The [template TCF core
+-   **data-template-tcf-core-string**: The [template TCF core
     string](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20Consent%20string%20and%20vendor%20list%20formats%20v2.md?msclkid=5236f9f5c47b11ec8a04e36f3dd976c9#the-core-string)
     that will be used when generating the resulting TCF core string from the
     CMP. This project will change the Purposes Consents, Created, and
