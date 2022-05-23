@@ -5,8 +5,8 @@
 ## Setup
 
 **Step 1.** Register your domain with the CMP provider and request the
-proxy-host-name domain. A list of CMP providers is available
-[here](https://insert-link).
+proxy-host-name domain. A list of CMP providers is available in the
+[main PAF documentation](https://github.com/prebid/addressability-framework/blob/main/README.md).
 
 **Step 2.** Add the following snippet after the `<body>` element of the web
 page.
@@ -23,8 +23,9 @@ proxy host name provided by the CMP provider in step 1.
 Optionally change the `data-brand-name` and `data-brand-privacy-url` values to
 those associated with your brand.
 
-Tip: Verify that your privacy URL includes references to the [Model
-Terms](https://insert-link).
+Tip: Verify that your privacy URL includes references to the Model Terms
+referenced in the
+[main PAF documentation](https://github.com/prebid/addressability-framework/blob/main/README.md).
 
 **Step 3.** Add the following snippet to the footer of the web page where
 `preferences` is the id of the element that when clicked will display the CMP.
@@ -50,8 +51,7 @@ document.querySelector('#preferences')
     written to the cookie store of your website.
 4.  When revisiting the website verify that the reminder about OneKey appears in
     the footer before disappearing.
-5.  Configure the [Prebid adapter](https://insert-link) to use these values for
-    advertising.
+5.  Configure the Prebid adapter to use these values for advertising.
 
 ## Configuration Options
 
