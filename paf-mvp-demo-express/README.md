@@ -93,7 +93,7 @@ cd paf-mvp-demo-express
 Generate certificates
 ```shell
 openssl req -out paf.csr -newkey rsa:2048 -nodes -keyout paf.key -extensions req_ext -config openssl-csr.conf
-openssl x509 -req -days 3650 -in paf.csr -signkey paf.key -out paf.crt -extensions req_ext -extfile openssl-csr.conf
+openssl x509 -req -days 3650 -in paf.csr -signkey paf.key -out paf.crt -extensions req_ext -extfile openssl-csr.conf -sha256
 ```
 Add root certificate as a trusted one
 
