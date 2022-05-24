@@ -53,6 +53,12 @@ const addMiddleware = (app: Express) => {
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.setHeader('Cache-Control', 'public, max-age=604800');
         }
+        if (/(js)$/.test(path)) {
+          // Shorter cache for JS as this might change more during development.
+          // CORS needed to support easy publisher evaluation.
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Cache-Control', 'public, max-age=60');
+        }
       },
     })
   );

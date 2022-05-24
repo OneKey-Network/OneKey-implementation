@@ -6,6 +6,9 @@ import { TcfCore } from './tcfcore';
  * Immutable UI specific options set via the script tag's attributes.
  */
 export class Config implements Options {
+  /** The default snack bar timeout if a value is not provided */
+  private static readonly DEFAULT_SNACKBAR_TIMEOUT_MS = 5000;
+
   /** Parent element */
   private readonly script: HTMLOrSVGScriptElement;
 
@@ -29,7 +32,10 @@ export class Config implements Options {
       false,
       'True to display the introduction card, or false to skip straight to the settings card after a possible redirect.'
     );
-    return Boolean(JSON.parse(value));
+    if (value !== null) {
+      return Boolean(JSON.parse(value));
+    }
+    return false;
   }
 
   /**
@@ -38,21 +44,28 @@ export class Config implements Options {
   get snackbarTimeoutMs(): number {
     const value = this.getValue(
       'data-snackbar-timeout-ms',
-      true,
+      false,
       'The number of milliseconds to wait for the snackbar to disappear.'
     );
-    return Number(JSON.parse(value));
+    if (value !== null) {
+      return Number(JSON.parse(value));
+    }
+    return Config.DEFAULT_SNACKBAR_TIMEOUT_MS;
   }
 
   /**
    * The host name to use when reading and writing data from the global storage.
    */
   get proxyHostName(): string {
-    return this.getValue(
+    const value = this.getValue(
       'data-proxy-host-name',
-      true,
+      false,
       'The host name to use when reading and writing data from the global storage. Usually obtained from the CMP provider.'
     );
+    if (value !== null) {
+      return value;
+    }
+    return new URL(this.script.getAttribute('src')).hostname;
   }
 
   /**

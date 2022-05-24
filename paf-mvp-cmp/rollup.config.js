@@ -27,6 +27,8 @@ import * as yaml from 'js-yaml';
 // Used to get the TCF core string from the environment.
 import { env } from 'process';
 
+const DEV = process.env.ROLLUP_WATCH;
+
 // Options to pass to terser.
 const terserOptions = {
   toplevel: true,
@@ -186,6 +188,10 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
         preventAssignment: true,
         __Locale__: localeContent,
         __TcfCoreTemplate__: tcfCoreTemplate
+      }),
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
       }),
       postHTML({ template: true }),
       minifyHTML({
