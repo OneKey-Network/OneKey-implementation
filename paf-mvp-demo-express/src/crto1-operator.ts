@@ -3,14 +3,17 @@ import { addOperatorApi, Permission } from '@operator/operator-api';
 import { s2sOptions } from './server-config';
 import {
   crtoOneOperatorConfig,
-  pafCmpConfig,
-  pafMarketConfig,
-  pifCmpConfig,
-  pifMarketConfig,
-  pofCmpConfig,
-  pofMarketConfig,
+  pafPublisherClientNodeConfig,
+  pafMarketWebSiteConfig,
+  pifPublisherClientNodeConfig,
+  pifMarketWebSiteConfig,
+  pofPublisherClientNodeConfig,
+  pofMarketWebSiteConfig,
   portalConfig,
   PrivateConfig,
+  pofMarketClientNodeConfig,
+  pifMarketClientNodeConfig,
+  pafMarketClientNodeConfig,
 } from './config';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -39,20 +42,22 @@ export const crtoOneOperatorApp = express();
 // This host supports the Operator API
 addOperatorApi(
   crtoOneOperatorApp,
+  {
+    name: crtoOneOperatorConfig.name,
+    currentPublicKey: operatorPrivateConfig.currentPublicKey,
+    dpoEmailAddress: operatorPrivateConfig.dpoEmailAddress,
+    privacyPolicyUrl: new URL(operatorPrivateConfig.privacyPolicyUrl),
+  },
   crtoOneOperatorConfig.host,
   operatorPrivateConfig.privateKey,
-  crtoOneOperatorConfig.name,
-  [operatorPrivateConfig.currentPublicKey],
   {
-    [pafCmpConfig.host]: [Permission.READ, Permission.WRITE],
-    [pifCmpConfig.host]: [Permission.READ, Permission.WRITE],
-    [pofCmpConfig.host]: [Permission.READ, Permission.WRITE],
+    [pafPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofPublisherClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
     [portalConfig.host]: [Permission.READ, Permission.WRITE],
-    [pafMarketConfig.host]: [Permission.READ, Permission.WRITE],
-    [pifMarketConfig.host]: [Permission.READ, Permission.WRITE],
-    [pofMarketConfig.host]: [Permission.READ, Permission.WRITE],
+    [pafMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pifMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
+    [pofMarketClientNodeConfig.host]: [Permission.READ, Permission.WRITE],
   },
-  operatorPrivateConfig.dpoEmailAddress,
-  new URL(operatorPrivateConfig.privacyPolicyUrl),
   s2sOptions
 );

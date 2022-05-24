@@ -9,11 +9,13 @@
 
 {{else}}
 
-    <!-- PAF integration -->
+    <!-- PAF CMP in stanalone -->
     <link rel="preload" href="https://{{cdnDomain}}/assets/app.bundle.js" as="script" />
-    <link rel="preload" href="https://{{cdnDomain}}/assets/paf-lib.js" as="script" />
 
 {{/if}}
+
+    <!-- PAF -->
+    <link rel="preload" href="https://{{cdnDomain}}/assets/paf-lib.js" as="script" />
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
@@ -94,6 +96,20 @@
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
             pbjs.setConfig({
+                consentManagement: {
+                cmpApi: "static",
+                consentData: {
+                    getTCData: {
+                        tcString: "CO-HDlqO-HDlqAKAXCENBDCsAP_AAH_AACiQHKNd_X_fb39j-_59_9t0eY1f9_7_v20zjgeds-8Nyd_X_L8X42M7vF36pq4KuR4Eu3LBIQFlHOHcTUmw6IkVqTPsak2Mr7NKJ7PEinMbe2dYGHtfn9VTuZKYr97s___z__-__v__75f_r-3_3_vp9V---_fA5QAkw1L4CLMSxwJJo0qhRAhCuJDoAQAUUIwtE1hASuCnZXAR-ggYAIDUBGBECDEFGLIIAAAAAkoiAkAPBAIgCIBAACAFSAhAARoAgsAJAwCAAUA0LACKAIQJCDI4KjlMCAiRaKCeSMASi72MMIQyigBoFH4AAAAA.cAAAAAAAAAAA",
+                        cmpId: 10,
+                        cmpVersion: 23,
+                        tcfPolicyVersion: 2,
+                        gdprApplies: false,
+                        cmpStatus: "loaded",
+                        eventStatus: "tcloaded"
+                        }
+                    }
+                },
                 debug: true,
                 realTimeData: {
                     auctionDelay: 1000,
@@ -101,7 +117,7 @@
                             {
                             name: "paf",
                             waitForIt: true,
-                            params: {proxyHostName: "cmp.pafdemopublisher.com"}
+                            params: {proxyHostName: "{{pafNodeHost}}" }
                         }
                     ]
                 },
@@ -163,17 +179,22 @@
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
-<script src="https://{{proxyHostName}}/assets/cmp/ok-ui.min.js" 
-    data-site-only-cookie-tcf-core="tcf-core"
+<script src="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js"
+    data-display-intro="true"
+    data-snackbar-timeout-ms="5000"
+    data-proxy-host-name="{{pafNodeHost}}"
     data-brand-name="Demo Publisher"
+    data-site-only-cookie-tcf-core="tcf-core"
+    data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
 
 {{else}}
 
-<script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
-<script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{proxyHostName}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}" });'></script>
+<script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}" });'></script>
 
 {{/if}}
+
+<script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
 
 <div>
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
@@ -818,7 +839,7 @@
                     document.querySelector('#preferences')
                       .addEventListener('click', (e) => {
                         e.preventDefault();
-                        window.PAFUI.promptConsent();
+                        PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}", showPrompt: 'doPrompt'});
                       });
                   </script>
                 </div>

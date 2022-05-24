@@ -193,6 +193,10 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
         preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
       }),
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
+      }),
       postHTML({ template: true }),
       minifyHTML({
         // Include string literals that contain the div or section element as well as the default check.

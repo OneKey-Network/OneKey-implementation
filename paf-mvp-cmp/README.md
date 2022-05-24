@@ -5,9 +5,8 @@
 ## Setup
 
 **Step 1.** Register your domain with the CMP provider and request the
-proxy-host-name domain. For development and testing purposes 
-`cmp.pofdemopublisher.com` can be used. A list of OneKey CMP providers is 
-available [here](https://insert-link-to-cmp-providers).
+proxy-host-name domain. A list of CMP providers is available in the
+[main PAF documentation](https://github.com/prebid/addressability-framework/blob/main/README.md).
 
 **Step 2.** Add the following snippet after the `<body>` element of the web
 page.
@@ -24,8 +23,9 @@ proxy host name provided by the CMP provider in step 1.
 Optionally change the `data-brand-name` and `data-brand-privacy-url` values to
 those associated with your brand.
 
-Tip: Verify that your privacy URL includes references to the [Model
-Terms](https://insert-link-to-model-terms).
+Tip: Verify that your privacy URL includes references to the Model Terms
+referenced in the
+[main PAF documentation](https://github.com/prebid/addressability-framework/blob/main/README.md).
 
 **Step 3.** Add the following snippet to the footer of the web page where
 `preferences` is the id of the element that when clicked will display the CMP.
@@ -35,15 +35,12 @@ alter their choices is a requirement of the Model Terms.
 ```HTML
 <script>
 document.querySelector('#preferences')
-  .addEventListener('click', (e) => {
-	e.preventDefault();
-	window.PAFUI.promptConsent();
-  });
+    .addEventListener('click', (e) => {
+        e.preventDefault();
+        PAF.refreshIdsAndPreferences({ proxyHostName: "[proxy-host-name]", showPrompt: 'doPrompt'});
+    });
 </script>
 ```
-
-The [example.html](example.html) static page provides a simple page with these
-steps applied.
 
 ## Verify
 
@@ -54,8 +51,7 @@ steps applied.
     written to the cookie store of your website.
 4.  When revisiting the website verify that the reminder about OneKey appears in
     the footer before disappearing.
-5.  Configure the [Prebid adapter](https://insert-link) to use these values for
-    advertising.
+5.  Configure the Prebid adapter to use these values for advertising.
 
 ## Configuration Options
 
@@ -78,7 +74,7 @@ The following attributes are optional.
     available to users.
 -   **data-snackbar-timeout-ms**: The number of milliseconds to wait for the
     snackbar to disappear. Defaults to 5000.
--   data-template-tcf-core-string: The [template TCF core
+-   **data-template-tcf-core-string**: The [template TCF core
     string](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20Consent%20string%20and%20vendor%20list%20formats%20v2.md?msclkid=5236f9f5c47b11ec8a04e36f3dd976c9#the-core-string)
     that will be used when generating the resulting TCF core string from the
     CMP. This project will change the Purposes Consents, Created, and
@@ -198,14 +194,6 @@ The CSS, images, and JS needed by the view is included in the `./src/css`,
 template strings and added to the DOM when the UI is loaded. There are no
 external dependent resources.
 
-### Note on JavaScript
-
-Where the JavaScript is created as part of the pattern library and unrelated to
-the module the script from the pattern library is part of the “skin” and is a
-resource consumed by the module. The reference implementation uses Popper for
-the tooltips and is an example of such a resource. These resources are not
-managed as part of the module.
-
 ## Model
 
 The data model is contained in the class `./src/model`. Two way binding between
@@ -267,10 +255,11 @@ are called out here.
     increased the size of the minified bundle by around 50kb. Treeshaking and
     other optimisation techniques could not be used to reduce this. The
     `./src/tcfcore` class is a light weight alternative containing just the
-    features the CMP needs. The tests compare the functionality to the IAB Tech
-    Lab module to verify the output is identical. Like the IAB Tech Lab the
-    project does not use the Node.js Buffer class because it is not supported in
-    the browser environment, and instead uses a custom base64 string encoder.
+    features the CMP needs. The `./tests/tcfcore.test.ts` tests compare the 
+    functionality to the IAB Tech Lab module to verify the output is identical. 
+    Like the IAB Tech Lab the project does not use the Node.js Buffer class
+    because it is not supported in the browser environment, and instead uses a 
+    custom base64 string encoder.
 -   **Rollup** – Creating a single bundle would be simple but involve all the
     possible languages being embedded increasing bundle size. The
     `./rollup.config.js` contains the logic to create a config for each language
