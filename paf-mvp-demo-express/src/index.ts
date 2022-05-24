@@ -74,17 +74,6 @@ const addMiddleware = (app: Express) => {
   app.use((req, res, next) => {
     req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
   });
-
-  // Set the CORS access control allow origin if a proxy path and the origin is provided in the request.
-  // This is needed to support pages that are loaded form the file system to quickly demo the functionality. There
-  // may be better places to place this code.
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/paf-proxy/')) {
-      res.setHeader('Access-Control-Allow-Origin', req.headers.origin ? req.headers.origin : '*');
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-    }
-    next();
-  });
 };
 
 addMiddleware(mainApp);
