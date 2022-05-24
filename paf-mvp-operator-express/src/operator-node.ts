@@ -80,8 +80,8 @@ export class OperatorNode implements Node {
     const keyStore = new PublicKeyStore(s2sOptions);
     const logger = new Log('Operator', 'black');
 
-    // Start by adding identity endpoint
-    addIdentityEndpoint(app.app, {
+    // Start by adding identity endpoint FIXME there should be inheritance with IdentityNode
+    addIdentityEndpoint(app.expressApp, {
       ...identity,
       type: 'operator',
     });
@@ -231,7 +231,7 @@ export class OperatorNode implements Node {
     };
 
     let endpoint = jsonOperatorEndpoints.read;
-    app.app.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
       logger.Info(endpoint);
 
       // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
@@ -255,7 +255,7 @@ export class OperatorNode implements Node {
     });
 
     endpoint = jsonOperatorEndpoints.verify3PC;
-    app.app.get(endpoint, cors(corsOptionsAcceptAll), (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), (req, res) => {
       logger.Info(endpoint);
       // Note: no signature verification here
 
@@ -281,7 +281,7 @@ export class OperatorNode implements Node {
     });
 
     endpoint = jsonOperatorEndpoints.write;
-    app.app.post(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+    app.expressApp.post(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
       logger.Info(endpoint);
       const input = getPayload<PostIdsPrefsRequest>(req);
 
@@ -301,7 +301,7 @@ export class OperatorNode implements Node {
     });
 
     endpoint = jsonOperatorEndpoints.newId;
-    app.app.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
       logger.Info(endpoint);
       const request = getPafDataFromQueryString<GetNewIdRequest>(req);
       const context = { origin: req.header('origin') };
@@ -343,7 +343,7 @@ export class OperatorNode implements Node {
     // *****************************************************************************************************************
 
     endpoint = redirectEndpoints.read;
-    app.app.get(endpoint, async (req, res) => {
+    app.expressApp.get(endpoint, async (req, res) => {
       logger.Info(endpoint);
       const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
@@ -379,7 +379,7 @@ export class OperatorNode implements Node {
     });
 
     endpoint = redirectEndpoints.write;
-    app.app.get(endpoint, async (req, res) => {
+    app.expressApp.get(endpoint, async (req, res) => {
       logger.Info(endpoint);
       const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
 

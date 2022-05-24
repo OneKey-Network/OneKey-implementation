@@ -16,7 +16,7 @@ const relative = (dir: string) => join(__dirname, dir);
   // Add demo middlewares to websites and CDNs
   const hbs = create({ defaultLayout: false });
   [...websites, ...cdns]
-    .map((app) => app.app)
+    .map((app) => app.expressApp)
     .forEach((app: Express) => {
       app.engine('hbs', hbs.engine);
       app.set('view engine', 'hbs');
@@ -46,13 +46,13 @@ const relative = (dir: string) => join(__dirname, dir);
   });
 
   // Warmup Requests to Improve Performance on Google Cloud Platform
-  mainApp.app.get('/_ah/warmup', (req, res) => {
+  mainApp.expressApp.get('/_ah/warmup', (req, res) => {
     res.sendStatus(200);
   });
 
   // start the Express server
   const port = process.env.PORT || 80;
-  mainApp.app.listen(port, () => {
+  mainApp.expressApp.listen(port, () => {
     // Demo specific logs
     console.log(`server started on port ${port}`);
     console.log('');
@@ -72,6 +72,6 @@ const relative = (dir: string) => join(__dirname, dir);
   // Only start HTTPS on local dev: on prod, the HTTPS layer is handled by a proxy
   if (isLocalDev) {
     console.log('Local dev: starting HTTPs (443) server');
-    createServer(sslOptions, mainApp.app).listen(443);
+    createServer(sslOptions, mainApp.expressApp).listen(443);
   }
 })();

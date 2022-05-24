@@ -1,6 +1,5 @@
-import { ClientNode } from '@operator-client/client-node';
-import { getTimeStampInSec } from '@core/timestamp';
-
+// FIXME update with new methods signatures
+/*
 // This is just an example of a basic client node configuration
 export const pofPublisherClientNode = new ClientNode(
   // Identity information: mandatory for any PAF interaction
@@ -37,3 +36,4 @@ Ts8lo0jba/6zuFHUeRvvUN7o63lngkuhntqPXFiEVxAmxiQWVfFwFZ9F
   // The PAF operator host
   'example.onekey.network'
 );
+*/

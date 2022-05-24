@@ -43,17 +43,19 @@ export const getKeys = async (
   );
 };
 
+export interface Parsed<T extends ClientNodeConfig | OperatorConfig> {
+  config: T;
+  identity: Omit<Identity, 'type'>;
+  currentPrivateKey: string;
+}
+
 /**
  * Extract the config object, the Identity object, and the current private key from a config JSON file
  * @param configPath
  */
 export const parseConfig = async <T extends ClientNodeConfig | OperatorConfig>(
   configPath: string
-): Promise<{
-  config: T;
-  identity: Omit<Identity, 'type'>;
-  currentPrivateKey: string;
-}> => {
+): Promise<Parsed<T>> => {
   const config = JSON.parse((await fs.promises.readFile(configPath)).toString()) as T;
 
   const keys = await getKeys(configPath, config.identity);

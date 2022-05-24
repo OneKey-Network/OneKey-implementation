@@ -10,7 +10,7 @@ const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
 
 export const pifMarketWebSiteApp = new App(name).setHostName(host);
 
-pifMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
+pifMarketWebSiteApp.expressApp.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
 
   res.render(view, {

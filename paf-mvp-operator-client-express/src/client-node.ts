@@ -18,12 +18,11 @@ import {
 } from '@core/model/operator-request-builders';
 import { AxiosRequestConfig } from 'axios';
 import { PublicKeyStore } from '@core/crypto/key-store';
-import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
-import { PAFNode } from '@core/model/model';
+import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
 import { App, Node } from '@core/express/express-apps';
-import { IdentityConfig, parseConfig } from '@core/express/config';
+import { IdentityConfig, parseConfig, Parsed } from '@core/express/config';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
@@ -64,34 +63,33 @@ export interface ClientNodeConfig {
 export class ClientNode implements Node {
   /**
    * Add PAF client node endpoints to an Express app
+   * @param config
    * @param app the Express app
-   * @param identity the identity attributes of this PAF node
-   * @param pafNode
    *   hostName: the PAF client host name
    *   privateKey: the PAF client private key string
-   * @param operatorHost the PAF operator host name
    * @param s2sOptions? [optional] server to server configuration for local dev
    */
   constructor(
-    identity: Omit<Identity, 'type'>,
-    pafNode: PAFNode,
-    operatorHost: string,
+    config: Parsed<ClientNodeConfig>,
     s2sOptions?: AxiosRequestConfig,
-    public app = new App(identity.name).setHostName(pafNode.hostName)
+    public app = new App(config.identity.name).setHostName(config.config.host)
   ) {
+    const { identity, currentPrivateKey } = config;
+    const hostName = config.config.host;
+    const operatorHost = config.config.operatorHost;
+
     // Start by adding identity endpoint FIXME inheritence with IdentityNode
-    addIdentityEndpoint(app.app, {
+    addIdentityEndpoint(app.expressApp, {
       ...identity,
       type: 'vendor',
     });
     const logger = new Log('Client node', '#bbb');
-    const { hostName, privateKey } = pafNode;
-    const client = new OperatorClient(operatorHost, hostName, privateKey, new PublicKeyStore(s2sOptions));
+    const client = new OperatorClient(operatorHost, hostName, currentPrivateKey, new PublicKeyStore(s2sOptions));
 
     // FIXME class attributes
-    const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, privateKey);
+    const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
     const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
-    const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, privateKey);
+    const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, currentPrivateKey);
 
     const tld = getTopLevelDomain(hostName);
 
@@ -149,7 +147,7 @@ export class ClientNode implements Node {
     // *****************************************************************************************************************
 
     let endpoint = jsonProxyEndpoints.read;
-    app.app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       try {
@@ -167,7 +165,7 @@ export class ClientNode implements Node {
     });
 
     endpoint = jsonProxyEndpoints.write;
-    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       try {
@@ -185,7 +183,7 @@ export class ClientNode implements Node {
     });
 
     endpoint = jsonProxyEndpoints.verify3PC;
-    app.app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       try {
@@ -203,7 +201,7 @@ export class ClientNode implements Node {
     });
 
     endpoint = jsonProxyEndpoints.newId;
-    app.app.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
@@ -241,7 +239,7 @@ export class ClientNode implements Node {
     };
 
     endpoint = redirectProxyEndpoints.read;
-    app.app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
       logger.Info(endpoint);
 
       const returnUrl = getReturnUrl(req, res);
@@ -261,7 +259,7 @@ export class ClientNode implements Node {
     });
 
     endpoint = redirectProxyEndpoints.write;
-    app.app.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
+    app.expressApp.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
       logger.Info(endpoint);
       const returnUrl = getReturnUrl(req, res);
       const input = getMessageObject<IdsAndPreferences>(req, res);
@@ -295,7 +293,7 @@ export class ClientNode implements Node {
     // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************
     endpoint = jsonProxyEndpoints.verifyRead;
-    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
@@ -338,7 +336,7 @@ export class ClientNode implements Node {
     });
 
     endpoint = jsonProxyEndpoints.signPrefs;
-    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
@@ -356,7 +354,7 @@ export class ClientNode implements Node {
     });
 
     endpoint = jsonProxyEndpoints.signWrite;
-    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const message = getPayload<IdsAndPreferences>(req);
@@ -374,7 +372,7 @@ export class ClientNode implements Node {
     });
 
     endpoint = jsonProxyEndpoints.createSeed;
-    app.app.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
+    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
       logger.Info(endpoint);
       try {
         const request = JSON.parse(req.body as string) as PostSeedRequest;
@@ -395,16 +393,8 @@ export class ClientNode implements Node {
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
-    const { config, identity, currentPrivateKey } = await parseConfig<ClientNodeConfig>(configPath);
+    const parsed = await parseConfig<ClientNodeConfig>(configPath);
 
-    return new ClientNode(
-      identity,
-      {
-        privateKey: currentPrivateKey,
-        hostName: config.host,
-      },
-      config.operatorHost,
-      s2sOptions
-    );
+    return new ClientNode(parsed, s2sOptions);
   }
 }

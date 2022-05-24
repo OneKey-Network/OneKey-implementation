@@ -91,26 +91,26 @@ export const portalWebSiteApp = new App(name).setHostName(host);
 
   const tld = getTopLevelDomain(host);
 
-  portalWebSiteApp.app.get(removeIdUrl, (req, res) => {
+  portalWebSiteApp.expressApp.get(removeIdUrl, (req, res) => {
     removeCookie(req, res, Cookies.identifiers, { domain: tld });
     const homeUrl = getRequestUrl(req, '/');
     httpRedirect(res, homeUrl.toString());
   });
 
-  portalWebSiteApp.app.get(removePrefsUrl, (req, res) => {
+  portalWebSiteApp.expressApp.get(removePrefsUrl, (req, res) => {
     removeCookie(req, res, Cookies.preferences, { domain: tld });
     const homeUrl = getRequestUrl(req, '/');
     httpRedirect(res, homeUrl.toString());
   });
 
-  portalWebSiteApp.app.get(generateNewId, (req, res) => {
+  portalWebSiteApp.expressApp.get(generateNewId, (req, res) => {
     const returnUrl = getRequestUrl(req, writeNewId);
 
     // First go to "read or init id" on operator, and then redirects to the local write endpoint, that itself calls the operator again
     httpRedirect(res, client.getReadRedirectUrl(req, returnUrl).toString());
   });
 
-  portalWebSiteApp.app.get(writeNewId, (req, res) => {
+  portalWebSiteApp.expressApp.get(writeNewId, (req, res) => {
     const cookies = req.cookies;
 
     const redirectGetIdsPrefsResponse = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req);
@@ -126,7 +126,7 @@ export const portalWebSiteApp = new App(name).setHostName(host);
     httpRedirect(res, getWritePrefsUrl(req, identifiers, preferences, homeUrl).toString());
   });
 
-  portalWebSiteApp.app.get(optInUrl, (req, res) => {
+  portalWebSiteApp.expressApp.get(optInUrl, (req, res) => {
     const cookies = req.cookies;
     const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
@@ -139,7 +139,7 @@ export const portalWebSiteApp = new App(name).setHostName(host);
     }
   });
 
-  portalWebSiteApp.app.get(optOutUrl, (req, res) => {
+  portalWebSiteApp.expressApp.get(optOutUrl, (req, res) => {
     const cookies = req.cookies;
     const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
@@ -210,9 +210,9 @@ export const portalWebSiteApp = new App(name).setHostName(host);
     },
   };
 
-  portalWebSiteApp.app.use(express.json());
+  portalWebSiteApp.expressApp.use(express.json());
 
-  portalWebSiteApp.app.post(verify, async (req, res) => {
+  portalWebSiteApp.expressApp.post(verify, async (req, res) => {
     const request: {
       type: keyof Model;
       payload: object;
@@ -245,7 +245,7 @@ export const portalWebSiteApp = new App(name).setHostName(host);
     res.json(response);
   });
 
-  portalWebSiteApp.app.get('/', (req, res) => {
+  portalWebSiteApp.expressApp.get('/', (req, res) => {
     const cookies = req.cookies;
     if (Object.keys(req.query).length > 0) {
       // Make sure the page is always reloaded with empty query string, for a good reason:

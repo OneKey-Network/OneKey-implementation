@@ -9,7 +9,7 @@ const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
 };
 export const pofMarketWebSiteApp = new App(name).setHostName(host);
 
-pofMarketWebSiteApp.app.get(anythingButAssets, async (req, res) => {
+pofMarketWebSiteApp.expressApp.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
 
   res.render(view, {

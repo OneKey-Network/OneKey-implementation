@@ -14,12 +14,12 @@ export class App {
     return this;
   }
 
-  constructor(public name: string, public app = express()) {
-    addMiddlewares(this.app);
+  constructor(public name: string, public expressApp = express()) {
+    addMiddlewares(this.expressApp);
   }
 
   addVhostApp(vhostApp: App) {
-    this.app.use(vhost(vhostApp.hostName, vhostApp.app));
+    this.expressApp.use(vhost(vhostApp.hostName, vhostApp.expressApp));
   }
 }
 

@@ -10,7 +10,7 @@ const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
 
 export const pafPublisherWebSiteApp = new App(name).setHostName(host);
 
-pafPublisherWebSiteApp.app.get(anythingButAssets, (req, res) => {
+pafPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
   const view = 'publisher/index';
 
   res.render(view, {

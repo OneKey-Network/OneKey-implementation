@@ -174,16 +174,16 @@ class Examples {
   protected async buildExamples() {
     // The examples are not supposed to look like a demo but a real environment
     const operatorConfigPath = path.join(configPath, 'crto-poc-1-operator/config.json');
-    const operatorParsedConfig = await parseConfig<OperatorConfig>(operatorConfigPath);
-    const crtoOneOperatorConfig = operatorParsedConfig.config;
+    const operatorParsed = await parseConfig<OperatorConfig>(operatorConfigPath);
+    const crtoOneOperatorConfig = operatorParsed.config;
     crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
     const operatorKeys = await getKeys(operatorConfigPath, crtoOneOperatorConfig.identity);
     const currentOperatorKeys = operatorKeys.find((pair) => isValidKey(pair));
     const operatorPrivateKey = currentOperatorKeys?.privateKey;
 
     const clientNodeConfigPath = path.join(configPath, 'pafpublisher-client/config.json');
-    const clientConfig = await parseConfig<ClientNodeConfig>(clientNodeConfigPath);
-    const clientNodeConfig = clientConfig.config;
+    const clientParsed = await parseConfig<ClientNodeConfig>(clientNodeConfigPath);
+    const clientNodeConfig = clientParsed.config;
     const clientNodeKeys = await getKeys(clientNodeConfigPath, clientNodeConfig.identity);
     const currentClientNodeKeys = clientNodeKeys.find((pair) => isValidKey(pair));
     const clientNodePrivateKey = currentClientNodeKeys?.privateKey;
