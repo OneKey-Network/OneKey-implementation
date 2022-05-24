@@ -6,13 +6,20 @@ import { TcfCore } from './tcfcore';
  * Immutable UI specific options set via the script tag's attributes.
  */
 export class Config implements Options {
+  /** The default snack bar timeout if a value is not provided */
+  private static readonly DEFAULT_SNACKBAR_TIMEOUT_MS = 5000;
+
   /** Parent element */
   private readonly script: HTMLOrSVGScriptElement;
 
+  /** TCF core template string */
+  private readonly tcfCoreTemplate: string;
+
   private readonly log: Log;
 
-  constructor(script: HTMLOrSVGScriptElement, log: Log) {
+  constructor(script: HTMLOrSVGScriptElement, tcfCoreTemplate: string, log: Log) {
     this.script = script;
+    this.tcfCoreTemplate = tcfCoreTemplate;
     this.log = log;
   }
 
@@ -25,7 +32,10 @@ export class Config implements Options {
       false,
       'True to display the introduction card, or false to skip straight to the settings card after a possible redirect.'
     );
-    return Boolean(JSON.parse(value));
+    if (value !== null) {
+      return Boolean(JSON.parse(value));
+    }
+    return false;
   }
 
   /**
@@ -34,21 +44,28 @@ export class Config implements Options {
   get snackbarTimeoutMs(): number {
     const value = this.getValue(
       'data-snackbar-timeout-ms',
-      true,
+      false,
       'The number of milliseconds to wait for the snackbar to disappear.'
     );
-    return Number(JSON.parse(value));
+    if (value !== null) {
+      return Number(JSON.parse(value));
+    }
+    return Config.DEFAULT_SNACKBAR_TIMEOUT_MS;
   }
 
   /**
    * The host name to use when reading and writing data from the global storage.
    */
   get proxyHostName(): string {
-    return this.getValue(
+    const value = this.getValue(
       'data-proxy-host-name',
-      true,
+      false,
       'The host name to use when reading and writing data from the global storage. Usually obtained from the CMP provider.'
     );
+    if (value !== null) {
+      return value;
+    }
+    return new URL(this.script.getAttribute('src')).hostname;
   }
 
   /**
@@ -94,15 +111,16 @@ export class Config implements Options {
 
   /**
    * The template TCF core string. This project will change the purpose consents, created, and the last updated fields
-   * of the provided value when writing the TCF core string to the cookie.
+   * of the provided value when writing the TCF core string to the cookie. The template string is provided at build time
+   * via the environment variable TCF_CORE_TEMPLATE. See ../rollup.config.js.
    * @remarks
    * See the following documentation for information on the construction of the TCF core string.
    * https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20Consent%20string%20and%20vendor%20list%20formats%20v2.md?msclkid=5236f9f5c47b11ec8a04e36f3dd976c9#the-core-string
    */
   get tcfCore(): TcfCore {
-    if (this._tcfCore === null) {
-      const value = this.getValue('data-template-tcf-core-string', false, 'The template TCF core string.');
-      this._tcfCore = new TcfCore(value);
+    if (this._tcfCore === null && this.tcfCoreTemplate.length > 0) {
+      this.log.Info('TCF core template', this.tcfCoreTemplate);
+      this._tcfCore = new TcfCore(this.tcfCoreTemplate);
     }
     return this._tcfCore;
   }

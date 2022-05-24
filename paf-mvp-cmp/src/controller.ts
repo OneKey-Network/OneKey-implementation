@@ -1,4 +1,3 @@
-import { Locale } from './locale';
 import { Config } from './config';
 import { BindingShowRandomId, BindingThisSiteOnly } from './bindings';
 import { Log } from '@core/log';
@@ -20,6 +19,7 @@ import { View } from './view';
 import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { TcfCore } from './tcfcore';
+import { ILocale } from './ILocale';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -27,9 +27,6 @@ import { TcfCore } from './tcfcore';
 export class Controller {
   // The model the controller is manipulating.
   private readonly model = new Model();
-
-  // The locale that the UI should adopt.
-  private readonly locale: Locale;
 
   // The options provided to the controller.
   private readonly config: Config;
@@ -40,17 +37,21 @@ export class Controller {
   // Timer used to hide the snackbar.
   private countDown: NodeJS.Timer;
 
+  // The locale language data.
+  private readonly locale: ILocale;
+
   private log: Log;
 
   /**
    * Constructs a new instance of Controller.
    * @param script element this method is contained within
-   * @param locale the language file to use with the UI
    * @param config the configuration for the controller
+   * @param locale the language text to use with the UI
+   * @param log
    */
-  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config, log: Log) {
-    this.locale = locale;
+  constructor(script: HTMLOrSVGScriptElement, config: Config, locale: ILocale, log: Log) {
     this.config = config;
+    this.locale = locale;
     this.log = log;
     this.view = new View(script, locale, config);
     this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
@@ -119,10 +120,10 @@ export class Controller {
         this.view,
         'ok-ui-display-marketing',
         new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(this.locale.customizePersonalized)],
-          [Marketing.standard, this.config.replace(this.locale.customizeStandard)],
-          [Marketing.custom, this.config.replace(this.locale.customizeCustomized)],
-          [Marketing.notSet, this.config.replace(this.locale.customizeCustomized)],
+          [Marketing.personalized, this.config.replace(<string>this.locale.customizePersonalized)],
+          [Marketing.standard, this.config.replace(<string>this.locale.customizeStandard)],
+          [Marketing.custom, this.config.replace(<string>this.locale.customizeCustomized)],
+          [Marketing.notSet, this.config.replace(<string>this.locale.customizeCustomized)],
         ])
       )
     );
@@ -131,10 +132,10 @@ export class Controller {
         this.view,
         'ok-ui-snackbar-heading',
         new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(this.locale.snackbarHeadingPersonalized)],
-          [Marketing.standard, this.config.replace(this.locale.snackbarHeadingStandard)],
-          [Marketing.custom, this.config.replace(this.locale.snackbarHeadingCustomized)],
-          [Marketing.notSet, this.config.replace(this.locale.snackbarHeadingCustomized)],
+          [Marketing.personalized, this.config.replace(<string>this.locale.snackbarHeadingPersonalized)],
+          [Marketing.standard, this.config.replace(<string>this.locale.snackbarHeadingStandard)],
+          [Marketing.custom, this.config.replace(<string>this.locale.snackbarHeadingCustomized)],
+          [Marketing.notSet, this.config.replace(<string>this.locale.snackbarHeadingCustomized)],
         ])
       )
     );
@@ -143,10 +144,10 @@ export class Controller {
         this.view,
         'ok-ui-snackbar-body',
         new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(this.locale.snackbarBodyPersonalized)],
-          [Marketing.standard, this.config.replace(this.locale.snackbarBodyStandard)],
-          [Marketing.custom, this.config.replace(this.locale.snackbarBodyCustomized)],
-          [Marketing.notSet, this.config.replace(this.locale.snackbarBodyCustomized)],
+          [Marketing.personalized, this.config.replace(<string>this.locale.snackbarBodyPersonalized)],
+          [Marketing.standard, this.config.replace(<string>this.locale.snackbarBodyStandard)],
+          [Marketing.custom, this.config.replace(<string>this.locale.snackbarBodyCustomized)],
+          [Marketing.notSet, this.config.replace(<string>this.locale.snackbarBodyCustomized)],
         ])
       )
     );

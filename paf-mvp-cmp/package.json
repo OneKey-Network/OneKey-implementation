@@ -2,6 +2,7 @@
   "name": "paf-mvp-cmp",
   "scripts": {
     "build": "rollup -c",
+    "build:tcf": "rollup -c --environment TCF_CORE_TEMPLATE:CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA",
     "lint": "npx eslint ./src --c ../.eslintrc --no-eslintrc",
     "lint:fix": "npx eslint ./src --fix --c ../.eslintrc --no-eslintrc"
   },
