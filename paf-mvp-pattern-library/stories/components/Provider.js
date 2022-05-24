@@ -1,5 +1,5 @@
 import Button from './Button';
-import { GreenCircleTickIcon, RedCircleCrossIcon, MailIcon, ExternalIcon } from './Icons';
+import { ExternalIcon, GreenCircleTickIcon, MailIcon, RedCircleCrossIcon } from './Icons';
 
 export default (args) => {
   return `

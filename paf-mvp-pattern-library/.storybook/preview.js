@@ -1,6 +1,6 @@
-import pretty from "pretty";
-import "../styles/ok-ui.scss";
-import "../javascript/ok-ui.js";
+import pretty from 'pretty';
+import '../styles/ok-ui.scss';
+import '../javascript/ok-ui.js';
 import { addDecorator } from '@storybook/html';
 
 export const parameters = {

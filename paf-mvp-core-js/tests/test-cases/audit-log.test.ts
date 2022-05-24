@@ -4,10 +4,10 @@ import {
   buildAuditLogFixture,
   buildTransmissionResponseFixture,
   contentFixture,
-  seedFixture,
   dataFixture,
-  retrieveTransmissionResults,
   generateContents,
+  retrieveTransmissionResults,
+  seedFixture,
 } from '../fixtures/audit-log-fixtures';
 
 describe('Audit Log Tests', () => {

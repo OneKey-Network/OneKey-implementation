@@ -3,20 +3,20 @@ import fs from 'fs';
 import { EOL } from 'os';
 import {
   crtoOneOperatorConfig,
+  pafMarketClientNodeConfig,
+  pafMarketWebSiteConfig,
   pafPublisherClientNodeConfig,
   pafPublisherWebSiteConfig,
-  pafMarketWebSiteConfig,
+  pifMarketClientNodeConfig,
+  pifMarketWebSiteConfig,
   pifPublisherClientNodeConfig,
   pifPublisherWebSiteConfig,
-  pifMarketWebSiteConfig,
+  pofMarketClientNodeConfig,
+  pofMarketWebSiteConfig,
   pofPublisherClientNodeConfig,
   pofPublisherWebSiteConfig,
-  pofMarketWebSiteConfig,
   portalConfig,
   PublicConfig,
-  pifMarketClientNodeConfig,
-  pofMarketClientNodeConfig,
-  pafMarketClientNodeConfig,
 } from '../src/config';
 
 if (!(process.argv[2]?.length > 0)) {

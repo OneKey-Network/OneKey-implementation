@@ -3,14 +3,14 @@ import { defineConfig } from 'rollup';
 import image from '@rollup/plugin-image';
 import alias from '@rollup/plugin-alias';
 import replace from '@rollup/plugin-replace';
-import commonjs from "@rollup/plugin-commonjs";
+import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
-import nodeResolve from "@rollup/plugin-node-resolve";
+import nodeResolve from '@rollup/plugin-node-resolve';
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
 import preact from 'rollup-plugin-preact';
 import styles from 'rollup-plugin-styles';
-import {terser} from 'rollup-plugin-terser';
+import { terser } from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 
 const DEV = process.env.ROLLUP_WATCH;

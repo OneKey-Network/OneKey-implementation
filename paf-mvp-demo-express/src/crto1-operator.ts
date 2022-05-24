@@ -3,17 +3,14 @@ import { addOperatorApi, Permission } from '@operator/operator-api';
 import { s2sOptions } from './server-config';
 import {
   crtoOneOperatorConfig,
+  pafMarketClientNodeConfig,
   pafPublisherClientNodeConfig,
-  pafMarketWebSiteConfig,
+  pifMarketClientNodeConfig,
   pifPublisherClientNodeConfig,
-  pifMarketWebSiteConfig,
+  pofMarketClientNodeConfig,
   pofPublisherClientNodeConfig,
-  pofMarketWebSiteConfig,
   portalConfig,
   PrivateConfig,
-  pofMarketClientNodeConfig,
-  pifMarketClientNodeConfig,
-  pafMarketClientNodeConfig,
 } from './config';
 import { getTimeStampInSec } from '@core/timestamp';
 
