@@ -23,9 +23,9 @@ import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import {
   crtoOneOperatorConfig,
+  pafMarketWebSiteConfig,
   pafPublisherClientNodeConfig,
   pafPublisherWebSiteConfig,
-  pafMarketWebSiteConfig,
 } from '../src/config';
 import path from 'path';
 import { OperatorClient } from '@operator-client/operator-client';

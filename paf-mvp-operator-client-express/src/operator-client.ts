@@ -22,7 +22,6 @@ import {
 import { ResponseVerifier } from '@core/crypto/verifier';
 import { getTimeStampInSec } from '@core/timestamp';
 import { Request } from 'express';
-import { Log } from '@core/log';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {

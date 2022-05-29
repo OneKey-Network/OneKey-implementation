@@ -17,7 +17,6 @@ import { Refresh } from '../../components/svg/refresh/Refresh';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
 import { currentScript } from '@frontend/utils/current-script';
-import { getNewId, updateIdsAndPreferences } from '@frontend/lib/paf-lib';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;

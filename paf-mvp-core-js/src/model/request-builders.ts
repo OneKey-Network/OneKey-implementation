@@ -1,12 +1,7 @@
 import { setInQueryString } from '@core/express/utils';
-import { GetIdsPrefsRequest, MessageBase } from '@core/model/generated-model';
+import { MessageBase } from '@core/model/generated-model';
 import { RedirectRequest, Unsigned } from '@core/model/model';
-import {
-  RedirectContext,
-  RequestDefinition,
-  RequestWithoutBodyDefinition,
-  RestContext,
-} from '@core/crypto/signing-definition';
+import { RedirectContext, RequestDefinition, RestContext } from '@core/crypto/signing-definition';
 import { getTimeStampInSec } from '@core/timestamp';
 import { Signer } from '@core/crypto/signer';
 import { privateKeyFromString } from '@core/crypto/keys';

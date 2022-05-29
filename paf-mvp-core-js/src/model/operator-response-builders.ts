@@ -13,7 +13,7 @@ import { Unsigned } from './model';
 import { getTimeStampInSec } from '../timestamp';
 import { setInQueryString } from '../express/utils';
 import { privateKeyFromString } from '@core/crypto/keys';
-import { RequestWithBodyDefinition, ResponseDefinition } from '@core/crypto/signing-definition';
+import { ResponseDefinition } from '@core/crypto/signing-definition';
 import { Signer } from '@core/crypto/signer';
 
 export abstract class ResponseBuilderWithRedirect<T> {

@@ -1,7 +1,4 @@
-import {
-  popperGenerator,
-  defaultModifiers,
-} from '@popperjs/core/lib/popper-lite';
+import { defaultModifiers, popperGenerator } from '@popperjs/core/lib/popper-lite';
 import flip from '@popperjs/core/lib/modifiers/flip';
 import preventOverflow from '@popperjs/core/lib/modifiers/preventOverflow';
 
