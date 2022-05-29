@@ -515,14 +515,10 @@ export class Controller {
    * @returns a new random identifier from the Operator
    */
   private getNewIdIfNeeded(): Promise<Identifier> {
-    if (
-      this.model.rid.value === null ||
-      this.model.rid.value.source === null ||
-      this.model.rid.value.source.signature === null
-    ) {
-      return this.resetId();
+    if (this.model.rid.value?.source?.signature) {
+      return Promise.resolve<Identifier>(this.model.rid.value);
     }
-    return Promise.resolve<Identifier>(this.model.rid.value);
+    return this.resetId();
   }
 
   /**
