@@ -158,6 +158,8 @@ export interface GenerateSeedOptions extends Options {
   callback?: (seed: Seed) => void;
 }
 
+export type DeleteIdsAndPreferencesOptions = Options;
+
 /**
  * Refresh result
  */
@@ -753,7 +755,7 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
   return getAuditLogByTransaction(prebidTransactionId);
 };
 
-export const deleteIdsAndPreferences = (): Promise<boolean> => {
+export const deleteIdsAndPreferences = (_option: DeleteIdsAndPreferencesOptions): Promise<boolean> => {
   // Not handled yet.
   return Promise.resolve(false);
 };
