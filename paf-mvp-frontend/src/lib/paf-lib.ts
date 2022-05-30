@@ -789,9 +789,12 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
   return getAuditLogByTransaction(prebidTransactionId);
 };
 
-export const deleteIdsAndPreferences = (_option: DeleteIdsAndPreferencesOptions): Promise<boolean> => {
+export const deleteIdsAndPreferences = (_option: DeleteIdsAndPreferencesOptions): Promise<void> => {
   // Not handled yet.
-  return Promise.resolve(false);
+
+  saveCookieValue(Cookies.identifiers, undefined);
+  saveCookieValue(Cookies.preferences, undefined);
+  return Promise.resolve();
 };
 
 // Set up the queue of asynchronous commands
