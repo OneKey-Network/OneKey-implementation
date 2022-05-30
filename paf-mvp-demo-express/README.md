@@ -84,55 +84,57 @@ To install and run the demo project locally, follow these instructions:
 
 2. Go to this directory
 
-```shell
-cd paf-mvp-demo-express
-```
+    ```shell
+    cd paf-mvp-demo-express
+    ```
 
-4. Prepare SSL
+3. Prepare SSL
 
-Generate certificates
-```shell
-openssl req -out paf.csr -newkey rsa:2048 -nodes -keyout paf.key -extensions req_ext -config openssl-csr.conf
-openssl x509 -req -days 3650 -in paf.csr -signkey paf.key -out paf.crt -extensions req_ext -extfile openssl-csr.conf -sha256
-```
-Add root certificate as a trusted one
+    - Generate certificates
 
-Mac OS
+        ```shell
+        openssl req -out paf.csr -newkey rsa:2048 -nodes -keyout paf.key -extensions req_ext -config openssl-csr.conf
+        openssl x509 -req -days 3650 -in paf.csr -signkey paf.key -out paf.crt -extensions req_ext -extfile openssl-csr.conf -sha256
+        ```
 
-```shell
-sudo security add-trusted-cert -d -r trustRoot -k "$HOME/Library/Keychains/login.keychain" paf.crt
-```
+    - Add root certificate as a trusted one
 
-Windows
+        - Mac OS
 
-```shell
-CertUtil -addStore Root paf.crt
-```
+            ```shell
+            sudo security add-trusted-cert -d -r trustRoot -k "$HOME/Library/Keychains/login.keychain" paf.crt
+            ```
 
-3. Launch the server locally in the root directory of this repository
+        - Windows
 
-```shell
-cd ..
-npm install
-npm run build-front
-npm run start
-```
+            ```shell
+            CertUtil -addStore Root paf.crt
+            ```
 
-3. Edit your `/etc/hosts` file (or `C:\Windows\System32\Drivers\etc\hosts` on Windows) to fake your web browser to target `localhost`.
+4. Launch the server locally in the root directory of this repository
+
+    ```shell
+    cd ..
+    npm install
+    npm run build-front
+    npm run start
+    ```
+
+5. Edit your `/etc/hosts` file (or `C:\Windows\System32\Drivers\etc\hosts` on Windows) to fake your web browser to target `localhost`.
     1. See console logs when starting the server for details
     2. On Linux / MacOS, use the following script:
 
-```shell
-cd paf-mvp-demo-express
+    ```shell
+    cd paf-mvp-demo-express
 
-# Target localhost
-sudo ts-node -r tsconfig-paths/register scripts/fake-hosts.ts add
+    # Target localhost
+    sudo ts-node -r tsconfig-paths/register scripts/fake-hosts.ts add
 
-# Use DNS
-sudo ts-node -r tsconfig-paths/register scripts/fake-hosts.ts remove
-```
+    # Use DNS
+    sudo ts-node -r tsconfig-paths/register scripts/fake-hosts.ts remove
+    ```
 
-✓ You should now be able to access the demo websites running locally.
+    ✓ You should now be able to access the demo websites running locally.
 
 ## Contribute to the project
 
