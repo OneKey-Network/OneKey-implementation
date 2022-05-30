@@ -111,6 +111,13 @@ To install and run the demo project locally, follow these instructions:
             CertUtil -addStore Root paf.crt
             ```
 
+        - Linux (Archlinux)
+
+            ```shell
+            sudo trust anchor --store paf.crt
+            sudo trust extract-compat
+            ```
+
 4. Launch the server locally in the root directory of this repository
 
     ```shell
@@ -119,6 +126,10 @@ To install and run the demo project locally, follow these instructions:
     npm run build-front
     npm run start
     ```
+
+    Note: the server listens on the privileged ports 80 and 443, so make sure to have the appropriate rights.
+
+    On linux, one can give access to the privileged ports to node with the following command: `sudo setcap 'cap_net_bind_service+ep' $(which node)`
 
 5. Edit your `/etc/hosts` file (or `C:\Windows\System32\Drivers\etc\hosts` on Windows) to fake your web browser to target `localhost`.
     1. See console logs when starting the server for details
