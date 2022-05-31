@@ -1,3 +1,18 @@
+.ok-ui-sm {
+  @include tablet-plus {
+    display: none;
+  }
+}
+
+.ok-ui-lg {
+  @include phone-only {
+    display: none;
+  }
+}
+
+.ok-ui-mt-0\.5 { margin-top: 4px; }
+.ok-ui-mb-0\.5 { margin-bottom: 4px; }
+
 @for $i from 0 through 4 {
   .ok-ui-mt-#{$i} { margin-top: calc(8px * $i); }
   .ok-ui-mb-#{$i} { margin-bottom: calc(8px * $i); }

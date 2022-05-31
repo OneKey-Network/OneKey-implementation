@@ -1,6 +1,6 @@
 import Card, { CardHeader, CardBody } from '../components/Card';
-import { Computer, Mail, Data, Download as DownloadIcon } from '../components/Icons';
-import Button from '../components/Button';
+import { Computer, Mail, Data } from '../components/Icons';
+import DownloadData, { DownloadDatum, DownloadAction } from '../components/DownloadData';
 
 export default {
   title: 'Groups/Download'
@@ -8,7 +8,9 @@ export default {
 
 export const Download = () => Card({
   children: `
-    ${CardHeader()}
+    ${CardHeader({
+      navigationSelected: 4
+    })}
     ${CardBody({
       children: `
         <h1 class="ok-ui-heading-1 ok-ui-mb-1">Download this audit's data</h1>
@@ -16,27 +18,27 @@ export const Download = () => Card({
 
         <hr class="ok-ui-divide">
 
-        <div class="ok-ui-download-data">
-          <div class="ok-ui-download-datum">
-            <span class="ok-ui-icon--lg ok-ui-icon--primary">${Computer()}</span>
-            <h2 class="ok-ui-heading-2">3rd party plugins</h2>
-            <p>Nunc lectus vitae posuere cursus. Adipiscing pharetra a enim tellus varius volutpat.</p>
-          </div>
-          <div class="ok-ui-download-datum">
-            <span class="ok-ui-icon--lg ok-ui-icon--primary">${Mail()}</span>
-            <h2 class="ok-ui-heading-2">Report to authorities</h2>
-            <p>Ut posuere tempus varius hac lacus. Metus commodo tempus arcu praesent volutpat accumsan.</p>
-          </div>
-          <div class="ok-ui-download-datum">
-            <span class="ok-ui-icon--lg ok-ui-icon--primary">${Data()}</span>
-            <h2 class="ok-ui-heading-2">3rd party plugins</h2>
-            <p>Nunc lectus vitae posuere cursus. Adipiscing pharetra a enim tellus varius volutpat.</p>
-          </div>
-        </div>
+        ${DownloadData({ children: `
+          ${DownloadDatum({
+            icon: Computer(),
+            title: '3rd party plugins',
+            description: 'Nunc lectus vitae posuere cursus. Adipiscing pharetra a enim tellus varius volutpat.'
+          })}
 
-        <div class="ok-ui-download-data__action">
-          ${Button({ style: 'filled', type: 'primary', width: 'full', label: 'Download data (JSON)', icon: DownloadIcon(), iconPosition: 'end' })}
-        </div>
+          ${DownloadDatum({
+            icon: Mail(),
+            title: 'Report to authorities',
+            description: 'Ut posuere tempus varius hac lacus. Metus commodo tempus arcu praesent volutpat accumsan.'
+          })}
+
+          ${DownloadDatum({
+            icon: Data(),
+            title: '3rd party plugins',
+            description: 'Nunc lectus vitae posuere cursus. Adipiscing pharetra a enim tellus varius volutpat.'
+          })}
+        ` })}
+
+        ${DownloadAction()}
       `
     })}
   `

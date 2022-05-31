@@ -1,0 +1,32 @@
+.ok-ui-popover {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+
+  padding: em(16px) em(24px) em(24px);
+  max-width: 100%;
+  max-height: 87%; // to allow some of the below card to show
+
+  overflow: auto;
+
+  @include desktop-only {
+    padding: em(37px) em(56px) em(56px);
+  }
+}
+
+.ok-ui-popover__header {
+  display: flex;
+  justify-content: end;
+
+  .ok-ui-button {
+    color: $grey-200;
+  }
+}
+
+@include phone-only {
+  .ok-ui-popover .ok-ui-button-group .ok-ui-button {
+    width: 50%;
+  }
+}

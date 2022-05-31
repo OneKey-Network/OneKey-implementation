@@ -1,16 +1,10 @@
 .ok-ui-download-data {
-  @include phone-only {
-    > * + * {
-      margin-top: em(16px);
-    }
-  }
+  display: grid;
+  gap: em(16px);
 
   @include tablet-plus {
-    display: flex;
-
-    > * + * {
-      margin-left: em(16px);
-    }
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
   }
 }
 

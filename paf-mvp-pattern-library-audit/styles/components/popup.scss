@@ -52,7 +52,7 @@ $card-footer-mobile-height: em(58px);
 }
 
 .ok-ui-popup {
-  .ok-ui-card {
+  .ok-ui-popup__content > .ok-ui-card {
     max-height: calc(100vh - $card-footer-mobile-height);
     
     @include popup-gutterable {

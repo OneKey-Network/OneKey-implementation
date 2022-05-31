@@ -10,7 +10,7 @@ export default (args) => {
     <label class="ok-ui-option__label" for="ok-ui-${name}-${value}">
       <span class="ok-ui-option__input-facade"></span>
       <div class="ok-ui-option__content">
-        <h2 class="ok-ui-heading-1">${title}</h2>
+        <h3 class="ok-ui-heading-3">${title}</h3>
         <p>${description}</p>
       </div>
     </label>

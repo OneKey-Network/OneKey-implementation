@@ -1,9 +1,7 @@
-import Card, { CardHeader as CardHeaderComponent, CardActions, CardFooter as CardFooterComponent } from './Card';
-import Button from './Button';
-import { Cross } from './Icons';
+import CardComponent from './Card';
 
 export default {
   title: 'Components/Card'
 };
 
-export const Default = Card.bind({});
+export const Card = CardComponent.bind({});

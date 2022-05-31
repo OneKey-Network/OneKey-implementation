@@ -2,6 +2,8 @@ $mobile-logo-width: em(72px);
 $desktop-logo-width: em(108px);
 
 .ok-ui-card {
+  position: relative;
+
   display: flex;
   flex-direction: column;
 
@@ -9,9 +11,11 @@ $desktop-logo-width: em(108px);
   max-width: 100vw;
   max-height: 100vh;
   overflow: hidden;
-  border-radius: $border-radius;
+  border-radius: $border-radius-large;
 
   background-color: $popup-background;
+
+  box-shadow: 0px 4px 32px rgba(25, 34, 68, 0.24);
 }
 
 .ok-ui-card__header {
@@ -33,7 +37,7 @@ $desktop-logo-width: em(108px);
 }
 
 .ok-ui-card__header {
-  border-radius: $border-radius;
+  border-radius: $border-radius-large;
   box-shadow: 0px em(1px) em(6px) rgba(31, 32, 52, 0.1);
 }
 
@@ -110,4 +114,12 @@ $desktop-logo-width: em(108px);
 
 .ok-ui-card__body {
   overflow: auto;
+}
+
+.ok-ui-card--blocked {
+  @include blocked;
+
+  &::before {
+    border-radius: $border-radius-large;
+  }
 }

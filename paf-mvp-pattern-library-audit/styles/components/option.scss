@@ -8,17 +8,13 @@
 
 .ok-ui-option__label {
   display: flex;
-  padding: em(8px);
+  padding: em(8px) em(12px);
   border: solid em(1px) $grey-50;
   border-radius: $border-radius;
 
   color: $grey-600;
   background-color: $grey-50;
   cursor: pointer;
-
-  @include tablet-plus {
-    padding: em(16px);
-  }
 
   &:hover {
     border-color: $grey-200;
@@ -36,6 +32,7 @@
   flex: 0 0 em(16px);
   width: em(16px);
   height: em(16px);
+  margin-top: em(2px);
   margin-right: em(8px);
   border: solid em(1px) $grey-200;
   border-radius: 999px;

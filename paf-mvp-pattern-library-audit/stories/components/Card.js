@@ -12,8 +12,8 @@ export const CardHeader = (props = {}) => `
         ${Logo()}
 
         <ul class="ok-ui-card__header-logos">
-          <li>moneta</li>
-          <li>Reach</li>
+          <li>Logo 1</li>
+          <li>Logo 2</li>
         </ul>
 
         <div class="ok-ui-card__header-close">
@@ -23,7 +23,9 @@ export const CardHeader = (props = {}) => `
       <nav class="ok-ui-card__header-navigation">
         <h1 class="ok-ui-heading-1">Advert audit</h1>
 
-        ${Navigation()}
+        ${Navigation({
+          selected: props.navigationSelected
+        })}
       </nav>
     `}
   </header>
@@ -33,20 +35,9 @@ export const CardBody = (props = {}) => `<main class="ok-ui-card__body">
   ${props.children || 'Card body'}
 </main>`;
 
-export const CardFooter = (props = {}) => `<footer class="ok-ui-card__footer">
-  ${props.children || 'Card footer'}
-</footer>`;
-
-export const CardActions = (props = {}) => `<div class="ok-ui-card__actions">
-  ${props.children || 'Card actions'}
-</div>`;
-
 export default (props = {}) => `
-  <section class="ok-ui-card">${props.children || `
+  <section class="ok-ui-card${props.blocked ? ' ok-ui-card--blocked' : ''}">${props.children || `
     ${CardHeader()}
     ${CardBody()}
-    ${CardFooter({ children: `Card footer
-      ${CardActions()}`
-    })}
   `}</section>
 `;

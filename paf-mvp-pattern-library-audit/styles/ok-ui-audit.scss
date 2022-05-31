@@ -5,35 +5,18 @@
   @import "components/button.scss";
   @import "components/card.scss";
   @import "components/data.scss";
+  @import "components/details.scss";
   @import "components/divide.scss";
   @import "components/download-data.scss";
+  @import "components/icon.scss";
   @import "components/link.scss";
   @import "components/loading.scss";
   @import "components/navigation.scss";
   @import "components/option.scss";
   @import "components/participant.scss";
   @import "components/popup.scss";
+  @import "components/popover.scss";
   @import "components/tabs.scss";
-
-  .ok-ui-icon--primary {
-    color: $brand-primary;
-  }
-
-  .ok-ui-icon--lg {
-    font-size: em(22px);
-  }
-
-  .ok-ui-sm {
-    @include tablet-plus {
-      display: none;
-    }
-  }
-
-  .ok-ui-lg {
-    @include phone-only {
-      display: none;
-    }
-  }
 
   @import "utils";
 }

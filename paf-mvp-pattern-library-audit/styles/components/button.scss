@@ -1,13 +1,15 @@
 .ok-ui-button {
+  $font-size: 12px;
+
   display: flex;
   justify-content: center;
   align-items: center;
 
-  padding: em(8px) em(12px);
+  padding: em(8px, $font-size) em(12px, $font-size);
   border-radius: $button-border-radius;
 
   text-align: center;
-  font-size: 0.857em;
+  font-size: em(12px);
   line-height: 1.333;
   font-weight: 600;
 
@@ -227,4 +229,8 @@
 // any button that follows another one, or a divider, should have a gap before it
 .ok-ui-button + .ok-ui-button {
   margin-left: em(16px);
+}
+
+.ok-ui-button-group {
+  display: flex;
 }

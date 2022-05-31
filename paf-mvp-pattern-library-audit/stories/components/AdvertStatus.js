@@ -32,7 +32,7 @@ export default (args) => {
   return `
     <div class="${classes.join(' ')}">
       ${content[type].icon ? `
-        <span class="ok-ui-icon--lg">${content[type].icon}</span>
+        <span class="ok-ui-icon--xl">${content[type].icon}</span>
       ` : ''}
 
       ${type === 'loading' ? `

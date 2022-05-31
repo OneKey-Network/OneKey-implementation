@@ -62,7 +62,6 @@ $meta-font-size: 0.857em;
 
 $popup-z-index: 10000; // makes this as low as you can
 $popup-gutter: 16px;
-// $max-width: 23em;
 $max-width: 62em;
 $tablet-width: 600px; // this has to be pixels
 $desktop-width: 870px; // this has to be pixels
@@ -70,4 +69,5 @@ $desktop-width: 870px; // this has to be pixels
 // Radii
 
 $border-radius: 8px;
+$border-radius-large: 16px;
 $button-border-radius: 999px;

@@ -13,9 +13,13 @@
   border: 0;
 }
 
-// this function is to allow us to generate em sizes based on the original font size (12px)
-@function em($pixels, $context: 14px) {
-  @return calc($pixels / $context) * 1em;
+// this function is to allow us to generate em sizes based on the base font size
+@function em($pixels, $font-size: $base-font-size, $context: $base-font-size) {
+  @return calc($pixels / $context) * calc($context / $font-size) * 1em;
+}
+
+@function toRGB($color) {
+  @return "rgb(" + red($color) + ", " + green($color) + ", " + blue($color)+ ")";
 }
 
 @mixin focusable {
@@ -116,10 +120,12 @@
 .ok-ui-lede {
   @include tablet-plus {
     font-size: 1.143em;
+    line-height: 1.5;
   }
 }
 
 .ok-ui-meta {
   font-size: $meta-font-size;
+  line-height: 1.5;
   color: $grey-400;
 }
