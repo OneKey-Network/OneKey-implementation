@@ -1,7 +1,7 @@
 import { Config } from './config';
 import { BindingShowRandomIdDiv, BindingThisSiteOnly, BindingDisplayRandomId } from './bindings';
 import { Log } from '@core/log';
-import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement, BindingViewOnly } from '@core/ui/binding';
+import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
   getIdsAndPreferences,

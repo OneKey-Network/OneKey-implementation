@@ -8,7 +8,6 @@ import {
   Version,
 } from '@core/model/generated-model';
 import { PafStatus } from '@core/operator-client-commons';
-import { threadId } from 'worker_threads';
 
 /**
  * The different states for the marketing preferences field.
