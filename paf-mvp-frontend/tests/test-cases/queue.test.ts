@@ -1,6 +1,6 @@
 import { TestWatcher } from 'jest';
 import { isExportDeclaration } from 'typescript';
-import { Command, CommandQueue, IImediateCommandProcessor, processCommands } from '../../src/utils/queue';
+import { CommandQueue, processCommands } from '../../src/utils/queue';
 
 describe('queue', () => {
   let cmd1: jest.Mock;
