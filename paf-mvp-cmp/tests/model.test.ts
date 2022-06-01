@@ -109,11 +109,11 @@ describe('testing model', () => {
     expect(model.canSave.value).toBe(false);
     model.pref.value = Marketing.personalized;
     expect(model.canSave.value).toBe(true);
-  }),
-    test('check 11 and 12 custom fields disabled', () => {
-      expect(model.tcf.get(11).disabled).toBe(true);
-      expect(model.tcf.get(12).disabled).toBe(true);
-    });
+  });
+  test('check 11 and 12 custom fields disabled', () => {
+    expect(model.tcf.get(11).disabled).toBe(true);
+    expect(model.tcf.get(12).disabled).toBe(true);
+  });
   test('check 1 to 10 custom fields enabled', () => {
     model.changableFields.forEach((f) => expect(f.disabled).toBe(false));
   });
