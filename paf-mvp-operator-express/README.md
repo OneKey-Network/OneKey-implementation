@@ -2,7 +2,7 @@
 
 An implementation of the PAF operator API, served by ExpressJS web server.
 
-It implements the latest version of the [Operator API](../addressable-network-proposals/blob/main/mvp-spec/operator-api.md)
+It implements the latest version of the [Operator API](https://github.com/prebid/addressability-framework/blob/main/mvp-spec/operator-api.md)
 
 ## PAF implementation projects
 ```mermaid
