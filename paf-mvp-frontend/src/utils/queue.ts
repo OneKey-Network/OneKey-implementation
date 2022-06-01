@@ -19,7 +19,7 @@ const log = new Log('PAF', '#3bb8c3');
 /** An operation executed asynchronously after the PAF-lib is loaded. */
 export type Command = () => void;
 
-export type DeferredCommand = Command[];
+export type DeferredCommands = Command[];
 
 /** Interface for processing every pushed commands as soon as possible.  */
 export interface IImmediateCommandProcessor {
@@ -27,7 +27,7 @@ export interface IImmediateCommandProcessor {
 }
 
 /** Type for handling a duck-typing approach on 'push' function.  */
-export type CommandQueue = DeferredCommand | IImmediateCommandProcessor;
+export type CommandQueue = DeferredCommands | IImmediateCommandProcessor;
 
 /**
  * @param queue Commands to process or Processor that is already in place.
