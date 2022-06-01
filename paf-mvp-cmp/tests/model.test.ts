@@ -1,6 +1,5 @@
 import { FieldSingle, Marketing, Model } from '../src/model';
 import { PreferencesData } from '@core/model/generated-model';
-import { isModuleDeclaration } from 'typescript';
 
 let model: Model;
 
@@ -103,7 +102,6 @@ describe('testing model', () => {
     model.customFields.forEach((f) => expect(f.value).toBe(true));
     expect(model.pref.value).toBe(Marketing.personalized);
     model.tcf.get(2).value = false;
-    expect(model.pref.value).toBe(Marketing.custom);
     expect(model.pref.value).toBe(Marketing.custom);
   });
   test('check model can save when single field set', () => {
