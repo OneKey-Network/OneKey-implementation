@@ -41,7 +41,10 @@ export const processCommands = (queue: CommandQueue): ImediateCommandProcessor =
   const processor = new ImediateCommandProcessor();
 
   if (queue && Array.isArray(queue)) {
-    processor.push(...queue);
+    while (queue.length > 0) {
+      const cmd = queue.shift();
+      processor.push(cmd);
+    }
   }
 
   return processor;
