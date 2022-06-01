@@ -187,7 +187,7 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
         include: './src/main.ts',
         preventAssignment: true,
         __Locale__: localeContent,
-        __TcfCoreTemplate__: tcfCoreTemplate,
+        __TcfCoreTemplate__: tcfCoreTemplate
       }),
       replace({
         preventAssignment: true,
