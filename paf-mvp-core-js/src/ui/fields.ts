@@ -178,7 +178,7 @@ export class Field<T, M extends IModel> extends FieldReadOnly<T, M> implements I
   /**
    * Gets the value that was persisted, or undefined if there is no persisted value.
    */
-  public get persistedValue(): T {
+  public get persistedValue(): T | undefined {
     return this._persistedValue;
   }
 
