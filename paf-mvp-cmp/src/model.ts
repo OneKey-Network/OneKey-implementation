@@ -369,8 +369,10 @@ export class Model implements IModel {
   }
 
   /**
-   * Resets all the fields in the model. Sets the setting values flag to ensure the update others method is not called
-   * because we don't want to change the value of dependent fields during a reset.
+   * Resets all the fields in the model to the default value.
+   * @remarks
+   * Sets the setting values flag to ensure the update others method is not called because we don't want to change the
+   * value of dependent fields during a reset.
    */
   public reset() {
     this.settingValues = true;
