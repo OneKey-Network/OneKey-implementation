@@ -43,7 +43,11 @@ export class Controller {
   private log: Log;
 
   /**
-   * Constructs a new instance of Controller.
+   * Constructs a new instance of Controller displaying the card most appropriate to the current state of the model.
+   * @remarks
+   * If all the data is persisted then show the snackbar.
+   * If none of the data is persisted then show the intro card or the settings depending on configuration.
+   * If some of the data is persisted and others not then show the settings card.
    * @param script element this method is contained within
    * @param config the configuration for the controller
    * @param locale the language text to use with the UI
@@ -57,22 +61,23 @@ export class Controller {
     this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
     this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
     this.load()
-      .then(() => this.display())
+      .then(() => this.display(this.getCard()))
       .catch((e) => log.Error('constructor', e));
   }
 
   /**
-   * Displays the card most appropriate given the current state of the data model.
-   * @remarks
-   * If all the data is persisted then show the snackbar.
-   * If none of the data is persisted then show the intro card or the settings depending on configuration.
-   * If some of the data is persisted and others not then show the settings card.
+   * Set the card based on the template binding the model fields to the UI elements. Uses the locale provided in the
+   * constructor to set the text for the UI. Common tokens in square brackets [] are replaced with the values from the
+   * configuration after the language text has been applied.
+   * @param card the name of the card to display, or null if the default card should be displayed.
    */
-  public display(card?: string) {
-    card = card ?? this.getCard();
-    if (card !== null) {
-      this.setCard(card);
-    }
+  public display(card: string) {
+    this.stopSnackbarHide();
+    this.view.hidePopup();
+    this.view.setCard(card);
+    this.model.updateUI();
+    this.bindActions();
+    this.view.showPopup();
   }
 
   /**
@@ -90,21 +95,6 @@ export class Controller {
       return 'intro';
     }
     return 'settings';
-  }
-
-  /**
-   * Set the card based on the template binding the model fields to the UI elements. Uses the locale provided in the
-   * constructor to set the text for the UI. Common tokens in square brackets [] are replaced with the values from the
-   * configuration after the language text has been applied.
-   * @param card the name of the card to display, or null if the default card should be displayed.
-   */
-  private setCard(card: string) {
-    this.stopSnackbarHide();
-    this.view.hidePopup();
-    this.view.setCard(card);
-    this.model.updateUI();
-    this.bindActions();
-    this.view.showPopup();
   }
 
   /**
@@ -334,7 +324,7 @@ export class Controller {
       const card = element.getAttribute('data-card');
       if (card !== null) {
         element.addEventListener(event, (e) => {
-          this.setCard(card);
+          this.display(card);
           e.preventDefault();
         });
       }
