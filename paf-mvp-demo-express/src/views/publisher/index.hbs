@@ -151,9 +151,12 @@
                 });
             });
 
-            pbjs.requestBids({
-                bidsBackHandler: initAdserver,
-                timeout: PREBID_TIMEOUT
+            PAF.queue.push(() => {
+                // PrebidJS calls internally PAF without the queue
+                pbjs.requestBids({
+                    bidsBackHandler: initAdserver,
+                    timeout: PREBID_TIMEOUT
+                });
             });
         });
 
