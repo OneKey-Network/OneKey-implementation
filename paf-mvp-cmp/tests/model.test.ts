@@ -86,12 +86,12 @@ describe('testing model', () => {
     model.tcf.get(5).value = false;
     expect(model.onlyThisSite.value).toBe(true);
   });
-  test("check purpose 11 can't be turned off", () => {
+  test('check purpose 11 can\'t be turned off', () => {
     expect(model.tcf.get(11).value).toBe(true);
     model.tcf.get(11).value = false;
     expect(model.tcf.get(11).value).toBe(true);
   });
-  test("check purpose 12 can't be turned off", () => {
+  test('check purpose 12 can\'t be turned off', () => {
     expect(model.tcf.get(12).value).toBe(true);
     model.tcf.get(12).value = false;
     expect(model.tcf.get(12).value).toBe(true);
