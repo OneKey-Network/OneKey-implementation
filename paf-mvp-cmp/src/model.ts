@@ -214,12 +214,7 @@ export abstract class FieldCustom extends Field<boolean, Model> {
    * @returns
    */
   protected static allTrue(fields: FieldCustom[]): boolean {
-    for (let i = 0; i < fields.length; i++) {
-      if (fields[i].value !== true) {
-        return false;
-      }
-    }
-    return true;
+    return fields.every((f) => f.value === true);
   }
 }
 
