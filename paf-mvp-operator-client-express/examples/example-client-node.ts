@@ -10,15 +10,17 @@ addClientNodeEndpoints(
     // Name of the PAF participant
     name: 'Example Website',
     // Current public key
-    currentPublicKey: {
-      // Timestamps are expressed in seconds
-      startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T12:00:00.000Z')),
-      endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
-      publicKey: `-----BEGIN PUBLIC KEY-----
+    publicKeys: [
+      {
+        // Timestamps are expressed in seconds
+        startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T12:00:00.000Z')),
+        endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
+        publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEl0278pcupaxUfiqHJ9AG9gVMyIO+
 n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
 -----END PUBLIC KEY-----`,
-    },
+      },
+    ],
     // Email address of DPO
     dpoEmailAddress: 'dpo@examples-website.com',
     // URL of a privacy page

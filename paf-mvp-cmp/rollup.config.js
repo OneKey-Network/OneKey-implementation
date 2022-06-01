@@ -157,7 +157,7 @@ function buildLoader() {
       {
         file: `./dist/ok-ui.min.js`,
         format: 'iife',
-        sourcemap: false,
+        sourcemap: true,
         plugins: [terser(terserOptions)]
       },
       {
@@ -168,7 +168,7 @@ function buildLoader() {
       {
         file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui.min.js`,
         format: 'iife',
-        sourcemap: false,
+        sourcemap: true,
         plugins: [terser(terserOptions)]
       },
     ]
@@ -223,7 +223,7 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
       {
         file: `./dist/ok-ui-${localeCode}.min.js`,
         format: 'iife',
-        sourcemap: false,
+        sourcemap: true,
         plugins: [terser(terserOptions)]
       },
       {
@@ -234,7 +234,7 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
       {
         file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${localeCode}.min.js`,
         format: 'iife',
-        sourcemap: false,
+        sourcemap: true,
         plugins: [terser(terserOptions)]
       },
     ]

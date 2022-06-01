@@ -43,7 +43,7 @@ flowchart TB
 
 ```
 
-See [addressable-network-proposals](https://github.com/criteo/addressable-network-proposals/tree/main/mvp-spec/operator-client.md)
+See [addressable-network-proposals](https://github.com/prebid/addressability-framework/blob/main/mvp-spec/paf-client-node.md)
 for more context on the operator **frontend** and **backend** clients and the operator **proxy**
 
 ## Identification library integration
