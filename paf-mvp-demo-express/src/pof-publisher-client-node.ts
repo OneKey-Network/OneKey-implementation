@@ -29,7 +29,7 @@ addClientNodeEndpoints(
   pofPublisherClientNodeApp,
   {
     name: pofPublisherClientNodeConfig.name,
-    currentPublicKey: pofClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pofClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pofClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pofClientNodePrivateConfig.privacyPolicyUrl),
   },

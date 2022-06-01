@@ -310,7 +310,7 @@ portalApp.get('/', (req, res) => {
 addIdentityEndpoint(portalApp, {
   name: portalConfig.name,
   type: portalPrivateConfig.type,
-  currentPublicKey: portalPrivateConfig.currentPublicKey,
+  publicKeys: [portalPrivateConfig.currentPublicKey],
   dpoEmailAddress: portalPrivateConfig.dpoEmailAddress,
   privacyPolicyUrl: new URL(portalPrivateConfig.privacyPolicyUrl),
 });

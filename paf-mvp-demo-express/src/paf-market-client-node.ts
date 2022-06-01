@@ -29,7 +29,7 @@ addClientNodeEndpoints(
   pafMarketClientNodeApp,
   {
     name: pafMarketClientNodeConfig.name,
-    currentPublicKey: pafMarketClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pafMarketClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pafMarketClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pafMarketClientNodePrivateConfig.privacyPolicyUrl),
   },

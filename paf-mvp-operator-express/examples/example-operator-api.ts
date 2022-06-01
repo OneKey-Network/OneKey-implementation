@@ -10,15 +10,17 @@ addOperatorApi(
     // Name of the PAF participant
     name: 'Example operator',
     // Current public key
-    currentPublicKey: {
-      // Timestamps are expressed in seconds
-      startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T10:50:00.000Z')),
-      endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
-      publicKey: `-----BEGIN PUBLIC KEY-----
+    publicKeys: [
+      {
+        // Timestamps are expressed in seconds
+        startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T10:50:00.000Z')),
+        endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
+        publicKey: `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
 jmcW7W3x9wvlX4YXqJUQKR2c0lveqVDj4hwO0kTZDuNRUhgxk4irwV3fzw==
 -----END PUBLIC KEY-----`,
-    },
+      },
+    ],
     // Email address of DPO
     dpoEmailAddress: 'contact@example.onekey.network',
     // URL of a privacy page

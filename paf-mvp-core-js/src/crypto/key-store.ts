@@ -1,14 +1,14 @@
-import { fromIdentityResponse, KeyInfo } from './identity';
+import { fromIdentityResponse, PublicKeyInfo } from './identity';
 import { PublicKey, publicKeyFromString } from './keys';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
+export type PublicKeyWithObject = PublicKeyInfo & { publicKeyObj: PublicKey };
 
 export class PublicKeyStore {
-  protected cache: { [domain: string]: PublicKeyInfo } = {};
+  protected cache: { [domain: string]: PublicKeyWithObject } = {};
 
   constructor(
     s2sOptions?: AxiosRequestConfig,
@@ -16,7 +16,7 @@ export class PublicKeyStore {
     protected timestampProvider: () => Timestamp = getTimeStampInSec
   ) {}
 
-  async getPublicKey(domain: string): Promise<PublicKeyInfo> {
+  async getPublicKey(domain: string): Promise<PublicKeyWithObject> {
     const nowTimestampSeconds = this.timestampProvider();
 
     const existingKey = this.cache[domain];

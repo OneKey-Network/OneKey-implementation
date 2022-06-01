@@ -29,7 +29,7 @@ addClientNodeEndpoints(
   pifPublisherClientNodeApp,
   {
     name: pifPublisherClientNodeConfig.name,
-    currentPublicKey: pifClientNodePrivateConfig.currentPublicKey,
+    publicKeys: [pifClientNodePrivateConfig.currentPublicKey],
     dpoEmailAddress: pifClientNodePrivateConfig.dpoEmailAddress,
     privacyPolicyUrl: new URL(pifClientNodePrivateConfig.privacyPolicyUrl),
   },

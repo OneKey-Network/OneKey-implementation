@@ -1,4 +1,4 @@
-import { PublicKeyInfo, PublicKeyStore } from '@core/crypto/key-store';
+import { PublicKeyStore, PublicKeyWithObject } from '@core/crypto/key-store';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { publicKeyFromString } from '@core/crypto/keys';
 import { getTimeStampInSec } from '@core/timestamp';
@@ -54,7 +54,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
 
     mock.onGet().reply(200, mockIdentity);
 
-    const expectedKey: PublicKeyInfo = {
+    const expectedKey: PublicKeyWithObject = {
       startTimestampInSec: currentKey.start,
       endTimestampInSec: currentKey.end,
       publicKey: currentKey.key,
@@ -90,7 +90,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
 
     mock.onGet().reply(200, mockIdentity);
 
-    const expectedKey: PublicKeyInfo = {
+    const expectedKey: PublicKeyWithObject = {
       startTimestampInSec: currentKey.start,
       // No end date
       publicKey: currentKey.key,
@@ -121,7 +121,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
 
     mock.onGet().reply(200, mockIdentity);
 
-    const expectedOldKey: PublicKeyInfo = {
+    const expectedOldKey: PublicKeyWithObject = {
       startTimestampInSec: oldKey.start,
       endTimestampInSec: oldKey.end,
       publicKey: oldKey.key,
@@ -135,7 +135,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
     // Second call later => key is out of date and will be refreshed
     mockTimer.timestamp = nowTimestampSeconds;
 
-    const expectedNewKey: PublicKeyInfo = {
+    const expectedNewKey: PublicKeyWithObject = {
       startTimestampInSec: currentKey.start,
       endTimestampInSec: currentKey.end,
       publicKey: currentKey.key,
