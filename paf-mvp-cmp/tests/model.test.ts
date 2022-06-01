@@ -1,26 +1,42 @@
 import { FieldSingle, Marketing, Model } from '../src/model';
-import { PreferencesData } from '@core/model/generated-model';
+import {
+  PreferencesData,
+  Identifier,
+  Preferences
+} from '@core/model/generated-model';
 
 let model: Model;
 
-const signedPersonalized = {
+const signedPersonalized = <Preferences>{
   data: Marketing.personalized,
   version: '0.1',
   source: {
     domain: 'test.com',
     signature: 'signature',
     timestamp: 12345,
-  },
+  }
 };
 
-const signedStandard = {
+const signedStandard = <Preferences>{
   data: Marketing.standard,
   version: '0.1',
   source: {
     domain: 'test.com',
     signature: 'signature',
     timestamp: 12345,
-  },
+  }
+};
+
+const testIdentifier = <Identifier>{
+  version: '0.1',
+  type: 'paf_browser_id',
+  persisted: true,
+  value: 'ABC',
+  source: {
+    domain: 'test.com',
+    signature: 'signature',
+    timestamp: 12345,
+  }
 };
 
 describe('testing model', () => {
@@ -74,12 +90,12 @@ describe('testing model', () => {
     model.tcf.get(5).value = false;
     expect(model.onlyThisSite.value).toBe(true);
   });
-  test("check purpose 11 can't be turned off", () => {
+  test('check purpose 11 can\'t be turned off', () => {
     expect(model.tcf.get(11).value).toBe(true);
     model.tcf.get(11).value = false;
     expect(model.tcf.get(11).value).toBe(true);
   });
-  test("check purpose 12 can't be turned off", () => {
+  test('check purpose 12 can\'t be turned off', () => {
     expect(model.tcf.get(12).value).toBe(true);
     model.tcf.get(12).value = false;
     expect(model.tcf.get(12).value).toBe(true);
@@ -168,6 +184,37 @@ describe('testing model', () => {
     expect(model.onlyThisSite.value).toBe(true);
     expect(model.onlyThisSite.disabled).toBe(true);
     expect(model.onlyThisSite.hasChanged).toBe(true);
+  });
+  test('reset of the onlyThisSite value does not reset the persisted value if set', () => {
+    model.onlyThisSite.persistedValue = true;
+    expect(model.onlyThisSite.value).toBe(true);
+    expect(model.onlyThisSite.disabled).toBe(false);
+    expect(model.onlyThisSite.hasChanged).toBe(false);
+    model.reset();
+    expect(model.onlyThisSite.value).toBe(false);
+    expect(model.onlyThisSite.disabled).toBe(false);
+    expect(model.onlyThisSite.hasChanged).toBe(true);
+    expect(model.onlyThisSite.persistedValue).toBe(true);
+  });
+  test('reset of the pref value does not reset the persisted value if set', () => {
+    model.pref.persistedValue = Marketing.personalized;
+    expect(model.pref.value).toBe(Marketing.personalized);
+    expect(model.pref.hasChanged).toBe(false);
+    model.reset();
+    expect(model.pref.value).toBe(Marketing.notSet);
+    expect(model.pref.disabled).toBe(false);
+    expect(model.pref.hasChanged).toBe(true);
+    expect(model.pref.persistedValue).toBe(Marketing.personalized);
+  });
+  test('reset of the RID value does not reset the persisted value if set', () => {
+    model.rid.persistedValue = testIdentifier;
+    expect(model.rid.value).toBe(testIdentifier);
+    expect(model.rid.hasChanged).toBe(false);
+    model.reset();
+    expect(model.rid.value).toBe(null);
+    expect(model.rid.disabled).toBe(false);
+    expect(model.rid.hasChanged).toBe(true);
+    expect(model.rid.persistedValue).toBe(testIdentifier);
   });
 });
 

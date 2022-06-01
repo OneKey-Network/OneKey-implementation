@@ -209,11 +209,10 @@ export class Field<T, M extends IModel> extends FieldReadOnly<T, M> implements I
   }
 
   /**
-   * Resets the field and persisted value to the default value.
+   * Resets the field value to the default value.
    */
   reset() {
     this.value = this.defaultValue;
-    this.persistedValue = undefined;
   }
 
   /**
