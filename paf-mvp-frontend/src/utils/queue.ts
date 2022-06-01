@@ -22,23 +22,23 @@ export type Command = () => void;
 export type DeferredCommand = Command[];
 
 /** Interface for processing every pushed commands as soon as possible.  */
-export interface IImediateCommandProcessor {
+export interface IImmediateCommandProcessor {
   push(...ops: Command[]): void;
 }
 
 /** Type for handling a duck-typing approach on 'push' function.  */
-export type CommandQueue = DeferredCommand | IImediateCommandProcessor;
+export type CommandQueue = DeferredCommand | IImmediateCommandProcessor;
 
 /**
  * @param queue Commands to process or Processor that is already in place.
  * @returns The given processor or a new one that has just processed the given commands.
  */
-export const processCommands = (queue: CommandQueue): ImediateCommandProcessor => {
-  if (queue instanceof ImediateCommandProcessor) {
+export const processCommands = (queue: CommandQueue): ImmediateCommandProcessor => {
+  if (queue instanceof ImmediateCommandProcessor) {
     return queue;
   }
 
-  const processor = new ImediateCommandProcessor();
+  const processor = new ImmediateCommandProcessor();
 
   if (queue && Array.isArray(queue)) {
     while (queue.length > 0) {
@@ -50,7 +50,7 @@ export const processCommands = (queue: CommandQueue): ImediateCommandProcessor =
   return processor;
 };
 
-class ImediateCommandProcessor implements IImediateCommandProcessor {
+class ImmediateCommandProcessor implements IImmediateCommandProcessor {
   push(...ops: Command[]): void {
     if (ops === undefined) {
       return;
