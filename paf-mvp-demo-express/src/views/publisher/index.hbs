@@ -130,6 +130,21 @@
                     syncDelay: 3000
                 }
             });
+
+            // Generate and store the PAF Audit Log
+            // once the winner is elected.
+            pbjs.onEvent("bidWon", bid => {
+                let pafObj = bid.meta.paf;
+                if (pafObj === undefined) {
+                    return;
+                }
+                PAF.registerTransmissionResponse({
+                        prebidTransactionId: bid.transactionId,
+                        adUnitCode: bid.adUnitCode,
+                        contentId: pafObj.contentId
+                    }, pafObj.transmission);
+            });
+
             pbjs.requestBids({
                 bidsBackHandler: initAdserver,
                 timeout: PREBID_TIMEOUT
