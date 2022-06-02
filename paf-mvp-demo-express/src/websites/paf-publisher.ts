@@ -1,5 +1,5 @@
 import { anythingButAssets, WebSiteConfig } from '../website-config';
-import { App } from '@core/express/express-apps';
+import { VHostApp } from '@core/express/express-apps';
 
 const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   name: 'PAF publisher',
@@ -8,7 +8,7 @@ const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   pafNodeHost: 'cmp.pafdemopublisher.com',
 };
 
-export const pafPublisherWebSiteApp = new App(name).setHostName(host);
+export const pafPublisherWebSiteApp = new VHostApp(name, host);
 
 pafPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
   const view = 'publisher/index';
@@ -24,4 +24,4 @@ pafPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
   res.setHeader('Referrer-Policy', 'unsafe-url');
 });
 
-export const pafPublisherCdnApp = new App(name).setHostName(cdnHost);
+export const pafPublisherCdnApp = new VHostApp(name, cdnHost);

@@ -3,7 +3,7 @@ import { join } from 'path';
 import { createServer } from 'https';
 import { isLocalDev, sslOptions } from './demo-utils';
 import { create } from 'express-handlebars';
-import { App } from '@core/express/express-apps';
+import { MainApp, VHostApp } from '@core/express/express-apps';
 import { getAppsAndNodes } from './apps';
 
 const relative = (dir: string) => join(__dirname, dir);
@@ -11,7 +11,7 @@ const relative = (dir: string) => join(__dirname, dir);
 (async () => {
   const { websites, clientNodes, operators, cdns } = await getAppsAndNodes();
 
-  const mainApp = new App('');
+  const mainApp = new MainApp();
 
   // Add demo middlewares to websites and CDNs
   const hbs = create({ defaultLayout: false });
@@ -39,7 +39,7 @@ const relative = (dir: string) => join(__dirname, dir);
       );
     });
 
-  const allApps: App[] = [
+  const allApps: VHostApp[] = [
     ...websites,
     ...cdns,
     ...operators.map((operator) => operator.app),
@@ -47,7 +47,7 @@ const relative = (dir: string) => join(__dirname, dir);
   ];
 
   // Add vhosts
-  allApps.forEach((app: App) => {
+  allApps.forEach((app: VHostApp) => {
     mainApp.addVhostApp(app);
   });
 

@@ -42,7 +42,7 @@ import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
 import { OperatorApi } from '@operator/operator-api';
-import { App, Node } from '@core/express/express-apps';
+import { Node, VHostApp } from '@core/express/express-apps';
 import { Config, parseConfig } from '@core/express/config';
 
 /**
@@ -75,7 +75,7 @@ export class OperatorNode implements Node {
     privateKey: string,
     allowedHosts: AllowedHosts,
     s2sOptions?: AxiosRequestConfig,
-    public app: App = new App(identity.name).setHostName(operatorHost)
+    public app: VHostApp = new VHostApp(identity.name, operatorHost)
   ) {
     // Note that CORS is "disabled" here because the check is done via signature
     // So accept whatever the referer is

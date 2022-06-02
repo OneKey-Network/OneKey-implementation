@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { EOL } from 'os';
-import { App } from '@core/express/express-apps';
+import { VHostApp } from '@core/express/express-apps';
 import { getAppsAndNodes } from '../src/apps';
 
 if (!(process.argv[2]?.length > 0)) {
@@ -29,7 +29,7 @@ const hostsFile = '/etc/hosts';
   } else if (action === 'add') {
     const { websites, clientNodes, operators, cdns } = await getAppsAndNodes();
 
-    const allApps: App[] = [
+    const allApps: VHostApp[] = [
       ...websites,
       ...cdns,
       ...operators.map((operator) => operator.app),

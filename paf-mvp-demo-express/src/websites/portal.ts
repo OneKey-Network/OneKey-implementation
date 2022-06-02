@@ -33,7 +33,7 @@ import {
 } from '@core/crypto/signing-definition';
 import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier } from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
-import { App } from '@core/express/express-apps';
+import { VHostApp } from '@core/express/express-apps';
 import { parseConfig } from '@core/express/config';
 import { ClientNodeConfig } from '@operator-client/client-node';
 
@@ -42,7 +42,7 @@ const { name, host }: WebSiteConfig = {
   host: 'portal.onekey.network',
 };
 
-export const portalWebSiteApp = new App(name).setHostName(host);
+export const portalWebSiteApp = new VHostApp(name, host);
 
 (async () => {
   const keyStore = new PublicKeyStore(s2sOptions);

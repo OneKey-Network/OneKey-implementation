@@ -1,5 +1,5 @@
 import { anythingButAssets, WebSiteConfig } from '../website-config';
-import { App } from '@core/express/express-apps';
+import { VHostApp } from '@core/express/express-apps';
 
 const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   name: 'PIF publisher',
@@ -8,7 +8,7 @@ const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   pafNodeHost: 'cmp.pifdemopublisher.com',
 };
 
-export const pifPublisherWebSiteApp = new App(name).setHostName(host);
+export const pifPublisherWebSiteApp = new VHostApp(name, host);
 
 pifPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
   const view = 'publisher/index';
@@ -20,4 +20,4 @@ pifPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
   });
 });
 
-export const pifPublisherCdnApp = new App(name).setHostName(cdnHost);
+export const pifPublisherCdnApp = new VHostApp(name, cdnHost);

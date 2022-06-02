@@ -21,7 +21,7 @@ import { PublicKeyStore } from '@core/crypto/key-store';
 import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
-import { App, Node } from '@core/express/express-apps';
+import { Node, VHostApp } from '@core/express/express-apps';
 import { Config, parseConfig } from '@core/express/config';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
@@ -73,7 +73,7 @@ export class ClientNode implements Node {
   constructor(
     config: ClientNodeConfig,
     s2sOptions?: AxiosRequestConfig,
-    public app = new App(config.identity.name).setHostName(config.host)
+    public app = new VHostApp(config.identity.name, config.host)
   ) {
     const { identity, currentPrivateKey } = config;
     const hostName = config.host;

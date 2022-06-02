@@ -1,6 +1,6 @@
 import { OperatorNode } from '@operator/operator-node';
 import { ClientNode } from '@operator-client/client-node';
-import { App } from '@core/express/express-apps';
+import { VHostApp } from '@core/express/express-apps';
 import { pafPublisherCdnApp, pafPublisherWebSiteApp } from './websites/paf-publisher';
 import { pifPublisherCdnApp, pifPublisherWebSiteApp } from './websites/pif-publisher';
 import { pofPublisherCdnApp, pofPublisherWebSiteApp } from './websites/pof-publisher';
@@ -13,10 +13,10 @@ import { s2sOptions } from './demo-utils';
 export const getAppsAndNodes = async (): Promise<{
   operators: OperatorNode[];
   clientNodes: ClientNode[];
-  cdns: App[];
-  websites: App[];
+  cdns: VHostApp[];
+  websites: VHostApp[];
 }> => {
-  const websites: App[] = [
+  const websites: VHostApp[] = [
     pafPublisherWebSiteApp,
     pifPublisherWebSiteApp,
     pofPublisherWebSiteApp,
@@ -26,7 +26,7 @@ export const getAppsAndNodes = async (): Promise<{
     portalWebSiteApp,
   ];
 
-  const cdns: App[] = [
+  const cdns: VHostApp[] = [
     pifPublisherCdnApp,
     pafPublisherCdnApp,
     pofPublisherCdnApp,

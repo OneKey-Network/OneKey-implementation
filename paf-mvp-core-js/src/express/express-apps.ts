@@ -4,22 +4,22 @@ import cookieParser from 'cookie-parser';
 import vhost from 'vhost';
 
 /**
- * Encapsulate an Express App that listens on the local IP
+ * Encapsulate the main Express app that will listen on the local IP
  */
-export class App {
-  public hostName: string | undefined;
+export class MainApp {
+  constructor(public expressApp = express()) {}
 
-  setHostName(value: string): this {
-    this.hostName = value;
-    return this;
-  }
-
-  constructor(public name: string, public expressApp = express()) {
-    addMiddlewares(this.expressApp);
-  }
-
-  addVhostApp(vhostApp: App) {
+  addVhostApp(vhostApp: VHostApp) {
     this.expressApp.use(vhost(vhostApp.hostName, vhostApp.expressApp));
+  }
+}
+
+/**
+ * Encapsulate an Express App that listens on a specific vhost
+ */
+export class VHostApp {
+  constructor(public name: string, public hostName: string, public expressApp = express()) {
+    addMiddlewares(this.expressApp);
   }
 }
 
@@ -42,5 +42,5 @@ const addMiddlewares = (app: Express) => {
 };
 
 export interface Node {
-  app: App;
+  app: VHostApp;
 }

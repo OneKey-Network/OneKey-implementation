@@ -1,5 +1,5 @@
 import { anythingButAssets, WebSiteConfig } from '../website-config';
-import { App } from '@core/express/express-apps';
+import { VHostApp } from '@core/express/express-apps';
 
 const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   name: 'POF advertiser',
@@ -7,7 +7,7 @@ const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   cdnHost: 'cdn.pofmarket.shop',
   pafNodeHost: 'paf.pofmarket.shop',
 };
-export const pofMarketWebSiteApp = new App(name).setHostName(host);
+export const pofMarketWebSiteApp = new VHostApp(name, host);
 
 pofMarketWebSiteApp.expressApp.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
@@ -19,4 +19,4 @@ pofMarketWebSiteApp.expressApp.get(anythingButAssets, async (req, res) => {
   });
 });
 
-export const pofMarketCdnApp = new App(name).setHostName(cdnHost);
+export const pofMarketCdnApp = new VHostApp(name, cdnHost);

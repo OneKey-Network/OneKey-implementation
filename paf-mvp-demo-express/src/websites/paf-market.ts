@@ -1,4 +1,4 @@
-import { App } from '@core/express/express-apps';
+import { VHostApp } from '@core/express/express-apps';
 import { anythingButAssets, WebSiteConfig } from '../website-config';
 
 const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
@@ -8,7 +8,7 @@ const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   pafNodeHost: 'paf.pafmarket.shop',
 };
 
-export const pafMarketWebSiteApp = new App(name).setHostName(host);
+export const pafMarketWebSiteApp = new VHostApp(name, host);
 
 pafMarketWebSiteApp.expressApp.get(anythingButAssets, async (req, res) => {
   const view = 'advertiser/index';
@@ -21,4 +21,4 @@ pafMarketWebSiteApp.expressApp.get(anythingButAssets, async (req, res) => {
   });
 });
 
-export const pafMarketCdnApp = new App(name).setHostName(cdnHost);
+export const pafMarketCdnApp = new VHostApp(name, cdnHost);
