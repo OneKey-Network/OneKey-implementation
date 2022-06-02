@@ -140,6 +140,13 @@ export class Field<T, M extends IModel> extends FieldReadOnly<T, M> implements I
   }
 
   /**
+   * True if the field value is associated with a persisted and signed value.
+   */
+  public get hasPersisted(): boolean {
+    return this.persistedValue !== undefined;
+  }
+
+  /**
    * Returns true if;
    * - there is no persisted value and needs to be persisted; or
    * - there is a persisted value and the current value is not equal to it.

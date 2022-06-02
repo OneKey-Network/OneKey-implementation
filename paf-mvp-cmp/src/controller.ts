@@ -91,7 +91,11 @@ export class Controller {
     if (this.model.allPersisted && this.model.status === PafStatus.PARTICIPATING) {
       return 'snackbar';
     }
-    if (this.model.nonePersisted && this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
+    if (
+      this.model.allPersisted === false &&
+      this.config.displayIntro &&
+      this.model.status === PafStatus.REDIRECT_NEEDED
+    ) {
       return 'intro';
     }
     return 'settings';
@@ -208,9 +212,11 @@ export class Controller {
     });
     this.log.Message('global data', r);
     this.model.status = r.status;
-    if (r.data !== null) {
-      // TODO: The data returned does not match the interface and should really include a status value to avoid this
-      // try catch block.
+
+    // Only process the response if a redirect is not needed and there is data present.
+    if (r.status !== PafStatus.REDIRECT_NEEDED && r.data) {
+      // TODO: The data returned does not always match the interface and should really include a status value to avoid
+      // this try catch block.
       try {
         this.setPersistedFlag(r.data.identifiers);
         this.model.setFromIdsAndPreferences(r.data);

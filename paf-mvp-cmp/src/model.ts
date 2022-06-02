@@ -298,14 +298,7 @@ export class Model implements IModel {
    * True if all of the preferences or identifiers have been set from persisted data, otherwise false.
    */
   public get allPersisted(): boolean {
-    return this.pref.hasPersisted && this.rid.persistedValue.persisted;
-  }
-
-  /**
-   * True if neither the preferences or the identifiers have been persisted.
-   */
-  public get nonePersisted(): boolean {
-    return this.pref.hasPersisted === false && this.rid?.persistedValue?.persisted === false;
+    return this.pref.hasPersisted && this.rid.hasPersisted;
   }
 
   /**
