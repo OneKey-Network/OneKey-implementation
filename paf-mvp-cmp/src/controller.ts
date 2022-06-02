@@ -211,6 +211,15 @@ export class Controller {
    * If data is returned then the model is updated and the display method called.
    * @param triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
    * @returns true if the data is valid, otherwise false
+
+    // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't and the
+    // paf_last_refresh cookie is present. Deleting the paf_last_refresh cookie will resolve the data issue, but as
+    // that is not practical for those demoing the CMP this work around just sets the redirect needed status to 
+    // force the expected downstream behavior and removes the cookies.
+    if (triggerRedirectIfNeeded) {
+      removeCookie(Cookies.lastRefresh);
+    }
+
    */
   private async getIdsAndPreferencesFromGlobal(triggerRedirectIfNeeded: boolean) {
     const r = await refreshIdsAndPreferences({
@@ -229,6 +238,9 @@ export class Controller {
         this.setPersistedFlag(r.data.identifiers);
         this.model.setFromIdsAndPreferences(r.data);
         return true;
+
+        // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't.
+        this.model.status = PafStatus.REDIRECT_NEEDED;
       } catch (ex) {
         this.log.Warn('Problem parsing global ids and preferences', ex);
       }
