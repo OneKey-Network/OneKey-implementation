@@ -25,6 +25,7 @@ import { getCookieValue } from '../utils/cookie';
 import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
+import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
@@ -623,8 +624,11 @@ export interface TransmissionRegistryContext {
   prebidTransactionId: PrebidTransactionId;
   /** Transaction Id generated for the PAF Audit Log and used for signing the Seed. */
   pafTransactionId: TransactionId;
-  /** The Id of the tag (<div id="something">) that contains the addressable content. */
-  divId: DivId;
+  /**
+   * The Id of the tag (<div id="something">) that contains the
+   * addressable content or the Google Publisher Tag adUnitCode.
+   */
+  divIdOrAdUnitCode: string;
   contentId: ContentId;
   auditHandler?: AuditHandler;
 }
@@ -705,9 +709,10 @@ export const generateSeed = async (
  * @returns The generated AuditLog or undefined if the given Transaction Id is unknown or malformed.
  */
 export const registerTransmissionResponse = (
-  { prebidTransactionId, pafTransactionId, divId, contentId, auditHandler }: TransmissionRegistryContext,
+  { prebidTransactionId, pafTransactionId, divIdOrAdUnitCode, contentId, auditHandler }: TransmissionRegistryContext,
   transmissionResponse: TransmissionResponse
 ): AuditLog | undefined => {
+  const divId = mapAdUnitCodeToDivId(divIdOrAdUnitCode) || divIdOrAdUnitCode;
   const divContainer = document.getElementById(divId);
   if (divContainer === undefined) {
     return undefined;

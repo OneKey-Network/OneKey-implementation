@@ -5,10 +5,16 @@ import {
   refreshIdsAndPreferences,
   signPreferences,
 } from '../../src/lib/paf-lib';
-import { CookiesHelpers, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
+import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '@core/operator-client-commons';
-import { Identifier, IdsAndPreferences, PostSeedResponse } from '@core/model/generated-model';
+import {
+  Error,
+  GetIdsPrefsResponse,
+  Identifier,
+  IdsAndPreferences,
+  PostSeedResponse,
+} from '@core/model/generated-model';
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
@@ -22,6 +28,7 @@ afterEach(() => {
   // cleaning up the mess left behind the previous test
   fetch.resetMocks();
 });
+
 describe('Function getIdsAndPreferences', () => {
   beforeEach(() => {
     CookiesHelpers.clearPafCookies();
@@ -73,8 +80,8 @@ describe('Function getNewId', () => {
   test('should return new ID', async () => {
     const identifiers = getFakeIdentifiers(FAKE_ID);
     fetch.mockResponses(
-      'anyOperatorURL', // Call to the proxy to get the operator URL
-      JSON.stringify({ body: { identifiers } }) // Actual call to the operator
+      'operatorURLGet', // Call to the proxy to get the operator URL
+      JSON.stringify(<GetIdsPrefsResponse>{ body: { identifiers } }) // Actual call to the operator
     );
     try {
       const identifier: Identifier = await getNewId({ proxyHostName: pafClientNodeHost });
@@ -286,7 +293,7 @@ describe('Function refreshIdsAndPreferences', () => {
     });
   });
 
-  describe('when cookies found', () => {
+  describe('when local cookies', () => {
     const fakeId = 'FAKE_IDENTIFIER';
 
     beforeAll(() => {
@@ -315,14 +322,37 @@ describe('Function refreshIdsAndPreferences', () => {
     });
   });
 
-  describe('when no cookie found', () => {
+  const cases = [
+    {
+      cachedCookies: false,
+      message: 'no local cookies',
+    },
+    {
+      cachedCookies: true,
+      message: 'local cookies expired',
+    },
+  ];
+
+  describe.each(cases)('when $message', (data) => {
+    const fakeId = 'FAKE_IDENTIFIER';
+
     beforeAll(() => {
       global.PAFUI = {
         showNotification: jest.fn(),
       };
+
+      if (data.cachedCookies) {
+        CookiesHelpers.mockPreferences(true);
+        CookiesHelpers.mockIdentifiers(fakeId);
+        // Note: no refreshTime => ids and preferences must be considered expired
+      }
     });
 
-    describe('when 3PC are supported', () => {
+    afterAll(() => {
+      CookiesHelpers.clearPafCookies();
+    });
+
+    describe('when browser is known to support 3PC', () => {
       beforeAll(() => {
         (isBrowserKnownToSupport3PC as MockedFunction<typeof isBrowserKnownToSupport3PC>).mockImplementation(
           () => true
@@ -331,8 +361,8 @@ describe('Function refreshIdsAndPreferences', () => {
 
       test('should return data from operator', async () => {
         fetch.mockResponses(
-          'anyOperatorURL', // Call to the proxy to get the operator URL
-          JSON.stringify({
+          'operatorURLGet', // Call to the proxy to get the operator URL
+          JSON.stringify(<GetIdsPrefsResponse>{
             body: {
               identifiers: getFakeIdentifiers(),
               preferences: getFakePreferences(),
@@ -357,32 +387,70 @@ describe('Function refreshIdsAndPreferences', () => {
 
         CookiesHelpers.clearPafCookies();
       });
-    });
 
-    describe('when 3PC aren`t supported', () => {
-      const replaceMock = jest.fn();
-      beforeAll(() => {
-        (isBrowserKnownToSupport3PC as MockedFunction<typeof isBrowserKnownToSupport3PC>).mockImplementation(
-          () => false
-        );
-        delete global.location;
-        global.location = {
-          replace: replaceMock,
-          href: 'http://localhost/my-page.html?foo=bar',
-        } as unknown as Location;
-      });
-
-      afterAll(() => {
-        global.location = realLocation;
-      });
-
-      test('triggers redirect', async () => {
-        await refreshIdsAndPreferences({
-          proxyHostName: pafClientNodeHost,
-          triggerRedirectIfNeeded: true,
+      describe("but browser doesn't actually support it", () => {
+        beforeAll(() => {
+          fetch.mockResponses(
+            'operatorURLGet', // Call to the proxy to get the operator URL
+            JSON.stringify(<GetIdsPrefsResponse>{
+              body: {
+                identifiers: [
+                  {
+                    ...getFakeIdentifier('0c7966db-9e6a-4060-be81-824a9ce671d3'),
+                    persisted: false, // A newly generated ID
+                  },
+                ],
+              },
+            }), // Actual call to the operator
+            'operatorURLCheck3PC', // Call to the proxy to get the operator URL
+            JSON.stringify(<Error>{
+              message: 'No 3PC supported',
+            }) // Actual call to the operator
+          );
         });
 
-        expect(replaceMock).toHaveBeenCalled();
+        test('should require redirect', async () => {
+          const result = await refreshIdsAndPreferences({
+            proxyHostName: pafClientNodeHost,
+            triggerRedirectIfNeeded: false,
+          });
+
+          expect(isBrowserKnownToSupport3PC).toHaveBeenCalled();
+          expect(result).toEqual({
+            status: PafStatus.REDIRECT_NEEDED,
+          });
+          expect(document.cookie).toContain(`${Cookies.identifiers}="${PafStatus.REDIRECT_NEEDED}"`);
+          expect(document.cookie).toContain(`${Cookies.preferences}="${PafStatus.REDIRECT_NEEDED}"`);
+
+          CookiesHelpers.clearPafCookies();
+        });
+      });
+
+      describe('when browser is known NOT to support 3PC', () => {
+        const replaceMock = jest.fn();
+        beforeAll(() => {
+          (isBrowserKnownToSupport3PC as MockedFunction<typeof isBrowserKnownToSupport3PC>).mockImplementation(
+            () => false
+          );
+          delete global.location;
+          global.location = {
+            replace: replaceMock,
+            href: 'http://localhost/my-page.html?foo=bar',
+          } as unknown as Location;
+        });
+
+        afterAll(() => {
+          global.location = realLocation;
+        });
+
+        test('triggers redirect', async () => {
+          await refreshIdsAndPreferences({
+            proxyHostName: pafClientNodeHost,
+            triggerRedirectIfNeeded: true,
+          });
+
+          expect(replaceMock).toHaveBeenCalled();
+        });
       });
     });
   });
