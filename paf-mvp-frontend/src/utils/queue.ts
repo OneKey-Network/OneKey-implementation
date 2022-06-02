@@ -1,7 +1,5 @@
 import { Log } from '@core/log';
 
-const log = new Log('PAF', '#3bb8c3');
-
 // API for loading PAF asynchronously and run functions regardless
 // whether it gets loaded before or after their script executes.
 //
@@ -13,32 +11,43 @@ const log = new Log('PAF', '#3bb8c3');
 // </script>
 //
 //  Call of the PAF-lib when loaded asynchronously:
-//  export const queue: CommandQueue = window.PAF.queue || [];
-//  window.PAF.queue = processCommands(queue);
+// setUpImmediateProcessingQueue(window.PAF);
 
 /** An operation executed asynchronously after the PAF-lib is loaded. */
 export type Command = () => void;
 
-export type DeferredCommands = Command[];
-
-/** Interface for processing every pushed commands as soon as possible.  */
-export interface IImmediateCommandProcessor {
+/**
+ * Queue for processing pushed commands.
+ *
+ * Note: An Array<Operation> is considered
+ * as a queue of *deferred* commands.
+ */
+export interface IProcessingQueue {
+  // Same signature as the push method of Array<Command>
   push(...ops: Command[]): void;
 }
 
-/** Type for handling a duck-typing approach on 'push' function.  */
-export type CommandQueue = DeferredCommands | IImmediateCommandProcessor;
+/**
+ * Container of the processing queue
+ *
+ * Note: interface used for internal assignation.
+ */
+export interface IQueueContainer {
+  queue?: IProcessingQueue;
+}
 
 /**
- * @param queue Commands to process or Processor that is already in place.
- * @returns The given processor or a new one that has just processed the given commands.
+ * Set up an immediate processing queue to the container and
+ * execute the previously deferred commands of the queue.
+ * @param container Container of the queue to setup
  */
-export const processCommands = (queue: CommandQueue): ImmediateCommandProcessor => {
-  if (queue instanceof ImmediateCommandProcessor) {
-    return queue;
+export const setUpImmediateProcessingQueue = (container: IQueueContainer): void => {
+  if (container === undefined) {
+    return;
   }
 
-  const processor = new ImmediateCommandProcessor();
+  const { queue } = container;
+  const processor = new ImmediateProcessingQueue();
 
   if (queue && Array.isArray(queue)) {
     while (queue.length > 0) {
@@ -47,10 +56,10 @@ export const processCommands = (queue: CommandQueue): ImmediateCommandProcessor 
     }
   }
 
-  return processor;
+  container.queue = processor;
 };
 
-class ImmediateCommandProcessor implements IImmediateCommandProcessor {
+class ImmediateProcessingQueue implements IProcessingQueue {
   push(...ops: Command[]): void {
     if (ops === undefined) {
       return;
@@ -67,3 +76,5 @@ class ImmediateCommandProcessor implements IImmediateCommandProcessor {
     }
   }
 }
+
+const log = new Log('PAF', '#3bb8c3');

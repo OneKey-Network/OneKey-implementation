@@ -4,18 +4,18 @@ import {
   getAuditLogByTransaction,
   getIdsAndPreferences,
   getNewId,
-  queue,
   refreshIdsAndPreferences,
   registerTransmissionResponse,
   signPreferences,
   updateIdsAndPreferences,
 } from './lib/paf-lib';
 import { NotificationEnum } from './enums/notification.enum';
+import { ICommandProcessor } from './utils/queue';
 
 declare global {
   interface Window {
     PAF: {
-      queue: typeof queue;
+      queue?: ICommandProcessor;
       getNewId: typeof getNewId;
       signPreferences: typeof signPreferences;
       getIdsAndPreferences: typeof getIdsAndPreferences;

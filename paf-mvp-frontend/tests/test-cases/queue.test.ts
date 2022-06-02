@@ -1,39 +1,43 @@
 import { TestWatcher } from 'jest';
 import { isExportDeclaration } from 'typescript';
-import { CommandQueue, processCommands } from '../../src/utils/queue';
+import { IProcessingQueue, IQueueContainer, setUpImmediateProcessingQueue } from '../../src/utils/queue';
 
 describe('queue', () => {
   let cmd1: jest.Mock;
   let cmd2: jest.Mock;
   let cmd3: jest.Mock;
-  let queue: CommandQueue;
+  let container: IQueueContainer;
 
   beforeEach(() => {
     cmd1 = jest.fn();
     cmd2 = jest.fn();
     cmd3 = jest.fn();
-    queue = [];
+    container = {
+      queue: [],
+    };
   });
 
   test('processCommands undefined do not crash', () => {
-    queue = processCommands(undefined);
+    container.queue = undefined;
+    setUpImmediateProcessingQueue(container);
   });
 
   test('processCommands empty array do nothing', () => {
-    queue = processCommands(queue);
+    setUpImmediateProcessingQueue(container);
   });
 
   test('processCommands 2 commands', () => {
-    queue = processCommands([cmd1, cmd2]);
+    container.queue = [cmd1, cmd2];
+    setUpImmediateProcessingQueue(container);
 
     expect(cmd1.mock.calls.length).toBe(1);
     expect(cmd2.mock.calls.length).toBe(1);
   });
 
   test('returned processor process correctly', () => {
-    queue = processCommands(queue);
-    queue.push(cmd1, cmd2);
-    queue.push(cmd3);
+    setUpImmediateProcessingQueue(container);
+    container.queue.push(cmd1, cmd2);
+    container.queue.push(cmd3);
 
     expect(cmd1.mock.calls.length).toBe(1);
     expect(cmd2.mock.calls.length).toBe(1);
@@ -42,12 +46,12 @@ describe('queue', () => {
 
   test('documented setup', () => {
     // directly in page
-    queue.push(cmd1);
-    queue.push(cmd2);
+    container.queue.push(cmd1);
+    container.queue.push(cmd2);
 
     // in asynchronous script
-    queue = processCommands(queue);
-    queue.push(cmd3);
+    setUpImmediateProcessingQueue(container);
+    container.queue.push(cmd3);
 
     expect(cmd1.mock.calls.length).toBe(1);
     expect(cmd2.mock.calls.length).toBe(1);
@@ -55,18 +59,18 @@ describe('queue', () => {
   });
 
   test('nested call before processor assignation', () => {
-    queue.push(() => {
-      queue.push(cmd1);
+    container.queue.push(() => {
+      container.queue.push(cmd1);
     });
-    queue = processCommands(queue);
+    setUpImmediateProcessingQueue(container);
 
     expect(cmd1.mock.calls.length).toBe(1);
   });
 
   test('nested call after processor assignation', () => {
-    queue = processCommands(queue);
-    queue.push(() => {
-      queue.push(cmd1);
+    setUpImmediateProcessingQueue(container);
+    container.queue.push(() => {
+      container.queue.push(cmd1);
     });
 
     expect(cmd1.mock.calls.length).toBe(1);
