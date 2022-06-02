@@ -61,7 +61,12 @@ export class Controller {
     this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
     this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
     this.load()
-      .then(() => this.display(this.getCard()))
+      .then(() => {
+        const card = this.getCard();
+        if (card !== null) {
+          this.display(card);
+        }
+      })
       .catch((e) => log.Error('constructor', e));
   }
 
@@ -98,7 +103,10 @@ export class Controller {
     ) {
       return 'intro';
     }
-    return 'settings';
+    if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
+      return 'settings';
+    }
+    return null;
   }
 
   /**
