@@ -48,10 +48,7 @@ import cloneDeep from 'lodash.clonedeep';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { PublicKeyStore } from '@core/crypto/key-store';
-import { OperatorConfig } from '@operator/operator-node';
-import { getKeys, parseConfig } from '@core/express/config';
-import { isValidKey } from '@core/crypto/keys';
-import { ClientNodeConfig } from '@operator-client/client-node';
+import { parseConfig } from '@core/express/config';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>
@@ -174,19 +171,13 @@ class Examples {
   protected async buildExamples() {
     // The examples are not supposed to look like a demo but a real environment
     const operatorConfigPath = path.join(configPath, 'crto-poc-1-operator/config.json');
-    const operatorParsed = await parseConfig<OperatorConfig>(operatorConfigPath);
-    const crtoOneOperatorConfig = operatorParsed.config;
+    const crtoOneOperatorConfig = await parseConfig(operatorConfigPath);
     crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
-    const operatorKeys = await getKeys(operatorConfigPath, crtoOneOperatorConfig.identity);
-    const currentOperatorKeys = operatorKeys.find((pair) => isValidKey(pair));
-    const operatorPrivateKey = currentOperatorKeys?.privateKey;
+    const operatorPrivateKey = crtoOneOperatorConfig.currentPrivateKey;
 
     const clientNodeConfigPath = path.join(configPath, 'pafpublisher-client/config.json');
-    const clientParsed = await parseConfig<ClientNodeConfig>(clientNodeConfigPath);
-    const clientNodeConfig = clientParsed.config;
-    const clientNodeKeys = await getKeys(clientNodeConfigPath, clientNodeConfig.identity);
-    const currentClientNodeKeys = clientNodeKeys.find((pair) => isValidKey(pair));
-    const clientNodePrivateKey = currentClientNodeKeys?.privateKey;
+    const clientNodeConfig = await parseConfig(clientNodeConfigPath);
+    const clientNodePrivateKey = clientNodeConfig.currentPrivateKey;
 
     const keyStore = new PublicKeyStore();
     const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateKey, keyStore);
@@ -387,13 +378,9 @@ class Examples {
       new URL(crtoOneOperatorConfig.identity.privacyPolicyUrl)
     );
     this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined));
-    this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([
-      {
-        publicKey: currentOperatorKeys?.publicKey,
-        startTimestampInSec: currentOperatorKeys?.start,
-        endTimestampInSec: currentOperatorKeys?.end,
-      },
-    ]);
+    this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse(
+      crtoOneOperatorConfig.identity.publicKeys
+    );
 
     // TODO add examples with multiple keys
     const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(publisherHost);
@@ -404,13 +391,9 @@ class Examples {
       new URL(clientNodeConfig.identity.privacyPolicyUrl)
     );
     this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined));
-    this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
-      {
-        publicKey: currentClientNodeKeys?.publicKey,
-        startTimestampInSec: currentClientNodeKeys?.start,
-        endTimestampInSec: currentClientNodeKeys?.end,
-      },
-    ]);
+    this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse(
+      clientNodeConfig.identity.publicKeys
+    );
 
     // **************************** Proxy
     const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(publisherHost);

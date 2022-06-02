@@ -34,8 +34,8 @@ import {
 import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier } from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { App } from '@core/express/express-apps';
-import { ClientNodeConfig } from '@operator-client/client-node';
 import { parseConfig } from '@core/express/config';
+import { ClientNodeConfig } from '@operator-client/client-node';
 
 const { name, host }: WebSiteConfig = {
   name: 'A PAF portal',
@@ -48,9 +48,11 @@ export const portalWebSiteApp = new App(name).setHostName(host);
   const keyStore = new PublicKeyStore(s2sOptions);
 
   // Little trick here, we use an OperatorClient object
-  const { config, currentPrivateKey } = await parseConfig<ClientNodeConfig>('configs/portal-client/config.json');
+  const { host, operatorHost, currentPrivateKey } = (await parseConfig(
+    'configs/portal-client/config.json'
+  )) as ClientNodeConfig;
 
-  const client = new OperatorClient(config.operatorHost, config.host, currentPrivateKey, keyStore);
+  const client = new OperatorClient(operatorHost, host, currentPrivateKey, keyStore);
 
   const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
     'crto-poc-1.onekey.network',

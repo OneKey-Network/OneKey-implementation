@@ -1,4 +1,3 @@
-// Expiration: now + 3 months
 import { Request, Response } from 'express';
 import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
 import { AxiosRequestConfig } from 'axios';
@@ -44,8 +43,11 @@ import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
 import { OperatorApi } from '@operator/operator-api';
 import { App, Node } from '@core/express/express-apps';
-import { IdentityConfig, parseConfig } from '@core/express/config';
+import { Config, parseConfig } from '@core/express/config';
 
+/**
+ * Expiration: now + 3 months
+ */
 const getOperatorExpiration = (date: Date = new Date()) => {
   const expirationDate = new Date(date);
   expirationDate.setMonth(expirationDate.getMonth() + 3);
@@ -59,9 +61,10 @@ export enum Permission {
 
 export type AllowedHosts = { [host: string]: Permission[] };
 
-export interface OperatorConfig {
-  identity: IdentityConfig;
-  host: string;
+/**
+ * The configuration of a PAF operator node
+ */
+export interface OperatorNodeConfig extends Config {
   allowedHosts: AllowedHosts;
 }
 
@@ -416,8 +419,8 @@ export class OperatorNode implements Node {
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
-    const { config, identity, currentPrivateKey } = await parseConfig<OperatorConfig>(configPath);
+    const { host, identity, currentPrivateKey, allowedHosts } = (await parseConfig(configPath)) as OperatorNodeConfig;
 
-    return new OperatorNode(identity, config.host, currentPrivateKey, config.allowedHosts, s2sOptions);
+    return new OperatorNode(identity, host, currentPrivateKey, allowedHosts, s2sOptions);
   }
 }

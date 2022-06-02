@@ -22,7 +22,7 @@ import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
 import { App, Node } from '@core/express/express-apps';
-import { IdentityConfig, parseConfig, Parsed } from '@core/express/config';
+import { Config, parseConfig } from '@core/express/config';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
@@ -54,9 +54,10 @@ const getMessageObject = <T>(req: Request, res: Response): T => {
   return requestStr ? (JSON.parse(requestStr) as T) : undefined;
 };
 
-export interface ClientNodeConfig {
-  identity: IdentityConfig;
-  host: string;
+/**
+ * The configuration of a PAF client Node
+ */
+export interface ClientNodeConfig extends Config {
   operatorHost: string;
 }
 
@@ -70,13 +71,13 @@ export class ClientNode implements Node {
    * @param s2sOptions? [optional] server to server configuration for local dev
    */
   constructor(
-    config: Parsed<ClientNodeConfig>,
+    config: ClientNodeConfig,
     s2sOptions?: AxiosRequestConfig,
-    public app = new App(config.identity.name).setHostName(config.config.host)
+    public app = new App(config.identity.name).setHostName(config.host)
   ) {
     const { identity, currentPrivateKey } = config;
-    const hostName = config.config.host;
-    const operatorHost = config.config.operatorHost;
+    const hostName = config.host;
+    const operatorHost = config.operatorHost;
 
     // Start by adding identity endpoint FIXME inheritence with IdentityNode
     addIdentityEndpoint(app.expressApp, {
@@ -393,8 +394,8 @@ export class ClientNode implements Node {
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
-    const parsed = await parseConfig<ClientNodeConfig>(configPath);
+    const config = (await parseConfig(configPath)) as ClientNodeConfig;
 
-    return new ClientNode(parsed, s2sOptions);
+    return new ClientNode(config, s2sOptions);
   }
 }
