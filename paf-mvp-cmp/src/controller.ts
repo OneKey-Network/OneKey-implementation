@@ -201,12 +201,6 @@ export class Controller {
    * @returns true if the data is valid, otherwise false
    */
   private async getIdsAndPreferencesFromGlobal(triggerRedirectIfNeeded: boolean) {
-    // TODO: These values are used by the refresh method. Remove them to force processing a redirect if needed and
-    // allowed.
-    removeCookie(Cookies.identifiers);
-    removeCookie(Cookies.preferences);
-    removeCookie(Cookies.lastRefresh);
-
     const r = await refreshIdsAndPreferences({
       proxyHostName: this.config.proxyHostName,
       triggerRedirectIfNeeded,
