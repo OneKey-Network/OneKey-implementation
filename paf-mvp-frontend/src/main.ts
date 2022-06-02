@@ -10,12 +10,12 @@ import {
   getAuditLogByTransaction,
   getIdsAndPreferences,
   getNewId,
-  queue,
   refreshIdsAndPreferences,
   registerTransmissionResponse,
   signPreferences,
   updateIdsAndPreferences,
 } from './lib/paf-lib';
+import { CommandQueue, processCommands } from './utils/queue';
 
 currentScript.setScript(document.currentScript as HTMLScriptElement);
 
@@ -24,7 +24,7 @@ const showNotification = (type: NotificationEnum) => notificationService.showNot
 
 // TODO: avoid global declaration
 window.PAFUI ??= { promptConsent, showNotification };
-window.PAF ??= {
+window.PAF = {
   // Inject the "official" queue
   queue,
   // If the queue has been defined outside of this script, will be replaced by it
@@ -40,3 +40,6 @@ window.PAF ??= {
   getAuditLogByTransaction,
   getAuditLogByDivId,
 };
+
+// Set up the queue of asynchronous commands
+window.PAF.queue = processCommands(window.PAF.queue);
