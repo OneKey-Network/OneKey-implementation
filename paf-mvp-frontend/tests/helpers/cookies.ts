@@ -26,10 +26,9 @@ export const getFakeIdentifier = (fakeId: string, type = 'paf_browser_id'): Iden
   },
 });
 
-export const getFakeIdentifiers = (
-  fakeId = '0c7966db-9e6a-4060-be81-824a9ce671d3',
-  type = 'paf_browser_id'
-): Identifiers => [getFakeIdentifier(fakeId)];
+export const getFakeIdentifiers = (fakeId = '0c7966db-9e6a-4060-be81-824a9ce671d3'): Identifiers => [
+  getFakeIdentifier(fakeId),
+];
 
 export class CookiesHelpers {
   static clearPafCookies() {
