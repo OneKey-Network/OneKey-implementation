@@ -42,6 +42,7 @@ import {
   Preferences,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
+  ReturnUrl,
   Test3Pc,
 } from '@core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
@@ -123,23 +124,38 @@ export class OperatorNode implements Node {
     const getNewIdRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
     const idBuilder = new IdBuilder(operatorHost, privateKey);
 
-    const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
+    const extractRequestAndContextFromHttp = <
+      TopLevelRequestType,
+      TopLevelRequestRedirectType extends { returnUrl: ReturnUrl; request: TopLevelRequestType }
+    >(
+      topLevelRequest: TopLevelRequestType | TopLevelRequestRedirectType,
+      req: Request
+    ) => {
       // Extract request from Redirect request, if needed
-      let request: GetIdsPrefsRequest;
+      let request: TopLevelRequestType;
       let context: RestContext | RedirectContext;
       if (
-        (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl &&
-        (topLevelRequest as RedirectGetIdsPrefsRequest).request
+        (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
+        (topLevelRequest as TopLevelRequestRedirectType).request
       ) {
-        request = (topLevelRequest as RedirectGetIdsPrefsRequest).request;
+        request = (topLevelRequest as TopLevelRequestRedirectType).request;
         context = {
-          returnUrl: (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl,
+          returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
           referer: req.header('referer'),
         };
       } else {
-        request = topLevelRequest as GetIdsPrefsRequest;
+        request = topLevelRequest as TopLevelRequestType;
         context = { origin: req.header('origin') };
       }
+
+      return { request, context };
+    };
+
+    const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
+      const { request, context } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+        topLevelRequest,
+        req
+      );
 
       const sender = request.sender;
 
@@ -174,22 +190,10 @@ export class OperatorNode implements Node {
       req: Request,
       res: Response
     ) => {
-      // Extract request from Redirect request, if needed
-      let request: PostIdsPrefsRequest;
-      let context: RestContext | RedirectContext;
-      if (
-        (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl &&
-        (topLevelRequest as RedirectPostIdsPrefsRequest).request
-      ) {
-        request = (topLevelRequest as RedirectPostIdsPrefsRequest).request;
-        context = {
-          returnUrl: (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl,
-          referer: req.header('referer'),
-        };
-      } else {
-        request = topLevelRequest as PostIdsPrefsRequest;
-        context = { origin: req.header('origin') };
-      }
+      const { request, context } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+        topLevelRequest,
+        req
+      );
       const sender = request.sender;
 
       if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
