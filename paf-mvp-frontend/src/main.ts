@@ -25,7 +25,6 @@ const showNotification = (type: NotificationEnum) => notificationService.showNot
 // TODO: avoid global declaration
 window.PAFUI ??= { promptConsent, showNotification };
 window.PAF = {
-  // If the queue has been defined outside of this script, will be replaced by it
   ...(window.PAF ?? {}),
   // The rest has to be the official methods, should not be overridden from the outside
   getNewId,

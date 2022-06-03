@@ -19,7 +19,7 @@ export type Command = () => void;
 /**
  * Queue for processing pushed commands.
  *
- * Note: An Array<Operation> is considered
+ * Note: An Array<Command> is considered
  * as a queue of *deferred* commands.
  */
 export interface IProcessingQueue {
