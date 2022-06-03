@@ -19,7 +19,7 @@
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
-    <script async src="/assets/publisher/prebid/prebid.js"></script>
+    <script async src="http://localhost:9999/build/dev/prebid.js"></script>
 
     <script>
 
@@ -120,14 +120,14 @@
                             {
                             name: "paf",
                             waitForIt: true,
-                            params: {proxyHostName: "{{pafNodeHost}}" }
+                            params: { proxyHostName: "{{pafNodeHost}}" }
                         }
                     ]
                 },
                 userSync: {
                     userIds: [{
                         name: "pafData",
-                        params: {}
+                        params: { proxyHostName: "{{pafNodeHost}}" }
                     }],
                     auctionDelay: 1000,
                     syncDelay: 3000

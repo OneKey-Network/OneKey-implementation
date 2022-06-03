@@ -28,6 +28,7 @@ import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 import { setUpImmediateProcessingQueue } from '../utils/queue';
 import {} from '../global';
+import { squashExecution } from '../utils/squash';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
@@ -157,6 +158,10 @@ export type SignPrefsOptions = Options;
 
 export type GetNewIdOptions = Options;
 
+export interface GetIdAndPreferencesAsyncOption extends RefreshIdsAndPrefsOptions {
+  callback?: (result: IdsAndPreferences | undefined) => void;
+}
+
 export interface GenerateSeedOptions extends Options {
   callback?: (seed: Seed) => void;
 }
@@ -255,6 +260,43 @@ async function updateDataWithPrompt(
 }
 
 /**
+ * Synch PAF Ids and Preferences if needed, cache it and return it.
+ */
+export const getIdsAndPreferencesAsync = async (
+  options: GetIdAndPreferencesAsyncOption
+): Promise<IdsAndPreferences | undefined> => {
+  const data = getIdsAndPreferences();
+  if (data !== undefined) {
+    if (options.callback) {
+      options.callback(data);
+    }
+    return data;
+  }
+
+  try {
+    const refreshedData = await refreshIdsAndPreferences(options);
+    const data = refreshedData.data as IdsAndPreferences | undefined;
+
+    if (refreshedData.status !== PafStatus.PARTICIPATING && refreshedData.data) {
+      if (options.callback) {
+        options.callback(data);
+      }
+      return data;
+    }
+
+    if (options.callback) {
+      options.callback(undefined);
+    }
+    return undefined;
+  } catch (error) {
+    if (options.callback) {
+      options.callback(undefined);
+    }
+    throw error;
+  }
+};
+
+/**
  * Ensure local cookies for PAF identifiers and preferences are up-to-date.
  * If they aren't, contact the operator to get fresh values.
  * @param options:
@@ -263,219 +305,221 @@ async function updateDataWithPrompt(
  * - returnUrl: the URL that must be called in return (after a redirect to the operator) when no 3PC are available. Default = current page
  * @return a status and optional data
  */
-export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
-  const mergedOptions: RefreshIdsAndPrefsOptions = {
-    ...defaultsRefreshIdsAndPrefsOptions,
-    ...options,
-  };
-  const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
-  let { showPrompt } = mergedOptions;
+export const refreshIdsAndPreferences = squashExecution(
+  async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
+    const mergedOptions: RefreshIdsAndPrefsOptions = {
+      ...defaultsRefreshIdsAndPrefsOptions,
+      ...options,
+    };
+    const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
+    let { showPrompt } = mergedOptions;
 
-  // Special query string param to remember the prompt must be shown
-  const localQSParamShowPrompt = 'paf_show_prompt';
+    // Special query string param to remember the prompt must be shown
+    const localQSParamShowPrompt = 'paf_show_prompt';
 
-  // Update the URL shown in the address bar, without PAF data
-  const cleanUpUrL = () => {
-    const cleanedUrl = removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]);
-    history.pushState(null, '', cleanedUrl);
-  };
-  const getUrl = getProxyUrl(proxyHostName);
+    // Update the URL shown in the address bar, without PAF data
+    const cleanUpUrL = () => {
+      const cleanedUrl = removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]);
+      history.pushState(null, '', cleanedUrl);
+    };
+    const getUrl = getProxyUrl(proxyHostName);
 
-  const redirectToRead = async () => {
-    log.Info('Redirect to operator');
-    const clientUrl = new URL(getUrl(redirectProxyEndpoints.read));
-    const currentPageUrl = new URL(location.href);
+    const redirectToRead = async () => {
+      log.Info('Redirect to operator');
+      const clientUrl = new URL(getUrl(redirectProxyEndpoints.read));
+      const currentPageUrl = new URL(location.href);
 
-    // Use provided URL or the current page URL as the final "return URL"
-    const boomerangUrl = returnUrl ?? currentPageUrl;
-    boomerangUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
+      // Use provided URL or the current page URL as the final "return URL"
+      const boomerangUrl = returnUrl ?? currentPageUrl;
+      boomerangUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
 
-    clientUrl.searchParams.set(proxyUriParams.returnUrl, boomerangUrl.toString());
-    const clientResponse = await get(clientUrl.toString());
-    // TODO handle errors
-    const operatorUrl = await clientResponse.text();
-    redirect(operatorUrl);
-  };
-
-  const processGetIdsAndPreferences = async (): Promise<RefreshResult> => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const uriOperatorData = urlParams.get(QSParam.paf);
-    const uriShowPrompt = urlParams.get(localQSParamShowPrompt);
-
-    cleanUpUrL();
-
-    // 1. Any Prebid 1st party cookie?
-    const strIds = getCookieValue(Cookies.identifiers);
-    const lastRefresh = getCookieValue(Cookies.lastRefresh);
-    const strPreferences = getCookieValue(Cookies.preferences);
-    const currentPafData = fromClientCookieValues(strIds, strPreferences);
-    const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
-
-    const triggerNotification = (freshConsent: boolean) => {
-      // the new value is different from the previous one
-      if (freshConsent !== currentlySelectedConsent) {
-        log.Debug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
-        showNotificationIfValid(freshConsent);
-      } else {
-        log.Debug(`No preferences changes (${currentlySelectedConsent}), don't show notification`);
-      }
+      clientUrl.searchParams.set(proxyUriParams.returnUrl, boomerangUrl.toString());
+      const clientResponse = await get(clientUrl.toString());
+      // TODO handle errors
+      const operatorUrl = await clientResponse.text();
+      redirect(operatorUrl);
     };
 
-    async function handleAfterRedirect() {
-      // Verify message
-      const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
-      const operatorData = (await response.json()) as GetIdsPrefsResponse;
+    const processGetIdsAndPreferences = async (): Promise<RefreshResult> => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uriOperatorData = urlParams.get(QSParam.paf);
+      const uriShowPrompt = urlParams.get(localQSParamShowPrompt);
 
-      if (!operatorData) {
-        throw 'Verification failed';
-      }
+      cleanUpUrL();
 
-      log.Debug('Operator data after redirect', operatorData);
+      // 1. Any Prebid 1st party cookie?
+      const strIds = getCookieValue(Cookies.identifiers);
+      const lastRefresh = getCookieValue(Cookies.lastRefresh);
+      const strPreferences = getCookieValue(Cookies.preferences);
+      const currentPafData = fromClientCookieValues(strIds, strPreferences);
+      const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
 
-      // 3. Received data?
-      const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
-      const hasPersistedId = persistedIds.length > 0;
-      const preferences = operatorData?.body?.preferences;
-      const hasPreferences = preferences !== undefined;
-      saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
-      saveCookieValue(Cookies.preferences, preferences);
-
-      triggerNotification(preferences?.data?.use_browsing_for_personalization);
-
-      return {
-        status: hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN,
-        data: operatorData.body,
+      const triggerNotification = (freshConsent: boolean) => {
+        // the new value is different from the previous one
+        if (freshConsent !== currentlySelectedConsent) {
+          log.Debug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
+          showNotificationIfValid(freshConsent);
+        } else {
+          log.Debug(`No preferences changes (${currentlySelectedConsent}), don't show notification`);
+        }
       };
-    }
 
-    // 2. Redirected from operator?
-    if (uriOperatorData) {
-      log.Info('Redirected from operator: YES');
+      async function handleAfterRedirect() {
+        // Verify message
+        const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
+        const operatorData = (await response.json()) as GetIdsPrefsResponse;
 
-      // Consider that if we have been redirected, it means 3PC are not supported
-      thirdPartyCookiesSupported = false;
+        if (!operatorData) {
+          throw 'Verification failed';
+        }
 
-      // Remember what was asked for prompt, before the redirect
-      showPrompt = uriShowPrompt as ShowPromptOption;
+        log.Debug('Operator data after redirect', operatorData);
 
-      return await handleAfterRedirect();
-    }
+        // 3. Received data?
+        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
+        const hasPersistedId = persistedIds.length > 0;
+        const preferences = operatorData?.body?.preferences;
+        const hasPreferences = preferences !== undefined;
+        saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
+        saveCookieValue(Cookies.preferences, preferences);
 
-    log.Info('Redirected from operator: NO');
-
-    const pafStatus = getPafStatus(strIds, strPreferences);
-
-    if (pafStatus === PafStatus.REDIRECT_NEEDED) {
-      log.Info('Redirect previously deferred');
-
-      if (triggerRedirectIfNeeded) {
-        await redirectToRead();
-      }
-
-      return {
-        status: pafStatus,
-      };
-    }
-
-    if (lastRefresh) {
-      log.Info('Cookie found: YES');
-
-      if (pafStatus === PafStatus.NOT_PARTICIPATING) {
-        log.Info('User is not participating');
-      }
-
-      return {
-        status: pafStatus,
-        data: currentPafData,
-      };
-    }
-
-    log.Info('Cookie found: NO');
-
-    if (isBrowserKnownToSupport3PC(browserName(navigator.userAgent))) {
-      log.Info('Browser known to support 3PC: YES');
-
-      log.Info('Attempt to read from JSON');
-      const readUrl = await get(getUrl(jsonProxyEndpoints.read));
-      const readResponse = await get(await readUrl.text());
-      const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
-
-      const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
-      const hasPersistedId = persistedIds.length > 0;
-      const preferences = operatorData?.body?.preferences;
-      const hasPreferences = preferences !== undefined;
-
-      // 3. Received data?
-      if (hasPersistedId && hasPreferences) {
-        log.Debug('Operator returned id & prefs: YES');
-
-        // If we got data, it means 3PC are supported
-        thirdPartyCookiesSupported = true;
-
-        // /!\ Note: we don't need to verify the message here as it is a REST call
-
-        saveCookieValue(Cookies.identifiers, persistedIds);
-        saveCookieValue(Cookies.preferences, operatorData.body.preferences);
-
-        triggerNotification(operatorData.body.preferences?.data?.use_browsing_for_personalization);
+        triggerNotification(preferences?.data?.use_browsing_for_personalization);
 
         return {
-          status: PafStatus.PARTICIPATING,
+          status: hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN,
           data: operatorData.body,
         };
       }
-      log.Info('Operator returned id & prefs: NO');
 
-      log.Info('Verify 3PC on operator');
-      // Note: need to include credentials to make sure cookies are sent
-      const verifyUrl = await get(getUrl(jsonProxyEndpoints.verify3PC));
-      const verifyResponse = await get(await verifyUrl.text());
-      const testOk: Get3PcResponse | Error = await verifyResponse.json();
+      // 2. Redirected from operator?
+      if (uriOperatorData) {
+        log.Info('Redirected from operator: YES');
 
-      // 4. 3d party cookie ok?
-      if ((testOk as Get3PcResponse)?.['3pc']) {
-        log.Debug('3PC verification OK: YES');
+        // Consider that if we have been redirected, it means 3PC are not supported
+        thirdPartyCookiesSupported = false;
 
-        thirdPartyCookiesSupported = true;
+        // Remember what was asked for prompt, before the redirect
+        showPrompt = uriShowPrompt as ShowPromptOption;
+
+        return await handleAfterRedirect();
+      }
+
+      log.Info('Redirected from operator: NO');
+
+      const pafStatus = getPafStatus(strIds, strPreferences);
+
+      if (pafStatus === PafStatus.REDIRECT_NEEDED) {
+        log.Info('Redirect previously deferred');
+
+        if (triggerRedirectIfNeeded) {
+          await redirectToRead();
+        }
 
         return {
-          status: PafStatus.UNKNOWN,
-          data: {
-            identifiers: operatorData.body.identifiers,
-          },
+          status: pafStatus,
         };
       }
-      log.Info('3PC verification OK: NO');
-      thirdPartyCookiesSupported = false;
-      log.Info('Fallback to JS redirect');
-    } else {
-      log.Info('Browser known to support 3PC: NO');
-      thirdPartyCookiesSupported = false;
-      log.Info('JS redirect');
-    }
 
-    if (triggerRedirectIfNeeded) {
-      await redirectToRead();
-    } else {
-      log.Info('Deffer redirect to later, in agreement with options');
-      saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
-      saveCookieValue(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
-    }
+      if (lastRefresh) {
+        log.Info('Cookie found: YES');
 
-    return {
-      status: PafStatus.REDIRECT_NEEDED,
+        if (pafStatus === PafStatus.NOT_PARTICIPATING) {
+          log.Info('User is not participating');
+        }
+
+        return {
+          status: pafStatus,
+          data: currentPafData,
+        };
+      }
+
+      log.Info('Cookie found: NO');
+
+      if (isBrowserKnownToSupport3PC(browserName(navigator.userAgent))) {
+        log.Info('Browser known to support 3PC: YES');
+
+        log.Info('Attempt to read from JSON');
+        const readUrl = await get(getUrl(jsonProxyEndpoints.read));
+        const readResponse = await get(await readUrl.text());
+        const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
+
+        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
+        const hasPersistedId = persistedIds.length > 0;
+        const preferences = operatorData?.body?.preferences;
+        const hasPreferences = preferences !== undefined;
+
+        // 3. Received data?
+        if (hasPersistedId && hasPreferences) {
+          log.Debug('Operator returned id & prefs: YES');
+
+          // If we got data, it means 3PC are supported
+          thirdPartyCookiesSupported = true;
+
+          // /!\ Note: we don't need to verify the message here as it is a REST call
+
+          saveCookieValue(Cookies.identifiers, persistedIds);
+          saveCookieValue(Cookies.preferences, operatorData.body.preferences);
+
+          triggerNotification(operatorData.body.preferences?.data?.use_browsing_for_personalization);
+
+          return {
+            status: PafStatus.PARTICIPATING,
+            data: operatorData.body,
+          };
+        }
+        log.Info('Operator returned id & prefs: NO');
+
+        log.Info('Verify 3PC on operator');
+        // Note: need to include credentials to make sure cookies are sent
+        const verifyUrl = await get(getUrl(jsonProxyEndpoints.verify3PC));
+        const verifyResponse = await get(await verifyUrl.text());
+        const testOk: Get3PcResponse | Error = await verifyResponse.json();
+
+        // 4. 3d party cookie ok?
+        if ((testOk as Get3PcResponse)?.['3pc']) {
+          log.Debug('3PC verification OK: YES');
+
+          thirdPartyCookiesSupported = true;
+
+          return {
+            status: PafStatus.UNKNOWN,
+            data: {
+              identifiers: operatorData.body.identifiers,
+            },
+          };
+        }
+        log.Info('3PC verification OK: NO');
+        thirdPartyCookiesSupported = false;
+        log.Info('Fallback to JS redirect');
+      } else {
+        log.Info('Browser known to support 3PC: NO');
+        thirdPartyCookiesSupported = false;
+        log.Info('JS redirect');
+      }
+
+      if (triggerRedirectIfNeeded) {
+        await redirectToRead();
+      } else {
+        log.Info('Deffer redirect to later, in agreement with options');
+        saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
+        saveCookieValue(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
+      }
+
+      return {
+        status: PafStatus.REDIRECT_NEEDED,
+      };
     };
-  };
 
-  const idsAndPreferences = await processGetIdsAndPreferences();
+    const idsAndPreferences = await processGetIdsAndPreferences();
 
-  log.Info('Processed refresh', idsAndPreferences);
+    log.Info('Processed refresh', idsAndPreferences);
 
-  // Now handle prompt, if relevant
-  await updateDataWithPrompt(idsAndPreferences, proxyHostName, showPrompt);
+    // Now handle prompt, if relevant
+    await updateDataWithPrompt(idsAndPreferences, proxyHostName, showPrompt);
 
-  return idsAndPreferences;
-};
+    return idsAndPreferences;
+  }
+);
 
 /**
  * Write update of identifiers and preferences on the PAF domain
