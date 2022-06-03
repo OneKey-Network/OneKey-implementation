@@ -5,6 +5,7 @@ import cors from 'cors';
 import { Express } from 'express';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 
+// FIXME define class IdentityNode
 export const addIdentityEndpoint = (app: Express, identity: Identity) => {
   const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = identity;
   const response = new GetIdentityResponseBuilder(name, type, dpoEmailAddress, privacyPolicyUrl).buildResponse(

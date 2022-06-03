@@ -2,20 +2,20 @@
 <html lang="html">
 <head>
 
-{{#if cmp}}
+{{#if useCmpUI}}
 
     <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
-    <link rel="preload" as="script" href="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js">
+    <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
 
 {{else}}
 
     <!-- PAF CMP in stanalone -->
-    <link rel="preload" href="https://{{cdnDomain}}/assets/app.bundle.js" as="script" />
+    <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
 
 {{/if}}
 
     <!-- PAF -->
-    <link rel="preload" href="https://{{cdnDomain}}/assets/paf-lib.js" as="script" />
+    <link rel="preload" href="https://{{cdnHost}}/assets/paf-lib.js" as="script" />
 
     <!-- Prebid.js -->
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
@@ -190,11 +190,11 @@
 </head>
 <body>
 
-{{#if cmp}}
+{{#if useCmpUI}}
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
-<script src="https://{{cdnDomain}}/assets/cmp/ok-ui.min.js"
+<script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js"
     data-display-intro="true"
     data-snackbar-timeout-ms="5000"
     data-proxy-host-name="{{pafNodeHost}}"
@@ -205,11 +205,11 @@
 
 {{else}}
 
-<script src="https://{{cdnDomain}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}" });'></script>
+<script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}" });'></script>
 
 {{/if}}
 
-<script src="https://{{cdnDomain}}/assets/paf-lib.js"></script>
+<script src="https://{{cdnHost}}/assets/paf-lib.js"></script>
 
 <div>
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
@@ -929,7 +929,7 @@
     document.getElementById('div-1').setAttribute('auditLog', fakeAuditLogString);
     document.getElementById('div-2').setAttribute('auditLog', fakeAuditLogString);
 </script>
-<script src="https://{{cdnDomain}}/assets/ok-audit.min.js" defer></script>
+<script src="https://{{cdnHost}}/assets/ok-audit.min.js" defer></script>
 
 </body>
 </html>

@@ -1,23 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import { EOL } from 'os';
-import {
-  crtoOneOperatorConfig,
-  pafMarketClientNodeConfig,
-  pafMarketWebSiteConfig,
-  pafPublisherClientNodeConfig,
-  pafPublisherWebSiteConfig,
-  pifMarketClientNodeConfig,
-  pifMarketWebSiteConfig,
-  pifPublisherClientNodeConfig,
-  pifPublisherWebSiteConfig,
-  pofMarketClientNodeConfig,
-  pofMarketWebSiteConfig,
-  pofPublisherClientNodeConfig,
-  pofPublisherWebSiteConfig,
-  portalConfig,
-  PublicConfig,
-} from '../src/config';
+import { VHostApp } from '@core/express/express-apps';
+import { getAppsAndNodes } from '../src/apps';
 
 if (!(process.argv[2]?.length > 0)) {
   const scriptName = path.basename(__filename);
@@ -42,26 +27,18 @@ const hostsFile = '/etc/hosts';
   if (action === 'remove') {
     // The content is already cleaned
   } else if (action === 'add') {
-    const addConfig = (config: PublicConfig) => {
-      content += `127.0.0.1 ${config.host} ${pattern} ${config.name}${EOL}`;
-      if (config.cdnHost) {
-        content += `127.0.0.1 ${config.cdnHost} ${pattern} ${config.name} (CDN)${EOL}`;
-      }
-    };
-    addConfig(crtoOneOperatorConfig);
-    addConfig(portalConfig);
-    addConfig(pafMarketWebSiteConfig);
-    addConfig(pafMarketClientNodeConfig);
-    addConfig(pifMarketWebSiteConfig);
-    addConfig(pifMarketClientNodeConfig);
-    addConfig(pofMarketWebSiteConfig);
-    addConfig(pofMarketClientNodeConfig);
-    addConfig(pafPublisherWebSiteConfig);
-    addConfig(pifPublisherWebSiteConfig);
-    addConfig(pofPublisherWebSiteConfig);
-    addConfig(pafPublisherClientNodeConfig);
-    addConfig(pifPublisherClientNodeConfig);
-    addConfig(pofPublisherClientNodeConfig);
+    const { websites, clientNodes, operators, cdns } = await getAppsAndNodes();
+
+    const allApps: VHostApp[] = [
+      ...websites,
+      ...cdns,
+      ...operators.map((operator) => operator.app),
+      ...clientNodes.map((clientNode) => clientNode.app),
+    ];
+
+    for (const app of allApps) {
+      content += `127.0.0.1 ${app.hostName} ${pattern} ${app.name}${EOL}`;
+    }
   } else {
     console.error(`Unsupported action ${action}`);
     process.exit(1);

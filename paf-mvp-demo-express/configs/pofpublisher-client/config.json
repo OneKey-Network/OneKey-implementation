@@ -1,0 +1,17 @@
+{
+  "identity": {
+    "name": "POF publisher",
+    "dpoEmailAddress": "contact@pofdemopublisher.com",
+    "privacyPolicyUrl": "https://www.pofdemopublisher.com/privacy",
+    "keyPairs": [
+      {
+        "startDateTimeISOString": "2022-01-15T10:50:00.000Z",
+        "endDateTimeISOString": "2022-12-31T12:00:00.000Z",
+        "privateKeyPath": "private-key.pem",
+        "publicKeyPath": "public-key.pem"
+      }
+    ]
+  },
+  "host": "cmp.pofdemopublisher.com",
+  "operatorHost": "crto-poc-1.onekey.network"
+}

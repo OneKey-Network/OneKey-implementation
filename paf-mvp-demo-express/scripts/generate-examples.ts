@@ -21,12 +21,6 @@ import {
 } from '@core/model/generated-model';
 import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
-import {
-  crtoOneOperatorConfig,
-  pafMarketWebSiteConfig,
-  pafPublisherClientNodeConfig,
-  pafPublisherWebSiteConfig,
-} from '../src/config';
 import path from 'path';
 import { OperatorClient } from '@operator-client/operator-client';
 import {
@@ -53,9 +47,8 @@ import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
 import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
-import { pafClientNodePrivateConfig } from '../src/paf-publisher-client-node';
-import { operatorPrivateConfig } from '../src/crto1-operator';
 import { PublicKeyStore } from '@core/crypto/key-store';
+import { parseConfig } from '@core/express/config';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>
@@ -93,11 +86,11 @@ if (!fs.existsSync(outputDir)) {
   throw `Output dir not found: "${outputDir}"`;
 }
 
+const configPath = path.join(__dirname, '..', 'configs');
+
 // The examples are not supposed to look like a demo but a real environment
-crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
-pafPublisherClientNodeConfig.host = 'cmp.com';
-pafMarketWebSiteConfig.host = 'advertiser.com';
-pafPublisherWebSiteConfig.host = 'publisher.com';
+const publisherHost = 'cmp.com';
+const advertiserHost = 'advertiser.com';
 
 class Examples {
   // **************************** Main data
@@ -175,11 +168,21 @@ class Examples {
 
   constructor(protected outputDir: string) {}
 
-  protected buildExamples() {
+  protected async buildExamples() {
+    // The examples are not supposed to look like a demo but a real environment
+    const operatorConfigPath = path.join(configPath, 'crto-poc-1-operator/config.json');
+    const crtoOneOperatorConfig = await parseConfig(operatorConfigPath);
+    crtoOneOperatorConfig.host = 'operator.paf-operation-domain.io';
+    const operatorPrivateKey = crtoOneOperatorConfig.currentPrivateKey;
+
+    const clientNodeConfigPath = path.join(configPath, 'pafpublisher-client/config.json');
+    const clientNodeConfig = await parseConfig(clientNodeConfigPath);
+    const clientNodePrivateKey = clientNodeConfig.currentPrivateKey;
+
     const keyStore = new PublicKeyStore();
-    const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateConfig.privateKey, keyStore);
+    const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateKey, keyStore);
     const originalAdvertiserUrl = new URL(
-      `https://${pafMarketWebSiteConfig.host}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
+      `https://${advertiserHost}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
     );
 
     // **************************** Main data
@@ -192,12 +195,7 @@ class Examples {
       operatorAPI.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
     );
 
-    const cmpClient = new OperatorClient(
-      crtoOneOperatorConfig.host,
-      pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey,
-      keyStore
-    );
+    const cmpClient = new OperatorClient(crtoOneOperatorConfig.host, publisherHost, clientNodePrivateKey, keyStore);
     this.setObject(
       'preferencesJson',
       cmpClient.buildPreferences(
@@ -222,13 +220,10 @@ class Examples {
     // **************************** Read
     const getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(
       crtoOneOperatorConfig.host,
-      pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      publisherHost,
+      clientNodePrivateKey
     );
-    const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(
-      crtoOneOperatorConfig.host,
-      pafClientNodePrivateConfig.privateKey
-    );
+    const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(crtoOneOperatorConfig.host, clientNodePrivateKey);
     this.setRestMessage(
       'getIdsPrefsRequestJson',
       getIdsPrefsRequestBuilder.buildRestRequest(
@@ -241,7 +236,7 @@ class Examples {
     this.setRestMessage(
       'getIdsPrefsResponse_knownJson',
       getIdsPrefsResponseBuilder.buildResponse(
-        pafMarketWebSiteConfig.host,
+        advertiserHost,
         {
           identifiers: [this.idJson],
           preferences: this.preferencesJson,
@@ -252,7 +247,7 @@ class Examples {
     this.setRestMessage(
       'getIdsPrefsResponse_unknownJson',
       getIdsPrefsResponseBuilder.buildResponse(
-        pafMarketWebSiteConfig.host,
+        advertiserHost,
         {
           identifiers: [this.unpersistedIdJson],
         },
@@ -290,12 +285,12 @@ class Examples {
     // **************************** Write
     const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
       crtoOneOperatorConfig.host,
-      pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      publisherHost,
+      clientNodePrivateKey
     );
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(
       crtoOneOperatorConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      clientNodePrivateKey
     );
     this.setRestMessage(
       'postIdsPrefsRequestJson',
@@ -312,7 +307,7 @@ class Examples {
     this.setRestMessage(
       'postIdsPrefsResponseJson',
       postIdsPrefsResponseBuilder.buildResponse(
-        pafPublisherClientNodeConfig.host,
+        publisherHost,
         {
           identifiers: [this.idJson],
           preferences: this.preferencesJson,
@@ -346,13 +341,10 @@ class Examples {
     // **************************** Get new ID
     const getNewIdRequestBuilder = new GetNewIdRequestBuilder(
       crtoOneOperatorConfig.host,
-      pafPublisherClientNodeConfig.host,
-      pafClientNodePrivateConfig.privateKey
+      publisherHost,
+      clientNodePrivateKey
     );
-    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(
-      crtoOneOperatorConfig.host,
-      operatorPrivateConfig.privateKey
-    );
+    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(crtoOneOperatorConfig.host, operatorPrivateKey);
     this.setRestMessage(
       'getNewIdRequestJson',
       getNewIdRequestBuilder.buildRestRequest(
@@ -364,11 +356,7 @@ class Examples {
 
     this.setRestMessage(
       'getNewIdResponseJson',
-      getNewIdResponseBuilder.buildResponse(
-        pafPublisherClientNodeConfig.host,
-        this.unpersistedIdJson,
-        getTimestamp('2022/03/01 19:04:47')
-      )
+      getNewIdResponseBuilder.buildResponse(publisherHost, this.unpersistedIdJson, getTimestamp('2022/03/01 19:04:47'))
     );
 
     // **************************** Verify 3PC
@@ -384,45 +372,41 @@ class Examples {
     // **************************** Identity
     const getIdentityRequestBuilder_operator = new GetIdentityRequestBuilder(crtoOneOperatorConfig.host);
     const getIdentityResponseBuilder_operator = new GetIdentityResponseBuilder(
-      crtoOneOperatorConfig.name,
-      operatorPrivateConfig.type,
-      operatorPrivateConfig.dpoEmailAddress,
-      new URL(operatorPrivateConfig.privacyPolicyUrl)
+      crtoOneOperatorConfig.identity.name,
+      'operator',
+      crtoOneOperatorConfig.identity.dpoEmailAddress,
+      new URL(crtoOneOperatorConfig.identity.privacyPolicyUrl)
     );
     this.getIdentityRequest_operatorHttp = getGETUrl(getIdentityRequestBuilder_operator.getRestUrl(undefined));
-    this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse([
-      operatorPrivateConfig.currentPublicKey,
-    ]);
+    this.getIdentityResponse_operatorJson = getIdentityResponseBuilder_operator.buildResponse(
+      crtoOneOperatorConfig.identity.publicKeys
+    );
 
     // TODO add examples with multiple keys
-    const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(pafPublisherClientNodeConfig.host);
+    const getIdentityRequestBuilder_cmp = new GetIdentityRequestBuilder(publisherHost);
     const getIdentityResponseBuilder_cmp = new GetIdentityResponseBuilder(
-      pafPublisherClientNodeConfig.name,
-      pafClientNodePrivateConfig.type,
-      pafClientNodePrivateConfig.dpoEmailAddress,
-      new URL(pafClientNodePrivateConfig.privacyPolicyUrl)
+      clientNodeConfig.identity.name,
+      'vendor',
+      clientNodeConfig.identity.dpoEmailAddress,
+      new URL(clientNodeConfig.identity.privacyPolicyUrl)
     );
     this.getIdentityRequest_cmpHttp = getGETUrl(getIdentityRequestBuilder_cmp.getRestUrl(undefined));
-    this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse([
-      pafClientNodePrivateConfig.currentPublicKey,
-    ]);
+    this.getIdentityResponse_cmpJson = getIdentityResponseBuilder_cmp.buildResponse(
+      clientNodeConfig.identity.publicKeys
+    );
 
     // **************************** Proxy
-    const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(pafPublisherClientNodeConfig.host);
+    const signPreferencesRequestBuilder = new ProxyRestSignPreferencesRequestBuilder(publisherHost);
     this.signPreferencesHttp = getPOSTUrl(signPreferencesRequestBuilder.getRestUrl(undefined)); // Notice is POST url
     this.signPreferencesJson = signPreferencesRequestBuilder.buildRequest([this.idJson], {
       use_browsing_for_personalization: true,
     });
 
-    const signPostIdsPrefsRequestBuilder = new ProxyRestSignPostIdsPrefsRequestBuilder(
-      pafPublisherClientNodeConfig.host
-    );
+    const signPostIdsPrefsRequestBuilder = new ProxyRestSignPostIdsPrefsRequestBuilder(publisherHost);
     this.signPostIdsPrefsHttp = getPOSTUrl(signPostIdsPrefsRequestBuilder.getRestUrl(undefined)); // Notice is POST url
     this.signPostIdsPrefsJson = signPostIdsPrefsRequestBuilder.buildRequest([this.idJson], this.preferencesJson);
 
-    const verifyGetIdsPrefsRequestBuilder = new ProxyRestVerifyGetIdsPrefsRequestBuilder(
-      pafPublisherClientNodeConfig.host
-    );
+    const verifyGetIdsPrefsRequestBuilder = new ProxyRestVerifyGetIdsPrefsRequestBuilder(publisherHost);
     this.verifyGetIdsPrefsHttp = getPOSTUrl(verifyGetIdsPrefsRequestBuilder.getRestUrl(undefined)); // Notice is POST url
     this.verifyGetIdsPrefs_invalidJson = { message: 'Invalid signature' };
   }
@@ -517,7 +501,7 @@ class Examples {
   async updateFiles() {
     await this.loadExistingFiles();
 
-    this.buildExamples();
+    await this.buildExamples();
 
     const dict = this.getObjectAsDict();
     for (const key of Object.keys(this)) {
