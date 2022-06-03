@@ -193,33 +193,32 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
         preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
       }),
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
+      }),
       postHTML({ template: true }),
       minifyHTML({
         // Include string literals that contain the div or section element as well as the default check.
         options: {
-          shouldMinify: (t) => defaultShouldMinify(t) || t.parts.some(p => 
-            p.text.includes('<div') || 
+          shouldMinify: (t) => defaultShouldMinify(t) || t.parts.some(p =>
+            p.text.includes('<div') ||
             p.text.includes('<section'))
         }
       }),
-      string({ include: ['**/*.css', '**/*.js'] }),
+      string({ include: ['**/*.css'] }),
       typescript({
-        tsconfig: '../tsconfig.json'
+        tsconfig: '../tsconfig.json',
       }),
-      commonjs({
-        preferBuiltins: true
-      }),
-      nodeResolve({
-        browser: true,
-        preferBuiltins: true
-      })
+      commonjs(),
+      nodeResolve()
     ],
     treeshake: true,
     output: [
       {
         file: `./dist/ok-ui-${localeCode}.js`,
         sourcemap: true,
-        format: 'iife'
+        format: 'iife',
       },
       {
         file: `./dist/ok-ui-${localeCode}.min.js`,
@@ -230,7 +229,7 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
       {
         file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${localeCode}.js`,
         sourcemap: true,
-        format: 'iife'
+        format: 'iife',
       },
       {
         file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${localeCode}.min.js`,

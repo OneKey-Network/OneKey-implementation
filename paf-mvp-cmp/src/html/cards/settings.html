@@ -28,7 +28,8 @@
                 fill="#B6BCCA" />
             </svg>
             <span class="ok-ui-tooltip__message-wrapper">
-              <span id="ok-ui-your-browsing-id-tooltip" class="ok-ui-tooltip__message">${ _.settingsBrowsingIdTip }</span>
+              <span id="ok-ui-your-browsing-id-tooltip" class="ok-ui-tooltip__message">${ _.settingsBrowsingIdTip
+                }</span>
             </span>
           </button>
         </span>
@@ -60,19 +61,21 @@
           </div>
         </label>
       </div>
-      <button type="button" class="ok-ui-button ok-ui-button--text" data-card="customize">
-        <span class="ok-ui-button__label">${ _.customize }</span>
-      </button>
-      <div class="ok-ui-mt-2" id="ok-ui-only-this-site-container">
-        <div class="ok-ui-toggle ok-ui-toggle--input-start">
-          <input class="ok-ui-toggle__input" type="checkbox" name="only-this-site" value="1650376767704"
-            id="ok-ui-only-this-site" />
-          <label class="ok-ui-toggle__input-facade" for="ok-ui-only-this-site"></label>
-          <div class="ok-ui-toggle__content">
-            <label class="ok-ui-toggle__label " aria-described-by="ok-ui-only-this-site-tooltip"
-              for="ok-ui-only-this-site">
-              ${ _.settingsThisSite }
-            </label>
+      <div id="ok-ui-only-this-site-container">
+        <button type="button" class="ok-ui-button ok-ui-button--text" data-card="customize">
+          <span class="ok-ui-button__label">${ _.customize }</span>
+        </button>
+        <div class="ok-ui-mt-2">
+          <div class="ok-ui-toggle ok-ui-toggle--input-start">
+            <input class="ok-ui-toggle__input" type="checkbox" name="only-this-site" value="1650376767704"
+              id="ok-ui-only-this-site" />
+            <label class="ok-ui-toggle__input-facade" for="ok-ui-only-this-site"></label>
+            <div class="ok-ui-toggle__content">
+              <label class="ok-ui-toggle__label " aria-described-by="ok-ui-only-this-site-tooltip"
+                for="ok-ui-only-this-site">
+                ${ _.settingsThisSite }
+              </label>
+            </div>
           </div>
         </div>
       </div>

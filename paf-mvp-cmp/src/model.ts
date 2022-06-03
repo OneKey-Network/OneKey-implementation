@@ -1,4 +1,4 @@
-import { Field, IField, IModel } from '@core/ui/fields';
+import { Field, FieldReadOnly, IFieldChangable, IFieldBind, IModel } from '@core/ui/fields';
 import {
   Identifier,
   IdsAndOptionalPreferences,
@@ -50,18 +50,22 @@ export class Marketing {
 }
 
 /**
+ * The source of the data that was used to populate the model.
+ */
+export enum ModelSource {
+  Local, // this site only
+  Global, // OneKey
+  Default, // initial defaults
+}
+
+/**
  * A field used to represent an identifier in the model.
  */
 export class FieldId extends Field<Identifier, Model> {
-  // The types that the id must match. e.g. 'paf_browser_id'
-  private readonly types: string[];
-
   /**
-   * True if the value in the field has been persisted, otherwise false.
+   * The types that the id must match. e.g. 'paf_browser_id'
    */
-  public get persisted(): boolean {
-    return this.value?.persisted === true;
-  }
+  private readonly types: string[];
 
   /**
    * Constructs a new instance of FieldId.
@@ -75,13 +79,6 @@ export class FieldId extends Field<Identifier, Model> {
   }
 
   /**
-   * If the random Id field changes then the save button should become enabled.
-   */
-  protected updateOthers(): void {
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
-  }
-
-  /**
    * Sets the identifier that matches the type for the field validating that it has come from persistent storage.
    * @param identifiers array of identifiers where the first one that matches any of the allowed types is used by the
    * field.
@@ -91,7 +88,7 @@ export class FieldId extends Field<Identifier, Model> {
     for (let i = 0; i < identifiers.length; i++) {
       const id = identifiers[i];
       if (id.persisted === true && this.types.includes(id.type)) {
-        this.value = id;
+        this.persistedValue = id;
         return;
       }
     }
@@ -103,29 +100,33 @@ export class FieldId extends Field<Identifier, Model> {
  * A field used to represent preferences in the model.
  */
 export class FieldPreferences extends Field<PreferencesData, Model> {
-  private _persisted: Preferences = null;
+  /**
+   * The signed preferences provided from persisted storage.
+   */
+  private _persistedSignedValue: Preferences;
 
   /**
-   * If the value has been provided from a persisted value then returns the original persisted value.
+   * Returns true if;
+   * - there is no persisted value and needs to be persisted; or
+   * - there is a persisted value and the current value is not equal to it.
+   * Otherwise false.
    */
-  public get persisted(): Preferences {
-    return this._persisted;
+  public get hasChanged(): boolean {
+    return this.persistedValue === undefined || Marketing.equals(this.value, this.persistedValue) === false;
   }
 
   /**
-   * Returns true if the value has changed from the persisted value, otherwise false.
+   * True if the field value is associated with a persisted and signed value.
    */
-  public get hasChanged(): boolean {
-    return Marketing.equals(this._persisted?.data, this.value) === false;
+  public get hasPersisted(): boolean {
+    return this._persistedSignedValue !== undefined;
   }
 
   /**
    * If the preferences has changed update the other fields in the model.
    */
   protected updateOthers() {
-    // Always reset all the custom fields to false. The ones that should be true will be altered.
-    this.model.customFields.forEach((f) => (f.value = false));
-
+    super.updateOthers();
     if (Marketing.equals(this.value, Marketing.personalized)) {
       // If personalized is true then standard must be false. Also all the
       // customized options will be true.
@@ -136,39 +137,47 @@ export class FieldPreferences extends Field<PreferencesData, Model> {
       // customized options will also be false.
       this.model.all.value = false;
       this.model.standardFields.forEach((f) => (f.value = true));
-    } else {
-      // No marketing option is selected so must be customized.
-      this.model.all.value = false;
+      this.model.nonStandardFields.forEach((f) => (f.value = false));
     }
-
-    // The save button state needs to be checked.
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
   }
 
   /**
-   * Called when the preferences are coming from persisted storage.
+   * Sets the value of the field from the signed persisted preferences also setting the related fields to reflect the
+   * fact globally persisted values have been used.
    * @param preferences
    */
-  public setPersisted(preferences: Preferences) {
+  public set persistedSignedValue(preferences: Preferences) {
     Validate.Preference(preferences);
-    this._persisted = preferences;
-    this.value = preferences.data;
+    this._persistedSignedValue = preferences;
+    this.persistedValue = preferences.data;
+    if (Marketing.equals(this.persistedValue, Marketing.personalized)) {
+      this.model.personalizedFields.forEach((f) => (f.persistedValue = true));
+    }
+    if (Marketing.equals(this.persistedValue, Marketing.standard)) {
+      this.model.standardFields.forEach((f) => (f.persistedValue = true));
+      this.model.nonStandardFields.forEach((f) => (f.persistedValue = false));
+    }
+    this.model.onlyThisSite.persistedValue = false;
+  }
+
+  /**
+   * Gets the signed persisted value if set, otherwise undefined.
+   */
+  public get persistedSignedValue(): Preferences {
+    return this._persistedSignedValue;
   }
 }
 
 /**
- * A field used to represent the "this site only" option.
+ * A field used to represent the "this site only" option. The disabled properties is set to true if custom marketing
+ * is selected.
  */
 export class FieldThisSiteOnly extends Field<boolean, Model> {
   /**
-   * When the this site only option is set to false then all the other values need to be reset. This does not apply when
-   * the model is being loaded for the first time.
+   * True if the this site only toggle is disabled and can't be changed because the user has selected custom marketing.
    */
-  protected updateOthers() {
-    if (this.value === false) {
-      this.model.reset();
-    }
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
+  public get disabled(): boolean {
+    return Marketing.equals(this.model.pref.value, Marketing.custom);
   }
 }
 
@@ -180,9 +189,9 @@ export abstract class FieldCustom extends Field<boolean, Model> {
    * Evaluate marketing preference based on the customized values that have been set.
    */
   protected setMarketing() {
-    if (this.allTrue(this.model.personalizedFields)) {
+    if (FieldCustom.allTrue(this.model.personalizedFields)) {
       this.model.pref.value = Marketing.personalized;
-    } else if (this.allTrue(this.model.standardFields)) {
+    } else if (FieldCustom.allTrue(this.model.standardFields)) {
       this.model.pref.value = Marketing.standard;
     } else {
       this.model.pref.value = Marketing.custom;
@@ -190,14 +199,11 @@ export abstract class FieldCustom extends Field<boolean, Model> {
   }
 
   /**
-   * If custom marketing is selected then the preferences are only for this site.
+   * If custom marketing is selected then the preferences are only for this site and the this site only field value
+   * should be changed.
    */
   protected setThisSiteOnly() {
-    if (
-      this.model.onlyThisSiteEnabled &&
-      this.model.onlyThisSite.value === false &&
-      Marketing.equals(this.model.pref.value, Marketing.custom)
-    ) {
+    if (this.model.onlyThisSiteEnabled && Marketing.equals(this.model.pref.value, Marketing.custom)) {
       this.model.onlyThisSite.value = true;
     }
   }
@@ -207,12 +213,8 @@ export abstract class FieldCustom extends Field<boolean, Model> {
    * @param fields
    * @returns
    */
-  protected allTrue(fields: FieldCustom[]): boolean {
-    let value = true;
-    fields.forEach((f) => {
-      value = value && f.value;
-    });
-    return value;
+  protected static allTrue(fields: FieldCustom[]): boolean {
+    return fields.every((f) => f.value === true);
   }
 }
 
@@ -221,10 +223,10 @@ export abstract class FieldCustom extends Field<boolean, Model> {
  */
 export class FieldSingle extends FieldCustom {
   protected updateOthers() {
+    super.updateOthers();
     this.setMarketing();
     this.setThisSiteOnly();
-    this.model.canSave.value = ButtonState.isEnabled(this.model);
-    this.model.all.value = this.allTrue(this.model.customFields);
+    this.model.all.value = FieldSingle.allTrue(this.model.customFields);
   }
 }
 
@@ -232,6 +234,13 @@ export class FieldSingle extends FieldCustom {
  * Field represents a consent purpose that can't be switched off.
  */
 export class FieldSingleAlwaysTrue extends FieldSingle {
+  set disabled(value: boolean) {
+    // Do nothing.
+  }
+  get disabled(): boolean {
+    return true;
+  }
+
   set value(newValue: boolean) {
     // Do nothing.
   }
@@ -241,11 +250,14 @@ export class FieldSingleAlwaysTrue extends FieldSingle {
 }
 
 /**
- * Field represents all the options and quickly turns then from true to false.
+ * Field represents all the options and quickly turns then from true to false. If set to true then the marketing
+ * preference is personalized, if false then custom.
  */
 export class FieldAll extends FieldSingle {
   protected updateOthers() {
     this.model.customFields.forEach((f) => (f.value = this.value));
+
+    // Important the base implementation is called after the custom fields have been changed.
     super.updateOthers();
   }
 }
@@ -264,95 +276,68 @@ export class Model implements IModel {
    */
   public static readonly MaxId = 12;
 
-  // Set to true when model update operations are occurring. Results in the
-  // methods to update other properties being disabled.
-  settingValues = false;
+  /**
+   * Set to true when model update operations are occurring. Results in the methods to update other properties being
+   * disabled. Starts with true until after the constructor has completed.
+   */
+  public settingValues = true;
 
   // The data fields that relate to the data model.
-  rid = new FieldId(this, null, ['paf_browser_id']); // The random id
-  pref = new FieldPreferences(this, Marketing.notSet); // The preferences
-  onlyThisSite = new FieldThisSiteOnly(this, false);
-  onlyThisSiteEnabled: boolean; // True if only this site is enabled.
-  tcf: Map<number, FieldSingle>;
-  all = new FieldAll(this, false);
-  canSave = new FieldSingle(this, false); // True when the model can be saved
-  email: string | null = null; // Not currently used.
-  salt: string | null = null; // Not currently used.
-  status: PafStatus = null; // The status following the last fetch.
+  public rid = new FieldId(this, null, ['paf_browser_id']); // The random id
+  public pref = new FieldPreferences(this, Marketing.notSet); // The preferences
+  public onlyThisSite = new FieldThisSiteOnly(this, false);
+  public onlyThisSiteEnabled = false; // True if only this site is enabled.
+  public tcf: Map<number, FieldSingle>;
+  public all = new FieldAll(this, false);
+  public canSave = new FieldCanSave(this); // True when the model can be saved
+  public email: string | null = null; // Not currently used.
+  public salt: string | null = null; // Not currently used.
+  public status: PafStatus = null; // The status following the last fetch.
 
   /**
    * True if all of the preferences or identifiers have been set from persisted data, otherwise false.
    */
   public get allPersisted(): boolean {
-    return this.pref.persisted !== null && this.rid.persisted;
+    return this.pref.hasPersisted && this.rid.hasPersisted;
   }
 
   /**
-   * True if neither the preferences or the identifiers have been persisted.
+   * Fields that are used internally to relate values to one another.
    */
-  public get nonePersisted(): boolean {
-    return this.pref.persisted === null && this.rid.persisted === false;
-  }
-
-  // Fields that are used internally to relate values to one another.
-  readonly allFields: IField[];
+  readonly allUI: IFieldBind[];
+  readonly allResetable: IFieldChangable[];
   readonly personalizedFields: FieldSingle[];
   readonly standardFields: FieldSingle[];
+  readonly nonStandardFields: FieldSingle[];
   readonly customFields: FieldSingle[];
   readonly changableFields: FieldSingle[];
 
+  /**
+   * Constructs a new instance of the model.
+   */
   constructor() {
     // Add the TCF fields.
     this.tcf = this.BuildTcfFields();
 
     // All the fields. Used for the reset and bind methods.
-    this.allFields = [
-      this.onlyThisSite,
-      this.tcf.get(1),
-      this.tcf.get(2),
-      this.tcf.get(3),
-      this.tcf.get(4),
-      this.tcf.get(5),
-      this.tcf.get(6),
-      this.tcf.get(7),
-      this.tcf.get(8),
-      this.tcf.get(9),
-      this.tcf.get(10),
-      this.tcf.get(11),
-      this.tcf.get(12),
-      this.all,
-      this.canSave,
-      this.rid,
-      this.pref,
-    ];
+    this.allUI = [this.onlyThisSite, this.all, this.rid, this.pref, this.canSave];
+    this.addTcfToArray<IFieldBind>(this.allUI);
+
+    // All the fields that can be reset.
+    this.allResetable = [this.onlyThisSite, this.all, this.rid, this.pref];
+    this.addTcfToArray<IFieldChangable>(this.allResetable);
 
     // All the custom boolean fields that appear in the persisted data.
-    this.customFields = [
-      this.tcf.get(1),
-      this.tcf.get(2),
-      this.tcf.get(3),
-      this.tcf.get(4),
-      this.tcf.get(5),
-      this.tcf.get(6),
-      this.tcf.get(7),
-      this.tcf.get(8),
-      this.tcf.get(9),
-      this.tcf.get(10),
-      this.tcf.get(11),
-      this.tcf.get(12),
-    ];
+    this.customFields = [];
+    this.addTcfToArray(this.customFields);
 
     // The custom fields that are set to true when standard marketing is enabled.
-    this.standardFields = [
-      this.tcf.get(1),
-      this.tcf.get(2),
-      this.tcf.get(3),
-      this.tcf.get(4),
-      this.tcf.get(5),
-      this.tcf.get(6),
-      this.tcf.get(11),
-      this.tcf.get(12),
-    ];
+    this.standardFields = [];
+    this.addTcfToArray(this.standardFields, [1, 2, 3, 4, 5, 6, 11, 12]);
+
+    // The custom fields that are not part of standard marketing.
+    this.nonStandardFields = [];
+    this.addTcfToArray(this.nonStandardFields, [7, 8, 9, 10]);
 
     // The custom fields that can be changed.
     this.changableFields = [];
@@ -364,22 +349,27 @@ export class Model implements IModel {
 
     // The custom fields that are set to true when personalized marketing is enabled.
     this.personalizedFields = this.customFields;
+
+    // Enable normal setting operation.
+    this.settingValues = false;
   }
 
   /**
-   * Calls the bind method on all the fields in the model to connect them to the currently displayed UI.
+   * Refreshes the UI to reflect the current state of the model.
    */
-  public bind() {
-    this.allFields.forEach((f) => f.bind());
+  public updateUI() {
+    this.allUI?.forEach((f) => f.updateUI());
   }
 
   /**
-   * Resets all the fields in the model. Sets the setting values flag to ensure the update others method is not called
-   * because we don't want to change the value of dependent fields during a reset.
+   * Resets all the fields in the model to the default value.
+   * @remarks
+   * Sets the setting values flag to ensure the update others method is not called because we don't want to change the
+   * value of dependent fields during a reset.
    */
   public reset() {
     this.settingValues = true;
-    this.allFields.forEach((f) => f.reset());
+    this.allResetable.forEach((f) => f.reset());
     this.settingValues = false;
   }
 
@@ -393,27 +383,17 @@ export class Model implements IModel {
       if (data.identifiers !== undefined && data.identifiers.length > 0) {
         Validate.Identifiers(data.identifiers);
         this.rid.setPersisted(data.identifiers);
+        this.onlyThisSite.value = false;
       }
       if (data.preferences !== undefined) {
-        this.pref.setPersisted(data.preferences);
+        this.pref.persistedSignedValue = data.preferences;
+        this.onlyThisSite.value = false;
       }
     }
   }
 
   /**
    * Adds the 12 TCF user choice fields.
-   * 1. Select and/or access information on a device
-   * 2. Select basic ads
-   * 3. Apply market research to generate audience insights
-   * 4. Develop & improve products
-   * 5. Ensure security, prevent fraud, and debug
-   * 6. Technically deliver ads or content
-   * 7. Create a personalized ad profile
-   * 8. Select personalized ads
-   * 9. Create a personalized content profile
-   * 10. Select personalized content
-   * 11. Measure ad performance
-   * 12. Measure content performance
    * @returns map of 12 fields.
    */
   private BuildTcfFields() {
@@ -433,22 +413,39 @@ export class Model implements IModel {
     }
     return map;
   }
+
+  /**
+   * Adds TCF fields to an array to simplify the setup code.
+   * @param array that the TCF fields are being added to
+   * @param keys keys for the TCF fields to add to the array, or null if all are to be added
+   */
+  private addTcfToArray<T>(array: T[], keys?: number[]) {
+    if (keys) {
+      keys.forEach((k) => array.push(<T>(<unknown>this.tcf.get(k))));
+    } else {
+      this.tcf.forEach((v) => array.push(<T>(<unknown>v)));
+    }
+  }
 }
 
 /**
  * Static class used to determine if the save button should be enabled.
  */
-class ButtonState {
+class FieldCanSave extends FieldReadOnly<boolean, Model> {
   /**
-   * True if the model is in a state where the data can be saved, otherwise false.
-   * @param model
-   * @returns
+   * True if the model can be saved. This can be as a result of the has changed property being set on a field and the
+   * preference field having been set to a value.
    */
-  static isEnabled(model: Model) {
+  public get value(): boolean {
+    if (this.model.onlyThisSite.value) {
+      return (
+        this.model.onlyThisSiteEnabled &&
+        (this.model.customFields.some((i) => i.hasChanged) || this.model.onlyThisSite.hasChanged)
+      );
+    }
     return (
-      (model.onlyThisSite.value === true && model.onlyThisSiteEnabled === true) ||
-      model.pref.hasChanged === true ||
-      model.rid.persisted === false
+      Marketing.equals(this.model.pref.value, Marketing.notSet) === false &&
+      (this.model.rid.hasChanged || this.model.pref.hasChanged || this.model.onlyThisSite.hasChanged)
     );
   }
 }
