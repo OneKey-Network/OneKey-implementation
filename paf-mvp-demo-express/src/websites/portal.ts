@@ -160,21 +160,6 @@ export const portalWebSiteApp = new VHostApp(name, host);
     new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature(request);
   const responseVerifier = (response: ResponseType) =>
     new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature(response);
-  /*
-  const redirectResponseVerifier = new Verifier(
-    keyStore.provider,
-    new RedirectResponseDefinition(new ResponseDefinition())
-  );
-  const redirectRequestWithoutBodyVerifier = new Verifier(
-    keyStore.provider,
-    new RedirectRequestDefinition(new RequestWithoutBodyDefinition())
-  );
-  const redirectRequestWithBodyVerifier = new Verifier(
-    keyStore.provider,
-    new RedirectRequestDefinition(new RequestWithBodyDefinition())
-  );
-
-   */
 
   const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<boolean> } = {
     identifier: (id: Identifier) => new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature(id),
@@ -186,13 +171,6 @@ export const portalWebSiteApp = new VHostApp(name, host);
     'get-new-id-response': responseVerifier,
     'post-ids-prefs-request': postIdsPrefsRequestVerifier,
     'post-ids-prefs-response': responseVerifier,
-    /*
-    'redirect-get-ids-prefs-request': redirectRequestWithoutBodyVerifier,
-    'redirect-get-ids-prefs-response': redirectResponseVerifier,
-    'redirect-post-ids-prefs-request': redirectRequestWithBodyVerifier,
-    'redirect-post-ids-prefs-response': redirectResponseVerifier,
-
-     */
   };
 
   type Mappings = { [host: string]: { [path: string]: keyof Model } };
