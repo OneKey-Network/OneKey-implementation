@@ -33,6 +33,11 @@ describe('parseConfig', () => {
     'h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==\n' +
     '-----END PUBLIC KEY-----';
 
+  afterAll(() => {
+    // Back to a real filesystem!
+    mock.restore();
+  });
+
   test('should parse valid file', async () => {
     mock({
       'config/': {
