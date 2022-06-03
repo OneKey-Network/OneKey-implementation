@@ -3,6 +3,7 @@ import {
   getIdsAndPreferences,
   getNewId,
   refreshIdsAndPreferences,
+  RefreshResult,
   signPreferences,
 } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
@@ -450,6 +451,23 @@ describe('Function refreshIdsAndPreferences', () => {
           });
 
           expect(replaceMock).toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('when redirect has been deferred', () => {
+      test('should return status "redirect needed"', async () => {
+        CookiesHelpers.setCookies(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
+        CookiesHelpers.setCookies(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
+        CookiesHelpers.mockRefreshTime();
+
+        const result = await refreshIdsAndPreferences({
+          proxyHostName: pafClientNodeHost,
+          triggerRedirectIfNeeded: true,
+        });
+
+        expect(result).toEqual(<RefreshResult>{
+          status: PafStatus.REDIRECT_NEEDED,
         });
       });
     });
