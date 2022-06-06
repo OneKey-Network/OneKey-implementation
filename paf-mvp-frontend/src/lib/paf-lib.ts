@@ -27,6 +27,7 @@ import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 import { setUpImmediateProcessingQueue } from '../utils/queue';
+import {} from '../global';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
