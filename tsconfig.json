@@ -11,6 +11,7 @@
     "target": "ES6",
     "lib": ["esnext", "dom"],
     "noImplicitAny": true,
+    "declaration": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "jsx": "react",
@@ -19,6 +20,7 @@
     "skipLibCheck": true,
     "rootDir": ".",
     "baseUrl": ".",
+    "outDir": ".",
     "types": ["node"],
     "typeRoots": [
       "paf-mvp-core-js/@types",
