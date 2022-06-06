@@ -1,51 +1,53 @@
 import { Request, Response } from 'express';
-import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
+import cors from 'cors';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyStore } from '@core/crypto/key-store';
-import { Log } from '@core/log';
 import {
-  Get3PCResponseBuilder,
-  GetIdsPrefsResponseBuilder,
-  GetNewIdResponseBuilder,
-  PostIdsPrefsResponseBuilder,
-} from '@core/model/operator-response-builders';
-import { RequestVerifier, Verifier } from '@core/crypto/verifier';
-import {
-  IdentifierDefinition,
-  IdsAndPreferencesDefinition,
-  RedirectContext,
-  RequestWithBodyDefinition,
-  RequestWithoutBodyDefinition,
-  RestContext,
-} from '@core/crypto/signing-definition';
-import {
+  addIdentityEndpoint,
+  Config,
   corsOptionsAcceptAll,
   getPafDataFromQueryString,
   getPayload,
   getTopLevelDomain,
   httpRedirect,
+  Identity,
+  Node,
+  parseConfig,
   removeCookie,
   setCookie,
-} from '@core/express/utils';
+  VHostApp,
+} from '@core/express';
 import {
+  IdentifierDefinition,
+  IdsAndPreferencesDefinition,
+  PublicKeyStore,
+  RedirectContext,
+  RequestVerifier,
+  RequestWithBodyDefinition,
+  RequestWithoutBodyDefinition,
+  RestContext,
+  Verifier,
+} from '@core/crypto';
+import { Log } from '@core/log';
+import {
+  Get3PCResponseBuilder,
   GetIdsPrefsRequest,
+  GetIdsPrefsResponseBuilder,
   GetNewIdRequest,
+  GetNewIdResponseBuilder,
+  IdBuilder,
   Identifier,
   Identifiers,
   PostIdsPrefsRequest,
+  PostIdsPrefsResponseBuilder,
   Preferences,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
   Test3Pc,
-} from '@core/model/generated-model';
+} from '@core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
-import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
-import { Node, VHostApp } from '@core/express/express-apps';
-import { Config, parseConfig } from '@core/express/config';
-import { IdBuilder } from '@core/model/id-builder';
 
 /**
  * Expiration: now + 3 months
