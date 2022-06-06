@@ -8,7 +8,8 @@ describe('IdBuilder', () => {
     'j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5\n' +
     '-----END PRIVATE KEY-----\n';
 
-  const idBuilder = new IdBuilder('host.com', privateKey);
+  const mockSigner = { sign: jest.fn(() => 'signature-value') };
+  const idBuilder = new IdBuilder('host.com', privateKey, mockSigner);
 
   test('Signs id', () => {
     const id = idBuilder.signId('1fb0571c-87ec-41c3-9a91-15fd351968ba', 12345);
@@ -20,7 +21,7 @@ describe('IdBuilder', () => {
       source: {
         domain: 'host.com',
         timestamp: 12345,
-        signature: 'lXiXACtrpb5rboU/ofmohCJi3AZ8U/qmJlmM8smO7fb5j95yZkk9C6ypG73p/KFBvgfOyhPfSvQKYX03AKHkyA==',
+        signature: 'signature-value',
       },
     });
   });

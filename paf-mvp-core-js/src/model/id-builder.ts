@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getTimeStampInSec } from '@core/timestamp';
 import { Identifier } from '@core/model/generated-model';
 import { UnsignedSource } from '@core/model/model';
-import { Signer } from '@core/crypto/signer';
+import { Signer, SignerImpl } from '@core/crypto/signer';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { IdentifierDefinition } from '@core/crypto/signing-definition';
 
@@ -10,7 +10,10 @@ export class IdBuilder {
   constructor(
     public host: string,
     privateKey: string,
-    private readonly idSigner = new Signer(privateKeyFromString(privateKey), new IdentifierDefinition())
+    private readonly idSigner: Signer<UnsignedSource<Identifier>> = new SignerImpl(
+      privateKeyFromString(privateKey),
+      new IdentifierDefinition()
+    )
   ) {}
 
   generateNewId(timestamp = getTimeStampInSec()): Identifier {
