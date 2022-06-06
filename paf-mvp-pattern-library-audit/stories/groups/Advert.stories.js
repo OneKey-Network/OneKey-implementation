@@ -15,7 +15,7 @@ export const Advert = (args = {}) => Card({
     ${CardHeader()}
     ${CardBody({
       children: `
-      <div class="ok-ui-advert-wrapper">
+      <div class="ok-ui-advert-wrapper${args.landscape ? ' ok-ui-advert-wrapper--landscape' : ''}">
         ${AdvertImage({
           paused: false,
           width: args.width,
@@ -47,7 +47,7 @@ export const Advert = (args = {}) => Card({
 
 export const SquareAdvert = () => Advert({ width: 600, height: 600 });
 
-export const LeaderboardAdvert = () => Advert({ width: 728, height: 90 });
+export const LeaderboardAdvert = () => Advert({ width: 728, height: 90, landscape: true });
 
 export const AdvertWithPopover = () => `
   ${Advert({

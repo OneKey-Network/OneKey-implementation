@@ -8,20 +8,25 @@ $advert-image-margin: em(16px);
   }
 
   @include tablet-plus {
-    display: flex;
+    &:not(.ok-ui-advert-wrapper--landscape) {
+      display: flex;
 
-    .ok-ui-advert {
-      margin-right: em(40px);
+      .ok-ui-advert {
+        flex: 0 0 em(256px);
+        margin-right: em(40px);
+      }
+    }
+
+    &.ok-ui-advert-wrapper--landscape {
+      .ok-ui-advert {
+        margin-bottom: em(24px);
+      }
     }
   }
 }
 
 .ok-ui-advert {
   text-align: center;
-
-  @include tablet-plus {
-    flex: 0 0 em(256px);
-  }
 }
 
 .ok-ui-advert__image-wrapper {
@@ -38,6 +43,7 @@ $advert-image-margin: em(16px);
   img {
     display: block;
     max-width: 100%;
+    margin: 0 auto;
   }
 }
 
