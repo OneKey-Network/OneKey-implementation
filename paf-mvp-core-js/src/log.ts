@@ -24,35 +24,35 @@ export class Log {
   }
 
   public Debug(...args: unknown[]) {
-    if (Log.level <= LogLevel.Debug) {
+    if (Log.level < LogLevel.Debug) {
       return;
     }
     console.log(...this.decorateLog('DEBUG:', args));
   }
 
   public Message(...args: unknown[]) {
-    if (Log.level <= LogLevel.Message) {
+    if (Log.level < LogLevel.Message) {
       return;
     }
     console.log(...this.decorateLog('MESSAGE:', args));
   }
 
   public Info(...args: unknown[]) {
-    if (Log.level <= LogLevel.Info) {
+    if (Log.level < LogLevel.Info) {
       return;
     }
     console.info(...this.decorateLog('INFO:', args));
   }
 
   public Warn(...args: unknown[]) {
-    if (Log.level <= LogLevel.Warn) {
+    if (Log.level < LogLevel.Warn) {
       return;
     }
     console.warn(...this.decorateLog('WARNING:', args));
   }
 
   public Error(...args: unknown[]) {
-    if (Log.level <= LogLevel.Error) {
+    if (Log.level < LogLevel.Error) {
       return;
     }
     console.error(...this.decorateLog('ERROR:', args));
