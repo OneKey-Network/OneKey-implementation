@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import '@testing-library/jest-dom';
-import { render, fireEvent, RenderResult, cleanup } from '@testing-library/preact';
+import { cleanup, fireEvent, render, RenderResult } from '@testing-library/preact';
 import { OptionsGroup } from '../../src/components/forms/options-group/OptionsGroup';
 import { Option } from '../../src/components/forms/option/Option';
 

@@ -1,8 +1,7 @@
-import { Locale } from './locale';
 import { Config } from './config';
-import { BindingShowRandomId, BindingThisSiteOnly } from './bindings';
+import { BindingShowRandomIdDiv, BindingThisSiteOnly, BindingDisplayRandomId } from './bindings';
 import { Log } from '@core/log';
-import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement, BindingViewOnly } from '@core/ui/binding';
+import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
   getIdsAndPreferences,
@@ -20,6 +19,7 @@ import { View } from './view';
 import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { TcfCore } from './tcfcore';
+import { ILocale } from './ILocale';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -27,9 +27,6 @@ import { TcfCore } from './tcfcore';
 export class Controller {
   // The model the controller is manipulating.
   private readonly model = new Model();
-
-  // The locale that the UI should adopt.
-  private readonly locale: Locale;
 
   // The options provided to the controller.
   private readonly config: Config;
@@ -40,39 +37,56 @@ export class Controller {
   // Timer used to hide the snackbar.
   private countDown: NodeJS.Timer;
 
+  // The locale language data.
+  private readonly locale: ILocale;
+
   private log: Log;
 
   /**
-   * Constructs a new instance of Controller.
+   * Constructs a new instance of Controller displaying the card most appropriate to the current state of the model.
+   * @remarks
+   * If all the data is persisted then show the snackbar.
+   * If none of the data is persisted then show the intro card or the settings depending on configuration.
+   * If some of the data is persisted and others not then show the settings card.
    * @param script element this method is contained within
-   * @param locale the language file to use with the UI
    * @param config the configuration for the controller
+   * @param locale the language text to use with the UI
+   * @param log
    */
-  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config, log: Log) {
-    this.locale = locale;
+  constructor(script: HTMLOrSVGScriptElement, config: Config, locale: ILocale, log: Log) {
     this.config = config;
+    this.locale = locale;
     this.log = log;
     this.view = new View(script, locale, config);
     this.model.onlyThisSiteEnabled = config.siteOnlyEnabled;
     this.mapFieldsToUI(); // Create the relationship between the model fields and the UI elements
     this.load()
-      .then(() => this.display())
+      .then(() => {
+        const card = this.getCard();
+        if (card !== null) {
+          this.display(card);
+        }
+      })
       .catch((e) => log.Error('constructor', e));
   }
 
   /**
-   * Displays the card most appropriate given the current state of the data model.
-   * @remarks
-   * If all the data is persisted then show the snackbar.
-   * If none of the data is persisted then show the intro card or the settings depending on configuration.
-   * If some of the data is persisted and others not then show the settings card.
+   * Set the card based on the template binding the model fields to the UI elements. Uses the locale provided in the
+   * constructor to set the text for the UI. Common tokens in square brackets [] are replaced with the values from the
+   * configuration after the language text has been applied.
+   * @param card the name of the card to display, or null if the default card should be displayed.
    */
-  public display(card?: string) {
-    this.setCard(card ?? this.getCard());
+  public display(card: string) {
+    this.stopSnackbarHide();
+    this.view.hidePopup();
+    this.view.setCard(card);
+    this.model.updateUI();
+    this.bindActions();
+    this.view.showPopup();
   }
 
   /**
-   * Works out given the state of the model the card to display.
+   * Works out given the state of the model the card to display if any.
    * @returns the card to display, or null if no card should be displayed
    */
   private getCard(): string | null {
@@ -82,25 +96,17 @@ export class Controller {
     if (this.model.allPersisted && this.model.status === PafStatus.PARTICIPATING) {
       return 'snackbar';
     }
-    if (this.model.nonePersisted && this.config.displayIntro && this.model.status === PafStatus.REDIRECT_NEEDED) {
+    if (
+      this.model.allPersisted === false &&
+      this.config.displayIntro &&
+      this.model.status === PafStatus.REDIRECT_NEEDED
+    ) {
       return 'intro';
     }
-    return 'settings';
-  }
-
-  /**
-   * Set the card based on the template binding the model fields to the UI elements. Uses the locale provided in the
-   * constructor to set the text for the UI. Common tokens in square brackets [] are replaced with the values from the
-   * configuration after the language text has been applied.
-   * @param card the name of the card to display, or null if the default card should be displayed.
-   */
-  private setCard(card: string) {
-    this.stopSnackbarHide();
-    this.view.hidePopup();
-    this.view.setCard(card);
-    this.model.bind();
-    this.bindActions();
-    this.view.showPopup();
+    if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
+      return 'settings';
+    }
+    return null;
   }
 
   /**
@@ -118,11 +124,11 @@ export class Controller {
       new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-display-marketing',
-        new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(this.locale.customizePersonalized)],
-          [Marketing.standard, this.config.replace(this.locale.customizeStandard)],
-          [Marketing.custom, this.config.replace(this.locale.customizeCustomized)],
-          [Marketing.notSet, this.config.replace(this.locale.customizeCustomized)],
+        this.buildMap([
+          <string>this.locale.customizePersonalized,
+          <string>this.locale.customizeStandard,
+          <string>this.locale.customizeCustomized,
+          <string>this.locale.customizeCustomized,
         ])
       )
     );
@@ -130,11 +136,11 @@ export class Controller {
       new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-snackbar-heading',
-        new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(this.locale.snackbarHeadingPersonalized)],
-          [Marketing.standard, this.config.replace(this.locale.snackbarHeadingStandard)],
-          [Marketing.custom, this.config.replace(this.locale.snackbarHeadingCustomized)],
-          [Marketing.notSet, this.config.replace(this.locale.snackbarHeadingCustomized)],
+        this.buildMap([
+          <string>this.locale.snackbarHeadingPersonalized,
+          <string>this.locale.snackbarHeadingStandard,
+          <string>this.locale.snackbarHeadingCustomized,
+          <string>this.locale.snackbarHeadingCustomized,
         ])
       )
     );
@@ -142,15 +148,16 @@ export class Controller {
       new BindingElement<PreferencesData, Model>(
         this.view,
         'ok-ui-snackbar-body',
-        new Map<PreferencesData, string>([
-          [Marketing.personalized, this.config.replace(this.locale.snackbarBodyPersonalized)],
-          [Marketing.standard, this.config.replace(this.locale.snackbarBodyStandard)],
-          [Marketing.custom, this.config.replace(this.locale.snackbarBodyCustomized)],
-          [Marketing.notSet, this.config.replace(this.locale.snackbarBodyCustomized)],
+        this.buildMap([
+          <string>this.locale.snackbarBodyPersonalized,
+          <string>this.locale.snackbarBodyStandard,
+          <string>this.locale.snackbarBodyCustomized,
+          <string>this.locale.snackbarBodyCustomized,
         ])
       )
     );
-    this.model.pref.addBinding(new BindingShowRandomId(this.view, 'ok-ui-settings-rid', this.model));
+    this.model.pref.addBinding(new BindingShowRandomIdDiv(this.view, 'ok-ui-settings-rid', this.model));
+    this.model.onlyThisSite.addBinding(new BindingShowRandomIdDiv(this.view, 'ok-ui-settings-rid', this.model));
     this.model.onlyThisSite.addBinding(new BindingChecked(this.view, 'ok-ui-only-this-site'));
     this.model.onlyThisSite.addBinding(
       new BindingThisSiteOnly(this.view, 'ok-ui-only-this-site-container', this.config)
@@ -161,6 +168,20 @@ export class Controller {
     this.model.all.addBinding(new BindingChecked(this.view, 'ok-ui-preference-all'));
     this.model.canSave.addBinding(new BindingButton(this.view, 'ok-ui-button-save'));
     this.model.rid.addBinding(new BindingDisplayRandomId(this.view, 'ok-ui-display-rid'));
+  }
+
+  /**
+   * Builds a map of marketing preferences to UI text.
+   * @param text array of four text values
+   * @returns
+   */
+  private buildMap(text: string[]): Map<PreferencesData, string> {
+    return new Map<PreferencesData, string>([
+      [Marketing.personalized, this.config.replace(text[0])],
+      [Marketing.standard, this.config.replace(text[1])],
+      [Marketing.custom, this.config.replace(text[2])],
+      [Marketing.notSet, this.config.replace(text[3])],
+    ]);
   }
 
   /**
@@ -192,11 +213,13 @@ export class Controller {
    * @returns true if the data is valid, otherwise false
    */
   private async getIdsAndPreferencesFromGlobal(triggerRedirectIfNeeded: boolean) {
-    // TODO: These values are used by the refresh method. Remove them to force processing a redirect if needed and
-    // allowed.
-    removeCookie(Cookies.identifiers);
-    removeCookie(Cookies.preferences);
-    removeCookie(Cookies.lastRefresh);
+    // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't and the
+    // paf_last_refresh cookie is present. Deleting the paf_last_refresh cookie will resolve the data issue, but as
+    // that is not practical for those demoing the CMP this work around just sets the redirect needed status to
+    // force the expected downstream behavior and removes the cookies.
+    if (triggerRedirectIfNeeded) {
+      removeCookie(Cookies.lastRefresh);
+    }
 
     const r = await refreshIdsAndPreferences({
       proxyHostName: this.config.proxyHostName,
@@ -205,15 +228,20 @@ export class Controller {
     });
     this.log.Message('global data', r);
     this.model.status = r.status;
-    if (r.data !== null) {
-      // TODO: The data returned does not match the interface and should really include a status value to avoid this
-      // try catch block.
+
+    // Only process the response if a redirect is not needed and there is data present.
+    if (r.status !== PafStatus.REDIRECT_NEEDED && r.data) {
+      // TODO: The data returned does not always match the interface and should really include a status value to avoid
+      // this try catch block.
       try {
         this.setPersistedFlag(r.data.identifiers);
         this.model.setFromIdsAndPreferences(r.data);
         return true;
       } catch (ex) {
         this.log.Warn('Problem parsing global ids and preferences', ex);
+
+        // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't.
+        this.model.status = PafStatus.REDIRECT_NEEDED;
       }
     }
     return false;
@@ -269,10 +297,10 @@ export class Controller {
     for (let i = 0; i <= flags.length; i++) {
       const field = this.model.tcf.get(i + 1);
       if (field !== undefined) {
-        field.value = flags[i];
+        field.persistedValue = flags[i];
       }
     }
-    this.model.onlyThisSite.value = true;
+    this.model.onlyThisSite.persistedValue = true;
     this.model.status = PafStatus.NOT_PARTICIPATING;
     this.model.rid.value = null;
   }
@@ -315,7 +343,7 @@ export class Controller {
       const card = element.getAttribute('data-card');
       if (card !== null) {
         element.addEventListener(event, (e) => {
-          this.setCard(card);
+          this.display(card);
           e.preventDefault();
         });
       }
@@ -419,7 +447,7 @@ export class Controller {
 
     // Sign the preferences if they have not been signed already.
     const p = await this.signIfNeeded();
-    this.model.pref.setPersisted(p);
+    this.model.pref.persistedSignedValue = p;
 
     // Write the Ids and preferences to storage.
     const w = await this.writeIdsAndPrefGlobal();
@@ -477,11 +505,9 @@ export class Controller {
     */
 
     // Update the ids and preferences.
-    await updateIdsAndPreferences(
-      this.config.proxyHostName,
-      this.model.pref.persisted.data.use_browsing_for_personalization,
-      [this.model.rid.value]
-    );
+    await updateIdsAndPreferences(this.config.proxyHostName, this.model.pref.value.use_browsing_for_personalization, [
+      this.model.rid.value,
+    ]);
 
     // Refresh the ids and preferences.
     const r = await refreshIdsAndPreferences({
@@ -498,14 +524,10 @@ export class Controller {
    * @returns a new random identifier from the Operator
    */
   private getNewIdIfNeeded(): Promise<Identifier> {
-    if (
-      this.model.rid.value === null ||
-      this.model.rid.value.source === null ||
-      this.model.rid.value.source.signature === null
-    ) {
-      return this.resetId();
+    if (this.model.rid.value?.source?.signature) {
+      return Promise.resolve<Identifier>(this.model.rid.value);
     }
-    return Promise.resolve<Identifier>(this.model.rid.value);
+    return this.resetId();
   }
 
   /**
@@ -535,32 +557,6 @@ export class Controller {
         }
       );
     }
-    return Promise.resolve<Preferences>(this.model.pref.persisted);
-  }
-}
-
-/**
- * Custom UI binding to display the random identifier in the button used to reset it.
- */
-class BindingDisplayRandomId extends BindingViewOnly<Identifier, Model, HTMLSpanElement> {
-  /**
-   * Adds the identifier text to the bound elements inner text.
-   * @param value of the identifier
-   */
-  public setValue(value: Identifier) {
-    const element = super.getElement();
-    if (element !== null) {
-      if (value !== null && value.value !== null) {
-        element.innerText = value.value.substring(0, 6);
-      } else {
-        element.innerText = '';
-      }
-    }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
+    return Promise.resolve<Preferences>(this.model.pref.persistedSignedValue);
   }
 }

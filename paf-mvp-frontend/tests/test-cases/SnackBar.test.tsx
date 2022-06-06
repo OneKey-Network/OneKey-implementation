@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import '@testing-library/jest-dom';
-import { render, fireEvent, RenderResult, cleanup } from '@testing-library/preact';
+import { cleanup, fireEvent, render, RenderResult } from '@testing-library/preact';
 import { SnackBar } from '../../src/components/snack-bar/SnackBar';
 
 describe('SnackBar component', () => {

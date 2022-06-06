@@ -2,9 +2,6 @@
  * Resources used by the controller for HTML views and CSS.
  * TODO: fix the warning associated with can't find module or type.
  */
-import logoSvg from './images/OneKey.svg';
-import logoCenterSvg from './images/OneKeyCenter.svg';
-import tooltipsJs from './scripts/tooltips.js';
 import css from './css/ok-ui.css';
 import introTemplate from './html/cards/intro.html';
 import aboutTemplate from './html/cards/about.html';
@@ -13,9 +10,10 @@ import customizeTemplate from './html/cards/customize.html';
 import itemTemplate from './html/components/customize.html';
 import snackbarTemplate from './html/cards/snackbar.html';
 import popupTemplate from './html/containers/popup.html';
-import { Locale } from './locale';
 import { Config } from './config';
 import { IView } from '@core/ui/binding';
+import { ILocale } from './ILocale';
+import { Tooltip } from './tooltip';
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -34,7 +32,7 @@ export class View implements IView {
   private outerContainer: HTMLElement = null;
 
   // The locale that the UI should adopt.
-  private readonly locale: Locale;
+  private readonly locale: ILocale;
 
   // The options provided to the controller.
   private readonly config: Config;
@@ -42,17 +40,13 @@ export class View implements IView {
   /**
    * Constructs a new instance of View
    * @param script element this method is contained within
-   * @param locale the language file to use with the UI
+   * @param locale the language text to use with the UI
    * @param config the configuration for the controller
    */
-  constructor(script: HTMLOrSVGScriptElement, locale: Locale, config: Config) {
+  constructor(script: HTMLOrSVGScriptElement, locale: ILocale, config: Config) {
     this.script = script;
     this.config = config;
     this.locale = locale;
-
-    // Setup the locale with the text and images to use.
-    this.locale.Logo = logoSvg;
-    this.locale.LogoCenter = logoCenterSvg;
   }
 
   /**
@@ -118,14 +112,18 @@ export class View implements IView {
       html = template(this.locale);
     }
     this.getCardContainer().innerHTML = this.config.replace(html);
+
+    // Bind the tooltips to any tooltip controls in the new cards added.
+    Tooltip.bind(this.root);
+
     this.currentCard = card;
   }
 
   /**
-   * Adds all the HTML for the customize items to the current locale.
+   * Adds all the HTML for the customize items to customizeHtml property.
    */
   private setLocaleCustomizeHtml() {
-    if (this.locale.customizeHtml === null) {
+    if (this.locale.customizeHtml === undefined) {
       const length = Math.min(this.locale.customizeLabels.length, this.locale.customizeTips.length);
       let items = '';
       for (let i = 0; i < length; i++) {
@@ -215,11 +213,6 @@ export class View implements IView {
     // TODO: Fix CSS include to remove the magic character at the beginning of the CSS file.
     style.innerHTML = (<string>css).trim();
 
-    // Add a new javascript element for the tooltips.
-    const tooltipsScript = <HTMLScriptElement>document.createElement('script');
-    tooltipsScript.type = 'text/javascript';
-    tooltipsScript.innerHTML = tooltipsJs;
-
     // Create the new container with the templates.
     this.cardContainer = document.createElement('div');
     this.cardContainer.className = 'ok-ui';
@@ -227,7 +220,6 @@ export class View implements IView {
     // Append the style, tooltips, and container with a shadow root for encapsulation.
     this.root = this.outerContainer.attachShadow({ mode: 'closed' });
     this.root.appendChild(style);
-    this.root.appendChild(tooltipsScript);
     this.root.appendChild(this.cardContainer);
   }
 }

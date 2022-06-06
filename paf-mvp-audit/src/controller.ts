@@ -5,7 +5,7 @@ import { Model } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@core/ui/binding';
 import providerComponent from './html/components/provider.html';
-import iconTick from './images/iconTick.svg';
+import iconTick from './images/IconTick.svg';
 
 // TODO: Add back when full audit information is available.
 // import iconCross from './images/iconCross.svg';
@@ -101,7 +101,7 @@ export class Controller {
         break;
       case 'audit':
         this.view.display('audit');
-        this.model.bind();
+        this.model.updateUI();
         this.bindActions();
         break;
       case 'close':
@@ -131,24 +131,18 @@ class BindingProviders extends BindingViewOnly<TransmissionResult, Model, HTMLDi
 
   /**
    * Adds the transmission provider's text to the bound element.
-   * @param audit of the audit log
    */
-  public setValue(result: TransmissionResult) {
-    const container = super.getElement();
-    if (container !== null) {
+  public refresh(): HTMLDivElement {
+    const element = super.getElement();
+    if (element !== null) {
       const item = <HTMLParagraphElement>document.createElement('div');
       item.className = 'ok-ui-provider';
       item.innerHTML = providerComponent({
         ResultSVG: iconTick,
-        Name: result.source.domain,
+        Name: this.field.value.source.domain,
       });
-      container.appendChild(item);
+      element.appendChild(item);
     }
-  }
-
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
+    return element;
   }
 }

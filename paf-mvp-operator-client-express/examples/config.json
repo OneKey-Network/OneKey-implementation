@@ -1,0 +1,16 @@
+{
+  "identity": {
+    "name": "Example Website",
+    "dpoEmailAddress": "dpo@examples-website.com",
+    "privacyPolicyUrl": "https://www.example-website/privacy",
+    "keyPairs": [
+      {
+        "startDateTimeISOString": "2022-01-01T12:00:00.000Z",
+        "privateKeyPath": "private-key.pem",
+        "publicKeyPath": "public-key.pem"
+      }
+    ]
+  },
+  "host": "cmp.pafdemopublisher.com",
+  "operatorHost": "crto-poc-1.onekey.network"
+}

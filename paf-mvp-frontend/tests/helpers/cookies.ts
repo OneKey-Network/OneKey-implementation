@@ -1,5 +1,5 @@
 import { Cookies } from '@core/cookies';
-import { Identifiers, Preferences, IdsAndPreferences, Identifier } from '@core/model/generated-model';
+import { Identifier, Identifiers, IdsAndPreferences, Preferences } from '@core/model/generated-model';
 
 const timestamp = Date.now();
 
@@ -20,16 +20,15 @@ export const getFakeIdentifier = (fakeId: string, type = 'paf_browser_id'): Iden
   type: type as 'paf_browser_id',
   value: fakeId,
   source: {
-    domain: 'crto-poc-1.onekey.network',
+    domain: 'crto-poc-1-operator',
     timestamp,
     signature: 'cAudj1JsA2IqrOx8bt/1wiijLiAnsbALw+8c0h6Z8YrOIp/jsJoa5QHfvi+SL6wcorwwZifvfj0j0ERY3baiSg==',
   },
 });
 
-export const getFakeIdentifiers = (
-  fakeId = '0c7966db-9e6a-4060-be81-824a9ce671d3',
-  type = 'paf_browser_id'
-): Identifiers => [getFakeIdentifier(fakeId)];
+export const getFakeIdentifiers = (fakeId = '0c7966db-9e6a-4060-be81-824a9ce671d3'): Identifiers => [
+  getFakeIdentifier(fakeId),
+];
 
 export class CookiesHelpers {
   static clearPafCookies() {

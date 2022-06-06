@@ -13,20 +13,20 @@ flowchart TB
 
     Demo("Demo Project")
     style Demo fill:#f5f5f5,stroke:#d2d2d2,stroke-width:2px
-    click Demo "../paf-mvp-demo-express" "paf-mvp-demo-express"
+    click Demo "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-demo-express" "paf-mvp-demo-express"
     
     Core("Core Javascript")
-    click Core "../paf-mvp-core-js" "paf-mvp-core-js"
+    click Core "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-core-js" "paf-mvp-core-js"
     
     Frontend("Frontend library & widget<br>(you are here)")
     style Frontend fill:#ff9a36,stroke:#333,stroke-width:2px
-    click Frontend "../paf-mvp-frontend" "paf-mvp-frontend"
+    click Frontend "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-frontend" "paf-mvp-frontend"
     
     Operator("Operator API")
-    click Operator "../paf-mvp-operator-express" "paf-mvp-operator-express"
+    click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client("Operator client")
-    click Client "../paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
     
     Demo --> Frontend
     linkStyle 0 stroke:#d2d2d2,stroke-width:1px
@@ -43,7 +43,7 @@ flowchart TB
 
 ```
 
-See [addressable-network-proposals](https://github.com/criteo/addressable-network-proposals/tree/main/mvp-spec/operator-client.md)
+See [addressable-network-proposals](https://github.com/prebid/addressability-framework/blob/main/mvp-spec/paf-client-node.md)
 for more context on the operator **frontend** and **backend** clients and the operator **proxy**
 
 ## Identification library integration
@@ -82,10 +82,10 @@ Example usage:
   - write (persist) new preferences and ids to the PAF TLD+1 domain
 
 - `PAF.getNewId`
-  - calls the operator (via the operator proxy) to get a new PAF ID value
+  - calls the operator (via the PAF client node) to get a new PAF ID value
   - note that this id is **not** yet persisted: to persist it, a subsequent call to `PAF.writeIdsAndPref` must be made
 
-All these methods take at least a `proxyHostName` parameter to locate the operator backend proxy
+All these methods take at least a `proxyHostName` parameter to locate the PAF client node
 needed to sign and verify messages sent to and received from the operator.
 
 - `PAF.getIdsAndPreferences`

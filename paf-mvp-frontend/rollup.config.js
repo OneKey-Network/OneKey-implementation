@@ -3,14 +3,14 @@ import { defineConfig } from 'rollup';
 import image from '@rollup/plugin-image';
 import alias from '@rollup/plugin-alias';
 import replace from '@rollup/plugin-replace';
-import commonjs from "@rollup/plugin-commonjs";
+import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
-import nodeResolve from "@rollup/plugin-node-resolve";
+import nodeResolve from '@rollup/plugin-node-resolve';
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
 import preact from 'rollup-plugin-preact';
 import styles from 'rollup-plugin-styles';
-import {terser} from 'rollup-plugin-terser';
+import { terser } from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 
 const DEV = process.env.ROLLUP_WATCH;
@@ -27,12 +27,13 @@ export default [
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
       name: 'PAF',
-      sourcemap: DEV
+      sourcemap: DEV !== undefined
     },
     treeshake: 'smallest', // remove unused code
     plugins: [
       typescript({
-        tsconfig: relative('../tsconfig.json')
+        tsconfig: relative('../tsconfig.json'),
+        sourceMap: DEV !== undefined,
       }),
       commonjs(),
       nodeResolve(),
@@ -53,7 +54,7 @@ export default [
       file: getDestFolder(`/app.bundle.js`),
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
-      sourcemap: DEV,
+      sourcemap: DEV !== undefined,
     },
     treeshake: 'recommended', // remove unused code
     plugins: [ // a list of plugins we apply to the source code
@@ -86,7 +87,8 @@ export default [
         resolvePreactCompat: true,
       }),
       typescript({
-          tsconfig: relative('../tsconfig.json')
+          tsconfig: relative('../tsconfig.json'),
+          sourceMap: DEV !== undefined,
         }
       ), // compile typescript => js
       ...(() => {

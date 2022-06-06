@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/jest",
+            "args": [], // Add specific tests to debug with "-t" "TEST_NAME"
+            "cwd": "${workspaceRoot}",
+        },
+        {
             "name": "Start",
             "type": "node-terminal",
             "request": "launch",

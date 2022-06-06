@@ -1,14 +1,14 @@
-import { fromIdentityResponse, KeyInfo } from './identity';
-import { PublicKey, publicKeyFromString } from './keys';
+import { fromIdentityResponse, PublicKeyInfo } from './identity';
+import { isValidKey, PublicKey, publicKeyFromString } from './keys';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export type PublicKeyInfo = KeyInfo & { publicKeyObj: PublicKey };
+export type PublicKeyWithObject = PublicKeyInfo & { publicKeyObj: PublicKey };
 
 export class PublicKeyStore {
-  protected cache: { [domain: string]: PublicKeyInfo } = {};
+  protected cache: { [domain: string]: PublicKeyWithObject } = {};
 
   constructor(
     s2sOptions?: AxiosRequestConfig,
@@ -16,7 +16,7 @@ export class PublicKeyStore {
     protected timestampProvider: () => Timestamp = getTimeStampInSec
   ) {}
 
-  async getPublicKey(domain: string): Promise<PublicKeyInfo> {
+  async getPublicKey(domain: string): Promise<PublicKeyWithObject> {
     const nowTimestampSeconds = this.timestampProvider();
 
     const existingKey = this.cache[domain];
@@ -44,9 +44,7 @@ export class PublicKeyStore {
 
     const responseData = response.data as GetIdentityResponse;
 
-    const filtered = responseData.keys.filter(
-      (key) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end)
-    ); // valid keys
+    const filtered = responseData.keys.filter((key) => isValidKey(key, nowTimestampSeconds)); // valid keys
     const sorted = filtered.sort((a, b) => b.end - a.end); // order by the one that ends furthest from now
     const currentKey = sorted[0]; // take the first one (the one that ends as far as possible from now)
 

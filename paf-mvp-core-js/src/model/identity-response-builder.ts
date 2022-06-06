@@ -1,4 +1,4 @@
-import { KeyInfo } from '@core/crypto/identity';
+import { PublicKeyInfo } from '@core/crypto/identity';
 import { GetIdentityResponse } from '@core/model/generated-model';
 
 export class GetIdentityResponseBuilder {
@@ -9,12 +9,12 @@ export class GetIdentityResponseBuilder {
     protected privacyPolicyUrl: URL
   ) {}
 
-  buildResponse(keys: KeyInfo[]): GetIdentityResponse {
+  buildResponse(keys: PublicKeyInfo[]): GetIdentityResponse {
     return {
       dpo_email: this.dpoEmailAddress,
       privacy_policy_url: this.privacyPolicyUrl.toString(),
       name: this.name,
-      keys: keys.map(({ startTimestampInSec, endTimestampInSec, publicKey }: KeyInfo) => ({
+      keys: keys.map(({ startTimestampInSec, endTimestampInSec, publicKey }: PublicKeyInfo) => ({
         key: publicKey,
         start: startTimestampInSec,
         end: endTimestampInSec,

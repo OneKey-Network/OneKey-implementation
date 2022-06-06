@@ -1,0 +1,44 @@
+{
+  "identity": {
+    "name": "Some PAF operator",
+    "dpoEmailAddress": "contact@crto-poc-1.onekey.network",
+    "privacyPolicyUrl": "https://crto-poc-1.onekey.network/privacy",
+    "keyPairs": [
+      {
+        "startDateTimeISOString": "2022-01-01T10:50:00.000Z",
+        "endDateTimeISOString": "2022-12-31T12:00:00.000Z",
+        "privateKeyPath": "private-key.pem",
+        "publicKeyPath": "public-key.pem"
+      }
+    ]
+  },
+  "host": "crto-poc-1.onekey.network",
+  "allowedHosts": {
+    "cmp.pafdemopublisher.com": [
+      "READ",
+      "WRITE"
+    ],
+    "cmp.pifdemopublisher.com": [
+      "READ",
+      "WRITE"
+    ],
+    "cmp.pofdemopublisher.com": [
+      "READ",
+      "WRITE"
+    ],
+    "paf.pafmarket.shop": [
+      "READ",
+      "WRITE"
+    ],
+    "paf.pifmarket.shop": [
+      "READ",
+      "WRITE"
+    ],
+    "paf.pofmarket.shop": [
+        "READ", "WRITE"
+      ],
+      "portal.onekey.network": [
+        "READ", "WRITE"
+      ]
+    }
+  }

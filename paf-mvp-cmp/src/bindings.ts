@@ -1,7 +1,7 @@
 import { Config } from './config';
 import { BindingViewOnly } from '@core/ui/binding';
-import { PreferencesData } from '@core/model/generated-model';
-import { Model } from './model';
+import { Identifier, PreferencesData } from '@core/model/generated-model';
+import { Marketing, Model } from './model';
 import { View } from './view';
 
 /**
@@ -15,23 +15,19 @@ export class BindingThisSiteOnly extends BindingViewOnly<boolean, Model, HTMLDiv
     this.enabled = config.siteOnlyEnabled;
   }
 
-  public bind(): void {
-    const element = this.getElement();
+  refresh(): HTMLDivElement {
+    const element = super.getElement();
     if (element !== null) {
       element.style.display = this.enabled ? '' : 'none';
     }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setValue(value: boolean): void {
-    // Do nothing.
+    return element;
   }
 }
 
 /**
- * Custom UI binding to hide or show the area that displays the random identifier if preferences have been set.
+ * Custom UI binding to hide or show the div that displays the random identifier if preferences have been set.
  */
-export class BindingShowRandomId extends BindingViewOnly<PreferencesData, Model, HTMLDivElement> {
+export class BindingShowRandomIdDiv extends BindingViewOnly<PreferencesData, Model, HTMLDivElement> {
   protected readonly model: Model;
 
   constructor(view: View, id: string, model: Model) {
@@ -39,21 +35,40 @@ export class BindingShowRandomId extends BindingViewOnly<PreferencesData, Model,
     this.model = model;
   }
 
-  public bind(): void {
-    if (this.field !== null) {
-      this.setValue(this.field.value);
-    }
-  }
-
   /**
-   * If the preferences are persisted then show the identifier.
-   * @param value of the identifier being displayed
+   * If the this site only check field is true, or marketing preferences are not standard or personalized then don't
+   * display the random id.
    */
-  public setValue(value: PreferencesData) {
+  public refresh(): HTMLDivElement {
     const element = super.getElement();
     if (element !== null) {
-      const visible = value !== null && this.model.rid?.value?.value !== undefined;
-      element.style.display = visible ? '' : 'none';
+      element.style.display =
+        this.model.onlyThisSite.value === false &&
+        (Marketing.equals(this.model.pref.value, Marketing.standard) ||
+          Marketing.equals(this.model.pref.value, Marketing.personalized))
+          ? ''
+          : 'none';
     }
+    return element;
+  }
+}
+
+/**
+ * Custom UI binding to display the random identifier in the button used to reset it.
+ */
+export class BindingDisplayRandomId extends BindingViewOnly<Identifier, Model, HTMLSpanElement> {
+  /**
+   * Adds the identifier text to the bound elements inner text.
+   */
+  public refresh(): HTMLSpanElement {
+    const element = super.getElement();
+    if (element !== null) {
+      if (this.field.value) {
+        element.innerText = this.field.value.value.substring(0, 6);
+      } else {
+        element.innerText = '';
+      }
+    }
+    return element;
   }
 }
