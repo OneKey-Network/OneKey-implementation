@@ -1,9 +1,9 @@
 // Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
 export class Log {
-  public static enable = !this.isInTestEnvironment();
+  public static enable = !this.isInJestEnvironment();
 
-  private static isInTestEnvironment(): boolean {
-    return process.env.JEST_WORKER_ID !== undefined;
+  private static isInJestEnvironment(): boolean {
+    return typeof process === 'object' && process.env !== undefined && process.env.JEST_WORKER_ID !== undefined;
   }
 
   private readonly id: string;
