@@ -24,6 +24,8 @@ describe('IdBuilder', () => {
         signature: 'signature-value',
       },
     });
+
+    expect(mockSigner.sign).toHaveBeenCalledTimes(1);
   });
 
   test('Generates different ids', () => {
