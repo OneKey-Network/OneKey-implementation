@@ -29,7 +29,6 @@ import {
   GetNewIdRequestBuilder,
   PostIdsPrefsRequestBuilder,
 } from '@core/model/operator-request-builders';
-import { OperatorApi } from '@operator/operator-api';
 import {
   Get3PCResponseBuilder,
   GetIdsPrefsResponseBuilder,
@@ -49,6 +48,7 @@ import { GetIdentityResponseBuilder } from '@core/model/identity-response-builde
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { parseConfig } from '@core/express/config';
+import { IdBuilder } from '@core/model/id-builder';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET', url: URL): string =>
@@ -180,7 +180,7 @@ class Examples {
     const clientNodePrivateKey = clientNodeConfig.currentPrivateKey;
 
     const keyStore = new PublicKeyStore();
-    const operatorAPI = new OperatorApi(crtoOneOperatorConfig.host, operatorPrivateKey, keyStore);
+    const idBuilder = new IdBuilder(crtoOneOperatorConfig.host, operatorPrivateKey);
     const originalAdvertiserUrl = new URL(
       `https://${advertiserHost}/news/2022/02/07/something-crazy-happened?utm_content=campaign%20content`
     );
@@ -188,11 +188,11 @@ class Examples {
     // **************************** Main data
     this.setObject('unpersistedIdJson', {
       persisted: false,
-      ...operatorAPI.signId('2e71121a-4feb-4a34-b7d1-839587d36390', getTimestamp('2022/01/24 17:19')),
+      ...idBuilder.signId('2e71121a-4feb-4a34-b7d1-839587d36390', getTimestamp('2022/01/24 17:19')),
     });
     this.setObject(
       'idJson',
-      operatorAPI.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
+      idBuilder.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
     );
 
     const cmpClient = new OperatorClient(crtoOneOperatorConfig.host, publisherHost, clientNodePrivateKey, keyStore);
