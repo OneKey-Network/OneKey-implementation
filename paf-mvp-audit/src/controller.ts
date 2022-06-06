@@ -1,14 +1,9 @@
 import { Locale } from './locale';
-import { AuditLog, TransmissionResult } from '@core/model/generated-model';
+import { AuditLog, GetIdentityResponse } from '@core/model/generated-model';
 import { Log } from '@core/log';
-import { Model } from './model';
+import { Model, TransmissionResultNode } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@core/ui/binding';
-import providerComponent from './html/components/provider.html';
-import iconTick from './images/IconTick.svg';
-
-// TODO: Add back when full audit information is available.
-// import iconCross from './images/iconCross.svg';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -121,11 +116,14 @@ export class Controller {
 /**
  * Custom UI binding to display the providers from the audit log.
  */
-class BindingProviders extends BindingViewOnly<TransmissionResult, Model, HTMLDivElement> {
+class BindingProviders extends BindingViewOnly<TransmissionResultNode, Model, HTMLDivElement> {
   private readonly locale: Locale;
+
+  private readonly auditView: View;
 
   constructor(view: View, id: string, locale: Locale) {
     super(view, id);
+    this.auditView = view;
     this.locale = locale;
   }
 
@@ -135,14 +133,36 @@ class BindingProviders extends BindingViewOnly<TransmissionResult, Model, HTMLDi
   public refresh(): HTMLDivElement {
     const element = super.getElement();
     if (element !== null) {
-      const item = <HTMLParagraphElement>document.createElement('div');
-      item.className = 'ok-ui-provider';
-      item.innerHTML = providerComponent({
-        ResultSVG: iconTick,
-        Name: this.field.value.source.domain,
-      });
-      element.appendChild(item);
+      this.field.value
+        .getIdentity()
+        .then((i) => {
+          this.auditView.addOkResponse(element, {
+            ...i,
+            complaint_email_url: this.buildEmailUrl(this.field.value, i),
+          });
+        })
+        .catch((e) => {
+          console.error(e);
+          this.auditView.addNoResponse(element, {
+            name: this.field.value.result.source.domain,
+          });
+        });
     }
     return element;
+  }
+
+  private buildEmailUrl(node: TransmissionResultNode, i: GetIdentityResponse): string {
+    const body = encodeURIComponent(
+      this.locale.emailBodyText
+        .replace('[Name]', i.name)
+        .replace('[TimeStamp]', new Date(node.result.source.timestamp).toUTCString())
+        .replace('[PrivacyURL]', i.privacy_policy_url)
+        // TODO add preferences to the model
+        .replace('[Preferences]', 'TODO add preferences')
+        .replace('[Proof]', JSON.stringify(node.result))
+        .trim()
+    );
+    const subject = encodeURIComponent(this.locale.emailSubject);
+    return `mailto:${i.dpo_email}?subject=${subject}&body=${body}`;
   }
 }

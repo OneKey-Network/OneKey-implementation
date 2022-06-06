@@ -7,6 +7,10 @@ export class Values {
   auditBody: string[];
   auditFooter = 'NOT SET';
 
+  // Email text
+  emailSubject: string;
+  emailBody: string[];
+
   // Button text
   download = 'NOT SET';
   cancel = 'NOT SET';
@@ -14,6 +18,7 @@ export class Values {
 
 export class Locale extends Values {
   public readonly auditBodyHTML: string;
+  public readonly emailBodyText: string;
 
   /**
    * Logo to use with the templates.
@@ -31,10 +36,17 @@ export class Locale extends Values {
 
     // Extract the arrays into paragraph HTML element strings.
     this.auditBodyHTML = this.toHtml(this.auditBody);
+
+    // Extract the email array to a single text string.
+    this.emailBodyText = this.toText(this.emailBody);
   }
 
   private toHtml(list: string[]): string {
     return `<p>${list.join('</p><p>')}</p>`;
+  }
+
+  private toText(list: string[]): string {
+    return list.join('\r\n');
   }
 
   private getLocale(locales: readonly string[]): Values {

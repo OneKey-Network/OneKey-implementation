@@ -1,6 +1,5 @@
 /**
  * Resources used by the controller for HTML views and CSS.
- * TODO: fix the warning associated with can't find module or type.
  */
 import logoSvg from './images/OneKey.svg';
 import css from './css/ok-ui.css';
@@ -9,6 +8,8 @@ import buttonTemplate from './html/components/button.html';
 import { Locale } from './locale';
 import { IView } from '@core/ui/binding';
 import { Log } from '@core/log';
+import okResponse from './html/components/okResponse.html';
+import noResponse from './html/components/noresponse.html';
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -48,6 +49,24 @@ export class View implements IView {
    */
   public display(card: string) {
     this.setContainerCard(card);
+  }
+
+  /**
+   * Adds the good data to the view.
+   * @param element that the component should be added to
+   * @param data data to be displayed by the component
+   */
+  public addOkResponse(element: HTMLDivElement, data: unknown) {
+    View.addComponent(element, okResponse, data);
+  }
+
+  /**
+   * Adds the no response data to the view.
+   * @param element that the component should be added to
+   * @param data data to be displayed by the component
+   */
+  public addNoResponse(element: HTMLDivElement, data: unknown) {
+    View.addComponent(element, noResponse, data);
   }
 
   /**
@@ -121,5 +140,12 @@ export class View implements IView {
     this.root = this.outerContainer.attachShadow({ mode: 'closed' });
     this.root.appendChild(style);
     this.root.appendChild(this.auditContainer);
+  }
+
+  private static addComponent(element: HTMLDivElement, component: Component, data: unknown) {
+    const item = <HTMLParagraphElement>document.createElement('div');
+    item.className = 'ok-ui-provider';
+    item.innerHTML = component(data);
+    element.appendChild(item);
   }
 }
