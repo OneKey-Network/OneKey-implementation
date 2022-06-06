@@ -1,5 +1,11 @@
 // Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
 export class Log {
+  public static enable = !this.isInTestEnvironment();
+
+  private static isInTestEnvironment(): boolean {
+    return process.env.JEST_WORKER_ID !== undefined;
+  }
+
   private readonly id: string;
   private readonly color: string;
 
@@ -9,22 +15,37 @@ export class Log {
   }
 
   public Debug(...args: unknown[]) {
+    if (!Log.enable) {
+      return;
+    }
     console.log(...this.decorateLog('DEBUG:', args));
   }
 
   public Message(...args: unknown[]) {
+    if (!Log.enable) {
+      return;
+    }
     console.log(...this.decorateLog('MESSAGE:', args));
   }
 
   public Info(...args: unknown[]) {
+    if (!Log.enable) {
+      return;
+    }
     console.info(...this.decorateLog('INFO:', args));
   }
 
   public Warn(...args: unknown[]) {
+    if (!Log.enable) {
+      return;
+    }
     console.warn(...this.decorateLog('WARNING:', args));
   }
 
   public Error(...args: unknown[]) {
+    if (!Log.enable) {
+      return;
+    }
     console.error(...this.decorateLog('ERROR:', args));
   }
 
