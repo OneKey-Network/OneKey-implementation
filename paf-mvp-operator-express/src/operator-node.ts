@@ -233,9 +233,8 @@ export class OperatorNode implements Node {
       setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: tld });
     };
 
-    let endpoint = jsonOperatorEndpoints.read;
-    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(jsonOperatorEndpoints.read, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.read);
 
       // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
       setTest3pcCookie(res);
@@ -246,7 +245,7 @@ export class OperatorNode implements Node {
         const response = await getReadResponse(request, req);
         res.json(response);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.read, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -257,9 +256,8 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = jsonOperatorEndpoints.verify3PC;
-    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(jsonOperatorEndpoints.verify3PC, cors(corsOptionsAcceptAll), (req, res) => {
+      logger.Info(jsonOperatorEndpoints.verify3PC);
       // Note: no signature verification here
 
       try {
@@ -272,7 +270,7 @@ export class OperatorNode implements Node {
         const response = get3PCResponseBuilder.buildResponse(testCookieValue);
         res.json(response);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.verify3PC, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -283,16 +281,15 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = jsonOperatorEndpoints.write;
-    app.expressApp.post(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.write);
       const input = getPayload<PostIdsPrefsRequest>(req);
 
       try {
         const signedData = await getWriteResponse(input, req, res);
         res.json(signedData);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.write, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -303,9 +300,8 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = jsonOperatorEndpoints.newId;
-    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.newId);
       const request = getPafDataFromQueryString<GetNewIdRequest>(req);
       const context = { origin: req.header('origin') };
 
@@ -330,7 +326,7 @@ export class OperatorNode implements Node {
         const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
         res.json(response);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.newId, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -345,9 +341,8 @@ export class OperatorNode implements Node {
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
 
-    endpoint = redirectEndpoints.read;
-    app.expressApp.get(endpoint, async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(redirectEndpoints.read, async (req, res) => {
+      logger.Info(redirectEndpoints.read);
       const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
       if (!request?.returnUrl) {
@@ -369,7 +364,7 @@ export class OperatorNode implements Node {
 
         httpRedirect(res, redirectUrl.toString());
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(redirectEndpoints.read, e);
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         // FIXME finer error return
         const error: OperatorError = {
@@ -381,9 +376,8 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = redirectEndpoints.write;
-    app.expressApp.get(endpoint, async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(redirectEndpoints.write, async (req, res) => {
+      logger.Info(redirectEndpoints.write);
       const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
 
       if (!request?.returnUrl) {
@@ -405,7 +399,7 @@ export class OperatorNode implements Node {
 
         httpRedirect(res, redirectUrl.toString());
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(redirectEndpoints.write, e);
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         // FIXME finer error return
         const error: OperatorError = {
