@@ -2,56 +2,59 @@ import { join } from 'path';
 import { defineConfig } from 'rollup';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
-import typescript from '@rollup/plugin-typescript';
-import dts from 'rollup-plugin-dts';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
-
-const moduleName = `onekey-operator`;
+import ts from 'rollup-plugin-ts';
+import { builtinModules } from 'module';
 
 const DEV = process.env.ROLLUP_WATCH;
-
-const DIST = 'dist'; // Because will use typescript "dist" dir
 const relative = path => join(__dirname, path);
+const tsconfig = relative('../tsconfig.json');
 
-const getDestFolder = (path) => DIST  + path;
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
     input: relative('src/index.ts'),
-    output: {
-      file: pkg.main,
-      format: 'cjs',
-      name: 'PAF',
-      sourcemap: DEV !== undefined
-    },
+    output: [
+      {
+        file: pkg.main,
+        format: 'cjs',
+        sourcemap: DEV !== undefined
+      },
+      {
+        file: pkg.module,
+        format: 'esm',
+        sourcemap: DEV !== undefined
+      }
+    ],
     treeshake: 'smallest', // remove unused code
     plugins: [
-      typescript({
-        tsconfig: relative('../tsconfig.json'),
-        sourceMap: DEV !== undefined,
+      ts({
+        tsconfig: {
+          fileName: tsconfig,
+          hook: resolvedConfig => ({ ...resolvedConfig, declaration: true })
+        }
       }),
       json(),
       commonjs(),
       nodeResolve(),
       ...(() => {
         if (DEV) {
-          return []
+          return [];
         } else {
           return [
-            terser(), // minify js output
-          ]
+            terser() // minify js output
+          ];
         }
-      })(),
+      })()
+    ],
+    // Ignore all npm dependencies
+    external: [
+      ...builtinModules,
+      ...(pkg.dependencies == null ? [] : Object.keys(pkg.dependencies)),
+      ...(pkg.devDependencies == null ? [] : Object.keys(pkg.devDependencies)),
+      ...(pkg.peerDependencies == null ? [] : Object.keys(pkg.peerDependencies))
     ]
-  }),
-  defineConfig({
-    input: getDestFolder(`/paf-mvp-operator-express/src/index.d.ts`),
-    output: {
-      file: getDestFolder(`/${moduleName}.d.ts`),
-      format: 'es'
-    },
-    plugins: [dts()]
   })
 ];
