@@ -9,11 +9,13 @@ import {
   GetNewIdResponseBuilder,
   PostIdsPrefsResponseBuilder,
 } from '@core/model/operator-response-builders';
-import { Verifier } from '@core/crypto/verifier';
+import { RequestVerifier, Verifier } from '@core/crypto/verifier';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
   RedirectContext,
+  RequestWithBodyDefinition,
+  RequestWithoutBodyDefinition,
   RestContext,
 } from '@core/crypto/signing-definition';
 import {
@@ -41,9 +43,9 @@ import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
-import { OperatorApi } from '@operator/operator-api';
 import { Node, VHostApp } from '@core/express/express-apps';
 import { Config, parseConfig } from '@core/express/config';
+import { IdBuilder } from '@core/model/id-builder';
 
 /**
  * Expiration: now + 3 months
@@ -111,7 +113,13 @@ export class OperatorNode implements Node {
       }
     };
 
-    const operatorApi = new OperatorApi(operatorHost, privateKey, keyStore);
+    const postIdsPrefsRequestVerifier = new RequestVerifier<PostIdsPrefsRequest>(
+      keyStore.provider,
+      new RequestWithBodyDefinition() // POST ids and prefs has body property
+    );
+    const getIdsPrefsRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
+    const getNewIdRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
+    const idBuilder = new IdBuilder(operatorHost, privateKey);
 
     const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
       // Extract request from Redirect request, if needed
@@ -138,7 +146,7 @@ export class OperatorNode implements Node {
       }
 
       if (
-        !(await operatorApi.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+        !(await getIdsPrefsRequestVerifier.verifySignatureAndContent(
           { request, context },
           sender, // sender will always be ok
           operatorHost // but operator needs to be verified
@@ -153,7 +161,7 @@ export class OperatorNode implements Node {
 
       if (!identifiers.some((i: Identifier) => i.type === 'paf_browser_id')) {
         // No existing id, let's generate one, unpersisted
-        identifiers.push(operatorApi.generateNewId());
+        identifiers.push(idBuilder.generateNewId());
       }
 
       return getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
@@ -188,7 +196,7 @@ export class OperatorNode implements Node {
 
       // Verify message
       if (
-        !(await operatorApi.postIdsPrefsRequestVerifier.verifySignatureAndContent(
+        !(await postIdsPrefsRequestVerifier.verifySignatureAndContent(
           { request, context },
           sender, // sender will always be ok
           operatorHost // but operator needs to be verified
@@ -313,7 +321,7 @@ export class OperatorNode implements Node {
 
       try {
         if (
-          !(await operatorApi.getNewIdRequestVerifier.verifySignatureAndContent(
+          !(await getNewIdRequestVerifier.verifySignatureAndContent(
             { request, context },
             sender, // sender will always be ok
             operatorHost // but operator needs to be verified
@@ -323,7 +331,7 @@ export class OperatorNode implements Node {
           throw 'New Id request verification failed';
         }
 
-        const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
+        const response = getNewIdResponseBuilder.buildResponse(request.receiver, idBuilder.generateNewId());
         res.json(response);
       } catch (e) {
         logger.Error(jsonOperatorEndpoints.newId, e);
