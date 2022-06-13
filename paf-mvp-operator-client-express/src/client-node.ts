@@ -147,15 +147,14 @@ export class ClientNode implements Node {
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
 
-    let endpoint = jsonProxyEndpoints.read;
-    app.expressApp.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(jsonProxyEndpoints.read, cors(corsOptions), checkOrigin(jsonProxyEndpoints.read), (req, res) => {
+      logger.Info(jsonProxyEndpoints.read);
 
       try {
         const url = client.getReadRestUrl(req);
         res.send(url.toString());
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonProxyEndpoints.read, e);
         const error: ClientNodeError = {
           type: ClientNodeErrorType.UNKNOWN_ERROR,
           details: '',
@@ -165,60 +164,72 @@ export class ClientNode implements Node {
       }
     });
 
-    endpoint = jsonProxyEndpoints.write;
-    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.post(
+      jsonProxyEndpoints.write,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.write),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.write);
 
-      try {
-        const url = postIdsPrefsRequestBuilder.getRestUrl();
-        res.send(url.toString());
-      } catch (e) {
-        logger.Error(endpoint, e);
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
+        try {
+          const url = postIdsPrefsRequestBuilder.getRestUrl();
+          res.send(url.toString());
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.write, e);
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
       }
-    });
+    );
 
-    endpoint = jsonProxyEndpoints.verify3PC;
-    app.expressApp.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(
+      jsonProxyEndpoints.verify3PC,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.verify3PC),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.verify3PC);
 
-      try {
-        const url = get3PCRequestBuilder.getRestUrl();
-        res.send(url.toString());
-      } catch (e) {
-        logger.Error(endpoint, e);
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
+        try {
+          const url = get3PCRequestBuilder.getRestUrl();
+          res.send(url.toString());
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.verify3PC, e);
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
       }
-    });
+    );
 
-    endpoint = jsonProxyEndpoints.newId;
-    app.expressApp.get(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
-      try {
-        const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
-        const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
+    app.expressApp.get(
+      jsonProxyEndpoints.newId,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.newId),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.newId);
+        try {
+          const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
+          const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
 
-        res.send(url.toString());
-      } catch (e) {
-        logger.Error(endpoint, e);
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
+          res.send(url.toString());
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.newId, e);
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
       }
-    });
+    );
 
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
@@ -239,47 +250,21 @@ export class ClientNode implements Node {
       }
     };
 
-    endpoint = redirectProxyEndpoints.read;
-    app.expressApp.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(
+      redirectProxyEndpoints.read,
+      cors(corsOptions),
+      checkReferer(redirectProxyEndpoints.read),
+      checkReturnUrl(redirectProxyEndpoints.read),
+      (req, res) => {
+        logger.Info(redirectProxyEndpoints.read);
 
-      const returnUrl = getReturnUrl(req, res);
+        const returnUrl = getReturnUrl(req, res);
 
-      try {
-        const url = client.getReadRedirectUrl(req, returnUrl);
-        res.send(url.toString());
-      } catch (e) {
-        logger.Error(endpoint, e);
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
-
-    endpoint = redirectProxyEndpoints.write;
-    app.expressApp.get(endpoint, cors(corsOptions), checkReferer(endpoint), checkReturnUrl(endpoint), (req, res) => {
-      logger.Info(endpoint);
-      const returnUrl = getReturnUrl(req, res);
-      const input = getMessageObject<IdsAndPreferences>(req, res);
-
-      if (input) {
         try {
-          const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
-            {
-              returnUrl: returnUrl.toString(),
-              referer: req.header('referer'),
-            },
-            input
-          );
-
-          const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
+          const url = client.getReadRedirectUrl(req, returnUrl);
           res.send(url.toString());
         } catch (e) {
-          logger.Error(endpoint, e);
-          // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+          logger.Error(redirectProxyEndpoints.read, e);
           const error: ClientNodeError = {
             type: ClientNodeErrorType.UNKNOWN_ERROR,
             details: '',
@@ -288,109 +273,161 @@ export class ClientNode implements Node {
           res.json(error);
         }
       }
-    });
+    );
+
+    app.expressApp.get(
+      redirectProxyEndpoints.write,
+      cors(corsOptions),
+      checkReferer(redirectProxyEndpoints.write),
+      checkReturnUrl(redirectProxyEndpoints.write),
+      (req, res) => {
+        logger.Info(redirectProxyEndpoints.write);
+        const returnUrl = getReturnUrl(req, res);
+        const input = getMessageObject<IdsAndPreferences>(req, res);
+
+        if (input) {
+          try {
+            const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
+              {
+                returnUrl: returnUrl.toString(),
+                referer: req.header('referer'),
+              },
+              input
+            );
+
+            const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
+            res.send(url.toString());
+          } catch (e) {
+            logger.Error(redirectProxyEndpoints.write, e);
+            // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+            const error: ClientNodeError = {
+              type: ClientNodeErrorType.UNKNOWN_ERROR,
+              details: '',
+            };
+            res.status(400);
+            res.json(error);
+          }
+        }
+      }
+    );
 
     // *****************************************************************************************************************
     // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************
-    endpoint = jsonProxyEndpoints.verifyRead;
-    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
-      const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
+    app.expressApp.post(
+      jsonProxyEndpoints.verifyRead,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.verifyRead),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.verifyRead);
+        const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
-      if (!message.response) {
-        logger.Error(endpoint, message.error);
-        // FIXME do something smart in case of error
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: message.error.message, // TODO should be improved
-        };
-        res.status(400);
-        res.json(error);
-        return;
-      }
-
-      try {
-        const verification = client.verifyReadResponse(message.response);
-        if (!verification) {
-          // TODO [errors] finer error feedback
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.VERIFICATION_FAILED,
-            details: '',
+        if (!message.response) {
+          logger.Error(jsonProxyEndpoints.verifyRead, message.error);
+          // FIXME do something smart in case of error
+          const error: OperatorError = {
+            type: OperatorErrorType.UNKNOWN_ERROR,
+            details: message.error.message, // TODO should be improved
           };
-          logger.Error(endpoint, error);
           res.status(400);
           res.json(error);
-        } else {
-          res.json(message.response);
+          return;
         }
-      } catch (e) {
-        logger.Error(endpoint, e);
-        // FIXME finer error return
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
 
-    endpoint = jsonProxyEndpoints.signPrefs;
-    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
-      try {
-        const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
-        res.json(client.buildPreferences(identifiers, unsignedPreferences.data));
-      } catch (e) {
-        logger.Error(endpoint, e);
-        // FIXME finer error return
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
+        try {
+          const verification = client.verifyReadResponse(message.response);
+          if (!verification) {
+            // TODO [errors] finer error feedback
+            const error: ClientNodeError = {
+              type: ClientNodeErrorType.VERIFICATION_FAILED,
+              details: '',
+            };
+            logger.Error(jsonProxyEndpoints.verifyRead, error);
+            res.status(400);
+            res.json(error);
+          } else {
+            res.json(message.response);
+          }
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.verifyRead, e);
+          // FIXME finer error return
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
       }
-    });
+    );
 
-    endpoint = jsonProxyEndpoints.signWrite;
-    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
-      try {
-        const message = getPayload<IdsAndPreferences>(req);
-        res.json(postIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') }, message));
-      } catch (e) {
-        logger.Error(endpoint, e);
-        // FIXME finer error return
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
+    app.expressApp.post(
+      jsonProxyEndpoints.signPrefs,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.signPrefs),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.signPrefs);
+        try {
+          const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
+          res.json(client.buildPreferences(identifiers, unsignedPreferences.data));
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.signPrefs, e);
+          // FIXME finer error return
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
       }
-    });
+    );
 
-    endpoint = jsonProxyEndpoints.createSeed;
-    app.expressApp.post(endpoint, cors(corsOptions), checkOrigin(endpoint), (req, res) => {
-      logger.Info(endpoint);
-      try {
-        const request = JSON.parse(req.body as string) as PostSeedRequest;
-        const seed = client.buildSeed(request.transaction_ids, request.data);
-        const response = seed as PostSeedResponse; // For now, the response is only a Seed.
-        res.json(response);
-      } catch (e) {
-        logger.Error(endpoint, e);
-        // FIXME finer error return
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
+    app.expressApp.post(
+      jsonProxyEndpoints.signWrite,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.signWrite),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.signWrite);
+        try {
+          const message = getPayload<IdsAndPreferences>(req);
+          res.json(postIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') }, message));
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.signWrite, e);
+          // FIXME finer error return
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
       }
-    });
+    );
+
+    app.expressApp.post(
+      jsonProxyEndpoints.createSeed,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.createSeed),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.createSeed);
+        try {
+          const request = JSON.parse(req.body as string) as PostSeedRequest;
+          const seed = client.buildSeed(request.transaction_ids, request.data);
+          const response = seed as PostSeedResponse; // For now, the response is only a Seed.
+          res.json(response);
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.createSeed, e);
+          // FIXME finer error return
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
+      }
+    );
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
