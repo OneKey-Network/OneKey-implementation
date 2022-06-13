@@ -15,7 +15,7 @@ import {
   Seed,
   TransactionId,
   TransmissionResponse,
-} from '@core/model/generated-model';
+} from '@core/model';
 import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
@@ -27,7 +27,6 @@ import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 import { setUpImmediateProcessingQueue } from '../utils/queue';
-import {} from '../global';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
