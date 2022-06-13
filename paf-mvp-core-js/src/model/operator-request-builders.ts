@@ -3,7 +3,7 @@ import { Unsigned } from './model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '../endpoints';
 import { getTimeStampInSec } from '../timestamp';
 import { RestAndRedirectRequestBuilder, RestRequestBuilder } from '@core/model/request-builders';
-import { SignerImpl } from '@core/crypto/signer';
+import { Signer } from '@core/crypto/signer';
 import {
   RequestDefinition,
   RequestWithBodyDefinition,
@@ -34,7 +34,7 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
     operatorHost: string,
     protected clientHost: string,
     privateKey: string,
-    private readonly signer = new SignerImpl(privateKeyFromString(privateKey), new RequestWithoutBodyDefinition())
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new RequestWithoutBodyDefinition())
   ) {
     super(operatorHost, jsonOperatorEndpoints.newId);
   }

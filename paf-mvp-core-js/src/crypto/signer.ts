@@ -9,7 +9,7 @@ export interface SignatureStringBuilder<U> {
   getInputString(data: U): string;
 }
 
-export interface Signer<U> {
+export interface ISigner<U> {
   sign(inputData: U): string;
 }
 
@@ -17,7 +17,7 @@ export interface Signer<U> {
  * Class to sign data or a message
  * U = Unsigned type (used for getting signature input)
  */
-export class SignerImpl<U> implements Signer<U> {
+export class Signer<U> implements ISigner<U> {
   protected logger = new Log('Signer', 'red');
 
   /**

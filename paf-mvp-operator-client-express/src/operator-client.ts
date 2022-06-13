@@ -11,7 +11,7 @@ import { CurrentModelVersion, UnsignedSource } from '@core/model/model';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { PublicKeyStore } from '@core/crypto/key-store';
 import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
-import { SignerImpl } from '@core/crypto/signer';
+import { Signer } from '@core/crypto/signer';
 import {
   IdsAndPreferencesDefinition,
   IdsAndUnsignedPreferences,
@@ -26,8 +26,8 @@ import { Request } from 'express';
 // FIXME should probably be moved to core library
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
-  private readonly prefsSigner: SignerImpl<IdsAndUnsignedPreferences>;
-  private readonly seedSigner: SignerImpl<SeedSignatureContainer>;
+  private readonly prefsSigner: Signer<IdsAndUnsignedPreferences>;
+  private readonly seedSigner: Signer<SeedSignatureContainer>;
 
   constructor(
     protected operatorHost: string,
@@ -37,8 +37,8 @@ export class OperatorClient {
     private readonly readVerifier = new ResponseVerifier(keyStore.provider, new ResponseDefinition())
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
-    this.prefsSigner = new SignerImpl(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
-    this.seedSigner = new SignerImpl(privateKeyFromString(privateKey), new SeedSignatureBuilder());
+    this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
+    this.seedSigner = new Signer(privateKeyFromString(privateKey), new SeedSignatureBuilder());
   }
 
   async verifyReadResponse(request: GetIdsPrefsResponse): Promise<boolean> {
