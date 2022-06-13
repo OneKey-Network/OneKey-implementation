@@ -3,9 +3,7 @@ import { defineConfig } from 'rollup';
 import image from '@rollup/plugin-image';
 import alias from '@rollup/plugin-alias';
 import replace from '@rollup/plugin-replace';
-import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
-import nodeResolve from '@rollup/plugin-node-resolve';
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
 import preact from 'rollup-plugin-preact';
@@ -21,7 +19,7 @@ const getDestFolder = (path) => (DEV ? DIST : relative('../paf-mvp-demo-express/
 
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
-  defineConfig({
+  /*defineConfig({
     input: relative('src/lib/paf-lib.ts'),
     output: {
       file: getDestFolder(`/paf-lib.js`),
@@ -47,7 +45,7 @@ export default [
         }
       })(),
     ]
-  }),
+  }),*/
   defineConfig({
     input: relative('src/main.ts'), // entry file
     output: {
