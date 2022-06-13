@@ -26,6 +26,8 @@ import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
+import { setUpImmediateProcessingQueue } from '../utils/queue';
+import {} from '../global';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
@@ -764,3 +766,6 @@ export const deleteIdsAndPreferences = (_option: DeleteIdsAndPreferencesOptions)
   // Not handled yet.
   return Promise.resolve(false);
 };
+
+// Set up the queue of asynchronous commands
+setUpImmediateProcessingQueue(window.PAF);

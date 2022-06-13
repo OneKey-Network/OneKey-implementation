@@ -1,6 +1,7 @@
 import {
   getIdsAndPreferences,
   getNewId,
+  queue,
   refreshIdsAndPreferences,
   signPreferences,
   updateIdsAndPreferences,
@@ -17,6 +18,7 @@ declare global {
 
   interface Window {
     PAF: {
+      queue: typeof queue;
       getNewId: typeof getNewId;
       signPreferences: typeof signPreferences;
       getIdsAndPreferences: typeof getIdsAndPreferences;
