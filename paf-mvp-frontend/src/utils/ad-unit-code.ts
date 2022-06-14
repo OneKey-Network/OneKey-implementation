@@ -1,6 +1,10 @@
 declare global {
   interface Window {
-    googletag: any;
+    googletag: {
+      pubads: () => {
+        getSlots: () => { getAdUnitPath: () => string; getSlotElementId: () => string }[];
+      };
+    };
   }
 }
 
@@ -13,7 +17,7 @@ export function mapAdUnitCodeToDivId(adUnitCode: string): string | undefined {
     return undefined;
   }
 
-  const slots: any[] = window.googletag.pubads().getSlots();
+  const slots: { getAdUnitPath: () => string; getSlotElementId: () => string }[] = window.googletag.pubads().getSlots();
   const found = slots.find((s) => {
     return s.getAdUnitPath() === adUnitCode || s.getSlotElementId() === adUnitCode;
   });
@@ -29,10 +33,10 @@ const isGptPubadsDefined = () => {
   return window.googletag && isFn(window.googletag.pubads) && isFn(window.googletag.pubads().getSlots);
 };
 
-const isFn = (object: any): boolean => {
+const isFn = (object: unknown): boolean => {
   return isA(object, 'Function');
 };
 
-const isA = (object: any, _t: string): boolean => {
+const isA = (object: unknown, _t: string): boolean => {
   return toString.call(object) === `[object ${_t}]`;
 };

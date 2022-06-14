@@ -23,6 +23,7 @@
     "no-restricted-imports": ["error", { "patterns": ["paf-mvp-demo-express"] }]
   },
   "ignorePatterns": [
+    "*/dist/*",
     "**/jest.config.js",
     "paf-mvp-frontend/*",
     "paf-mvp-demo-express/public/assets/*"
