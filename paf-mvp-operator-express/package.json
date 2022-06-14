@@ -1,6 +1,7 @@
 {
-  "name": "paf-mvp-operator-express",
-  "description": "Prebid Addressability Framework (PAF) Operator: ExpressJS implementation",
+  "name": "onekey-operator-node",
+  "version": "1.0.0",
+  "description": "OneKey Operator node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
