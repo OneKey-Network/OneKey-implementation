@@ -6,6 +6,7 @@ import { View } from './view';
 import { BindingViewOnly } from '@core/ui/binding';
 import providerComponent from './html/components/provider.html';
 import iconTick from './images/IconTick.svg';
+import { Window } from '@frontend/global';
 
 // TODO: Add back when full audit information is available.
 // import iconCross from './images/iconCross.svg';
@@ -97,7 +98,7 @@ export class Controller {
       case 'settings':
         this.view.display('button');
         this.bindActions();
-        window.PAFUI.promptConsent();
+        (<Window>window).PAFUI.promptConsent();
         break;
       case 'audit':
         this.view.display('audit');
