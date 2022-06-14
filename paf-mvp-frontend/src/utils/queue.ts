@@ -59,6 +59,8 @@ export const setUpImmediateProcessingQueue = (container: IQueueContainer): void 
   container.queue = processor;
 };
 
+const log = new Log('PAF', '#3bb8c3');
+
 class ImmediateProcessingQueue implements IProcessingQueue {
   push(...ops: Command[]): void {
     if (ops === undefined) {
@@ -76,5 +78,3 @@ class ImmediateProcessingQueue implements IProcessingQueue {
     }
   }
 }
-
-const log = new Log('PAF', '#3bb8c3');
