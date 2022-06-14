@@ -1,6 +1,7 @@
 import { browserName } from 'detect-browser';
 import {
   AuditLog,
+  DeleteIdsPrefsResponse,
   Error,
   Get3PcResponse,
   GetIdsPrefsResponse,
@@ -61,6 +62,12 @@ const postText = (url: string, input: string) =>
 const get = (url: string) =>
   fetch(url, {
     method: 'GET',
+    credentials: 'include',
+  });
+
+const deleteHttp = (url: string) =>
+  fetch(url, {
+    method: 'DELETE',
     credentials: 'include',
   });
 
@@ -789,12 +796,29 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
   return getAuditLogByTransaction(prebidTransactionId);
 };
 
-export const deleteIdsAndPreferences = (_option: DeleteIdsAndPreferencesOptions): Promise<void> => {
-  // Not handled yet.
+/**
+ * Delete the identifiers and preferences of the current website (locally and from the operator)
+ * @param options:
+ * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
+ */
+export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPreferencesOptions): Promise<void> => {
+  log.Info('Attempt to delete ids and preferences');
 
+  // FIXME there is no redirect version for now, only the one working with 3PC
+
+  // Get the signed request for the operator
+  const getUrl = getProxyUrl(proxyHostName);
+  const clientNodeDeleteResponse = await deleteHttp(getUrl(jsonProxyEndpoints.delete));
+  const operatorDeleteUrl = await clientNodeDeleteResponse.text();
+
+  // Call the operator, which will clean its cookies
+  await deleteHttp(operatorDeleteUrl);
+
+  // Clean the local cookies
   saveCookieValue(Cookies.identifiers, undefined);
   saveCookieValue(Cookies.preferences, undefined);
-  return Promise.resolve();
+
+  log.Info('Deleted ids and preferences');
 };
 
 // Set up the queue of asynchronous commands

@@ -1,4 +1,5 @@
 import {
+  DeleteIdsPrefsResponse,
   Error,
   Get3PcResponse,
   GetIdsPrefsResponse,
@@ -123,5 +124,28 @@ export class GetNewIdResponseBuilder {
 export class Get3PCResponseBuilder {
   buildResponse(cookieFound: Test3Pc | undefined): Get3PcResponse | Error {
     return cookieFound ? { '3pc': cookieFound } : { message: '3PC not supported' };
+  }
+}
+
+export class DeleteIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<DeleteIdsPrefsResponse> {
+  constructor(
+    host: string,
+    privateKey: string,
+    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+  ) {
+    super(host);
+  }
+
+  buildResponse(receiver: string, timestampInSec = getTimeStampInSec()): DeleteIdsPrefsResponse {
+    const request: Unsigned<DeleteIdsPrefsResponse> = {
+      sender: this.host,
+      receiver,
+      timestamp: timestampInSec,
+    };
+
+    return {
+      ...request,
+      signature: this.signer.sign(request),
+    };
   }
 }

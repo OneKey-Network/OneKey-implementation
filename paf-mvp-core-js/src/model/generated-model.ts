@@ -37,7 +37,7 @@ export type TransmissionReceiver = string;
  */
 export type TransmissionContentId = string;
 /**
- * Transmission Contents
+ * List of pairs of one content_id and one transaction_id. It is possible to have one content_id (i.e same content) for N transaction_ids (i.e N placements). In this case, there would be N pairs of 'contents'.
  */
 export type TransmissionContents = {
   content_id: TransmissionContentId;
@@ -78,6 +78,8 @@ export type ResponseCode = number;
  */
 export interface _ {
   'audit-log'?: AuditLog;
+  'delete-ids-prefs-request'?: DeleteIdsPrefsRequest;
+  'delete-ids-prefs-response'?: DeleteIdsPrefsResponse;
   domain?: Domain;
   error?: Error;
   'get-3pc-request'?: Get3PcRequest;
@@ -102,6 +104,8 @@ export interface _ {
   'post-sign-preferences-request'?: PostSignPreferencesRequest;
   'preferences-data'?: PreferencesData;
   preferences?: Preferences;
+  'redirect-delete-ids-prefs-request'?: RedirectDeleteIdsPrefsRequest;
+  'redirect-delete-ids-prefs-response'?: RedirectDeleteIdsPrefsResponse;
   'redirect-get-ids-prefs-request'?: RedirectGetIdsPrefsRequest;
   'redirect-get-ids-prefs-response'?: RedirectGetIdsPrefsResponse;
   'redirect-post-ids-prefs-request'?: RedirectPostIdsPrefsRequest;
@@ -130,7 +134,7 @@ export interface _ {
  * An Audit Log gathers the necessary data to audit a Transaction (via Transmission) for a given Addressable Content
  */
 export interface AuditLog {
-  version: Version;
+  version?: Version;
   data: IdsAndPreferences;
   seed: Seed;
   transaction_id: TransactionId;
@@ -203,6 +207,24 @@ export interface TransmissionResult {
   status: TransmissionStatus;
   details: TransmissionDetails;
   source: Source;
+}
+/**
+ * DELETE /v1/ids-prefs request
+ */
+export interface DeleteIdsPrefsRequest {
+  sender: Domain;
+  receiver: Domain;
+  timestamp: Timestamp;
+  signature: Signature;
+}
+/**
+ * A success code is returned in case of successful deletion of the identifiers and preferences
+ */
+export interface DeleteIdsPrefsResponse {
+  sender: Domain;
+  receiver: Domain;
+  timestamp: Timestamp;
+  signature: Signature;
 }
 /**
  * The description of an error
@@ -325,10 +347,15 @@ export interface OpenRtbBidRequest {
      */
     ext: {
       /**
-       * Dedicated object for PAF as an extension.
+       * Ext field accessible for PrebidJS RTD
        */
-      paf: {
-        'transaction-id': TransactionId;
+      data: {
+        /**
+         * Dedicated object for PAF as an extension.
+         */
+        paf: {
+          transaction_id: TransactionId;
+        };
       };
     };
   }[];
@@ -470,6 +497,21 @@ export interface PostSignPreferencesRequest {
 export interface UnsignedPreferences {
   version: Version;
   data: PreferencesData;
+}
+/**
+ * GET /v1/redirect/delete-ids-prefs request
+ */
+export interface RedirectDeleteIdsPrefsRequest {
+  returnUrl: ReturnUrl;
+  request: DeleteIdsPrefsRequest;
+}
+/**
+ * GET /v1/redirect/delete-ids-prefs response
+ */
+export interface RedirectDeleteIdsPrefsResponse {
+  code: ResponseCode;
+  response?: DeleteIdsPrefsResponse;
+  error?: Error;
 }
 /**
  * GET /v1/redirect/get-ids-prefs request

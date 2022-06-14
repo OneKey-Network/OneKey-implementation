@@ -29,6 +29,8 @@ import {
 } from '@core/crypto';
 import { Log } from '@core/log';
 import {
+  DeleteIdsPrefsRequest,
+  DeleteIdsPrefsResponseBuilder,
   Get3PCResponseBuilder,
   GetIdsPrefsRequest,
   GetIdsPrefsResponseBuilder,
@@ -40,6 +42,7 @@ import {
   PostIdsPrefsRequest,
   PostIdsPrefsResponseBuilder,
   Preferences,
+  RedirectDeleteIdsPrefsRequest,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
   ReturnUrl,
@@ -98,6 +101,7 @@ export class OperatorNode implements Node {
     const get3PCResponseBuilder = new Get3PCResponseBuilder();
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
+    const deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(operatorHost, privateKey);
     const idVerifier = new Verifier(keyStore.provider, new IdentifierDefinition());
     const prefsVerifier = new Verifier(keyStore.provider, new IdsAndPreferencesDefinition());
 
@@ -234,6 +238,40 @@ export class OperatorNode implements Node {
       return postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
     };
 
+    const getDeleteResponse = async (
+      input: DeleteIdsPrefsRequest | RedirectDeleteIdsPrefsRequest,
+      req: Request,
+      res: Response
+    ) => {
+      const { request, context } = extractRequestAndContextFromHttp<
+        DeleteIdsPrefsRequest,
+        RedirectDeleteIdsPrefsRequest
+      >(input, req);
+      const sender = request.sender;
+
+      if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
+        throw `Domain not allowed to write data: ${sender}`;
+      }
+
+      // Verify message
+      if (
+        !(await getIdsPrefsRequestVerifier.verifySignatureAndContent(
+          { request, context },
+          sender, // sender will always be ok
+          operatorHost // but operator needs to be verified
+        ))
+      ) {
+        // TODO [errors] finer error feedback
+        throw 'Delete request verification failed';
+      }
+
+      removeCookie(null, res, Cookies.identifiers, { domain: tld });
+      removeCookie(null, res, Cookies.preferences, { domain: tld });
+
+      res.status(204);
+      return deleteIdsPrefsResponseBuilder.buildResponse(sender);
+    };
+
     // *****************************************************************************************************************
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
@@ -304,6 +342,26 @@ export class OperatorNode implements Node {
         res.json(signedData);
       } catch (e) {
         logger.Error(jsonOperatorEndpoints.write, e);
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
+    });
+
+    app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll)); // enable pre-flight request for DELETE request
+    app.expressApp.delete(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.delete);
+      const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+
+      try {
+        const response = await getDeleteResponse(input, req, res);
+        res.json(response);
+      } catch (e) {
+        logger.Error(jsonOperatorEndpoints.delete, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
