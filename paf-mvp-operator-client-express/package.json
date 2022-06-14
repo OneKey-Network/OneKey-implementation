@@ -1,6 +1,7 @@
 {
-  "name": "paf-mvp-operator-client-express",
-  "description": "Prebid Addressability Framework (PAF) Operator client: ExpressJS implementation",
+  "name": "onekey-client-node",
+  "version": "1.0.0",
+  "description": "OneKey client node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
