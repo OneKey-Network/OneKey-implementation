@@ -2,27 +2,31 @@ import { Request, Response } from 'express';
 import cors, { CorsOptions } from 'cors';
 import { OperatorClient } from './operator-client';
 import {
+  Get3PCRequestBuilder,
+  GetNewIdRequestBuilder,
   IdsAndPreferences,
+  PostIdsPrefsRequestBuilder,
   PostSeedRequest,
   PostSeedResponse,
   PostSignPreferencesRequest,
   RedirectGetIdsPrefsResponse,
-} from '@core/model/generated-model';
+} from '@core/model';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import { escapeRegExp, getPayload, getTopLevelDomain } from '@core/express/utils';
-import { fromDataToObject } from '@core/query-string';
 import {
-  Get3PCRequestBuilder,
-  GetNewIdRequestBuilder,
-  PostIdsPrefsRequestBuilder,
-} from '@core/model/operator-request-builders';
+  addIdentityEndpoint,
+  Config,
+  escapeRegExp,
+  getPayload,
+  getTopLevelDomain,
+  Node,
+  parseConfig,
+  VHostApp,
+} from '@core/express';
+import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { PublicKeyStore } from '@core/crypto/key-store';
-import { addIdentityEndpoint } from '@core/express/identity-endpoint';
 import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
-import { Node, VHostApp } from '@core/express/express-apps';
-import { Config, parseConfig } from '@core/express/config';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
