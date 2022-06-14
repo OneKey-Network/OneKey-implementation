@@ -1,5 +1,5 @@
-import { TCString, TCModel, SegmentEncoder, Segment } from '@iabtcf/core';
-import { Model } from '../src/model';
+import { Segment, SegmentEncoder, TCModel, TCString } from '@iabtcf/core';
+import { Model } from '../../src/model';
 
 /**
  * Module to handle the TCF Core string only wrapping the IABTechLab core library.
