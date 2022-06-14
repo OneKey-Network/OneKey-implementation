@@ -18,11 +18,12 @@
   "rules": {
     "linebreak-style": "off",
     "semi": "warn",
-    "quotes": ["warn", "single"],
+    "quotes": ["warn", "single", {"avoidEscape": true}],
     "eqeqeq": "warn",
     "no-restricted-imports": ["error", { "patterns": ["paf-mvp-demo-express"] }]
   },
   "ignorePatterns": [
+    "*/dist/*",
     "**/jest.config.js",
     "paf-mvp-frontend/*",
     "paf-mvp-demo-express/public/assets/*"
