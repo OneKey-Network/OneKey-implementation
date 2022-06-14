@@ -29,6 +29,8 @@ import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 import { setUpImmediateProcessingQueue } from '../utils/queue';
 import { Window } from '../global';
 
+// /!\/!\/!\ do not remove this import
+
 // TODO: avoid global declaration
 declare const PAFUI: {
   promptConsent: () => Promise<boolean>;
