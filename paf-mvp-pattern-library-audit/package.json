@@ -5,7 +5,7 @@
   "main": "build/ok-ui.js",
   "scripts": {
     "start": "npm run storybook",
-    "build": "npm run build-css && npm run build-js && mkdir -p build/images && cp assets/images/OneKey.svg build/images/OneKey.svg && cp assets/images/OneKeyIcon.svg build/images/OneKeyIcon.svg",
+    "build": "npm run build-css && mkdir -p build/images && cp assets/images/OneKey.svg build/images/OneKey.svg && cp assets/images/OneKeyIcon.svg build/images/OneKeyIcon.svg",
     "build-test": "open build/index.html",
     "build-js": "webpack --mode production --entry ./javascript/ok-ui.js --output-filename ok-ui.js -o ./build",
     "build-css": "sass styles/ok-ui-audit.scss:build/ok-ui-audit.css --style compressed",
