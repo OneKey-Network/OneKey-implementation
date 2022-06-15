@@ -9,6 +9,7 @@ import { IView } from '@core/ui/binding';
 import { Log } from '@core/log';
 import okResponse from './html/components/okResponse.html';
 import noResponse from './html/components/noresponse.html';
+import { Model } from './model';
 
 export class View implements IView {
   // The shadow root for the UI.
@@ -74,6 +75,19 @@ export class View implements IView {
     View.addElements(elements, this.auditContainer.getElementsByTagName('button'));
     View.addElements(elements, this.auditContainer.getElementsByTagName('a'));
     return elements;
+  }
+
+  /**
+   * Modifies the view temporarily to trigger the download of the audit log.
+   * @param model with the audit log to download.
+   */
+  public download(model: Model): void {
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(model.jsonContent));
+    downloadAnchor.setAttribute('download', model.jsonFileName);
+    this.auditContainer.appendChild(downloadAnchor); // required for firefox
+    downloadAnchor.click();
+    downloadAnchor.remove();
   }
 
   /**

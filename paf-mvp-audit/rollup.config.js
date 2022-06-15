@@ -62,7 +62,7 @@ function toText(list) { return list.join('\r\n'); }
 
 // Converts the source locale into one with HTML properties.
 function addHTML(locale) {
-  locale.emailBodyHTML = toText(locale.emailBody);
+  locale.emailBodyText = toText(locale.emailBody);
   locale.auditBodyHTML = toHtml(locale.auditBody);
   delete locale['emailBody'];
   delete locale['auditBody'];

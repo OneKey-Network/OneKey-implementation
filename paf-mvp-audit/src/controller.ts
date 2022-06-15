@@ -60,7 +60,6 @@ export class Controller implements AuditHandler {
   private mapFieldsToUI(): void {
     this.model.results.forEach((r) => r.addBinding(new BindingProviders(this.view, 'ok-ui-providers', this.locale)));
   }
-
   /**
    * Binds HTML element tags to actions in the controller based on the ids assigned in the views and to the bindings.
    */
@@ -107,7 +106,7 @@ export class Controller implements AuditHandler {
         this.bindActions();
         break;
       case 'download':
-        // TODO: Code the action to download the audit log.
+        this.view.download(this.model);
         break;
       default:
         this.log.Warn(`Action '${action}' is not known`);

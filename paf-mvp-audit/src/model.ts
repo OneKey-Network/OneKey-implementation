@@ -74,11 +74,17 @@ export class Model implements IModel {
   readonly allFields: IFieldBind[] = [];
 
   /**
-   * Constructs the data model from the audit log.
-   * @param audit
+   * The original raw audit log.
    */
-  constructor(audit: AuditLog) {
-    audit.transmissions?.forEach((t) => {
+  readonly auditLog: AuditLog;
+
+  /**
+   * Constructs the data model from the audit log.
+   * @param auditLog
+   */
+  constructor(auditLog: AuditLog) {
+    this.auditLog = auditLog;
+    auditLog.transmissions?.forEach((t) => {
       const field = new Field<TransmissionResultNode, Model>(this, new TransmissionResultNode(t));
       this.results.push(field);
       this.allFields.push(field);
@@ -90,5 +96,30 @@ export class Model implements IModel {
    */
   public updateUI() {
     this.allFields.forEach((f) => f.updateUI());
+  }
+
+  /**
+   * File name to use when downloading the audit log as JSON.
+   */
+  public get jsonFileName(): string {
+    return this.fileNameNoExtension + '.json';
+  }
+
+  /**
+   * File name to use when downloading the audit log.
+   * @remarks must replace the colon with hyphen as it is not a valid file character.
+   * Also replaces the dot in the domain name with hyphen to avoid problems with extension identification.
+   */
+  public get fileNameNoExtension(): string {
+    const date = new Date(this.auditLog.seed.source.timestamp).toISOString().replace(':', '-');
+    const publisher = this.auditLog.seed.publisher.replace('.', '-');
+    return `audit-log-${publisher}-${date}`;
+  }
+
+  /**
+   * The audit log as a JSON format string.
+   */
+  public get jsonContent(): string {
+    return JSON.stringify(this.auditLog);
   }
 }
