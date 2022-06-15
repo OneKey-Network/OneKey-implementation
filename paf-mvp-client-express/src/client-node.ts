@@ -341,6 +341,31 @@ export class ClientNode implements Node {
       }
     );
 
+    app.expressApp.get(
+      redirectProxyEndpoints.delete,
+      cors(corsOptions),
+      checkReferer(redirectProxyEndpoints.delete),
+      checkReturnUrl(redirectProxyEndpoints.delete),
+      (req, res) => {
+        logger.Info(redirectProxyEndpoints.delete);
+
+        const returnUrl = getReturnUrl(req, res);
+
+        try {
+          const url = client.getDeleteRedirectUrl(req, returnUrl);
+          res.send(url.toString());
+        } catch (e) {
+          logger.Error(redirectProxyEndpoints.delete, e);
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
+      }
+    );
+
     // *****************************************************************************************************************
     // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************

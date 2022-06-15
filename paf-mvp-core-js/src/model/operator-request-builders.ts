@@ -114,7 +114,7 @@ export class DeleteIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<
     privateKey: string,
     definition: RequestDefinition<DeleteIdsPrefsRequest> = new RequestWithoutBodyDefinition()
   ) {
-    super(operatorHost, clientHost, jsonOperatorEndpoints.delete, null, privateKey, definition);
+    super(operatorHost, clientHost, jsonOperatorEndpoints.delete, redirectEndpoints.delete, privateKey, definition);
   }
 
   protected buildUnsignedRequest(data: undefined, timestamp: number): Unsigned<DeleteIdsPrefsRequest> {

@@ -10,6 +10,7 @@ import {
   IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostIdsPrefsRequest,
+  PostIdsPrefsResponse,
   PostSeedRequest,
   PostSignPreferencesRequest,
   Preferences,
@@ -358,7 +359,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     async function handleAfterRedirect() {
       // Verify message
       const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
-      const operatorData = (await response.json()) as GetIdsPrefsResponse;
+      const operatorData = (await response.json()) as
+        | GetIdsPrefsResponse
+        | PostIdsPrefsResponse
+        | DeleteIdsPrefsResponse;
 
       if (!operatorData) {
         throw 'Verification failed';
@@ -366,18 +370,32 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
       log.Debug('Operator data after redirect', operatorData);
 
-      // 3. Received data?
-      const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
-      const hasPersistedId = persistedIds.length > 0;
-      const preferences = operatorData?.body?.preferences;
-      const hasPreferences = preferences !== undefined;
-      saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
-      saveCookieValue(Cookies.preferences, preferences);
+      let status: PafStatus;
 
-      triggerNotification(preferences?.data?.use_browsing_for_personalization);
+      // 3. Received data?
+      if (operatorData.body.preferences === undefined && operatorData.body.identifiers.length === 0) {
+        // Deletion of ids and preferences requested
+        saveCookieValue(Cookies.identifiers, undefined);
+        saveCookieValue(Cookies.preferences, undefined);
+        status = PafStatus.NOT_PARTICIPATING;
+
+        log.Info('Deleted ids and preferences');
+      } else {
+        // Ids and preferences received
+        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
+        const hasPersistedId = persistedIds.length > 0;
+        const preferences = operatorData?.body?.preferences;
+        const hasPreferences = preferences !== undefined;
+        saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
+        saveCookieValue(Cookies.preferences, preferences);
+
+        triggerNotification(preferences?.data?.use_browsing_for_personalization);
+
+        status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
+      }
 
       return {
-        status: hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN,
+        status,
         data: operatorData.body,
       };
     }
@@ -813,21 +831,37 @@ export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPre
     return;
   }
 
-  // FIXME there is no redirect version for now, only the one working with 3PC
-
-  // Get the signed request for the operator
   const getUrl = getProxyUrl(proxyHostName);
-  const clientNodeDeleteResponse = await deleteHttp(getUrl(jsonProxyEndpoints.delete));
-  const operatorDeleteUrl = await clientNodeDeleteResponse.text();
 
-  // Call the operator, which will clean its cookies
-  await deleteHttp(operatorDeleteUrl);
+  // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
+  if (thirdPartyCookiesSupported) {
+    log.Info('3PC supported: deleting the ids and preferences');
 
-  // Clean the local cookies
-  saveCookieValue(Cookies.identifiers, undefined);
-  saveCookieValue(Cookies.preferences, undefined);
+    // Get the signed request for the operator
+    const clientNodeDeleteResponse = await deleteHttp(getUrl(jsonProxyEndpoints.delete));
+    const operatorDeleteUrl = await clientNodeDeleteResponse.text();
 
-  log.Info('Deleted ids and preferences');
+    // Call the operator, which will clean its cookies
+    await deleteHttp(operatorDeleteUrl);
+
+    // Clean the local cookies
+    saveCookieValue(Cookies.identifiers, undefined);
+    saveCookieValue(Cookies.preferences, undefined);
+
+    log.Info('Deleted ids and preferences');
+    return;
+  }
+
+  log.Info('3PC not supported: redirecting to delete ids and preferences');
+
+  // Redirect. Signing of the request will happen on the backend proxy
+  const clientUrl = new URL(getUrl(redirectProxyEndpoints.delete));
+  clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
+  const clientResponse = await get(clientUrl.toString());
+
+  // TODO handle errors
+  const operatorUrl = await clientResponse.text();
+  redirect(operatorUrl);
 };
 
 // Set up the queue of asynchronous commands

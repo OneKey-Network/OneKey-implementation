@@ -482,6 +482,37 @@ export class OperatorNode implements Node {
         res.json(error);
       }
     });
+
+    app.expressApp.get(redirectEndpoints.delete, async (req, res) => {
+      logger.Info(redirectEndpoints.delete);
+      const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
+      if (!request?.returnUrl) {
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        const error: OperatorError = {
+          type: OperatorErrorType.INVALID_RETURN_URL,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+        return;
+      }
+      try {
+        const response = await getDeleteResponse(request, req, res);
+        const redirectResponse = deleteIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+        const redirectUrl = deleteIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
+        httpRedirect(res, redirectUrl.toString());
+      } catch (e) {
+        logger.Error(redirectEndpoints.delete, e);
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
+    });
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {

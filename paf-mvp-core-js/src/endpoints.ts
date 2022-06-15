@@ -4,9 +4,11 @@
 const pafPrefix = '/paf';
 const redirectRead = '/v1/redirect/get-ids-prefs';
 const redirectWrite = '/v1/redirect/post-ids-prefs';
+const redirectDelete = '/v1/redirect/delete-ids-prefs';
 export const redirectEndpoints = {
   read: `${pafPrefix}${redirectRead}`,
   write: `${pafPrefix}${redirectWrite}`,
+  delete: `${pafPrefix}${redirectDelete}`,
 };
 const jsonRead = '/v1/ids-prefs';
 const jsonWrite = '/v1/ids-prefs';
@@ -47,6 +49,7 @@ export const jsonProxyEndpoints = {
 export const redirectProxyEndpoints = {
   read: `${proxyPrefix}${redirectEndpoints.read}`,
   write: `${proxyPrefix}${redirectEndpoints.write}`,
+  delete: `${proxyPrefix}${redirectEndpoints.delete}`,
 };
 
 export const proxyUriParams = {

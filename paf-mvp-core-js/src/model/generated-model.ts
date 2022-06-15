@@ -225,6 +225,14 @@ export interface DeleteIdsPrefsResponse {
   receiver: Domain;
   timestamp: Timestamp;
   signature: Signature;
+  body?: IdsAndOptionalPreferences;
+}
+/**
+ * A list of identifiers and optionally, some preferences
+ */
+export interface IdsAndOptionalPreferences {
+  preferences?: Preferences;
+  identifiers: Identifier[];
 }
 /**
  * The description of an error
@@ -299,13 +307,6 @@ export interface GetIdsPrefsResponse {
   timestamp: Timestamp;
   signature: Signature;
   body: IdsAndOptionalPreferences;
-}
-/**
- * A list of identifiers and optionally, some preferences
- */
-export interface IdsAndOptionalPreferences {
-  preferences?: Preferences;
-  identifiers: Identifier[];
 }
 /**
  * GET /v1/new-id request

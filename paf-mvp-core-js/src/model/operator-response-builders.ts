@@ -141,6 +141,10 @@ export class DeleteIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<D
       sender: this.host,
       receiver,
       timestamp: timestampInSec,
+      body: {
+        identifiers: [],
+        preferences: undefined,
+      },
     };
 
     return {
