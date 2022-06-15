@@ -15,7 +15,7 @@ import {
   Seed,
   TransactionId,
   TransmissionResponse,
-} from '@core/model/generated-model';
+} from '@core/model';
 import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration, typedCookie } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
