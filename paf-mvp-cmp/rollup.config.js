@@ -27,6 +27,9 @@ import * as yaml from 'js-yaml';
 // Used to get the TCF core string from the environment.
 import { env } from 'process';
 
+// File name prefix for the bundle files.
+const namePrefix = 'ok-ui-cmp';
+
 const DEV = process.env.ROLLUP_WATCH;
 
 // Options to pass to terser.
@@ -131,11 +134,12 @@ function getLocaleCodes() {
 
 // Builds the loader working out from the locales directory the various options that will be available.
 function buildLoader() {
+  const loader = '../paf-mvp-core-js/src/ui/loader.ts';
   return {
-    input: './src/loader.ts',
+    input: loader,
     plugins: [
       replace({
-        include: './src/loader.ts',
+        include: loader,
         preventAssignment: true,
         __Locales__: '[' + getLocaleCodes().join(',') + ']'
       }),
@@ -150,25 +154,25 @@ function buildLoader() {
     treeshake: true,
     output: [
       {
-        file: `./dist/ok-ui.js`,
-        sourcemap: true,
+        file: `./dist/${namePrefix}.js`,
+        sourcemap: false,
         format: 'iife'
       },
       {
-        file: `./dist/ok-ui.min.js`,
+        file: `./dist/${namePrefix}.min.js`,
         format: 'iife',
-        sourcemap: true,
+        sourcemap: false,
         plugins: [terser(terserOptions)]
       },
       {
-        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui.js`,
-        sourcemap: true,
+        file: `../paf-mvp-demo-express/public/assets/${namePrefix}.js`,
+        sourcemap: false,
         format: 'iife'
       },
       {
-        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui.min.js`,
+        file: `../paf-mvp-demo-express/public/assets/${namePrefix}.min.js`,
         format: 'iife',
-        sourcemap: true,
+        sourcemap: false,
         plugins: [terser(terserOptions)]
       },
     ]
@@ -193,10 +197,6 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
         preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
       }),
-      replace({
-        preventAssignment: true,
-        'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
-      }),
       postHTML({ template: true }),
       minifyHTML({
         // Include string literals that contain the div or section element as well as the default check.
@@ -216,25 +216,25 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
     treeshake: true,
     output: [
       {
-        file: `./dist/ok-ui-${localeCode}.js`,
-        sourcemap: true,
+        file: `./dist/${namePrefix}-${localeCode}.js`,
+        sourcemap: false,
         format: 'iife',
       },
       {
-        file: `./dist/ok-ui-${localeCode}.min.js`,
+        file: `./dist/${namePrefix}-${localeCode}.min.js`,
         format: 'iife',
-        sourcemap: true,
+        sourcemap: false,
         plugins: [terser(terserOptions)]
       },
       {
-        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${localeCode}.js`,
-        sourcemap: true,
+        file: `../paf-mvp-demo-express/public/assets/${namePrefix}-${localeCode}.js`,
+        sourcemap: false,
         format: 'iife',
       },
       {
-        file: `../paf-mvp-demo-express/public/assets/cmp/ok-ui-${localeCode}.min.js`,
+        file: `../paf-mvp-demo-express/public/assets/${namePrefix}-${localeCode}.min.js`,
         format: 'iife',
-        sourcemap: true,
+        sourcemap: false,
         plugins: [terser(terserOptions)]
       },
     ]

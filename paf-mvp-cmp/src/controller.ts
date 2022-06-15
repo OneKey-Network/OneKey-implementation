@@ -19,7 +19,7 @@ import { View } from './view';
 import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { TcfCore } from './tcfcore';
-import { ILocale } from './ILocale';
+import { ILocale } from '@core/ui/ILocale';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.

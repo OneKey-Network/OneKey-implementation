@@ -1,6 +1,5 @@
 /**
  * Resources used by the controller for HTML views and CSS.
- * TODO: fix the warning associated with can't find module or type.
  */
 import css from './css/ok-ui.css';
 import introTemplate from './html/cards/intro.html';
@@ -12,7 +11,7 @@ import snackbarTemplate from './html/cards/snackbar.html';
 import popupTemplate from './html/containers/popup.html';
 import { Config } from './config';
 import { IView } from '@core/ui/binding';
-import { ILocale } from './ILocale';
+import { ILocale } from '@core/ui/ILocale';
 import { Tooltip } from './tooltip';
 
 export class View implements IView {
