@@ -735,6 +735,9 @@ export const registerTransmissionResponse = (
   auditLogByPrebidTransactionId.set(prebidTransactionId, auditLog);
   prebidTransactionIdByDivId.set(divId, prebidTransactionId);
 
+  // Set the audit log attribute of the advert div container to include the data needed by the auditHandler.
+  // TODO: Change the interface to pass the audit log as a parameter to the audit handler.
+  divContainer.setAttribute('auditLog', JSON.stringify(auditLog));
   if (auditHandler) {
     auditHandler.bind(divContainer);
   }
