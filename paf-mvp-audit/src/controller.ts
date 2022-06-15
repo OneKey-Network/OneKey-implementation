@@ -1,53 +1,56 @@
-import { Locale } from './locale';
+import { ILocale } from '@core/ui/ILocale';
 import { AuditLog, GetIdentityResponse } from '@core/model/generated-model';
 import { Log } from '@core/log';
 import { Model, TransmissionResultNode } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@core/ui/binding';
+import { Window } from '@frontend/global';
+import { AuditHandler } from '@frontend/lib/paf-lib';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
  */
-export class Controller {
-  // The locale that the UI should adopt.
-  private readonly locale: Locale;
+export class Controller implements AuditHandler {
+  /**
+   * The language text object populated by rollup.config.js at build time based on the YAML resource language files.
+   */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore rollup replaces this with the JS object for the language.
+  private readonly locale = <ILocale>__Locale__;
+
+  // Logger.
+  private readonly log = new Log('audit', '#18a9e1');
 
   // The view associated with the controller.
-  private readonly view: View;
+  private view: View;
 
   // The model that wraps the audit log.
-  private readonly model: Model;
+  private model: Model;
 
   // The HTML element the audit module instance is listening to.
-  private readonly element: HTMLElement;
+  private element: HTMLElement;
 
   // The HTML element that will open the audit view if selected.
   private readonly button: HTMLElement;
 
-  // Logger.
-  private readonly log: Log;
+  constructor() {
+    this.log.Message('OKA Controller');
+  }
 
   /**
-   * Constructs a new instance of Controller and displays the audit popup.
-   * @param locale the language file to use with the UI
-   * @param advert to bind the audit viewer to
-   * @param log
+   * Binds the controller to the element with the advert.
+   * @advertElement that contains the advert and audit log.
    */
-  constructor(locale: Locale, advert: HTMLElement, log: Log) {
-    this.locale = locale;
-    this.element = advert;
-    this.log = log;
-
+  public bind(advertElement: HTMLElement) {
+    this.element = advertElement;
     // TODO: Replace this with a fetch for the real audit log once available.
-    const auditLog = <AuditLog>JSON.parse(advert.getAttribute('auditLog'));
-
+    const auditLog = <AuditLog>JSON.parse(advertElement.getAttribute('auditLog'));
     this.model = new Model(auditLog);
-    this.view = new View(advert, locale, log);
+    this.view = new View(advertElement, this.locale, this.log);
     this.mapFieldsToUI();
     this.view.display('button');
     this.bindActions();
-
-    log.Info('Audit registered', advert.id);
+    this.log.Info('Audit registered', advertElement.id);
   }
 
   /**
@@ -92,7 +95,7 @@ export class Controller {
       case 'settings':
         this.view.display('button');
         this.bindActions();
-        window.PAFUI.promptConsent();
+        (<Window>window).PAFUI.promptConsent();
         break;
       case 'audit':
         this.view.display('audit');
@@ -117,11 +120,11 @@ export class Controller {
  * Custom UI binding to display the providers from the audit log.
  */
 class BindingProviders extends BindingViewOnly<TransmissionResultNode, Model, HTMLDivElement> {
-  private readonly locale: Locale;
+  private readonly locale: ILocale;
 
   private readonly auditView: View;
 
-  constructor(view: View, id: string, locale: Locale) {
+  constructor(view: View, id: string, locale: ILocale) {
     super(view, id);
     this.auditView = view;
     this.locale = locale;
@@ -153,7 +156,7 @@ class BindingProviders extends BindingViewOnly<TransmissionResultNode, Model, HT
 
   private buildEmailUrl(node: TransmissionResultNode, i: GetIdentityResponse): string {
     const body = encodeURIComponent(
-      this.locale.emailBodyText
+      (<string>this.locale.emailBodyText)
         .replace('[Name]', i.name)
         .replace('[TimeStamp]', new Date(node.result.source.timestamp).toUTCString())
         .replace('[PrivacyURL]', i.privacy_policy_url)
@@ -162,7 +165,7 @@ class BindingProviders extends BindingViewOnly<TransmissionResultNode, Model, HT
         .replace('[Proof]', JSON.stringify(node.result))
         .trim()
     );
-    const subject = encodeURIComponent(this.locale.emailSubject);
+    const subject = encodeURIComponent(<string>this.locale.emailSubject);
     return `mailto:${i.dpo_email}?subject=${subject}&body=${body}`;
   }
 }

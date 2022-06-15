@@ -1,11 +1,10 @@
 /**
  * Resources used by the controller for HTML views and CSS.
  */
-import logoSvg from './images/OneKey.svg';
 import css from './css/ok-ui.css';
 import auditTemplate from './html/containers/audit.html';
 import buttonTemplate from './html/components/button.html';
-import { Locale } from './locale';
+import { ILocale } from '@core/ui/ILocale';
 import { IView } from '@core/ui/binding';
 import { Log } from '@core/log';
 import okResponse from './html/components/okResponse.html';
@@ -28,20 +27,17 @@ export class View implements IView {
   private readonly log: Log;
 
   // The locale that the UI should adopt.
-  public readonly locale: Locale;
+  public readonly locale: ILocale;
 
   /**
    * Constructs a new instance of View.
    * @param advert element the module relates to
    * @param locale the language file to use with the UI
    */
-  constructor(advert: HTMLElement, locale: Locale, log: Log) {
+  constructor(advert: HTMLElement, locale: ILocale, log: Log) {
     this.advert = advert;
-    this.log = log;
-
-    // Setup the locale with the text and images to use.
     this.locale = locale;
-    this.locale.Logo = logoSvg;
+    this.log = log;
   }
 
   /**
