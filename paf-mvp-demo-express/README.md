@@ -131,10 +131,7 @@ To install and run the demo project locally, follow these instructions:
 
     On linux, one can give access to the privileged ports to node with the following command: `sudo setcap 'cap_net_bind_service+ep' $(which node)`
 
-5. Edit your `/etc/hosts` file (or `C:\Windows\System32\Drivers\etc\hosts` on Windows) to fake your web browser to target `localhost`.
-    1. See console logs when starting the server for details
-    2. On Linux / MacOS, use the following script:
-
+5. Edit your "hosts" file to fake your web browser to target `localhost`.
     ```shell
     cd paf-mvp-demo-express
 
