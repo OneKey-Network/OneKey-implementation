@@ -1,6 +1,6 @@
 import express, { Request } from 'express';
 import { WebSiteConfig } from '../website-config';
-import { OperatorClient } from '@operator-client/operator-client';
+import { OperatorClient } from '@client/operator-client';
 import { Cookies, typedCookie } from '@core/cookies';
 import {
   _ as Model,
@@ -35,7 +35,7 @@ import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier 
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { VHostApp } from '@core/express/express-apps';
 import { parseConfig } from '@core/express/config';
-import { ClientNodeConfig } from '@operator-client/client-node';
+import { ClientNodeConfig } from '@client/client-node';
 
 const { name, host }: WebSiteConfig = {
   name: 'A PAF portal',

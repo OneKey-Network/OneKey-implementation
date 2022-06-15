@@ -8,7 +8,7 @@ import {
 } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
-import { PafStatus } from '@core/operator-client-commons';
+import { PafStatus } from '../../src/enums/status.enum';
 import {
   Error,
   GetIdsPrefsResponse,

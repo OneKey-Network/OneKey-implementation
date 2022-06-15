@@ -1,5 +1,5 @@
 import { OperatorNode } from '@operator/operator-node';
-import { ClientNode } from '@operator-client/client-node';
+import { ClientNode } from '@client/client-node';
 import { VHostApp } from '@core/express/express-apps';
 import { pafPublisherCdnApp, pafPublisherWebSiteApp } from './websites/paf-publisher';
 import { pifPublisherCdnApp, pifPublisherWebSiteApp } from './websites/pif-publisher';

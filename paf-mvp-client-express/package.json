@@ -1,5 +1,5 @@
 {
-  "name": "paf-mvp-operator-client-express",
+  "name": "paf-mvp-client-express",
   "description": "Prebid Addressability Framework (PAF) Operator client: ExpressJS implementation",
   "main": "index.js",
   "type": "commonjs",
@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
   },
-  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-operator-client-express#readme",
+  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-client-express#readme",
   "dependencies": {
     "axios": "^0.26.1",
     "cors": "^2.8.5",

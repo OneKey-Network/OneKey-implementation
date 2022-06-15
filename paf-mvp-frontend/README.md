@@ -26,7 +26,7 @@ flowchart TB
     click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client("Operator client")
-    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express" "paf-mvp-client-express"
     
     Demo --> Frontend
     linkStyle 0 stroke:#d2d2d2,stroke-width:1px
@@ -94,7 +94,7 @@ needed to sign and verify messages sent to and received from the operator.
 
 See:
 
-- [paf-mvp-operator-client-express](../paf-mvp-operator-client-express) for technical details
+- [paf-mvp-client-express](../paf-mvp-client-express) for technical details
 - [paf-mvp-demo](../paf-mvp-demo-express) for examples of integration
 
 ## Widget integration
