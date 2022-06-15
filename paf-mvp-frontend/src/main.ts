@@ -14,6 +14,7 @@ import {
   registerTransmissionResponse,
   signPreferences,
   updateIdsAndPreferences,
+  getSeedStorageWorkAround,
 } from './lib/paf-lib';
 import { Window } from './global';
 
@@ -35,4 +36,5 @@ const showNotification = (type: NotificationEnum) => notificationService.showNot
   registerTransmissionResponse,
   getAuditLogByTransaction,
   getAuditLogByDivId,
+  getSeedStorageWorkAround,
 };

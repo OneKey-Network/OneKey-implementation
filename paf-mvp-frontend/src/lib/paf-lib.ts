@@ -707,6 +707,15 @@ export const generateSeed = async (
 };
 
 /**
+ * TODO a work around to enable the demo to get a valid PAF ID. Needs to be removed when the end to end system is
+ * working.
+ * @returns
+ */
+export const getSeedStorageWorkAround = (): Map<TransactionId, SeedEntry> => {
+  return seedStorage;
+};
+
+/**
  * Register the Transmission Response of an initial Transmission Request for a given Seed.
  * @param context
  * @param transmissionResponse Transmission Response of an initial Transmission Request containing all the children.
