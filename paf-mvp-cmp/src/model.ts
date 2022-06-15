@@ -1,3 +1,4 @@
+import { PafStatus } from '@frontend/enums/status.enum';
 import { Field, FieldReadOnly, IFieldBind, IFieldChangable, IModel } from '@core/ui/fields';
 import {
   Identifier,
@@ -7,7 +8,6 @@ import {
   Source,
   Version,
 } from '@core/model/generated-model';
-import { PafStatus } from '@frontend/enums/status.enum';
 
 /**
  * The different states for the marketing preferences field.
