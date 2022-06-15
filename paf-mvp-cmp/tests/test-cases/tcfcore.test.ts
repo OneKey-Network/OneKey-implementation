@@ -1,5 +1,5 @@
-import { TcfCore } from '../src/tcfcore';
-import { IabTcfCore } from './iabtcfcore';
+import { TcfCore } from '../../src/tcfcore';
+import { IabTcfCore } from '../helpers/iabtcfcore';
 
 const falseArray = [false, false, false, false, false, false, false, false, false, false, false, false];
 const trueArray = [true, true, true, true, true, true, true, true, true, true, true, true];

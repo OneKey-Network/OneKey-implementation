@@ -5,6 +5,7 @@ import { ISnackBarProps, SnackBar } from '../../components/snack-bar/SnackBar';
 import { useEffect } from 'react';
 import { NotificationEnum } from '../../enums/notification.enum';
 import { useRef } from 'preact/hooks';
+import { Window } from '@frontend/global';
 
 export interface INotificationProps {
   type: NotificationEnum;
@@ -23,7 +24,7 @@ export const Notification = ({ type, destroy }: INotificationProps) => {
 
   const launchPrompt = (event: MouseEvent) => {
     event.preventDefault();
-    window.PAFUI.promptConsent();
+    (window as Window).PAFUI.promptConsent();
     window.clearTimeout(timerRef.current);
     destroy();
   };

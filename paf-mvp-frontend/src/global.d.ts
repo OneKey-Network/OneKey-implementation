@@ -12,8 +12,8 @@ import {
 import { NotificationEnum } from './enums/notification.enum';
 import { ICommandProcessor } from './utils/queue';
 
-declare global {
-  interface Window {
+export type Window = WindowProxy &
+  typeof globalThis & {
     PAF: {
       queue?: ICommandProcessor;
       getNewId: typeof getNewId;
@@ -30,7 +30,4 @@ declare global {
       promptConsent: () => Promise<boolean>;
       showNotification: (notificationType: NotificationEnum) => void;
     };
-  }
-}
-
-export {};
+  };
