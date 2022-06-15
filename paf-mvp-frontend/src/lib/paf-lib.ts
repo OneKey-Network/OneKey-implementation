@@ -804,6 +804,15 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
 export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPreferencesOptions): Promise<void> => {
   log.Info('Attempt to delete ids and preferences');
 
+  const strIds = getCookieValue(Cookies.identifiers);
+  const strPreferences = getCookieValue(Cookies.preferences);
+  const pafStatus = getPafStatus(strIds, strPreferences);
+
+  if (pafStatus === PafStatus.NOT_PARTICIPATING) {
+    log.Info('User is already not participating, nothing to clean');
+    return;
+  }
+
   // FIXME there is no redirect version for now, only the one working with 3PC
 
   // Get the signed request for the operator
