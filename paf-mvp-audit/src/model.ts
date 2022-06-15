@@ -42,6 +42,6 @@ export class Model implements IModel {
    * Calls the refresh method on all the fields in the model to connect them to the currently displayed UI.
    */
   public updateUI() {
-    this.allFields.forEach((f) => f.updateUI());
+    this.allFields?.forEach((f) => f.updateUI());
   }
 }
