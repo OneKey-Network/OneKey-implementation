@@ -391,6 +391,8 @@ export class Controller {
    * Refuses all data processing, writes cookies to indicate this to the domain, and closes the UI.
    */
   private async actionRefuseAll() {
+    removeCookie(Cookies.lastRefresh);
+
     await deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
     this.model.status = PafStatus.NOT_PARTICIPATING;
     this.model.setFromIdsAndPreferences(undefined);
