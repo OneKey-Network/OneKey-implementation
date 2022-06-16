@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --passWithNoTests",
     "build-front": "npm run build --prefix paf-mvp-frontend && npm run build:tcf --prefix paf-mvp-cmp && npm run build --prefix paf-mvp-audit",
-    "build-back": "npm run build --prefix paf-mvp-operator-express && npm run build --prefix paf-mvp-operator-client-express",
+    "build-back": "npm run build --prefix paf-mvp-operator-express && npm run build --prefix paf-mvp-client-express",
     "start:watch": "nodemon --debug .",
     "lint": "eslint .",
     "lint:all": "npm run lint && npm run lint:frontend",
@@ -140,7 +140,7 @@
   "_moduleAliases": {
     "@core": "paf-mvp-core-js/src",
     "@operator": "paf-mvp-operator-express/src",
-    "@operator-client": "paf-mvp-operator-client-express/src",
+    "@client": "paf-mvp-client-express/src",
     "@frontend": "paf-mvp-frontend/src"
   },
   "lint-staged": {

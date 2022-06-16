@@ -2,9 +2,7 @@
 
 An implementation of the PAF operator client, served by ExpressJS web server.
 
-It includes:
-- a "backend client": an ExpressJS middleware responsible for triggering HTTP redirects to the operator, when needed, to query ids and preferences cookies.
-- a "client proxy": it provides endpoints needed by the [frontend library](../paf-mvp-frontend)
+It includes a "client node" which provides endpoints needed by the [frontend library](../paf-mvp-frontend)
   to sign and verify messages sent to and received from the operator. 
 
 See [website-design](../addressable-network-proposals/blob/main/mvp-spec/website-design.md) for details
@@ -29,7 +27,7 @@ flowchart TB
     
     Client("Operator client<br>(you are here)")
     style Client fill:#ff9a36,stroke:#333,stroke-width:2px
-    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express" "paf-mvp-client-express"
     
     Demo --> Frontend
     linkStyle 0 stroke:#d2d2d2,stroke-width:1px

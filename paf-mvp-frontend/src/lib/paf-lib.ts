@@ -16,11 +16,11 @@ import {
   TransactionId,
   TransmissionResponse,
 } from '@core/model';
-import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
+import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration, typedCookie } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
-import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
+import { PafStatus } from '@frontend/enums/status.enum';
 import { getCookieValue } from '../utils/cookie';
 import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
@@ -254,6 +254,33 @@ async function updateDataWithPrompt(
   }
 }
 
+const getCleanCookieValue = (cookieValue: string): string | undefined =>
+  cookieValue === PafStatus.NOT_PARTICIPATING || cookieValue === PafStatus.REDIRECT_NEEDED ? undefined : cookieValue;
+
+/**
+ * Parse string cookie values and build an IdsAndOptionalPreferences accordingly
+ * @param idsCookie
+ * @param prefsCookie
+ */
+const fromClientCookieValues = (idsCookie: string, prefsCookie: string): IdsAndOptionalPreferences => {
+  return {
+    identifiers: typedCookie(getCleanCookieValue(idsCookie)) ?? [],
+    preferences: typedCookie(getCleanCookieValue(prefsCookie)),
+  };
+};
+
+const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus => {
+  if (idsCookie === PafStatus.REDIRECT_NEEDED || prefsCookie === PafStatus.REDIRECT_NEEDED) {
+    return PafStatus.REDIRECT_NEEDED;
+  }
+
+  // TODO might need to refine this one
+  if (idsCookie === PafStatus.NOT_PARTICIPATING || prefsCookie === PafStatus.NOT_PARTICIPATING) {
+    return PafStatus.NOT_PARTICIPATING;
+  }
+
+  return PafStatus.PARTICIPATING;
+};
 /**
  * Ensure local cookies for PAF identifiers and preferences are up-to-date.
  * If they aren't, contact the operator to get fresh values.

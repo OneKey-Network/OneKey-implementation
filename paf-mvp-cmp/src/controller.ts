@@ -1,20 +1,20 @@
 import { Config } from './config';
-import { BindingShowRandomIdDiv, BindingThisSiteOnly, BindingDisplayRandomId } from './bindings';
+import { BindingDisplayRandomId, BindingShowRandomIdDiv, BindingThisSiteOnly } from './bindings';
 import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
   getIdsAndPreferences,
-  refreshIdsAndPreferences,
-  signPreferences,
   getNewId,
-  saveCookieValue,
-  updateIdsAndPreferences,
+  refreshIdsAndPreferences,
   removeCookie,
+  saveCookieValue,
   ShowPromptOption,
+  signPreferences,
+  updateIdsAndPreferences,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
-import { PafStatus } from '@core/operator-client-commons';
+import { PafStatus } from '@frontend/enums/status.enum';
 import { View } from './view';
 import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';

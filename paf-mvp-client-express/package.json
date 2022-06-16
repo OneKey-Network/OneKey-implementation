@@ -18,7 +18,7 @@
   "bugs": {
     "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
   },
-  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-operator-client-express#readme",
+  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-client-express#readme",
   "dependencies": {
     "@types/cors": "^2.8.12",
     "axios": "^0.26.1",
