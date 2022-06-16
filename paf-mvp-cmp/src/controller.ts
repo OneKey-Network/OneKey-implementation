@@ -140,7 +140,7 @@ export class Controller {
           <string>this.locale.snackbarHeadingPersonalized,
           <string>this.locale.snackbarHeadingStandard,
           <string>this.locale.snackbarHeadingCustomized,
-          <string>this.locale.snackbarHeadingCustomized,
+          <string>this.locale.snackbarHeadingNotSet,
         ])
       )
     );
@@ -152,7 +152,7 @@ export class Controller {
           <string>this.locale.snackbarBodyPersonalized,
           <string>this.locale.snackbarBodyStandard,
           <string>this.locale.snackbarBodyCustomized,
-          <string>this.locale.snackbarBodyCustomized,
+          <string>this.locale.snackbarBodyNotSet,
         ])
       )
     );
@@ -392,8 +392,9 @@ export class Controller {
    */
   private async actionRefuseAll() {
     await deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
-    this.stopSnackbarHide();
-    this.view.hidePopup();
+    this.model.status = PafStatus.NOT_PARTICIPATING;
+    this.model.setFromIdsAndPreferences(undefined);
+    this.display('snackbar');
   }
 
   /**
