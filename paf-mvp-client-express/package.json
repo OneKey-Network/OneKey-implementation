@@ -1,7 +1,7 @@
 {
-  "name": "onekey-client-node",
+  "name": "@onekey/client-node",
   "version": "1.0.0",
-  "description": "OneKey client node based on ExpressJS",
+  "description": "OneKey Client node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
@@ -9,18 +9,19 @@
     "preprebuild": "npm install --prefix ../paf-mvp-core-js",
     "prebuild": "npm install",
     "build": "rollup -c",
+    "publish": "npm publish --access=public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/criteo/paf-mvp-demo-express.git"
+    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
+    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
   },
-  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-client-express#readme",
+  "homepage": "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express#readme",
   "dependencies": {
     "axios": "^0.26.1",
     "cors": "^2.8.5",
@@ -38,7 +39,8 @@
     "@types/ua-parser-js": "^0.7.36",
     "rollup-plugin-dts": "^4.2.2",
     "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-ts": "^3.0.2",
+    "rollup-plugin-typescript2": "^0.32.1",
+    "rollup-plugin-typescript-paths": "^1.3.1",
     "tslib": "^2.4.0",
     "typescript": "^4.5.4"
   }
