@@ -1,0 +1,73 @@
+// ------- Basic customisation --------
+
+// Colours
+
+$brand-primary: #18A9E1; // the primary brand colour; used in places like the main buttons and links
+
+// Fonts
+
+$base-font-size: 14px; // the font size of the main text, and what most other measurements are based on
+
+// ------- More advanced customisation --------
+
+// Colours
+
+$brand-600: darken($brand-primary, 12%); // commonly a darker version of the primary brand color; used for button focus and hover states
+$brand-800: darken($brand-primary, 15%); // commonly an even darker version of the primary brand color; used for button active states
+$brand-50: rgba($brand-primary, 0.12); // commonly a much lighter version of the primary brand color; used for branded backgrounds, like certain types of button
+
+$grey-800: #252E38;
+$grey-600: #505253;
+$grey-400: #828586;
+$grey-200: #C4C6CA;
+$grey-100: #E1E3E8;
+$grey-50: #F7F7F7;
+
+$status-good: #4AD23E;
+$status-good-600: darken($status-good, 12%);
+$status-good-800: darken($status-good, 15%);
+$status-good-50: rgba($status-good, 0.12);
+
+$status-warning: #F58909;
+$status-warning-600: darken($status-warning, 12%);
+$status-warning-800: darken($status-warning, 15%);
+$status-warning-50: rgba($status-warning, 0.12);
+
+$status-bad: #F03F3F;
+$status-bad-600: darken($status-bad, 12%);
+$status-bad-800: darken($status-bad, 15%);
+$status-bad-50: rgba($status-bad, 0.12);
+
+
+$shadow-background: rgba(#000000, 0.12);
+$popup-overlay-background: rgba(31, 32, 52, 0.8);
+$popup-background: #FFFFFF;
+
+// Fonts
+
+$base-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+$base-line-height: 1.429;
+
+$heading-font-family: Verdana, sans-serif;
+$heading-font-size: 1.429em;
+$heading-font-weight: 700;
+$heading-line-height: 1.6;
+
+$sub-heading-font-size: 1.143em;
+$sub-heading-line-height: 1.5;
+
+$meta-font-size: 0.857em;
+
+// Popup
+
+$popup-z-index: 10000; // makes this as low as you can
+$popup-gutter: 16px;
+$max-width: 62em;
+$tablet-width: 600px; // this has to be pixels
+$desktop-width: 870px; // this has to be pixels
+
+// Radii
+
+$border-radius: 8px;
+$border-radius-large: 16px;
+$button-border-radius: 999px;

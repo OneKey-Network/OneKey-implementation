@@ -1,0 +1,41 @@
+.ok-ui-tabs-container {
+  position: relative;
+  margin: 0 em(-16px);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: em(24px);
+  }
+
+  &::before {
+    left: 0;
+    background-image: linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
+  }
+
+  &::after {
+    right: 0;
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
+  }
+}
+
+.ok-ui-tabs-wrapper {
+  overflow: auto;
+  padding-bottom: em(16px);
+}
+
+.ok-ui-tabs {
+  display: flex;
+  margin: 0 em(16px);
+  border: solid em(1px) $grey-100;
+  border-radius: $button-border-radius;
+  white-space: nowrap;
+  width: fit-content;
+
+  > * {
+    margin: -1px;
+  }
+}

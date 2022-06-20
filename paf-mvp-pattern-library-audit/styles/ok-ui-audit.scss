@@ -1,0 +1,23 @@
+.ok-ui {
+  @import "base";
+
+  @import "components/advert.scss";
+  @import "components/button.scss";
+  @import "components/card.scss";
+  @import "components/data.scss";
+  @import "components/details.scss";
+  @import "components/divide.scss";
+  @import "components/download-data.scss";
+  @import "components/icon.scss";
+  @import "components/link.scss";
+  @import "components/loading.scss";
+  @import "components/navigation.scss";
+  @import "components/option.scss";
+  @import "components/participant.scss";
+  @import "components/popup.scss";
+  @import "components/popover.scss";
+  @import "components/tabs.scss";
+  @import "components/website-advert.scss";
+
+  @import "utils";
+}

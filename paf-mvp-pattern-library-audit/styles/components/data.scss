@@ -1,0 +1,45 @@
+.ok-ui-data-header {
+  @include tablet-plus {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+.ok-ui-data {
+  padding: em(8px) em(24px);
+  border: solid em(1px) $grey-200;
+  border-radius: $border-radius;
+
+  list-style: none;
+  word-break: break-all;
+}
+
+.ok-ui-datum {
+  padding: em(16px) 0;
+}
+
+@include phone-only {
+  .ok-ui-heading-3 {
+    margin-top: em(8px);
+    margin-bottom: em(4px);
+  }
+}
+
+@include tablet-plus {
+  .ok-ui-datum__body {
+    display: flex;
+    align-items: center;
+  }
+
+  .ok-ui-datum__name {
+    margin-left: em(8px);
+  }
+
+  .ok-ui-datum__value {
+    margin-left: auto;
+  }
+}
+
+.ok-ui-datum + .ok-ui-datum {
+  border-top: solid em(1px) $grey-100;
+}

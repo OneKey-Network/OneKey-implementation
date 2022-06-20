@@ -1,0 +1,21 @@
+.ok-ui-details summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.ok-ui-details summary::-webkit-details-marker {
+  display: none
+}
+
+.ok-ui-details--primary summary {
+  color: $brand-primary;
+}
+
+.ok-ui-details__icon {
+  display: inline-block;
+  transition: transform .3s ease-out;
+}
+
+.ok-ui-details[open] .ok-ui-details__icon {
+  transform: rotate(-180deg);
+}

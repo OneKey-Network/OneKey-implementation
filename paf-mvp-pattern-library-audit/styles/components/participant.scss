@@ -1,0 +1,118 @@
+.ok-ui-participant {
+  border: solid em(1px) $grey-200;
+  border-radius: $border-radius;
+
+  .ok-ui-heading-3 {
+    margin-bottom: em(4px);
+  }
+}
+
+.ok-ui-participant + .ok-ui-participant {
+  margin-top: em(8px);
+}
+
+.ok-ui-participant--winning {
+  border-color: $brand-primary;
+
+  .ok-ui-meta {
+    color: $brand-primary;
+  }
+}
+
+.ok-ui-participant__status {
+  $font-size: 12px;
+
+  display: flex;
+  align-items: center;
+
+  padding: em(8px, $font-size);
+  border-radius: $border-radius;
+
+  font-size: em($font-size);
+
+  > * + * {
+    margin-left: em(4px);
+  }
+
+  &--trusted {
+    color: $status-good;
+    background-color: $status-good-50;
+  }
+
+  &--suspicious {
+    color: $status-warning;
+    background-color: $status-warning-50;
+  }
+
+  &--violation {
+    color: $status-bad;
+    background-color: $status-bad-50;
+  }
+}
+
+@include phone-only {
+  .ok-ui-participant__body {
+    padding: em(8px);
+  }
+
+ .ok-ui-participant__details, 
+ .ok-ui-participant__actions {
+    padding: em(8px);
+ }
+
+ .ok-ui-participant__details {
+   margin-top: em(8px);
+ }
+}
+
+@include tablet-plus {
+  .ok-ui-participant__body {
+    display: flex;
+    align-items: center;
+    padding: em(16px);
+  }
+
+  .ok-ui-participant__details {
+    order: -1;
+  }
+
+  .ok-ui-participant__status-wrapper {
+    margin-left: auto;
+
+    padding-right: em(24px);
+    border-right: solid 1px $grey-100;
+    margin-right: em(24px);
+  }
+}
+
+.ok-ui-participant__actions {
+  display: flex;
+}
+
+.ok-ui-participant__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: em(16px);
+  border-top: solid 1px $grey-200;
+  color: $grey-400;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  svg {
+    transition: transform .3s ease-out;
+  }
+}
+
+.ok-ui-participant--show-parties .ok-ui-participant__footer svg {
+  transform: rotate(-180deg);
+}
+
+.ok-ui-participant-parties {
+  padding: em(8px);
+  padding-right: 0;
+  margin-top: em(8px);
+  border-left: solid 1px $grey-200;
+}
