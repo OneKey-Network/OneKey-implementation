@@ -70,7 +70,7 @@ export enum Permission {
 export type AllowedHosts = { [host: string]: Permission[] };
 
 /**
- * The configuration of a PAF operator node
+ * The configuration of a operator node
  */
 export interface OperatorNodeConfig extends Config {
   allowedHosts: AllowedHosts;

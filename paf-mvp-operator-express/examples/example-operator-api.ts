@@ -3,9 +3,9 @@ import { OperatorNode, Permission } from '@operator/operator-node';
 
 // This is just an example of a basic operator node configuration
 export const operator = new OperatorNode(
-  // Identity information: mandatory for any PAF interaction
+  // Identity information: mandatory for any OneKey interaction
   {
-    // Name of the PAF participant
+    // Name of the OneKey participant
     name: 'Example operator',
     // Current public key
     publicKeys: [
@@ -32,7 +32,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxK7RQm5KP1g62SQn
 oyeE+rrDPJzpZxIyCCTHDvd1TRShRANCAAQSJkhGEbE118biXou5jZB+PJ/rRHSO
 ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 -----END PRIVATE KEY-----`,
-  // List of PAF client node host names and their corresponding permissions
+  // List of OneKey client node host names and their corresponding permissions
   {
     'paf.example-websiteA.com': [Permission.READ, Permission.WRITE],
     'paf.example-websiteB.com': [Permission.READ, Permission.WRITE],

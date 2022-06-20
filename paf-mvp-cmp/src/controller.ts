@@ -248,7 +248,7 @@ export class Controller {
   }
 
   /**
-   * Gets the Ids and preferences from local domain storage. Tries to get a local copy of the PAF data. If that is not
+   * Gets the Ids and preferences from local domain storage. Tries to get a local copy of the OneKey data. If that is not
    * available and the configuration supports this site only then looks for the local data.
    * @returns true if found in local domain storage, otherwise false.
    */
@@ -262,13 +262,13 @@ export class Controller {
       }
     }
 
-    // Try and get the PAF data from local cookies.
+    // Try and get the OneKey data from local cookies.
     const data = getIdsAndPreferences();
     if (data !== undefined) {
       // TODO: The data returned does not match the interface and should really include a status value to avoid this
       // try catch block.
       try {
-        this.log.Message('local PAF data', data);
+        this.log.Message('local OneKey data', data);
         this.model.status = PafStatus.PARTICIPATING;
         this.setPersistedFlag(data.identifiers);
         this.model.setFromIdsAndPreferences(data);
@@ -285,7 +285,7 @@ export class Controller {
   /**
    * Decode the local TCF core cookie string if present and set the data model accordingly.
    * @remarks
-   * Sets the PAF status to not participating and the Random ID to null.
+   * Sets the OneKey status to not participating and the Random ID to null.
    * @param value of the TCF core string
    */
   private getIdsAndPreferencesFromTcf(value: string) {
@@ -468,13 +468,13 @@ export class Controller {
     preferences were created at T0 along with the Random ID. Then at T1 the Random ID changes. We don't really want
     to reset the preferences just because the Random ID changed.
     
-    There is a relationship between the PAF lib and the UI which is confusing. If the PAF lib is a data layer then it
+    There is a relationship between the OneKey lib and the UI which is confusing. If the OneKey lib is a data layer then it
     should not consider the UI. If validation fails either in the client, or via calls to the CMP or Operator there 
     needs to be a method of passing this back to the client. We need an enumeration of error codes that can be tied to
     text in the UI. There will also be more serious exceptions that will need to be handled. The UI doesn't currently
     allow for this.
 
-    Otherwise there should be a defined interface that must be provided to the PAF lib to manipulate the UI and the UI
+    Otherwise there should be a defined interface that must be provided to the OneKey lib to manipulate the UI and the UI
     implementor will need to ensure they implement the interface. This approach is less flexible.
     
     The method then needs to return the values as they currently exist in the persistent storage. The caller is then
@@ -501,7 +501,7 @@ export class Controller {
     Pref is similar to the PreferencesData structure.
     OWID is similar to Source.
     The design approach there is to have a single method that will store what is provided (if anything) and return the
-    current data. The CMP would handle the decrypt of the results which is not relevant to PAF as the data is not
+    current data. The CMP would handle the decrypt of the results which is not relevant to OneKey as the data is not
     encrypted.
     */
 

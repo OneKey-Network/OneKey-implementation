@@ -1,13 +1,13 @@
-# Prebid Addressability Framework (PAF) Operator client: ExpressJS implementation
+# OneKey client node: ExpressJS implementation
 
-An implementation of the PAF operator client, served by ExpressJS web server.
+An implementation of the OneKey client, served by ExpressJS web server.
 
 It includes a "client node" which provides endpoints needed by the [frontend library](../paf-mvp-frontend)
   to sign and verify messages sent to and received from the operator. 
 
 See [website-design](../addressable-network-proposals/blob/main/mvp-spec/website-design.md) for details
 
-## PAF implementation projects
+## OneKey implementation projects
 ```mermaid
 
 flowchart TB
