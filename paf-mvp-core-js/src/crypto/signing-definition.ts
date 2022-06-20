@@ -1,4 +1,6 @@
 import {
+  DeleteIdsPrefsRequest,
+  DeleteIdsPrefsResponse,
   GetIdsPrefsRequest,
   GetIdsPrefsResponse,
   GetNewIdRequest,
@@ -181,7 +183,9 @@ export abstract class RequestDefinition<T extends MessageBase>
  * Defines how to sign a message that doesn't have a "body" property.
  * Examples: GetIdsPrefsRequest, GetNewIdRequest
  */
-export class RequestWithoutBodyDefinition extends RequestDefinition<GetIdsPrefsRequest | GetNewIdRequest> {
+export class RequestWithoutBodyDefinition extends RequestDefinition<
+  GetIdsPrefsRequest | GetNewIdRequest | DeleteIdsPrefsRequest
+> {
   getInputString(requestAndContext: UnsignedRequestWithContext<GetIdsPrefsRequest>): string {
     const context = requestAndContext.context;
     const request = requestAndContext.request;
@@ -256,14 +260,16 @@ export class ResponseDefinition implements SigningDefinition<ResponseType> {
     return response.sender;
   }
 
-  getInputString(response: Unsigned<GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse>): string {
+  getInputString(
+    response: Unsigned<GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse | DeleteIdsPrefsResponse>
+  ): string {
     const dataToSign = [response.sender, response.receiver];
 
-    if ((response as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences) {
+    if ((response as GetIdsPrefsResponse | PostIdsPrefsResponse).body?.preferences) {
       dataToSign.push((response as GetIdsPrefsResponse | PostIdsPrefsResponse).body.preferences.source.signature);
     }
 
-    for (const id of response.body.identifiers ?? []) {
+    for (const id of (response as GetIdsPrefsResponse | PostIdsPrefsResponse).body?.identifiers ?? []) {
       dataToSign.push(id.source.signature);
     }
 

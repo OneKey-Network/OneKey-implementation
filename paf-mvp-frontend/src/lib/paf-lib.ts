@@ -1,6 +1,7 @@
 import { browserName } from 'detect-browser';
 import {
   AuditLog,
+  DeleteIdsPrefsResponse,
   Error,
   Get3PcResponse,
   GetIdsPrefsResponse,
@@ -9,6 +10,7 @@ import {
   IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostIdsPrefsRequest,
+  PostIdsPrefsResponse,
   PostSeedRequest,
   PostSignPreferencesRequest,
   Preferences,
@@ -61,6 +63,12 @@ const postText = (url: string, input: string) =>
 const get = (url: string) =>
   fetch(url, {
     method: 'GET',
+    credentials: 'include',
+  });
+
+const deleteHttp = (url: string) =>
+  fetch(url, {
+    method: 'DELETE',
     credentials: 'include',
   });
 
@@ -351,7 +359,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     async function handleAfterRedirect() {
       // Verify message
       const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
-      const operatorData = (await response.json()) as GetIdsPrefsResponse;
+      const operatorData = (await response.json()) as
+        | GetIdsPrefsResponse
+        | PostIdsPrefsResponse
+        | DeleteIdsPrefsResponse;
 
       if (!operatorData) {
         throw 'Verification failed';
@@ -359,18 +370,32 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
       log.Debug('Operator data after redirect', operatorData);
 
-      // 3. Received data?
-      const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
-      const hasPersistedId = persistedIds.length > 0;
-      const preferences = operatorData?.body?.preferences;
-      const hasPreferences = preferences !== undefined;
-      saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
-      saveCookieValue(Cookies.preferences, preferences);
+      let status: PafStatus;
 
-      triggerNotification(preferences?.data?.use_browsing_for_personalization);
+      // 3. Received data?
+      if (operatorData.body.preferences === undefined && operatorData.body.identifiers.length === 0) {
+        // Deletion of ids and preferences requested
+        saveCookieValue(Cookies.identifiers, undefined);
+        saveCookieValue(Cookies.preferences, undefined);
+        status = PafStatus.NOT_PARTICIPATING;
+
+        log.Info('Deleted ids and preferences');
+      } else {
+        // Ids and preferences received
+        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
+        const hasPersistedId = persistedIds.length > 0;
+        const preferences = operatorData?.body?.preferences;
+        const hasPreferences = preferences !== undefined;
+        saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
+        saveCookieValue(Cookies.preferences, preferences);
+
+        triggerNotification(preferences?.data?.use_browsing_for_personalization);
+
+        status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
+      }
 
       return {
-        status: hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN,
+        status,
         data: operatorData.body,
       };
     }
@@ -789,9 +814,54 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
   return getAuditLogByTransaction(prebidTransactionId);
 };
 
-export const deleteIdsAndPreferences = (_option: DeleteIdsAndPreferencesOptions): Promise<boolean> => {
-  // Not handled yet.
-  return Promise.resolve(false);
+/**
+ * Delete the identifiers and preferences of the current website (locally and from the operator)
+ * @param options:
+ * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
+ */
+export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPreferencesOptions): Promise<void> => {
+  log.Info('Attempt to delete ids and preferences');
+
+  const strIds = getCookieValue(Cookies.identifiers);
+  const strPreferences = getCookieValue(Cookies.preferences);
+  const pafStatus = getPafStatus(strIds, strPreferences);
+
+  if (pafStatus === PafStatus.NOT_PARTICIPATING) {
+    log.Info('User is already not participating, nothing to clean');
+    return;
+  }
+
+  const getUrl = getProxyUrl(proxyHostName);
+
+  // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
+  if (thirdPartyCookiesSupported) {
+    log.Info('3PC supported: deleting the ids and preferences');
+
+    // Get the signed request for the operator
+    const clientNodeDeleteResponse = await deleteHttp(getUrl(jsonProxyEndpoints.delete));
+    const operatorDeleteUrl = await clientNodeDeleteResponse.text();
+
+    // Call the operator, which will clean its cookies
+    await deleteHttp(operatorDeleteUrl);
+
+    // Clean the local cookies
+    saveCookieValue(Cookies.identifiers, undefined);
+    saveCookieValue(Cookies.preferences, undefined);
+
+    log.Info('Deleted ids and preferences');
+    return;
+  }
+
+  log.Info('3PC not supported: redirecting to delete ids and preferences');
+
+  // Redirect. Signing of the request will happen on the backend proxy
+  const clientUrl = new URL(getUrl(redirectProxyEndpoints.delete));
+  clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
+  const clientResponse = await get(clientUrl.toString());
+
+  // TODO handle errors
+  const operatorUrl = await clientResponse.text();
+  redirect(operatorUrl);
 };
 
 // Set up the queue of asynchronous commands

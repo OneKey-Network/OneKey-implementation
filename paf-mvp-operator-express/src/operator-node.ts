@@ -29,6 +29,8 @@ import {
 } from '@core/crypto';
 import { Log } from '@core/log';
 import {
+  DeleteIdsPrefsRequest,
+  DeleteIdsPrefsResponseBuilder,
   Get3PCResponseBuilder,
   GetIdsPrefsRequest,
   GetIdsPrefsResponseBuilder,
@@ -40,8 +42,10 @@ import {
   PostIdsPrefsRequest,
   PostIdsPrefsResponseBuilder,
   Preferences,
+  RedirectDeleteIdsPrefsRequest,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
+  ReturnUrl,
   Test3Pc,
 } from '@core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
@@ -97,6 +101,7 @@ export class OperatorNode implements Node {
     const get3PCResponseBuilder = new Get3PCResponseBuilder();
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
+    const deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(operatorHost, privateKey);
     const idVerifier = new Verifier(keyStore.provider, new IdentifierDefinition());
     const prefsVerifier = new Verifier(keyStore.provider, new IdsAndPreferencesDefinition());
 
@@ -123,23 +128,38 @@ export class OperatorNode implements Node {
     const getNewIdRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
     const idBuilder = new IdBuilder(operatorHost, privateKey);
 
-    const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
+    const extractRequestAndContextFromHttp = <
+      TopLevelRequestType,
+      TopLevelRequestRedirectType extends { returnUrl: ReturnUrl; request: TopLevelRequestType }
+    >(
+      topLevelRequest: TopLevelRequestType | TopLevelRequestRedirectType,
+      req: Request
+    ) => {
       // Extract request from Redirect request, if needed
-      let request: GetIdsPrefsRequest;
+      let request: TopLevelRequestType;
       let context: RestContext | RedirectContext;
       if (
-        (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl &&
-        (topLevelRequest as RedirectGetIdsPrefsRequest).request
+        (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
+        (topLevelRequest as TopLevelRequestRedirectType).request
       ) {
-        request = (topLevelRequest as RedirectGetIdsPrefsRequest).request;
+        request = (topLevelRequest as TopLevelRequestRedirectType).request;
         context = {
-          returnUrl: (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl,
+          returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
           referer: req.header('referer'),
         };
       } else {
-        request = topLevelRequest as GetIdsPrefsRequest;
+        request = topLevelRequest as TopLevelRequestType;
         context = { origin: req.header('origin') };
       }
+
+      return { request, context };
+    };
+
+    const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
+      const { request, context } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+        topLevelRequest,
+        req
+      );
 
       const sender = request.sender;
 
@@ -174,22 +194,10 @@ export class OperatorNode implements Node {
       req: Request,
       res: Response
     ) => {
-      // Extract request from Redirect request, if needed
-      let request: PostIdsPrefsRequest;
-      let context: RestContext | RedirectContext;
-      if (
-        (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl &&
-        (topLevelRequest as RedirectPostIdsPrefsRequest).request
-      ) {
-        request = (topLevelRequest as RedirectPostIdsPrefsRequest).request;
-        context = {
-          returnUrl: (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl,
-          referer: req.header('referer'),
-        };
-      } else {
-        request = topLevelRequest as PostIdsPrefsRequest;
-        context = { origin: req.header('origin') };
-      }
+      const { request, context } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+        topLevelRequest,
+        req
+      );
       const sender = request.sender;
 
       if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
@@ -228,6 +236,40 @@ export class OperatorNode implements Node {
       writeAsCookies(request, res);
 
       return postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
+    };
+
+    const getDeleteResponse = async (
+      input: DeleteIdsPrefsRequest | RedirectDeleteIdsPrefsRequest,
+      req: Request,
+      res: Response
+    ) => {
+      const { request, context } = extractRequestAndContextFromHttp<
+        DeleteIdsPrefsRequest,
+        RedirectDeleteIdsPrefsRequest
+      >(input, req);
+      const sender = request.sender;
+
+      if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
+        throw `Domain not allowed to write data: ${sender}`;
+      }
+
+      // Verify message
+      if (
+        !(await getIdsPrefsRequestVerifier.verifySignatureAndContent(
+          { request, context },
+          sender, // sender will always be ok
+          operatorHost // but operator needs to be verified
+        ))
+      ) {
+        // TODO [errors] finer error feedback
+        throw 'Delete request verification failed';
+      }
+
+      removeCookie(null, res, Cookies.identifiers, { domain: tld });
+      removeCookie(null, res, Cookies.preferences, { domain: tld });
+
+      res.status(204);
+      return deleteIdsPrefsResponseBuilder.buildResponse(sender);
     };
 
     // *****************************************************************************************************************
@@ -300,6 +342,26 @@ export class OperatorNode implements Node {
         res.json(signedData);
       } catch (e) {
         logger.Error(jsonOperatorEndpoints.write, e);
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
+    });
+
+    app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll)); // enable pre-flight request for DELETE request
+    app.expressApp.delete(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.delete);
+      const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+
+      try {
+        const response = await getDeleteResponse(input, req, res);
+        res.json(response);
+      } catch (e) {
+        logger.Error(jsonOperatorEndpoints.delete, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -410,6 +472,37 @@ export class OperatorNode implements Node {
         httpRedirect(res, redirectUrl.toString());
       } catch (e) {
         logger.Error(redirectEndpoints.write, e);
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
+    });
+
+    app.expressApp.get(redirectEndpoints.delete, async (req, res) => {
+      logger.Info(redirectEndpoints.delete);
+      const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
+      if (!request?.returnUrl) {
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        const error: OperatorError = {
+          type: OperatorErrorType.INVALID_RETURN_URL,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+        return;
+      }
+      try {
+        const response = await getDeleteResponse(request, req, res);
+        const redirectResponse = deleteIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+        const redirectUrl = deleteIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
+        httpRedirect(res, redirectUrl.toString());
+      } catch (e) {
+        logger.Error(redirectEndpoints.delete, e);
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         // FIXME finer error return
         const error: OperatorError = {

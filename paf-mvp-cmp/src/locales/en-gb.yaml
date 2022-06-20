@@ -77,9 +77,11 @@ customizeTips:
 snackbarHeadingPersonalized: You chose to see personalized content and relevant ads on [BrandName]
 snackbarHeadingStandard: You chose to see standard marketing on [BrandName]
 snackbarHeadingCustomized: You've chosen customized marketing on [BrandName]
+snackbarHeadingNotSet: You've chosen to opt out of OneKey on [BrandName]
 snackbarBodyPersonalized: <a href="#" data-card='settings' class="ok-ui-link">Review your preferences</a> at any time.
 snackbarBodyStandard: Switch to <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> at any time to make your ads more relevant.
 snackbarBodyCustomized: Switch to <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> at any time to make your ads more relevant.
+snackbarBodyNotSet: Switch to <a href="#" data-card='settings' class="ok-ui-link">personalized marketing</a> at any time to make your ads more relevant.
 
 # Button text
 refuseAll: Refuse All

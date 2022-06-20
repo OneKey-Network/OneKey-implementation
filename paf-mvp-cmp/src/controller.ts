@@ -8,10 +8,10 @@ import {
   getNewId,
   refreshIdsAndPreferences,
   removeCookie,
-  saveCookieValue,
   ShowPromptOption,
   signPreferences,
   updateIdsAndPreferences,
+  deleteIdsAndPreferences,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@frontend/enums/status.enum';
@@ -140,7 +140,7 @@ export class Controller {
           <string>this.locale.snackbarHeadingPersonalized,
           <string>this.locale.snackbarHeadingStandard,
           <string>this.locale.snackbarHeadingCustomized,
-          <string>this.locale.snackbarHeadingCustomized,
+          <string>this.locale.snackbarHeadingNotSet,
         ])
       )
     );
@@ -152,7 +152,7 @@ export class Controller {
           <string>this.locale.snackbarBodyPersonalized,
           <string>this.locale.snackbarBodyStandard,
           <string>this.locale.snackbarBodyCustomized,
-          <string>this.locale.snackbarBodyCustomized,
+          <string>this.locale.snackbarBodyNotSet,
         ])
       )
     );
@@ -391,11 +391,12 @@ export class Controller {
    * Refuses all data processing, writes cookies to indicate this to the domain, and closes the UI.
    */
   private async actionRefuseAll() {
-    // TODO: Could be handled via a call to the OneKey lib.
-    saveCookieValue(Cookies.identifiers, PafStatus.NOT_PARTICIPATING);
-    saveCookieValue(Cookies.preferences, PafStatus.NOT_PARTICIPATING);
-    this.stopSnackbarHide();
-    this.view.hidePopup();
+    removeCookie(Cookies.lastRefresh);
+
+    await deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
+    this.model.status = PafStatus.NOT_PARTICIPATING;
+    this.model.setFromIdsAndPreferences(undefined);
+    this.display('snackbar');
   }
 
   /**
