@@ -1,10 +1,10 @@
-# Prebid Addressability Framework (PAF) Operator: ExpressJS implementation
+# OneKey Operator: ExpressJS implementation
 
-An implementation of the PAF operator API, served by ExpressJS web server.
+An implementation of the OneKey operator API, served by ExpressJS web server.
 
 It implements the latest version of the [Operator API](https://github.com/prebid/addressability-framework/blob/main/mvp-spec/operator-api.md)
 
-## PAF implementation projects
+## OneKey implementation projects
 ```mermaid
 
 flowchart TB

@@ -1,4 +1,4 @@
-// TODO refactor to group by operator / PAF client node
+// TODO refactor to group by operator / client node
 
 // Endpoints exposed by the operator API
 const pafPrefix = '/paf';

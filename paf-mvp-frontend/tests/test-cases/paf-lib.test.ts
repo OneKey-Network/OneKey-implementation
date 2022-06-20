@@ -134,7 +134,7 @@ describe('Function writeIdsAndPref', () => {
 describe('Function refreshIdsAndPreferences', () => {
   const realLocation = location;
 
-  describe('with PAF data in the URI', () => {
+  describe('with data in the URI', () => {
     const historySpy = jest.spyOn(global.history, 'pushState');
     const uriData = 'TEST-STRING';
     const identifier = getFakeIdentifiers()[0];

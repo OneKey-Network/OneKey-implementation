@@ -1,4 +1,4 @@
-# Prebid Addressability Framework (PAF): contribute to demo
+# OneKey: contribute to the implementation project
 
 ## Dependencies
 

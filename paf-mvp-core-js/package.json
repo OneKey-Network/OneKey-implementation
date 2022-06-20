@@ -1,6 +1,6 @@
 {
   "name": "paf-mvp-core",
-  "description": "Prebid Addressability Framework (PAF) core library",
+  "description": "OneKey core library",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {

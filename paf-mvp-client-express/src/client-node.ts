@@ -59,7 +59,7 @@ const getMessageObject = <T>(req: Request, res: Response): T => {
 };
 
 /**
- * The configuration of a PAF client Node
+ * The configuration of a OneKey client Node
  */
 export interface ClientNodeConfig extends Config {
   operatorHost: string;
@@ -67,11 +67,11 @@ export interface ClientNodeConfig extends Config {
 
 export class ClientNode implements Node {
   /**
-   * Add PAF client node endpoints to an Express app
+   * Add OneKey client node endpoints to an Express app
    * @param config
    * @param app the Express app
-   *   hostName: the PAF client host name
-   *   privateKey: the PAF client private key string
+   *   hostName: the OneKey client host name
+   *   privateKey: the OneKey client private key string
    * @param s2sOptions? [optional] server to server configuration for local dev
    */
   constructor(
