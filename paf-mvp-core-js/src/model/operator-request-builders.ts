@@ -1,4 +1,10 @@
-import { GetIdsPrefsRequest, GetNewIdRequest, IdsAndPreferences, PostIdsPrefsRequest } from './generated-model';
+import {
+  DeleteIdsPrefsRequest,
+  GetIdsPrefsRequest,
+  GetNewIdRequest,
+  IdsAndPreferences,
+  PostIdsPrefsRequest,
+} from './generated-model';
 import { Unsigned } from './model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '../endpoints';
 import { getTimeStampInSec } from '../timestamp';
@@ -98,5 +104,24 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
    */
   getRestUrl(): URL {
     return this.getUrl(this.restEndpoint);
+  }
+}
+
+export class DeleteIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<DeleteIdsPrefsRequest> {
+  constructor(
+    operatorHost: string,
+    clientHost: string,
+    privateKey: string,
+    definition: RequestDefinition<DeleteIdsPrefsRequest> = new RequestWithoutBodyDefinition()
+  ) {
+    super(operatorHost, clientHost, jsonOperatorEndpoints.delete, redirectEndpoints.delete, privateKey, definition);
+  }
+
+  protected buildUnsignedRequest(data: undefined, timestamp: number): Unsigned<DeleteIdsPrefsRequest> {
+    return {
+      sender: this.clientHost,
+      receiver: this.serverHost,
+      timestamp,
+    };
   }
 }

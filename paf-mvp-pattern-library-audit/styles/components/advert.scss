@@ -1,0 +1,181 @@
+$advert-image-margin: em(16px);
+
+.ok-ui-advert-wrapper {
+  @include phone-only {
+    .ok-ui-advert {
+      margin-bottom: em(24px);
+    }
+  }
+
+  @include tablet-plus {
+    &:not(.ok-ui-advert-wrapper--landscape) {
+      display: flex;
+
+      .ok-ui-advert {
+        flex: 0 0 em(256px);
+        margin-right: em(40px);
+      }
+    }
+
+    &.ok-ui-advert-wrapper--landscape {
+      .ok-ui-advert {
+        margin-bottom: em(24px);
+      }
+    }
+  }
+}
+
+.ok-ui-advert {
+  text-align: center;
+}
+
+.ok-ui-advert__image-wrapper {
+  display: inline-block;
+
+  @include tablet-plus {
+    padding: $advert-image-margin;
+    border: solid em(1px) $grey-200;
+    border-radius: $border-radius;
+  }
+}
+
+.ok-ui-advert__image {
+  img {
+    display: block;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+}
+
+.ok-ui-advert--blocked {
+  * {
+    height: 100%;
+  }
+
+  .ok-ui-advert__image {
+    display: flex;
+  
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: em(24px);
+    border-radius: $border-radius;
+  
+    background-color: $grey-50;
+
+    * {
+      height: auto;
+    }
+  }
+}
+
+.ok-ui-advert--paused .ok-ui-advert__image {
+  position: relative;
+
+  &::before {
+    content: '';
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+
+    background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), linear-gradient(0deg, #FFFFFF, #FFFFFF), var(--advert-image);
+    background-blend-mode: normal, saturation, normal;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+
+    @include phone-only {
+      --icon-size: 32px;
+    }
+
+    @include tablet-plus {
+      --icon-size: 48px;
+    }
+
+    width: var(--icon-size);
+    height: var(--icon-size);
+
+    margin-top: calc(var(--icon-size) / -2);
+    margin-left: calc(var(--icon-size) / -2);
+
+    border-radius: 9999px;
+    background-color: #FFFFFF;
+
+    background-image: url("data:image/svg+xml,%3Csvg width='1.071em' height='0.929em' viewBox='0 0 15 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.8133 12.2567L10.5759 10.0193C9.61066 10.4588 8.56045 10.6803 7.49992 10.668C6.4065 10.6816 5.32439 10.4456 4.33592 9.97801C3.56971 9.60417 2.88168 9.08787 2.30859 8.45668C1.70025 7.80458 1.22212 7.04224 0.899919 6.21068L0.833252 6.00134L0.903252 5.79068C1.38513 4.56154 2.19609 3.48879 3.24725 2.69001L1.49992 0.942676L2.44192 0.00134277L13.7546 11.314L12.8146 12.2567H12.8133ZM4.19059 3.63401C3.33854 4.23129 2.66569 5.04982 2.24459 6.00134C3.14753 8.08461 5.2305 9.40579 7.49992 9.33468C8.19981 9.34041 8.89562 9.22771 9.55792 9.00134L8.35792 7.80134C8.09081 7.93228 7.79739 8.00067 7.49992 8.00134C6.39822 7.99443 5.50683 7.10304 5.49992 6.00134C5.50024 5.70319 5.56864 5.40904 5.69992 5.14134L4.19059 3.63401ZM12.7346 8.40801L11.8066 7.48068C12.197 7.03929 12.517 6.54031 12.7553 6.00134C11.8535 3.91706 9.76975 2.5954 7.49992 2.66801C7.33525 2.66801 7.16992 2.67401 7.00992 2.68534L5.83325 1.50734C6.381 1.39017 6.93978 1.33228 7.49992 1.33468C8.59333 1.32111 9.67544 1.55709 10.6639 2.02468C11.4301 2.3985 12.1182 2.91481 12.6913 3.54601C13.2993 4.19732 13.7774 4.95873 14.0999 5.78934L14.1666 6.00134L14.0966 6.21201C13.7845 7.02406 13.3227 7.77031 12.7353 8.41201L12.7346 8.40801Z' fill='#{toRGB($brand-primary)}'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+}
+
+.ok-ui-advert-status {
+  padding: em(16px);
+  border-radius: $border-radius;
+
+  @include tablet-plus {
+    padding: em(24px);
+  }
+
+  &--loading {
+    background-color: $grey-50;
+  }
+
+  &--good {
+    background-color: $status-good-50;
+
+    [class*="ok-ui-icon"] {
+      color: $status-good;
+    }
+  }
+
+  &--suspicious {
+    background-color: $status-warning-50;
+
+    [class*="ok-ui-icon"] {
+      color: $status-warning;
+    }
+  }
+
+  &--violation {
+    background-color: $status-bad-50;
+
+    [class*="ok-ui-icon"] {
+      color: $status-bad;
+    }
+  }
+}
+
+.ok-ui-advert-status__footer {
+  margin-top: em(16px);
+
+  @include phone-only {
+    .ok-ui-divide {
+      margin: em(16px) 0;
+    }
+  }
+
+  @include tablet-plus {
+    display: flex;
+    padding-top: em(16px);
+    border-top: solid 1px rgba($grey-800, 0.1);
+
+    .ok-ui-divide {
+      display: none;
+    }
+
+    .ok-ui-divide + .ok-ui-button {
+      margin-left: em(16px);
+    }
+  }
+}

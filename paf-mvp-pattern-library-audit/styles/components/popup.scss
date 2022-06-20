@@ -1,0 +1,69 @@
+$card-footer-mobile-height: em(58px);
+
+.ok-ui-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: $popup-z-index;
+}
+
+.ok-ui-popup--open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ok-ui-popup__block {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+
+  background-color: $popup-overlay-background;
+}
+
+.ok-ui-popup__content {
+  z-index: 1;
+}
+
+
+.ok-ui-popup__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 $popup-gutter;
+  height: $card-footer-mobile-height;
+  line-height: $card-footer-mobile-height;
+
+  &, .ok-ui-button {
+    color: #FFFFFF;
+  }
+
+  @include tablet-plus {
+    display: none;
+  }
+}
+
+.ok-ui-popup {
+  .ok-ui-popup__content > .ok-ui-card {
+    max-height: calc(100vh - $card-footer-mobile-height);
+    
+    @include popup-gutterable {
+      max-width: calc(100vw - ($popup-gutter * 2));
+      max-height: calc(100vh - $popup-gutter - $card-footer-mobile-height);
+      margin: $popup-gutter $popup-gutter 0;
+    }
+
+    @include tablet-plus {
+      max-height: calc(100vh - ($popup-gutter * 2));
+      margin: $popup-gutter;
+    }
+  }
+}

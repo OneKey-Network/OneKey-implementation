@@ -38,7 +38,7 @@ import { parseConfig } from '@core/express/config';
 import { ClientNodeConfig } from '@client/client-node';
 
 const { name, host }: WebSiteConfig = {
-  name: 'A PAF portal',
+  name: 'A OneKey portal',
   host: 'portal.onekey.network',
 };
 
