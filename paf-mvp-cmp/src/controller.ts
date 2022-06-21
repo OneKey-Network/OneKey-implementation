@@ -375,6 +375,9 @@ export class Controller {
       case 'refuseAll':
         this.actionRefuseAll().catch((e) => this.log.Error(e));
         break;
+      case 'closeSettings':
+        this.actionCloseSettings().catch((e) => this.log.Error(e));
+        break;
       default:
         throw `Action '${action}' is not known`;
     }
@@ -397,6 +400,19 @@ export class Controller {
     this.model.status = PafStatus.NOT_PARTICIPATING;
     this.model.setFromIdsAndPreferences(undefined);
     this.display('snackbar');
+  }
+
+  /**
+   * Calls refuseAll if there are no preferences set, then close the modal.
+   * Closing the modal the first time, without having selected preferences, means not participating.
+   */
+  private async actionCloseSettings() {
+    if (this.model.status === null || this.model.status === PafStatus.UNKNOWN) {
+      await this.actionRefuseAll();
+    } else {
+      this.stopSnackbarHide();
+      this.view.hidePopup();
+    }
   }
 
   /**
