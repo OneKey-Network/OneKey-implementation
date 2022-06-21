@@ -270,7 +270,7 @@ const getCleanCookieValue = (cookieValue: string): string | undefined =>
   cookieValue === PafStatus.NOT_PARTICIPATING || cookieValue === PafStatus.REDIRECT_NEEDED ? undefined : cookieValue;
 
 /**
- * Synch PAF Ids and Preferences if needed, cache it and return it.
+ * Sync Ids and Preferences if needed, cache it and return it.
  */
 export const getIdsAndPreferencesAsync = async (
   options: GetIdAndPreferencesAsyncOption
