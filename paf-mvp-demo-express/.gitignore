@@ -1,10 +1,9 @@
 # Ignore generated assets
-/public/assets/paf-lib.js
-/public/assets/app.bundle.js
-/public/assets/app.bundle.css
+/public/assets/*.js
+/public/assets/*.map
+/public/assets/**/*.d.ts
 /public/assets/images/
 /public/assets/fonts/
-/public/assets/**/*.d.ts
 
 # Ignore generated SSL certificates
 /paf.crt
