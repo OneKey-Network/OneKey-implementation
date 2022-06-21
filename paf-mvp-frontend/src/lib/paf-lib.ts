@@ -275,33 +275,21 @@ const getCleanCookieValue = (cookieValue: string): string | undefined =>
 export const getIdsAndPreferencesAsync = async (
   options: GetIdAndPreferencesAsyncOption
 ): Promise<IdsAndPreferences | undefined> => {
-  const data = getIdsAndPreferences();
-  if (data !== undefined) {
-    if (options.callback) {
-      options.callback(data);
-    }
-    return data;
-  }
-
   try {
-    const refreshedData = await refreshIdsAndPreferences(options);
-    const data = refreshedData.data as IdsAndPreferences | undefined;
+    let data = getIdsAndPreferences();
 
-    if (refreshedData.status !== PafStatus.PARTICIPATING && refreshedData.data) {
-      if (options.callback) {
-        options.callback(data);
+    // If data is not available locally, refresh from the operator
+    if (data === undefined) {
+      const refreshed = await refreshIdsAndPreferences(options);
+      if (refreshed.status === PafStatus.PARTICIPATING) {
+        data = refreshed.data as IdsAndPreferences;
       }
-      return data;
     }
 
-    if (options.callback) {
-      options.callback(undefined);
-    }
-    return undefined;
+    options.callback?.(data);
+    return data;
   } catch (error) {
-    if (options.callback) {
-      options.callback(undefined);
-    }
+    options.callback?.(undefined);
     throw error;
   }
 };
@@ -675,9 +663,11 @@ export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Iden
  * Otherwise, return undefined
  */
 export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
+  // If "last refresh" cookie is not present, consider the local ids and preferences are out of date => undefined
   if (!getCookieValue(Cookies.lastRefresh)) {
     return undefined;
   }
+
   // Remove special string values
   const cleanCookieValue = (rawValue: string) =>
     rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;
