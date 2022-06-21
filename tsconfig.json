@@ -19,7 +19,6 @@
     "skipLibCheck": true,
     "rootDir": ".",
     "baseUrl": ".",
-    "types": ["node"],
     "typeRoots": [
       "paf-mvp-core-js/@types",
       "paf-mvp-demo-express/@types"

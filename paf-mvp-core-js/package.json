@@ -1,5 +1,5 @@
 {
-  "name": "paf-mvp-core",
+  "name": "@onekey/core",
   "description": "OneKey core library",
   "main": "index.js",
   "type": "commonjs",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/criteo/paf-mvp-demo-express.git"
+    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
+    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
   },
-  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-core-js#readme",
+  "homepage": "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-core-js#readme",
   "dependencies": {
     "@types/cors": "^2.8.12",
     "@types/ua-parser-js": "^0.7.36",

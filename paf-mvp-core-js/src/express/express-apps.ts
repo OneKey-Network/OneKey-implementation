@@ -7,7 +7,7 @@ import vhost from 'vhost';
  * Encapsulate the main Express app that will listen on the local IP
  */
 export class MainApp {
-  constructor(public expressApp = express()) {}
+  constructor(public expressApp: Express = express()) {}
 
   addVhostApp(vhostApp: VHostApp) {
     this.expressApp.use(vhost(vhostApp.hostName, vhostApp.expressApp));
@@ -18,7 +18,7 @@ export class MainApp {
  * Encapsulate an Express App that listens on a specific vhost
  */
 export class VHostApp {
-  constructor(public name: string, public hostName: string, public expressApp = express()) {
+  constructor(public name: string, public hostName: string, public expressApp: Express = express()) {
     addMiddlewares(this.expressApp);
   }
 }
