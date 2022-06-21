@@ -29,6 +29,9 @@ export const isValidKey = (
   nowTimestampSeconds: number = getTimeStampInSec()
 ) => key.start <= nowTimestampSeconds && (key.end === undefined || nowTimestampSeconds < key.end);
 
+/**
+ * Generate a pair of new (public, private) keys in PEM format
+ */
 export const generateKeyPair = (): { privateKey: string; publicKey: string } => {
   const privateKey = ECDSA.generateKey();
   return {
