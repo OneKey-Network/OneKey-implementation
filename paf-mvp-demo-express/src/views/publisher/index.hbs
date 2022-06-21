@@ -9,12 +9,12 @@
 
 {{else}}
 
-    <!-- PAF CMP in stanalone -->
+    <!-- OneKey CMP in standalone -->
     <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
 
 {{/if}}
 
-    <!-- PAF -->
+    <!-- OneKey -->
     <link rel="preload" href="https://{{cdnHost}}/assets/paf-lib.js" as="script" />
 
     <!-- Prebid.js -->
@@ -134,7 +134,7 @@
                 }
             });
 
-            // Generate and store the PAF Audit Log
+            // Generate and store the OneKey Audit Log
             // once the winner is elected.
             pbjs.onEvent("bidWon", bid => {
                 let pafObj = bid.meta.paf;
@@ -152,7 +152,7 @@
             });
 
             PAF.queue.push(() => {
-                // PrebidJS calls internally PAF without the queue
+                // PrebidJS calls internally OneKey without the queue
                 pbjs.requestBids({
                     bidsBackHandler: initAdserver,
                     timeout: PREBID_TIMEOUT

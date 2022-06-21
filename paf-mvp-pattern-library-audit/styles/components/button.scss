@@ -1,0 +1,236 @@
+.ok-ui-button {
+  $font-size: 12px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: em(8px, $font-size) em(12px, $font-size);
+  border-radius: $button-border-radius;
+
+  text-align: center;
+  font-size: em(12px);
+  line-height: 1.333;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.ok-ui-button[disabled] {
+  cursor: default;
+}
+
+.ok-ui-button--full {
+  @include phone-only {
+    width: 100%;
+  }
+}
+
+.ok-ui-button--filled {
+  &[disabled] {
+    background-color: $grey-200;
+  }
+}
+
+.ok-ui-button--filled.ok-ui-button--primary {
+  color: #FFFFFF;
+  background-color: $brand-primary;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    background-color: $brand-600;
+  }
+
+  &:active {
+    background-color: $brand-800;
+  }
+}
+
+.ok-ui-button--filled.ok-ui-button--warning {
+  color: #FFFFFF;
+  background-color: $status-warning;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    background-color: $status-warning-600;
+  }
+
+  &:active {
+    background-color: $status-warning-800;
+  }
+
+  &[disabled] {
+    background-color: $grey-200;
+  }
+}
+
+.ok-ui-button--filled.ok-ui-button--danger {
+  color: #FFFFFF;
+  background-color: $status-bad;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    background-color: $status-bad-600;
+  }
+
+  &:active {
+    background-color: $status-bad-800;
+  }
+
+  &[disabled] {
+    background-color: $grey-200;
+  }
+}
+
+.ok-ui-button--outlined {
+  &[disabled] {
+    color: $grey-200;
+    border-color: $grey-200;
+  }
+}
+
+.ok-ui-button--outlined.ok-ui-button--primary {
+  color: $brand-primary;
+  border: solid em(1px) $brand-primary;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    color: $brand-600;
+    border-color: $brand-600;
+  }
+
+  &:active {
+    color: $brand-800;
+    border-color: $brand-800;
+    background-color: $brand-50;
+  }
+}
+
+.ok-ui-button--outlined.ok-ui-button--warning {
+  color: $status-warning;
+  border: solid em(1px) $status-warning;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    color: $status-warning-600;
+    border-color: $status-warning-600;
+  }
+
+  &:active {
+    color: $status-warning-800;
+    border-color: $status-warning-800;
+    background-color: $status-warning-50;
+  }
+}
+
+.ok-ui-button--outlined.ok-ui-button--danger {
+  color: $status-bad;
+  border: solid em(1px) $status-bad;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    color: $status-bad-600;
+    border-color: $status-bad-600;
+  }
+
+  &:active {
+    color: $status-bad-800;
+    border-color: $status-bad-800;
+    background-color: $status-bad-50;
+  }
+}
+
+.ok-ui-button--text {
+  color: $grey-800;
+
+  &:focus {
+    @include focusable;
+  }
+
+  &:focus,
+  &:hover {
+    color: $brand-600;
+  }
+
+  &:active {
+    color: $brand-800;
+    background-color: $brand-50;
+  }
+
+  &[disabled] {
+    color: $grey-200;
+  }
+}
+
+.ok-ui-button--small {
+  padding: em(4px) em(8px);
+}
+
+.ok-ui-button > svg {
+  margin-right: em(8px);
+}
+
+.ok-ui-button--icon-end > .ok-ui-button__label {
+  order: -1;
+}
+
+.ok-ui-button--icon-end > svg {
+  margin-right: 0;
+  margin-left: em(8px);
+}
+
+.ok-ui-button--icon-only {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+
+   > svg {
+     margin-right: 0;
+   }
+}
+
+.ok-ui-button.ok-ui-button--icon-only {
+  padding: em(8px);
+  min-width: em(32px);
+  min-height: em(32px);
+}
+
+.ok-ui-button--small.ok-ui-button--icon-only {
+  padding: em(4px);
+  min-width: em(24px);
+  min-height: em(24px);
+}
+
+// any button that follows another one, or a divider, should have a gap before it
+.ok-ui-button + .ok-ui-button {
+  margin-left: em(16px);
+}
+
+.ok-ui-button-group {
+  display: flex;
+}

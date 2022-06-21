@@ -15,17 +15,16 @@ import {
   signPreferences,
   updateIdsAndPreferences,
 } from './lib/paf-lib';
-import {} from './utils/queue';
+import { Window } from './global';
 
 currentScript.setScript(document.currentScript as HTMLScriptElement);
 
 const promptConsent = () => new Promise<boolean>((resolve) => new PromptConsent({ emitConsent: resolve }).render());
 const showNotification = (type: NotificationEnum) => notificationService.showNotification(type);
 
-// TODO: avoid global declaration
-window.PAFUI ??= { promptConsent, showNotification };
-window.PAF = {
-  ...(window.PAF ?? {}),
+(<Window>window).PAFUI ??= { promptConsent, showNotification };
+(<Window>window).PAF = {
+  ...((<Window>window).PAF ?? {}),
   // The rest has to be the official methods, should not be overridden from the outside
   getNewId,
   signPreferences,

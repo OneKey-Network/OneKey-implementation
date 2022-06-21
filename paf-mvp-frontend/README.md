@@ -1,11 +1,11 @@
-# Prebid Addressability Framework (PAF) frontend library and widget
+# OneKey frontend library and widget
 
-The frontend components for websites using PAF:
+The frontend components for websites using OneKey:
 
 - a Javascript script to identify users (get user ids and preferences)
 - a UI widget to get end user consent for personalized advertising
 
-## PAF implementation projects
+## OneKey implementation projects
 
 ```mermaid
 
@@ -26,7 +26,7 @@ flowchart TB
     click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client("Operator client")
-    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express" "paf-mvp-client-express"
     
     Demo --> Frontend
     linkStyle 0 stroke:#d2d2d2,stroke-width:1px
@@ -56,10 +56,10 @@ To integrate the identification library into a website, website owners should in
 ></script>
 ```
 
-Once the script is available, a couple of methods can be called to manipulate PAF data:
+Once the script is available, a couple of methods can be called to manipulate OneKey data:
 
 - `PAF.refreshIdsAndPreferences`
-  - get existing identifiers and preferences of the current user, from the PAF operator (via the PAF proxy)
+  - get existing identifiers and preferences of the current user, from the OneKey operator (via the client node)
   - this is done via XHR calls or HTTP redirect if needed, when 3d party cookies are not supported
   - local cookies `paf_identifiers` and `paf_preferences` are updated to match the values from the operator
   - see [paf-lib.ts](./src/lib/paf-lib.ts) for details
@@ -79,13 +79,13 @@ Example usage:
   - takes identifiers and unsigned preferences as input, and **sign it** through a call to the backend proxy.
 
 - `PAF.writeIdsAndPref`
-  - write (persist) new preferences and ids to the PAF TLD+1 domain
+  - write (persist) new preferences and ids to the OneKey TLD+1 domain
 
 - `PAF.getNewId`
-  - calls the operator (via the PAF client node) to get a new PAF ID value
+  - calls the operator (via the client node) to get a new OneKey ID value
   - note that this id is **not** yet persisted: to persist it, a subsequent call to `PAF.writeIdsAndPref` must be made
 
-All these methods take at least a `proxyHostName` parameter to locate the PAF client node
+All these methods take at least a `proxyHostName` parameter to locate the client node
 needed to sign and verify messages sent to and received from the operator.
 
 - `PAF.getIdsAndPreferences`
@@ -94,7 +94,7 @@ needed to sign and verify messages sent to and received from the operator.
 
 See:
 
-- [paf-mvp-operator-client-express](../paf-mvp-operator-client-express) for technical details
+- [paf-mvp-client-express](../paf-mvp-client-express) for technical details
 - [paf-mvp-demo](../paf-mvp-demo-express) for examples of integration
 
 ## Widget integration

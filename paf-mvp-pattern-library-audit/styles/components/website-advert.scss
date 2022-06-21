@@ -1,0 +1,28 @@
+.ok-ui-website-advert {
+  display: inline-block;
+
+  border: solid em(1px) $grey-100;
+  border-radius: 0 0 em(4px) em(4px);
+
+   > img {
+     display: block;
+   }
+}
+
+.ok-ui-website-advert__action {
+  display: block;
+  width: 100%;
+  padding: em(4px);
+  border-radius: 0 0 em(4px) em(4px);
+
+  text-align: center;
+  line-height: 1;
+
+  background-color: #FFFFFF;
+
+  cursor: pointer;
+
+  &:focus {
+    @include focusable;
+  }
+}

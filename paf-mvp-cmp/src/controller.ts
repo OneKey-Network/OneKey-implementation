@@ -1,20 +1,20 @@
 import { Config } from './config';
-import { BindingShowRandomIdDiv, BindingThisSiteOnly, BindingDisplayRandomId } from './bindings';
+import { BindingDisplayRandomId, BindingShowRandomIdDiv, BindingThisSiteOnly } from './bindings';
 import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
   getIdsAndPreferences,
-  refreshIdsAndPreferences,
-  signPreferences,
   getNewId,
-  saveCookieValue,
-  updateIdsAndPreferences,
+  refreshIdsAndPreferences,
   removeCookie,
   ShowPromptOption,
+  signPreferences,
+  updateIdsAndPreferences,
+  deleteIdsAndPreferences,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
-import { PafStatus } from '@core/operator-client-commons';
+import { PafStatus } from '@frontend/enums/status.enum';
 import { View } from './view';
 import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
@@ -140,7 +140,7 @@ export class Controller {
           <string>this.locale.snackbarHeadingPersonalized,
           <string>this.locale.snackbarHeadingStandard,
           <string>this.locale.snackbarHeadingCustomized,
-          <string>this.locale.snackbarHeadingCustomized,
+          <string>this.locale.snackbarHeadingNotSet,
         ])
       )
     );
@@ -152,7 +152,7 @@ export class Controller {
           <string>this.locale.snackbarBodyPersonalized,
           <string>this.locale.snackbarBodyStandard,
           <string>this.locale.snackbarBodyCustomized,
-          <string>this.locale.snackbarBodyCustomized,
+          <string>this.locale.snackbarBodyNotSet,
         ])
       )
     );
@@ -248,7 +248,7 @@ export class Controller {
   }
 
   /**
-   * Gets the Ids and preferences from local domain storage. Tries to get a local copy of the PAF data. If that is not
+   * Gets the Ids and preferences from local domain storage. Tries to get a local copy of the OneKey data. If that is not
    * available and the configuration supports this site only then looks for the local data.
    * @returns true if found in local domain storage, otherwise false.
    */
@@ -262,13 +262,13 @@ export class Controller {
       }
     }
 
-    // Try and get the PAF data from local cookies.
+    // Try and get the OneKey data from local cookies.
     const data = getIdsAndPreferences();
     if (data !== undefined) {
       // TODO: The data returned does not match the interface and should really include a status value to avoid this
       // try catch block.
       try {
-        this.log.Message('local PAF data', data);
+        this.log.Message('local OneKey data', data);
         this.model.status = PafStatus.PARTICIPATING;
         this.setPersistedFlag(data.identifiers);
         this.model.setFromIdsAndPreferences(data);
@@ -285,7 +285,7 @@ export class Controller {
   /**
    * Decode the local TCF core cookie string if present and set the data model accordingly.
    * @remarks
-   * Sets the PAF status to not participating and the Random ID to null.
+   * Sets the OneKey status to not participating and the Random ID to null.
    * @param value of the TCF core string
    */
   private getIdsAndPreferencesFromTcf(value: string) {
@@ -391,11 +391,12 @@ export class Controller {
    * Refuses all data processing, writes cookies to indicate this to the domain, and closes the UI.
    */
   private async actionRefuseAll() {
-    // TODO: Could be handled via a call to the PAF lib.
-    saveCookieValue(Cookies.identifiers, PafStatus.NOT_PARTICIPATING);
-    saveCookieValue(Cookies.preferences, PafStatus.NOT_PARTICIPATING);
-    this.stopSnackbarHide();
-    this.view.hidePopup();
+    removeCookie(Cookies.lastRefresh);
+
+    await deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
+    this.model.status = PafStatus.NOT_PARTICIPATING;
+    this.model.setFromIdsAndPreferences(undefined);
+    this.display('snackbar');
   }
 
   /**
@@ -467,13 +468,13 @@ export class Controller {
     preferences were created at T0 along with the Random ID. Then at T1 the Random ID changes. We don't really want
     to reset the preferences just because the Random ID changed.
     
-    There is a relationship between the PAF lib and the UI which is confusing. If the PAF lib is a data layer then it
+    There is a relationship between the OneKey lib and the UI which is confusing. If the OneKey lib is a data layer then it
     should not consider the UI. If validation fails either in the client, or via calls to the CMP or Operator there 
     needs to be a method of passing this back to the client. We need an enumeration of error codes that can be tied to
     text in the UI. There will also be more serious exceptions that will need to be handled. The UI doesn't currently
     allow for this.
 
-    Otherwise there should be a defined interface that must be provided to the PAF lib to manipulate the UI and the UI
+    Otherwise there should be a defined interface that must be provided to the OneKey lib to manipulate the UI and the UI
     implementor will need to ensure they implement the interface. This approach is less flexible.
     
     The method then needs to return the values as they currently exist in the persistent storage. The caller is then
@@ -500,7 +501,7 @@ export class Controller {
     Pref is similar to the PreferencesData structure.
     OWID is similar to Source.
     The design approach there is to have a single method that will store what is provided (if anything) and return the
-    current data. The CMP would handle the decrypt of the results which is not relevant to PAF as the data is not
+    current data. The CMP would handle the decrypt of the results which is not relevant to OneKey as the data is not
     encrypted.
     */
 

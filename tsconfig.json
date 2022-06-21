@@ -19,7 +19,6 @@
     "skipLibCheck": true,
     "rootDir": ".",
     "baseUrl": ".",
-    "types": ["node"],
     "typeRoots": [
       "paf-mvp-core-js/@types",
       "paf-mvp-demo-express/@types"
@@ -27,7 +26,7 @@
     "paths": {
       "@core/*": ["./paf-mvp-core-js/src/*"],
       "@operator/*": ["./paf-mvp-operator-express/src/*"],
-      "@operator-client/*": ["./paf-mvp-operator-client-express/src/*"],
+      "@client/*": ["./paf-mvp-client-express/src/*"],
       "@frontend/*": ["./paf-mvp-frontend/src/*"]
     }
   },

@@ -1,6 +1,6 @@
 import { Log } from '@core/log';
 
-// API for loading PAF asynchronously and run functions regardless
+// API for loading OneKey asynchronously and run functions regardless
 // whether it gets loaded before or after their script executes.
 //
 // <script src="url/to/PAF-lib.js" async></script>
@@ -10,7 +10,7 @@ import { Log } from '@core/log';
 //  PAF.queue.push(functionToExecuteOncePAFLoads);
 // </script>
 //
-//  Call of the PAF-lib when loaded asynchronously:
+//  Call of the OneKey lib when loaded asynchronously:
 // setUpImmediateProcessingQueue(window.PAF);
 
 /** An operation executed asynchronously after the PAF-lib is loaded. */
@@ -59,6 +59,8 @@ export const setUpImmediateProcessingQueue = (container: IQueueContainer): void 
   container.queue = processor;
 };
 
+const log = new Log('OneKey', '#3bb8c3');
+
 class ImmediateProcessingQueue implements IProcessingQueue {
   push(...ops: Command[]): void {
     if (ops === undefined) {
@@ -76,5 +78,3 @@ class ImmediateProcessingQueue implements IProcessingQueue {
     }
   }
 }
-
-const log = new Log('PAF', '#3bb8c3');

@@ -19,29 +19,29 @@ export class Model implements IModel {
   /**
    * The data fields that relate to each transmission result to be displayed.
    */
-  readonly results: FieldTransmissionResult[];
+  readonly results: FieldTransmissionResult[] = [];
 
   /**
    * All the fields that need to be bound.
    */
-  readonly allFields: IFieldBind[];
+  readonly allFields: IFieldBind[] = [];
 
   /**
    * Constructs the data model from the audit log.
    * @param audit
    */
   constructor(audit: AuditLog) {
-    this.results = [];
-    for (let i = 0; i < audit.transmissions.length; i++) {
-      this.results.push(new FieldTransmissionResult(this, audit.transmissions[i]));
-    }
-    this.allFields = this.results;
+    audit.transmissions?.forEach((t) => {
+      const field = new FieldTransmissionResult(this, t);
+      this.results.push(field);
+      this.allFields.push(field);
+    });
   }
 
   /**
-   * Calls the refresh method on all the fields in the model to connect them to the currently displayed UI.
+   * Calls the updateUI method on all the fields in the model to connect them to the currently displayed UI.
    */
   public updateUI() {
-    this.allFields.forEach((f) => f.updateUI());
+    this.allFields?.forEach((f) => f.updateUI());
   }
 }

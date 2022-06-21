@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { EOL } from 'os';
+import { EOL, type } from 'os';
 import { VHostApp } from '@core/express/express-apps';
 import { getAppsAndNodes } from '../src/apps';
 
@@ -15,7 +15,8 @@ const pattern = '# [PAF]';
 
 const action = process.argv[2];
 
-const hostsFile = '/etc/hosts';
+const hostsFile =
+  type() === 'Linux' || type() === 'Darwin' ? '/etc/hosts' : 'C:\\Windows\\System32\\Drivers\\etc\\hosts';
 
 (async () => {
   let content = (await fs.promises.readFile(hostsFile))

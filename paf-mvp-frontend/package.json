@@ -1,7 +1,7 @@
 {
-  "name": "paf-mvp-frontend",
+  "name": "@onekey/frontend",
   "version": "0.1.5",
-  "description": "Prebid Addressability Framework (PAF) frontend library and widget",
+  "description": "OneKey frontend library and widget",
   "main": "src/main.tsx",
   "scripts": {
     "start": "rollup -c -w",

@@ -1,49 +1,57 @@
 import { Request, Response } from 'express';
-import { addIdentityEndpoint, Identity } from '@core/express/identity-endpoint';
+import cors from 'cors';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyStore } from '@core/crypto/key-store';
-import { Log } from '@core/log';
 import {
-  Get3PCResponseBuilder,
-  GetIdsPrefsResponseBuilder,
-  GetNewIdResponseBuilder,
-  PostIdsPrefsResponseBuilder,
-} from '@core/model/operator-response-builders';
-import { Verifier } from '@core/crypto/verifier';
-import {
-  IdentifierDefinition,
-  IdsAndPreferencesDefinition,
-  RedirectContext,
-  RestContext,
-} from '@core/crypto/signing-definition';
-import {
+  addIdentityEndpoint,
+  Config,
   corsOptionsAcceptAll,
   getPafDataFromQueryString,
   getPayload,
   getTopLevelDomain,
   httpRedirect,
+  Identity,
+  Node,
+  parseConfig,
   removeCookie,
   setCookie,
-} from '@core/express/utils';
+  VHostApp,
+} from '@core/express';
 import {
+  IdentifierDefinition,
+  IdsAndPreferencesDefinition,
+  PublicKeyStore,
+  RedirectContext,
+  RequestVerifier,
+  RequestWithBodyDefinition,
+  RequestWithoutBodyDefinition,
+  RestContext,
+  Verifier,
+} from '@core/crypto';
+import { Log } from '@core/log';
+import {
+  DeleteIdsPrefsRequest,
+  DeleteIdsPrefsResponseBuilder,
+  Get3PCResponseBuilder,
   GetIdsPrefsRequest,
+  GetIdsPrefsResponseBuilder,
   GetNewIdRequest,
+  GetNewIdResponseBuilder,
+  IdBuilder,
   Identifier,
   Identifiers,
   PostIdsPrefsRequest,
+  PostIdsPrefsResponseBuilder,
   Preferences,
+  RedirectDeleteIdsPrefsRequest,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
+  ReturnUrl,
   Test3Pc,
-} from '@core/model/generated-model';
+} from '@core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
-import cors from 'cors';
 import { OperatorError, OperatorErrorType } from '@core/errors';
-import { OperatorApi } from '@operator/operator-api';
-import { Node, VHostApp } from '@core/express/express-apps';
-import { Config, parseConfig } from '@core/express/config';
 
 /**
  * Expiration: now + 3 months
@@ -62,7 +70,7 @@ export enum Permission {
 export type AllowedHosts = { [host: string]: Permission[] };
 
 /**
- * The configuration of a PAF operator node
+ * The configuration of a operator node
  */
 export interface OperatorNodeConfig extends Config {
   allowedHosts: AllowedHosts;
@@ -93,6 +101,7 @@ export class OperatorNode implements Node {
     const get3PCResponseBuilder = new Get3PCResponseBuilder();
     const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
+    const deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(operatorHost, privateKey);
     const idVerifier = new Verifier(keyStore.provider, new IdentifierDefinition());
     const prefsVerifier = new Verifier(keyStore.provider, new IdsAndPreferencesDefinition());
 
@@ -111,25 +120,46 @@ export class OperatorNode implements Node {
       }
     };
 
-    const operatorApi = new OperatorApi(operatorHost, privateKey, keyStore);
+    const postIdsPrefsRequestVerifier = new RequestVerifier<PostIdsPrefsRequest>(
+      keyStore.provider,
+      new RequestWithBodyDefinition() // POST ids and prefs has body property
+    );
+    const getIdsPrefsRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
+    const getNewIdRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
+    const idBuilder = new IdBuilder(operatorHost, privateKey);
 
-    const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
+    const extractRequestAndContextFromHttp = <
+      TopLevelRequestType,
+      TopLevelRequestRedirectType extends { returnUrl: ReturnUrl; request: TopLevelRequestType }
+    >(
+      topLevelRequest: TopLevelRequestType | TopLevelRequestRedirectType,
+      req: Request
+    ) => {
       // Extract request from Redirect request, if needed
-      let request: GetIdsPrefsRequest;
+      let request: TopLevelRequestType;
       let context: RestContext | RedirectContext;
       if (
-        (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl &&
-        (topLevelRequest as RedirectGetIdsPrefsRequest).request
+        (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
+        (topLevelRequest as TopLevelRequestRedirectType).request
       ) {
-        request = (topLevelRequest as RedirectGetIdsPrefsRequest).request;
+        request = (topLevelRequest as TopLevelRequestRedirectType).request;
         context = {
-          returnUrl: (topLevelRequest as RedirectGetIdsPrefsRequest).returnUrl,
+          returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
           referer: req.header('referer'),
         };
       } else {
-        request = topLevelRequest as GetIdsPrefsRequest;
+        request = topLevelRequest as TopLevelRequestType;
         context = { origin: req.header('origin') };
       }
+
+      return { request, context };
+    };
+
+    const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
+      const { request, context } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+        topLevelRequest,
+        req
+      );
 
       const sender = request.sender;
 
@@ -138,7 +168,7 @@ export class OperatorNode implements Node {
       }
 
       if (
-        !(await operatorApi.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+        !(await getIdsPrefsRequestVerifier.verifySignatureAndContent(
           { request, context },
           sender, // sender will always be ok
           operatorHost // but operator needs to be verified
@@ -153,7 +183,7 @@ export class OperatorNode implements Node {
 
       if (!identifiers.some((i: Identifier) => i.type === 'paf_browser_id')) {
         // No existing id, let's generate one, unpersisted
-        identifiers.push(operatorApi.generateNewId());
+        identifiers.push(idBuilder.generateNewId());
       }
 
       return getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
@@ -164,22 +194,10 @@ export class OperatorNode implements Node {
       req: Request,
       res: Response
     ) => {
-      // Extract request from Redirect request, if needed
-      let request: PostIdsPrefsRequest;
-      let context: RestContext | RedirectContext;
-      if (
-        (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl &&
-        (topLevelRequest as RedirectPostIdsPrefsRequest).request
-      ) {
-        request = (topLevelRequest as RedirectPostIdsPrefsRequest).request;
-        context = {
-          returnUrl: (topLevelRequest as RedirectPostIdsPrefsRequest).returnUrl,
-          referer: req.header('referer'),
-        };
-      } else {
-        request = topLevelRequest as PostIdsPrefsRequest;
-        context = { origin: req.header('origin') };
-      }
+      const { request, context } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+        topLevelRequest,
+        req
+      );
       const sender = request.sender;
 
       if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
@@ -188,7 +206,7 @@ export class OperatorNode implements Node {
 
       // Verify message
       if (
-        !(await operatorApi.postIdsPrefsRequestVerifier.verifySignatureAndContent(
+        !(await postIdsPrefsRequestVerifier.verifySignatureAndContent(
           { request, context },
           sender, // sender will always be ok
           operatorHost // but operator needs to be verified
@@ -220,6 +238,40 @@ export class OperatorNode implements Node {
       return postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
     };
 
+    const getDeleteResponse = async (
+      input: DeleteIdsPrefsRequest | RedirectDeleteIdsPrefsRequest,
+      req: Request,
+      res: Response
+    ) => {
+      const { request, context } = extractRequestAndContextFromHttp<
+        DeleteIdsPrefsRequest,
+        RedirectDeleteIdsPrefsRequest
+      >(input, req);
+      const sender = request.sender;
+
+      if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
+        throw `Domain not allowed to write data: ${sender}`;
+      }
+
+      // Verify message
+      if (
+        !(await getIdsPrefsRequestVerifier.verifySignatureAndContent(
+          { request, context },
+          sender, // sender will always be ok
+          operatorHost // but operator needs to be verified
+        ))
+      ) {
+        // TODO [errors] finer error feedback
+        throw 'Delete request verification failed';
+      }
+
+      removeCookie(null, res, Cookies.identifiers, { domain: tld });
+      removeCookie(null, res, Cookies.preferences, { domain: tld });
+
+      res.status(204);
+      return deleteIdsPrefsResponseBuilder.buildResponse(sender);
+    };
+
     // *****************************************************************************************************************
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
@@ -233,9 +285,8 @@ export class OperatorNode implements Node {
       setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: tld });
     };
 
-    let endpoint = jsonOperatorEndpoints.read;
-    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(jsonOperatorEndpoints.read, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.read);
 
       // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
       setTest3pcCookie(res);
@@ -246,7 +297,7 @@ export class OperatorNode implements Node {
         const response = await getReadResponse(request, req);
         res.json(response);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.read, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -257,9 +308,8 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = jsonOperatorEndpoints.verify3PC;
-    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(jsonOperatorEndpoints.verify3PC, cors(corsOptionsAcceptAll), (req, res) => {
+      logger.Info(jsonOperatorEndpoints.verify3PC);
       // Note: no signature verification here
 
       try {
@@ -272,7 +322,7 @@ export class OperatorNode implements Node {
         const response = get3PCResponseBuilder.buildResponse(testCookieValue);
         res.json(response);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.verify3PC, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -283,16 +333,15 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = jsonOperatorEndpoints.write;
-    app.expressApp.post(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.write);
       const input = getPayload<PostIdsPrefsRequest>(req);
 
       try {
         const signedData = await getWriteResponse(input, req, res);
         res.json(signedData);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.write, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -303,9 +352,28 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = jsonOperatorEndpoints.newId;
-    app.expressApp.get(endpoint, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll)); // enable pre-flight request for DELETE request
+    app.expressApp.delete(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.delete);
+      const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+
+      try {
+        const response = await getDeleteResponse(input, req, res);
+        res.json(response);
+      } catch (e) {
+        logger.Error(jsonOperatorEndpoints.delete, e);
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
+    });
+
+    app.expressApp.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), async (req, res) => {
+      logger.Info(jsonOperatorEndpoints.newId);
       const request = getPafDataFromQueryString<GetNewIdRequest>(req);
       const context = { origin: req.header('origin') };
 
@@ -317,7 +385,7 @@ export class OperatorNode implements Node {
 
       try {
         if (
-          !(await operatorApi.getNewIdRequestVerifier.verifySignatureAndContent(
+          !(await getNewIdRequestVerifier.verifySignatureAndContent(
             { request, context },
             sender, // sender will always be ok
             operatorHost // but operator needs to be verified
@@ -327,10 +395,10 @@ export class OperatorNode implements Node {
           throw 'New Id request verification failed';
         }
 
-        const response = getNewIdResponseBuilder.buildResponse(request.receiver, operatorApi.generateNewId());
+        const response = getNewIdResponseBuilder.buildResponse(request.receiver, idBuilder.generateNewId());
         res.json(response);
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(jsonOperatorEndpoints.newId, e);
         // FIXME finer error return
         const error: OperatorError = {
           type: OperatorErrorType.UNKNOWN_ERROR,
@@ -345,9 +413,8 @@ export class OperatorNode implements Node {
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
 
-    endpoint = redirectEndpoints.read;
-    app.expressApp.get(endpoint, async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(redirectEndpoints.read, async (req, res) => {
+      logger.Info(redirectEndpoints.read);
       const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
       if (!request?.returnUrl) {
@@ -369,7 +436,7 @@ export class OperatorNode implements Node {
 
         httpRedirect(res, redirectUrl.toString());
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(redirectEndpoints.read, e);
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         // FIXME finer error return
         const error: OperatorError = {
@@ -381,9 +448,8 @@ export class OperatorNode implements Node {
       }
     });
 
-    endpoint = redirectEndpoints.write;
-    app.expressApp.get(endpoint, async (req, res) => {
-      logger.Info(endpoint);
+    app.expressApp.get(redirectEndpoints.write, async (req, res) => {
+      logger.Info(redirectEndpoints.write);
       const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
 
       if (!request?.returnUrl) {
@@ -405,7 +471,38 @@ export class OperatorNode implements Node {
 
         httpRedirect(res, redirectUrl.toString());
       } catch (e) {
-        logger.Error(endpoint, e);
+        logger.Error(redirectEndpoints.write, e);
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        // FIXME finer error return
+        const error: OperatorError = {
+          type: OperatorErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+      }
+    });
+
+    app.expressApp.get(redirectEndpoints.delete, async (req, res) => {
+      logger.Info(redirectEndpoints.delete);
+      const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
+      if (!request?.returnUrl) {
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+        const error: OperatorError = {
+          type: OperatorErrorType.INVALID_RETURN_URL,
+          details: '',
+        };
+        res.status(400);
+        res.json(error);
+        return;
+      }
+      try {
+        const response = await getDeleteResponse(request, req, res);
+        const redirectResponse = deleteIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+        const redirectUrl = deleteIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
+        httpRedirect(res, redirectUrl.toString());
+      } catch (e) {
+        logger.Error(redirectEndpoints.delete, e);
         // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         // FIXME finer error return
         const error: OperatorError = {
