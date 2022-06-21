@@ -13,11 +13,17 @@ import styles from 'rollup-plugin-styles';
 import { terser } from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 
-const DEV = process.env.ROLLUP_WATCH;
+const DEV = process.env.ROLLUP_WATCH !== undefined;
+const LOCAL = process.env.__LOCAL__ === "true";
 const DIST = 'dist';
 
 const relative = path => join(__dirname, path);
 const getDestFolder = (path) => (DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
+
+// To facilitate debug, generate map files in two situations:
+// - local debug in this directory (DEV), where files will be generated locally in dist
+// - even when the complete demo app is running (DEV == false), but locally with nodemon (LOCAL == true)
+const sourceMap = DEV || LOCAL === true;
 
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
@@ -27,13 +33,13 @@ export default [
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
       name: 'PAF',
-      sourcemap: DEV !== undefined
+      sourcemap: sourceMap
     },
     treeshake: 'smallest', // remove unused code
     plugins: [
       typescript({
         tsconfig: relative('../tsconfig.json'),
-        sourceMap: DEV !== undefined,
+        sourceMap
       }),
       commonjs(),
       nodeResolve(),
@@ -54,7 +60,7 @@ export default [
       file: getDestFolder(`/app.bundle.js`),
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
-      sourcemap: DEV !== undefined,
+      sourcemap: sourceMap
     },
     treeshake: 'recommended', // remove unused code
     plugins: [ // a list of plugins we apply to the source code
@@ -88,7 +94,7 @@ export default [
       }),
       typescript({
           tsconfig: relative('../tsconfig.json'),
-          sourceMap: DEV !== undefined,
+          sourceMap,
         }
       ), // compile typescript => js
       ...(() => {
