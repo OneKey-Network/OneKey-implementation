@@ -1,4 +1,4 @@
-<div class="ok-ui-popup" style="display: block">
+<div class="ok-ui-popup">
   <div class="ok-ui-popup__block"></div>
   <div class="ok-ui-popup__content">
     <section class="ok-ui-card">
@@ -45,7 +45,7 @@
             </label>
             <div class="ok-ui-navigation">
               <ul class="ok-ui-navigation__list">
-                <li class="ok-ui-navigation__item ok-ui-navigation__item--selected">
+                <li class="ok-ui-navigation__item" data-card="advert">
                   <span class="ok-ui-navigation__icon">
                     <svg width="0.929em" height="1em" viewBox="0 0 13 14" fill="none"
                       xmlns="http://www.w3.org/2000/svg">
@@ -54,9 +54,9 @@
                         fill="currentColor" />
                     </svg>
                   </span>
-                  <span class="ok-ui-navigation__label">${ _.navResults }</span>
+                  <span class="ok-ui-navigation__label">${ _.navAdvert }</span>
                 </li>
-                <li class="ok-ui-navigation__item ">
+                <li class="ok-ui-navigation__item" data-card="data">
                   <span class="ok-ui-navigation__icon">
                     <svg width="1em" height="0.857em" viewBox="0 0 14 12" fill="none"
                       xmlns="http://www.w3.org/2000/svg">
@@ -67,7 +67,7 @@
                   </span>
                   <span class="ok-ui-navigation__label">${ _.navYourData }</span>
                 </li>
-                <li class="ok-ui-navigation__item ">
+                <li class="ok-ui-navigation__item" data-card="participants">
                   <span class="ok-ui-navigation__icon">
                     <svg width="1em" height="0.857em" viewBox="0 0 14 12" fill="none"
                       xmlns="http://www.w3.org/2000/svg">
@@ -87,7 +87,7 @@
                   </span>
                   <span class="ok-ui-navigation__label">${ _.navParticipants }</span>
                 </li>
-                <li class="ok-ui-navigation__item ">
+                <li class="ok-ui-navigation__item" data-card="download">
                   <span class="ok-ui-navigation__icon">
                     <svg width="0.786em" height="1em" viewBox="0 0 11 14" fill="none"
                       xmlns="http://www.w3.org/2000/svg">
@@ -104,7 +104,6 @@
         </nav>
       </header>
       <main class="ok-ui-card__body">
-        <p>Add Here</p>
       </main>
     </section>
   </div>

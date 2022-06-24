@@ -52,7 +52,7 @@ export abstract class BindingBase<E extends HTMLElement> {
   /**
    * The view that will contain the element with the id.
    */
-  private readonly view: IView;
+  protected readonly view: IView;
 
   /**
    * Id of the HTML elements that the field is bound to.
