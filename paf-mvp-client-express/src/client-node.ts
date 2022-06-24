@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import cors, { CorsOptions } from 'cors';
 import { OperatorClient } from './operator-client';
 import {
+  DeleteIdsPrefsRequestBuilder,
   Get3PCRequestBuilder,
   GetNewIdRequestBuilder,
   IdsAndPreferences,
@@ -59,7 +60,7 @@ const getMessageObject = <T>(req: Request, res: Response): T => {
 };
 
 /**
- * The configuration of a PAF client Node
+ * The configuration of a OneKey client Node
  */
 export interface ClientNodeConfig extends Config {
   operatorHost: string;
@@ -67,11 +68,11 @@ export interface ClientNodeConfig extends Config {
 
 export class ClientNode implements Node {
   /**
-   * Add PAF client node endpoints to an Express app
+   * Add OneKey client node endpoints to an Express app
    * @param config
    * @param app the Express app
-   *   hostName: the PAF client host name
-   *   privateKey: the PAF client private key string
+   *   hostName: the OneKey client host name
+   *   privateKey: the OneKey client private key string
    * @param s2sOptions? [optional] server to server configuration for local dev
    */
   constructor(
@@ -95,6 +96,7 @@ export class ClientNode implements Node {
     const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
     const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
     const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, currentPrivateKey);
+    const deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
 
     const tld = getTopLevelDomain(hostName);
 
@@ -235,6 +237,30 @@ export class ClientNode implements Node {
       }
     );
 
+    app.expressApp.options(jsonProxyEndpoints.delete, cors(corsOptions)); // enable pre-flight request for DELETE request
+    app.expressApp.delete(
+      jsonProxyEndpoints.delete,
+      cors(corsOptions),
+      checkOrigin(jsonProxyEndpoints.delete),
+      (req, res) => {
+        logger.Info(jsonProxyEndpoints.delete);
+
+        try {
+          const request = deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
+          const url = deleteIdsPrefsRequestBuilder.getRestUrl(request);
+          res.send(url.toString());
+        } catch (e) {
+          logger.Error(jsonProxyEndpoints.delete, e);
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
+        }
+      }
+    );
+
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
@@ -311,6 +337,31 @@ export class ClientNode implements Node {
             res.status(400);
             res.json(error);
           }
+        }
+      }
+    );
+
+    app.expressApp.get(
+      redirectProxyEndpoints.delete,
+      cors(corsOptions),
+      checkReferer(redirectProxyEndpoints.delete),
+      checkReturnUrl(redirectProxyEndpoints.delete),
+      (req, res) => {
+        logger.Info(redirectProxyEndpoints.delete);
+
+        const returnUrl = getReturnUrl(req, res);
+
+        try {
+          const url = client.getDeleteRedirectUrl(req, returnUrl);
+          res.send(url.toString());
+        } catch (e) {
+          logger.Error(redirectProxyEndpoints.delete, e);
+          const error: ClientNodeError = {
+            type: ClientNodeErrorType.UNKNOWN_ERROR,
+            details: '',
+          };
+          res.status(400);
+          res.json(error);
         }
       }
     );

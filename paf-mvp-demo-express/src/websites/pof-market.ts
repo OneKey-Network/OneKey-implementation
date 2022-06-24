@@ -16,6 +16,7 @@ pofMarketWebSiteApp.expressApp.get(anythingButAssets, async (req, res) => {
     title: name,
     cdnHost,
     pafNodeHost,
+    useCmpUI: true,
   });
 });
 

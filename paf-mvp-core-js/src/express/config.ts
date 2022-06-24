@@ -36,7 +36,7 @@ export interface IdentityJSONConfig {
 }
 
 /**
- * The JSON configuration of a PAF Node
+ * The JSON configuration of a OneKey Node
  */
 export interface JSONConfig {
   identity: IdentityJSONConfig;
@@ -44,7 +44,7 @@ export interface JSONConfig {
 }
 
 /**
- * The parsed configuration of a PAF node
+ * The parsed configuration of a OneKey node
  */
 export interface Config {
   identity: Omit<Identity, 'type'>;

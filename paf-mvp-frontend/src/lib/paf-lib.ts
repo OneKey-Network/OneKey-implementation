@@ -1,6 +1,7 @@
 import { browserName } from 'detect-browser';
 import {
   AuditLog,
+  DeleteIdsPrefsResponse,
   Error,
   Get3PcResponse,
   GetIdsPrefsResponse,
@@ -9,6 +10,7 @@ import {
   IdsAndOptionalPreferences,
   IdsAndPreferences,
   PostIdsPrefsRequest,
+  PostIdsPrefsResponse,
   PostSeedRequest,
   PostSignPreferencesRequest,
   Preferences,
@@ -16,11 +18,11 @@ import {
   TransactionId,
   TransmissionResponse,
 } from '@core/model';
-import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration } from '@core/cookies';
+import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration, typedCookie } from '@core/cookies';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { QSParam } from '@core/query-string';
-import { fromClientCookieValues, getPafStatus, PafStatus } from '@core/operator-client-commons';
+import { PafStatus } from '@frontend/enums/status.enum';
 import { getCookieValue } from '../utils/cookie';
 import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
@@ -35,7 +37,7 @@ declare const PAFUI: {
   showNotification: (notificationType: NotificationEnum) => void;
 };
 
-const log = new Log('PAF', '#3bb8c3');
+const log = new Log('OneKey', '#3bb8c3');
 
 const redirect = (url: string): void => {
   log.Info('Redirecting to:', url);
@@ -61,6 +63,12 @@ const postText = (url: string, input: string) =>
 const get = (url: string) =>
   fetch(url, {
     method: 'GET',
+    credentials: 'include',
+  });
+
+const deleteHttp = (url: string) =>
+  fetch(url, {
+    method: 'DELETE',
     credentials: 'include',
   });
 
@@ -254,11 +262,38 @@ async function updateDataWithPrompt(
   }
 }
 
+const getCleanCookieValue = (cookieValue: string): string | undefined =>
+  cookieValue === PafStatus.NOT_PARTICIPATING || cookieValue === PafStatus.REDIRECT_NEEDED ? undefined : cookieValue;
+
 /**
- * Ensure local cookies for PAF identifiers and preferences are up-to-date.
+ * Parse string cookie values and build an IdsAndOptionalPreferences accordingly
+ * @param idsCookie
+ * @param prefsCookie
+ */
+const fromClientCookieValues = (idsCookie: string, prefsCookie: string): IdsAndOptionalPreferences => {
+  return {
+    identifiers: typedCookie(getCleanCookieValue(idsCookie)) ?? [],
+    preferences: typedCookie(getCleanCookieValue(prefsCookie)),
+  };
+};
+
+const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus => {
+  if (idsCookie === PafStatus.REDIRECT_NEEDED || prefsCookie === PafStatus.REDIRECT_NEEDED) {
+    return PafStatus.REDIRECT_NEEDED;
+  }
+
+  // TODO might need to refine this one
+  if (idsCookie === PafStatus.NOT_PARTICIPATING || prefsCookie === PafStatus.NOT_PARTICIPATING) {
+    return PafStatus.NOT_PARTICIPATING;
+  }
+
+  return PafStatus.PARTICIPATING;
+};
+/**
+ * Ensure local cookies for OneKey identifiers and preferences are up-to-date.
  * If they aren't, contact the operator to get fresh values.
  * @param options:
- * - proxyHostName: servername of the PAF client node. ex: paf.my-website.com
+ * - proxyHostName: servername of the OneKey client node. ex: paf.my-website.com
  * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
  * - returnUrl: the URL that must be called in return (after a redirect to the operator) when no 3PC are available. Default = current page
  * @return a status and optional data
@@ -274,7 +309,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
   // Special query string param to remember the prompt must be shown
   const localQSParamShowPrompt = 'paf_show_prompt';
 
-  // Update the URL shown in the address bar, without PAF data
+  // Update the URL shown in the address bar, without OneKey data
   const cleanUpUrL = () => {
     const cleanedUrl = removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]);
     history.pushState(null, '', cleanedUrl);
@@ -324,7 +359,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     async function handleAfterRedirect() {
       // Verify message
       const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
-      const operatorData = (await response.json()) as GetIdsPrefsResponse;
+      const operatorData = (await response.json()) as
+        | GetIdsPrefsResponse
+        | PostIdsPrefsResponse
+        | DeleteIdsPrefsResponse;
 
       if (!operatorData) {
         throw 'Verification failed';
@@ -332,18 +370,32 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
       log.Debug('Operator data after redirect', operatorData);
 
-      // 3. Received data?
-      const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
-      const hasPersistedId = persistedIds.length > 0;
-      const preferences = operatorData?.body?.preferences;
-      const hasPreferences = preferences !== undefined;
-      saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
-      saveCookieValue(Cookies.preferences, preferences);
+      let status: PafStatus;
 
-      triggerNotification(preferences?.data?.use_browsing_for_personalization);
+      // 3. Received data?
+      if (operatorData.body.preferences === undefined && operatorData.body.identifiers.length === 0) {
+        // Deletion of ids and preferences requested
+        saveCookieValue(Cookies.identifiers, undefined);
+        saveCookieValue(Cookies.preferences, undefined);
+        status = PafStatus.NOT_PARTICIPATING;
+
+        log.Info('Deleted ids and preferences');
+      } else {
+        // Ids and preferences received
+        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
+        const hasPersistedId = persistedIds.length > 0;
+        const preferences = operatorData?.body?.preferences;
+        const hasPreferences = preferences !== undefined;
+        saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
+        saveCookieValue(Cookies.preferences, preferences);
+
+        triggerNotification(preferences?.data?.use_browsing_for_personalization);
+
+        status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
+      }
 
       return {
-        status: hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN,
+        status,
         data: operatorData.body,
       };
     }
@@ -478,9 +530,9 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 };
 
 /**
- * Write update of identifiers and preferences on the PAF domain
+ * Write update of identifiers and preferences on the OneKey domain
  * @param options:
- * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
+ * - proxyBase: base URL (scheme, servername) of the OneKey client node. ex: https://paf.my-website.com
  * @param input the identifiers and preferences to write
  * @return the written identifiers and preferences
  */
@@ -547,7 +599,7 @@ const writeIdsAndPref = async (
 /**
  * Sign preferences
  * @param options:
- * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
+ * - proxyBase: base URL (scheme, servername) of the OneKey client node. ex: https://paf.my-website.com
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
@@ -565,7 +617,7 @@ export const signPreferences = async (
 /**
  * Get new random identifier
  * @param options:
- * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
+ * - proxyBase: base URL (scheme, servername) of the OneKey client node. ex: https://paf.my-website.com
  * @return the new Id, signed
  */
 export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Identifier> => {
@@ -626,7 +678,7 @@ export interface AuditHandler {
 export interface TransmissionRegistryContext {
   /** Transaction Id generated by Prebidjs. */
   prebidTransactionId: PrebidTransactionId;
-  /** Transaction Id generated for the PAF Audit Log and used for signing the Seed. */
+  /** Transaction Id generated for the OneKey Audit Log and used for signing the Seed. */
   pafTransactionId: TransactionId;
   /**
    * The Id of the tag (<div id="something">) that contains the
@@ -679,7 +731,7 @@ export const createSeed = async (
  * and store the Seed on Browser side so that it can be retrieved later.
  *
  * @param options domain called for creating the Seed (POST /paf-proxy/v1/seed).
- * @param pafTransactionIds List of Transaction Ids for PAF (visible in the Audit).
+ * @param pafTransactionIds List of Transaction Ids for OneKey (visible in the Audit).
  * @returns A new signed Seed that can be used to start Transmissions Requests.
  */
 export const generateSeed = async (
@@ -774,9 +826,54 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
   return getAuditLogByTransaction(prebidTransactionId);
 };
 
-export const deleteIdsAndPreferences = (_option: DeleteIdsAndPreferencesOptions): Promise<boolean> => {
-  // Not handled yet.
-  return Promise.resolve(false);
+/**
+ * Delete the identifiers and preferences of the current website (locally and from the operator)
+ * @param options:
+ * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
+ */
+export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPreferencesOptions): Promise<void> => {
+  log.Info('Attempt to delete ids and preferences');
+
+  const strIds = getCookieValue(Cookies.identifiers);
+  const strPreferences = getCookieValue(Cookies.preferences);
+  const pafStatus = getPafStatus(strIds, strPreferences);
+
+  if (pafStatus === PafStatus.NOT_PARTICIPATING) {
+    log.Info('User is already not participating, nothing to clean');
+    return;
+  }
+
+  const getUrl = getProxyUrl(proxyHostName);
+
+  // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
+  if (thirdPartyCookiesSupported) {
+    log.Info('3PC supported: deleting the ids and preferences');
+
+    // Get the signed request for the operator
+    const clientNodeDeleteResponse = await deleteHttp(getUrl(jsonProxyEndpoints.delete));
+    const operatorDeleteUrl = await clientNodeDeleteResponse.text();
+
+    // Call the operator, which will clean its cookies
+    await deleteHttp(operatorDeleteUrl);
+
+    // Clean the local cookies
+    saveCookieValue(Cookies.identifiers, undefined);
+    saveCookieValue(Cookies.preferences, undefined);
+
+    log.Info('Deleted ids and preferences');
+    return;
+  }
+
+  log.Info('3PC not supported: redirecting to delete ids and preferences');
+
+  // Redirect. Signing of the request will happen on the backend proxy
+  const clientUrl = new URL(getUrl(redirectProxyEndpoints.delete));
+  clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
+  const clientResponse = await get(clientUrl.toString());
+
+  // TODO handle errors
+  const operatorUrl = await clientResponse.text();
+  redirect(operatorUrl);
 };
 
 // Set up the queue of asynchronous commands

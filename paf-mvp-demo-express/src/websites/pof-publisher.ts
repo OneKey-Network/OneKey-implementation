@@ -17,6 +17,7 @@ pofPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
     title: name,
     cdnHost,
     pafNodeHost,
+    useCmpUI: true,
   });
 });
 

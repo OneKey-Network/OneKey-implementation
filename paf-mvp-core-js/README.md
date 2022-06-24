@@ -1,14 +1,14 @@
-# Prebid Addressability Framework (PAF) core Javascript library
+# OneKey core Javascript library
 
 This library provides core files used
-by different PAF Javascript projects.
+by different OneKey Javascript projects.
 
 In particular:
 - cookies and messages data model
 - cookies and messages builders
 - signature & signature verification
 
-## PAF implementation projects
+## OneKey implementation projects
 ```mermaid
 
 flowchart TB
@@ -28,7 +28,7 @@ flowchart TB
     click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client("Operator client")
-    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express" "paf-mvp-client-express"
     
     Demo --> Frontend
     linkStyle 0 stroke:#d2d2d2,stroke-width:1px

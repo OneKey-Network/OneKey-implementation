@@ -1,9 +1,9 @@
-# Prebid Addressability Framework (PAF): demo
+# OneKey: demo
 
 A set of fake websites to **demonstrate** the features of Prebid Addressability Framework
 and **debug** the code behind it.
 
-## PAF implementation projects
+## OneKey implementation projects
 ```mermaid
 
 flowchart TB
@@ -22,7 +22,7 @@ flowchart TB
     click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client(Operator client)
-    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-client-express" "paf-mvp-operator-client-express"
+    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express" "paf-mvp-client-express"
     
     Demo --> Frontend
     Demo --> Operator
@@ -55,7 +55,7 @@ All pages will look exactly the same, but this can be the opportunity to test th
 
 What makes a difference between these two types of websites is related to **first visits** and in particular how **unknown users** are handled:
 - publisher websites will ask for consent before anything
-- advertiser websites will only query PAF: if the user is recognized, preferences are stored and a notification snackbar is displayed. Otherwise, the user is considered opt out.
+- advertiser websites will only query OneKey: if the user is recognized, preferences are stored and a notification snackbar is displayed. Otherwise, the user is considered opt out.
 
 A typical demo scenario would be to:
 - visit a publisher website first, notice the "first visit" UI and **define your marketing preferences**

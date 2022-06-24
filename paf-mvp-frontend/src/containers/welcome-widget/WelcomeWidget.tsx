@@ -60,7 +60,7 @@ export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
   };
 
   const updateSettings = async () => {
-    // Remove previous PAF id from the list
+    // Remove previous OneKey id from the list
     const identifiers = (originalData?.identifiers ?? []).filter((id) => id.type !== 'paf_browser_id');
     identifiers.push(appIdentifier);
     await (window as Window).PAF.updateIdsAndPreferences(pafClientNodeHost, consent, identifiers);

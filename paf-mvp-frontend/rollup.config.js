@@ -13,11 +13,17 @@ import styles from 'rollup-plugin-styles';
 import { terser } from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 
-const DEV = process.env.ROLLUP_WATCH;
+const IS_DEV = process.env.ROLLUP_WATCH !== undefined;
+const IS_LOCAL = process.env.__LOCAL__ === "true";
 const DIST = 'dist';
 
 const relative = path => join(__dirname, path);
-const getDestFolder = (path) => (DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
+const getDestFolder = (path) => (IS_DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
+
+// To facilitate debug, generate map files in two situations:
+// - local debug in this directory (DEV), where files will be generated locally in dist
+// - even when the complete demo app is running (DEV == false), but locally with nodemon (LOCAL == true)
+const generateSourceMap = IS_DEV || IS_LOCAL;
 
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
@@ -27,18 +33,20 @@ export default [
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
       name: 'PAF',
-      sourcemap: DEV !== undefined
+      sourcemap: generateSourceMap
     },
     treeshake: 'smallest', // remove unused code
     plugins: [
+      //sourcemaps(),
       typescript({
         tsconfig: relative('../tsconfig.json'),
-        sourceMap: DEV !== undefined,
+        inlineSourceMap: generateSourceMap,
+        inlineSources: generateSourceMap
       }),
       commonjs(),
       nodeResolve(),
       ...(() => {
-        if (DEV) {
+        if (IS_DEV) {
           return []
         } else {
           return [
@@ -54,7 +62,7 @@ export default [
       file: getDestFolder(`/app.bundle.js`),
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
-      sourcemap: DEV !== undefined,
+      sourcemap: generateSourceMap
     },
     treeshake: 'recommended', // remove unused code
     plugins: [ // a list of plugins we apply to the source code
@@ -68,8 +76,8 @@ export default [
       }),
       replace({ // replace value in runtime
         preventAssignment: true,
-        'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production'),
-        'env__development': DEV ? 'env__development' : 'env__production' // to import correct env file
+        'process.env.NODE_ENV': JSON.stringify(IS_DEV ? 'development' : 'production'),
+        'env__development': IS_DEV ? 'env__development' : 'env__production' // to import correct env file
       }),
       styles({
         modules: true,
@@ -88,11 +96,11 @@ export default [
       }),
       typescript({
           tsconfig: relative('../tsconfig.json'),
-          sourceMap: DEV !== undefined,
+          sourceMap: generateSourceMap,
         }
       ), // compile typescript => js
       ...(() => {
-        if (!DEV) { // list of plugins for production
+        if (!IS_DEV) { // list of plugins for production
           return [
             terser(), // minify js output
             copy({ // copy files

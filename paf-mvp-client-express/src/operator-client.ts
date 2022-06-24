@@ -10,7 +10,7 @@ import {
 import { CurrentModelVersion, UnsignedSource } from '@core/model/model';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { PublicKeyStore } from '@core/crypto/key-store';
-import { GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
+import { DeleteIdsPrefsRequestBuilder, GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
 import { Signer } from '@core/crypto/signer';
 import {
   IdsAndPreferencesDefinition,
@@ -26,6 +26,7 @@ import { Request } from 'express';
 // FIXME should probably be moved to core library
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
+  private readonly deleteIdsPrefsRequestBuilder: DeleteIdsPrefsRequestBuilder;
   private readonly prefsSigner: Signer<IdsAndUnsignedPreferences>;
   private readonly seedSigner: Signer<SeedSignatureContainer>;
 
@@ -37,6 +38,7 @@ export class OperatorClient {
     private readonly readVerifier = new ResponseVerifier(keyStore.provider, new ResponseDefinition())
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
+    this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
     this.seedSigner = new Signer(privateKeyFromString(privateKey), new SeedSignatureBuilder());
   }
@@ -89,6 +91,14 @@ export class OperatorClient {
       returnUrl: returnUrl.toString(),
     });
     return this.getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson);
+  }
+
+  getDeleteRedirectUrl(req: Request, returnUrl: URL): URL {
+    const deleteIdsPrefsRequestJson = this.deleteIdsPrefsRequestBuilder.buildRedirectRequest({
+      referer: req.header('referer'),
+      returnUrl: returnUrl.toString(),
+    });
+    return this.deleteIdsPrefsRequestBuilder.getRedirectUrl(deleteIdsPrefsRequestJson);
   }
 
   private createUnsignedSeed(transactionIds: TransactionId[], timestamp = getTimeStampInSec()): UnsignedSource<Seed> {

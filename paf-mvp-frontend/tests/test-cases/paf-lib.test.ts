@@ -8,7 +8,7 @@ import {
 } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
-import { PafStatus } from '@core/operator-client-commons';
+import { PafStatus } from '../../src/enums/status.enum';
 import {
   Error,
   GetIdsPrefsResponse,
@@ -134,7 +134,7 @@ describe('Function writeIdsAndPref', () => {
 describe('Function refreshIdsAndPreferences', () => {
   const realLocation = location;
 
-  describe('with PAF data in the URI', () => {
+  describe('with data in the URI', () => {
     const historySpy = jest.spyOn(global.history, 'pushState');
     const uriData = 'TEST-STRING';
     const identifier = getFakeIdentifiers()[0];
