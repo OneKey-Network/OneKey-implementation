@@ -1,4 +1,6 @@
 $card-footer-mobile-height: em(58px);
+$popup-tablet-plus-top-gap: 100px;
+$popup-card-height-guide: 750px;
 
 .ok-ui-popup {
   display: none;
@@ -13,7 +15,6 @@ $card-footer-mobile-height: em(58px);
 
 .ok-ui-popup--open {
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
@@ -64,6 +65,11 @@ $card-footer-mobile-height: em(58px);
     @include tablet-plus {
       max-height: calc(100vh - ($popup-gutter * 2));
       margin: $popup-gutter;
-    }
+
+      @media (min-height: #{calc($popup-card-height-guide + ($popup-tablet-plus-top-gap * 2))}) {
+        max-height: calc(100vh - ($popup-tablet-plus-top-gap * 2));
+        margin: $popup-tablet-plus-top-gap $popup-gutter;
+      }
+    }      
   }
 }
