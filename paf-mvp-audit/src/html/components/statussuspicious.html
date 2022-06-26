@@ -1,0 +1,22 @@
+<div class="ok-ui-advert-status ok-ui-advert-status--suspicious">
+    <span class="ok-ui-icon--xl"><svg width="1em" height="1em" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6.99338 13.6668C3.31235 13.6631 0.330924 10.6767 0.333376 6.99572C0.33583 3.31469 3.32123 0.332271 7.00226 0.333496C10.6833 0.334723 13.6667 3.31913 13.6667 7.00016C13.6645 10.6837 10.677 13.6683 6.99338 13.6668ZM1.66671 7.11483C1.69825 10.049 4.09411 12.4065 7.0284 12.3908C9.96269 12.375 12.3331 9.99182 12.3331 7.05749C12.3331 4.12316 9.96269 1.74001 7.0284 1.72416C4.09411 1.70846 1.69825 4.066 1.66671 7.00016V7.11483ZM7.66671 10.3335H6.33338V9.00016H7.66671V10.3335ZM7.66671 7.66683H6.33338V3.66683H7.66671V7.66683Z" fill="currentColor"/>
+  </svg></span>
+    <h3 class="ok-ui-heading-3 ok-ui-mt-1 ok-ui-mb-1">${ _.advertSuspiciousTitle }</h3>
+    ${ _.advertSuspiciousBodyHTML }
+    <div class="ok-ui-advert-status__footer">
+      <button type="button" class="ok-ui-button ok-ui-button--filled ok-ui-button--warning ok-ui-button--icon-end">
+        <svg width="0.857em" height="0.571em" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.77996 4.66667L6.39329 7.06L7.33329 8L11.3333 4L7.33329 0L6.39329 0.94L8.77996 3.33333H0.666626V4.66667H8.77996Z" fill="currentColor" />
+        </svg>
+        <span class="ok-ui-button__label">${ _.advertSuspiciousButton }</span>
+      </button>
+      <hr class="ok-ui-divide" />
+      <button type="button" class="ok-ui-button ok-ui-button--undefined ok-ui-button--text ok-ui-button--icon-end">
+        <svg width="0.857em" height="0.857em" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.3339 11.3334H2.00057C1.26419 11.3334 0.667236 10.7365 0.667236 10.0001V2.66675C0.667236 1.93037 1.26419 1.33341 2.00057 1.33341H4.66724V2.66675H2.00057V10.0001H9.3339V7.33341H10.6672V10.0001C10.6672 10.7365 10.0703 11.3334 9.3339 11.3334ZM5.80057 7.13808L4.86057 6.19541L9.0559 2.00008H6.66724V0.666748H11.3339V5.33341H10.0006V2.94341L5.80057 7.13808Z" fill="currentColor" />
+        </svg>
+        <span class="ok-ui-button__label">${ _.advertLearnMore }</span>
+      </button>
+    </div>
+  </div>

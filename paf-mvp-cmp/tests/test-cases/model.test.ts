@@ -1,5 +1,6 @@
-import { FieldSingle, Marketing, Model } from '../../src/model';
+import { FieldSingle, Model } from '../../src/model';
 import { Identifier, Preferences, PreferencesData } from '@core/model/generated-model';
+import { Marketing } from '@core/model/marketing';
 
 let model: Model;
 

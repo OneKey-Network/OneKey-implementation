@@ -1,5 +1,7 @@
+import { IdentifierDefinition } from '@core/crypto';
 import { PublicKeyInfo } from '@core/crypto/identity';
 import { PublicKeyStore } from '@core/crypto/key-store';
+import { PrivateKey } from '@core/crypto/key-interfaces';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { Signer } from '@core/crypto/signer';
 import { Config } from '@core/express';
@@ -21,10 +23,10 @@ import {
 import { CurrentModelVersion } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
 import { OperatorClient } from '@operator-client/operator-client';
-import ECDSA from 'ecdsa-secp256r1';
+import ECKey from 'ec-key';
 import { v4 as uuidv4 } from 'uuid';
-import { IdentityResolverMap } from './identity-resolver';
-import { SeedDefinition, SignedSeedSignatureContainer } from './signing-definitions';
+import { IdentityResolverMap } from '../../src/identity-resolver';
+import { SeedDefinition, SignedSeedSignatureContainer } from '../../src/signing-definitions';
 
 /**
  * See the documentation for logic details.
@@ -193,7 +195,7 @@ export class AuditLogMock {
    * Constructs a new instance of the mock audit log.
    * @param log
    */
-  constructor(log: Log) {
+  constructor(private readonly log: Log) {
     this.clientAndConfigStore = new ConfigAndClientStore(log, this);
   }
 
@@ -230,20 +232,19 @@ export class AuditLogMock {
     const root = this.clientAndConfigStore.getOrAdd(rootNode);
 
     // Build the ids and preferences.
-    const idsAndPreferences = AuditLogMock.SignIdentifiersAndPreferencesData(
-      root.client,
-      [AuditLogMock.NewId(root.config)],
-      data
-    );
+    const id = AuditLogMock.NewId(root.config);
+    const idsAndPreferences = AuditLogMock.SignIdentifiersAndPreferencesData(root.client, [id], data);
 
     // Build the seed for the audit log from the transaction ids, and ids and preferences.
     const seed = AuditLogMock.BuildSeed(root.client, [contents[0].transaction_id], idsAndPreferences);
 
     // Get the responses for all the children of the root node.
     const responseTrees: TransmissionResponse[] = [];
-    rootNode.children.forEach((childNode) => {
-      responseTrees.push(this.BuildTransmissionResponses(idsAndPreferences, seed, contents, childNode, rootNode));
-    });
+    for (let i = 0; i < rootNode.children.length; i++) {
+      responseTrees.push(
+        this.BuildTransmissionResponses(idsAndPreferences, seed, contents, rootNode.children[i], rootNode)
+      );
+    }
 
     // Turn them into a list.
     // TODO: Remove when the audit log can support a hierarchy of responses.
@@ -292,9 +293,11 @@ export class AuditLogMock {
   ): TransmissionResponse {
     const children: TransmissionResponse[] = [];
     if (currentNode.children?.length > 0) {
-      currentNode.children.forEach((childNode) => {
-        children.push(this.BuildTransmissionResponses(idsAndPreferences, seed, contents, childNode, currentNode));
-      });
+      for (let i = 0; i < currentNode.children.length; i++) {
+        children.push(
+          this.BuildTransmissionResponses(idsAndPreferences, seed, contents, currentNode.children[i], currentNode)
+        );
+      }
     }
     return AuditLogMock.BuildTransmissionResponse(
       idsAndPreferences,
@@ -337,10 +340,8 @@ export class AuditLogMock {
     details: TransmissionDetails,
     children: TransmissionResponse[]
   ): TransmissionResponse {
-    const signer = new Signer<SignedSeedSignatureContainer>(
-      privateKeyFromString(sender.config.currentPrivateKey),
-      AuditLogMock.seedDefinition
-    );
+    const currentPrivateKey = <PrivateKey>privateKeyFromString(sender.config.currentPrivateKey);
+    const signer = new Signer<SignedSeedSignatureContainer>(currentPrivateKey, AuditLogMock.seedDefinition);
     return {
       version: CurrentModelVersion,
       receiver: receiver.config.host,
@@ -368,8 +369,7 @@ export class AuditLogMock {
     transaction_ids: string[],
     idsAndPreferences: IdsAndPreferences
   ): Seed {
-    const seed = client.buildSeed(transaction_ids, idsAndPreferences);
-    return seed;
+    return client.buildSeed(transaction_ids, idsAndPreferences);
   }
 
   /**
@@ -394,7 +394,9 @@ export class AuditLogMock {
    * @returns
    */
   private static NewId(config: Config): Identifier {
-    return new IdBuilder(config.host, config.currentPrivateKey).generateNewId();
+    const privateKey = privateKeyFromString(config.currentPrivateKey);
+    const signer = new Signer(privateKey, new IdentifierDefinition());
+    return new IdBuilder(config.host, config.currentPrivateKey, signer).generateNewId();
   }
 
   /**
@@ -410,14 +412,16 @@ export class AuditLogMock {
    * @param params instance of new client parameters
    */
   private static BuildConfig(params: ConfigParams): Config {
-    const privateKey = ECDSA.generateKey();
+    const privateKey = ECKey.createECKey();
+    const currentPrivateKey = privateKey.toString('pem');
+    const publicKey = privateKey.asPublicECKey().toString('pem');
     return <Config>{
       identity: {
         name: params.name,
         publicKeys: [
           {
             startTimestampInSec: getTimeStampInSec(),
-            publicKey: privateKey.asPublic().toJWK(),
+            publicKey,
           },
         ],
         type: params.type,
@@ -425,7 +429,7 @@ export class AuditLogMock {
         privacyPolicyUrl: params.privacyPolicyUrl ?? new URL(`https:\\\\${params.host}\\privacy.html`),
       },
       host: params.host,
-      currentPrivateKey: privateKey.toJWK(),
+      currentPrivateKey,
     };
   }
 }

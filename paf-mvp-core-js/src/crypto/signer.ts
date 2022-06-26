@@ -1,4 +1,4 @@
-import { PrivateKey } from '@core/crypto/keys';
+import { PrivateKey } from '@core/crypto/key-interfaces';
 import { Log } from '@core/log';
 
 export interface SignatureStringBuilder<U> {
@@ -27,7 +27,7 @@ export class Signer<U> implements ISigner<U> {
   constructor(private ecdsaPrivateKey: PrivateKey, protected definition: SignatureStringBuilder<U>) {}
 
   sign(inputData: U): string {
-    this.logger.Debug('Sign', inputData);
+    this.logger.Debug('Sign', inputData, this.ecdsaPrivateKey);
     const toSign = this.definition.getInputString(inputData);
     return this.ecdsaPrivateKey.sign(toSign);
   }

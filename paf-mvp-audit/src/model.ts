@@ -7,6 +7,7 @@ import { PublicKeyResolver } from './public-key-resolver';
 import { SeedDefinition, TransmissionContainer, TransmissionDefinition } from './signing-definitions';
 import { ILocale } from '@core/ui/ILocale';
 import { getDate } from '@core/timestamp';
+import { Log } from '@core/log';
 
 /**
  * Different status associated with fields in the model.
@@ -84,10 +85,10 @@ export abstract class VerifiedValue<T> implements IVerifiedValue {
    * @returns the verified status of the field
    */
   public get verifiedStatus(): VerifiedStatus {
-    if (this.identity === undefined || this.valid === undefined) {
+    if (this.valid === undefined) {
       return VerifiedStatus.Processing;
     }
-    if (this.identity !== null && this.valid !== null) {
+    if (this.identity) {
       return this.valid ? VerifiedStatus.Valid : VerifiedStatus.NotValid;
     }
     return VerifiedStatus.IdentityNotFound;
@@ -95,22 +96,33 @@ export abstract class VerifiedValue<T> implements IVerifiedValue {
 
   /**
    * A new instance of a verified value that will have commenced the process of verification.
+   * @param log
    * @param identityPromise that may not yet be resolved to fetch the identity information
    * @param value the signed value that will be verified
    */
-  constructor(private readonly identityPromise: Promise<GetIdentityResponse>, public readonly value: T) {}
+  constructor(
+    protected readonly log: Log,
+    private readonly identityPromise: Promise<GetIdentityResponse>,
+    public readonly value: T
+  ) {}
 
   /**
    * Completes the verification process for the value.
    */
   public async verify() {
     try {
-      this.identity = (await this.identityPromise) ?? null;
-    } catch {
+      this.identity = await this.identityPromise;
+    } catch (e) {
+      this.log.Message('identityPromise', e);
       this.identity = null;
     }
     if (this.identity) {
-      this.valid = await this.verifySignature();
+      try {
+        this.valid = await this.verifySignature();
+      } catch (e) {
+        this.log.Message('verifySignature', e);
+        this.valid = false;
+      }
     } else {
       this.valid = false;
     }
@@ -130,17 +142,23 @@ export class VerifiedSeed extends VerifiedValue<Seed> {
 
   /**
    * Constructs a new instance of the verified ids and preferences value.
+   * @param log
    * @param identityResolver used to retrieve identities for host names.
    * @param idsAndPreferences
    * @param seed
    */
-  constructor(identityResolver: IdentityResolver, private readonly idsAndPreferences: IdsAndPreferences, seed: Seed) {
-    super(identityResolver.get(seed.source.domain), seed);
+  constructor(
+    log: Log,
+    identityResolver: IdentityResolver,
+    private readonly idsAndPreferences: IdsAndPreferences,
+    seed: Seed
+  ) {
+    super(log, identityResolver.get(seed.source.domain), seed);
   }
 
   protected verifySignature(): Promise<boolean> {
     const verifier = new Verifier<SeedSignatureContainer>(
-      new PublicKeyResolver(this.identity).provider,
+      new PublicKeyResolver(this.log, this.identity).provider,
       VerifiedSeed.definition
     );
     return verifier.verifySignature({ seed: this.value, idsAndPreferences: this.idsAndPreferences });
@@ -155,16 +173,17 @@ export class VerifiedIdsAndPreferences extends VerifiedValue<IdsAndPreferences> 
 
   /**
    * Constructs a new instance of the verified ids and preferences value.
+   * @param log
    * @param identityResolver used to retrieve identities for host names.
    * @param idsAndPreferences
    */
-  constructor(identityResolver: IdentityResolver, idsAndPreferences: IdsAndPreferences) {
-    super(identityResolver.get(idsAndPreferences.preferences.source.domain), idsAndPreferences);
+  constructor(log: Log, identityResolver: IdentityResolver, idsAndPreferences: IdsAndPreferences) {
+    super(log, identityResolver.get(idsAndPreferences.preferences.source.domain), idsAndPreferences);
   }
 
   protected verifySignature(): Promise<boolean> {
     const verifier = new IdsAndPreferencesVerifier(
-      new PublicKeyResolver(this.identity).provider,
+      new PublicKeyResolver(this.log, this.identity).provider,
       VerifiedIdsAndPreferences.definition
     );
     return verifier.verifySignature(this.value);
@@ -182,23 +201,25 @@ export class VerifiedTransmissionResult extends VerifiedValue<TransmissionResult
 
   /**
    * Constructs a new instance of TransmissionResultNode for the audit log record provided.
+   * @param log
    * @param identityResolver used to retrieve identities for host names.
    * @param idsAndPreferences
    * @param seed
    * @param result returned in the audit log.
    */
   constructor(
+    log: Log,
     identityResolver: IdentityResolver,
     private readonly idsAndPreferences: IdsAndPreferences,
     private readonly seed: Seed,
     result: TransmissionResult
   ) {
-    super(identityResolver.get(result.source.domain), result);
+    super(log, identityResolver.get(result.source.domain), result);
   }
 
   protected verifySignature(): Promise<boolean> {
     const verifier = new Verifier<TransmissionContainer>(
-      new PublicKeyResolver(this.identity).provider,
+      new PublicKeyResolver(this.log, this.identity).provider,
       VerifiedTransmissionResult.definition
     );
     return verifier.verifySignature({ idsAndPreferences: this.idsAndPreferences, seed: this.seed, result: this.value });
@@ -222,7 +243,7 @@ export class VerifiedTransmissionResult extends VerifiedValue<TransmissionResult
             ? <string>locale.emailPreferencePersonalized
             : <string>locale.emailPreferenceStandard
         )
-        .replace('[Proof]', JSON.stringify(this.value))
+        .replace('[Proof]', [JSON.stringify(this.value.source), JSON.stringify(this.seed)].join('\r\n'))
         .trim()
     );
     const subject = encodeURIComponent(<string>locale.emailSubject);
@@ -273,31 +294,39 @@ export class Model implements IModel {
   /**
    * Constructs the data model from the audit log starting the promises to retrieve identity and then verify the values.
    * @remarks The model must not be used until the promise returned from the verify() method resolves.
+   * @param log
    * @param auditLog the original raw audit log.
    * @param identityResolver used to retrieve identities for host names.
    */
-  constructor(identityResolver: IdentityResolver, private readonly auditLog: AuditLog) {
+  constructor(log: Log, identityResolver: IdentityResolver, private readonly auditLog: AuditLog) {
+    this.allFields.push(this.overall);
+
     // Create the field for the seed and add the value to the list of values being verified.
-    this.seed = new Field<VerifiedSeed, Model>(this, new VerifiedSeed(identityResolver, auditLog.data, auditLog.seed));
+    this.seed = new Field<VerifiedSeed, Model>(
+      this,
+      new VerifiedSeed(log, identityResolver, auditLog.data, auditLog.seed)
+    );
     this.allVerifiedFields.push(this.seed);
+    this.allFields.push(this.seed);
 
     // Create the field for the ids and preferences and add the value to the list of values being verified.
     this.idsAndPreferences = new Field<VerifiedIdsAndPreferences, Model>(
       this,
-      new VerifiedIdsAndPreferences(identityResolver, auditLog.data)
+      new VerifiedIdsAndPreferences(log, identityResolver, auditLog.data)
     );
     this.allVerifiedFields.push(this.idsAndPreferences);
+    this.allFields.push(this.idsAndPreferences);
 
     // Loop through the transmission results adding fields to the model and adding the value to the values being
     // verified.
     auditLog.transmissions?.forEach((result) => {
-      this.AddTransmissionField(identityResolver, auditLog, result);
+      this.AddTransmissionField(log, identityResolver, auditLog, result);
     });
   }
 
   /**
-   * Should be called straight after the constructor to complete all verification processing.
-   * @remarks All identity and verification promises will have been settled once the promise resolves.
+   * Should be called after the constructor to complete all verification processing.
+   * @remarks All identity and verification promises will have been settled once this promise resolves.
    * @returns an instance of this model
    */
   public async verify(): Promise<Model> {
@@ -381,10 +410,15 @@ export class Model implements IModel {
    * @param auditLog
    * @param result
    */
-  private AddTransmissionField(identityResolver: IdentityResolver, auditLog: AuditLog, result: TransmissionResult) {
+  private AddTransmissionField(
+    log: Log,
+    identityResolver: IdentityResolver,
+    auditLog: AuditLog,
+    result: TransmissionResult
+  ) {
     const field = new Field<VerifiedTransmissionResult, Model>(
       this,
-      new VerifiedTransmissionResult(identityResolver, auditLog.data, auditLog.seed, result)
+      new VerifiedTransmissionResult(log, identityResolver, auditLog.data, auditLog.seed, result)
     );
     this.results.push(field);
     this.allFields.push(field);

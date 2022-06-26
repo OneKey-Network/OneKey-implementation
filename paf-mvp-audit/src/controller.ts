@@ -1,14 +1,19 @@
 import { ILocale } from '@core/ui/ILocale';
 import { AuditLog, GetIdentityResponse, PreferencesData } from '@core/model/generated-model';
 import { Log } from '@core/log';
-import { Model, VerifiedTransmissionResult } from './model';
+import { Model } from './model';
 import { View } from './view';
-import { BindingCheckedMap, BindingElement, BindingViewOnly } from '@core/ui/binding';
 import { Window } from '@frontend/global';
 import { AuditHandler } from '@frontend/lib/paf-lib';
-import { IdentityResolver } from './identity-resolver';
-import { BindingParticipant, BindingPreferenceDate, BindingStatus } from './bindings';
-import { Marketing } from 'paf-mvp-cmp/src/model';
+import { IdentityResolver, IdentityResolverHttp, IdentityResolverMap } from './identity-resolver';
+import { BindingElementIdsAndPreferences, BindingParticipant, BindingPreferenceDate, BindingStatus } from './bindings';
+import { Marketing } from '@core/model/marketing';
+
+// TODO: Remove the mock audit log code.
+interface Mock {
+  auditLog: AuditLog;
+  resolver: [{ 0: string; 1: GetIdentityResponse }];
+}
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -19,45 +24,73 @@ export class Controller implements AuditHandler {
    */
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore rollup replaces this with the JS object for the language.
-  private readonly locale = <ILocale>__Locale__;
+  private static readonly locale = <ILocale>__Locale__;
+
+  // TODO: Remove the mock audit log code.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore rollup replaces this with the JS object for the language.
+  private static readonly MockAuditLogs = <{ [key: string]: Mock }>__MockAuditLogs__;
 
   // Logger.
-  private readonly log = new Log('audit', '#18a9e1');
+  public static readonly log = new Log('audit', '#18a9e1');
 
   // The view associated with the controller.
-  private view: View;
+  private view: View = null;
 
   // The model that wraps the audit log. Null until the modelPromise resolves.
   private model: Model = null;
 
   // The model promise that needs to resolve before the this.model property returns a value.
-  private modelPromise: Promise<Model>;
+  private modelPromise: Promise<Model> = null;
 
   // The HTML element the audit module instance is listening to.
-  private element: HTMLElement;
+  private element: HTMLElement = null;
 
-  // The HTML element that will open the audit view if selected.
-  private readonly button: HTMLElement;
+  // The identity resolve to use with the controller.
+  private identityResolver: IdentityResolver = null;
 
   /**
-   * Constructs a new instance.
-   * @param identityResolver used to retrieve identities for host names.
+   * Binds the controller to the element with the advert and displays the icon.
+   * @advertElementOrId that contains the advert and audit log.
    */
-  constructor(private identityResolver: IdentityResolver) {
-    this.log.Debug('OKA Controller');
+  public async bind(advertElementOrId: HTMLElement | string) {
+    this.setElement(advertElementOrId);
+    this.view = new View(this.element, Controller.locale, Controller.log);
+    this.view.initView(); // Initializes the view sufficient to display the icon.
+    this.bindActions(); // Needed to bind the open icon before the model is created and verified.
+    Controller.log.Info('Audit registered', this.element.id);
   }
 
   /**
-   * Binds the controller to the element with the advert.
-   * @advertElement that contains the advert and audit log.
+   * Starts the process of verifying the audit log data by creating the model.
    */
-  public bind(advertElement: HTMLElement) {
-    this.element = advertElement;
-    // TODO: Replace this with a fetch for the real audit log once available.
-    const auditLog = <AuditLog>JSON.parse(advertElement.getAttribute('auditLog'));
-    this.modelPromise = this.verifyModel(auditLog);
-    this.view = new View(advertElement, this.locale, this.log);
-    this.log.Info('Audit registered', advertElement.id);
+  public initModel() {
+    if (this.modelPromise === null) {
+      // TODO: Replace this with a fetch for the real audit log once available.
+      let auditLog = <AuditLog>JSON.parse(this.element.getAttribute('auditLog'));
+      if (auditLog) {
+        // A real audit log is present that should be verified with HTTP identities.
+        this.identityResolver = new IdentityResolverHttp(Controller.log);
+      } else {
+        // No audit log was provided so use a mock one if present.
+        const mock = Controller.MockAuditLogs['audit-log'];
+        const identityResolver = new IdentityResolverMap(Controller.log);
+        mock.resolver.map((i) => {
+          identityResolver.map.set(i[0], i[1]);
+        });
+        this.identityResolver = identityResolver;
+        auditLog = mock.auditLog;
+      }
+      this.modelPromise = this.verifyModel(auditLog);
+    }
+  }
+
+  private setElement(advertElementOrId: HTMLElement | string) {
+    if (advertElementOrId instanceof HTMLElement) {
+      this.element = advertElementOrId;
+    } else {
+      this.element = document.getElementById(<string>advertElementOrId);
+    }
   }
 
   /**
@@ -66,13 +99,13 @@ export class Controller implements AuditHandler {
    * @returns
    */
   private async verifyModel(auditLog: AuditLog): Promise<Model> {
-    this.model = new Model(this.identityResolver, auditLog);
+    this.model = new Model(Controller.log, this.identityResolver, auditLog);
     this.mapFieldsToUI();
-    this.view.initView();
-    this.bindActions();
-    this.processCard('advert');
+    Controller.log.Info('Model verification started', this.element.id);
     await this.model.verify();
-    this.log.Info('Model verified', this.element.id);
+    Controller.log.Info('Model verification complete', this.element.id);
+    this.model.updateUI();
+    this.bindActions();
     return this.model;
   }
 
@@ -83,27 +116,33 @@ export class Controller implements AuditHandler {
   private mapFieldsToUI(): void {
     // Bind the model fields to the be advert tab.
     this.model.idsAndPreferences.addBinding(
-      new BindingElement<PreferencesData, Model>(
+      new BindingElementIdsAndPreferences(
         this.view,
         'advert-preference-title',
-        this.buildMap([<string>this.locale.advertTitlePersonalized, <string>this.locale.advertTitleStandard])
+        this.buildMap([
+          <string>Controller.locale.advertTitlePersonalized,
+          <string>Controller.locale.advertTitleStandard,
+        ])
       )
     );
     this.model.idsAndPreferences.addBinding(
-      new BindingElement<PreferencesData, Model>(
+      new BindingElementIdsAndPreferences(
         this.view,
         'advert-preference-thank-you',
-        this.buildMap([<string>this.locale.advertThankYouPersonalized, <string>this.locale.advertThankYouStandard])
+        this.buildMap([
+          <string>Controller.locale.advertThankYouPersonalized,
+          <string>Controller.locale.advertThankYouStandard,
+        ])
       )
     );
     this.model.idsAndPreferences.addBinding(
-      new BindingPreferenceDate(this.view, 'advert-preference-date', this.locale)
+      new BindingPreferenceDate(this.view, 'advert-preference-date', Controller.locale)
     );
-    this.model.overall.addBinding(new BindingStatus(this.view, 'advert-status', this.locale));
+    this.model.overall.addBinding(new BindingStatus(this.view, 'advert-status', Controller.locale, this.model));
 
     // Bind the model fields to the participants tab.
     this.model.results.forEach((r) =>
-      r.addBinding(new BindingParticipant(this.view, 'participants-tree', this.locale))
+      r.addBinding(new BindingParticipant(this.view, 'participants-tree', Controller.locale))
     );
   }
 
@@ -172,13 +211,17 @@ export class Controller implements AuditHandler {
         (<Window>window).PAFUI.promptConsent();
         break;
       case 'open':
-        this.processCard('advert');
+        this.initModel();
+        this.view.display('advert');
         break;
       case 'close':
         this.view.hide();
         break;
+      case 'download':
+        this.view.download(this.model);
+        break;
       default:
-        this.log.Warn(`Action '${action}' is not known`);
+        Controller.log.Warn(`Action '${action}' is not known`);
         break;
     }
   }

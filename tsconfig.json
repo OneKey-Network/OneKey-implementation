@@ -27,7 +27,8 @@
       "@core/*": ["./paf-mvp-core-js/src/*"],
       "@operator/*": ["./paf-mvp-operator-express/src/*"],
       "@client/*": ["./paf-mvp-client-express/src/*"],
-      "@frontend/*": ["./paf-mvp-frontend/src/*"]
+      "@frontend/*": ["./paf-mvp-frontend/src/*"],
+      "@operator-client/*": ["./paf-mvp-client-express/src/*"]
     }
   },
   "exclude": [

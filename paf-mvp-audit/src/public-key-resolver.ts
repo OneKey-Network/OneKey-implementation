@@ -1,5 +1,7 @@
 import { PublicKeyProvider } from '@core/crypto';
-import { isValidKey, PublicKey } from '@core/crypto/keys';
+import { PublicKey } from '@core/crypto/key-interfaces';
+import { isValidKey } from '@core/crypto/keys';
+import { Log } from '@core/log';
 import { GetIdentityResponse } from '@core/model';
 import ECKey from 'ec-key';
 import ECDSA from 'ecdsa-secp256r1';
@@ -9,21 +11,29 @@ import ECDSA from 'ecdsa-secp256r1';
  * for verification.
  */
 export class PublicKeyResolver {
-  constructor(private readonly identity: GetIdentityResponse) {}
+  constructor(private readonly log: Log, private readonly identity: GetIdentityResponse) {}
 
   /**
    * Core crypto implementation of the public key provider function.
-   * @param domain is not used as the identity is passed to the constructor
+   * @param domain is not used as the identity to return is passed to the constructor
    * @returns
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public readonly provider: PublicKeyProvider = async (domain: string) => {
+    let jwk: PublicKey = null;
     const publicKeyIndex = PublicKeyResolver.getValidPublicKeyIndex(this.identity);
     if (publicKeyIndex >= 0) {
       const key = this.identity.keys[publicKeyIndex];
-      return <PublicKey>ECDSA.fromJWK(new ECKey(key.key));
+      try {
+        const eckey = new ECKey(key.key).toJSON();
+        jwk = await (<Promise<PublicKey>>ECDSA.fromJWK(eckey));
+      } catch (e) {
+        this.log.Warn('PublicKeyResolver', e);
+      }
+    } else {
+      this.log.Warn(`No valid keys for '${domain}' with identity '${JSON.stringify(this.identity)}'`);
     }
-    throw `No valid keys for '${domain}' with identity '${JSON.stringify(this.identity)}'`;
+    return jwk;
   };
 
   /**

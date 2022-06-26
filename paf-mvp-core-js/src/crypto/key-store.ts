@@ -1,5 +1,6 @@
 import { fromIdentityResponse, PublicKeyInfo } from './identity';
-import { isValidKey, PublicKey, publicKeyFromString } from './keys';
+import { isValidKey, publicKeyFromString } from './keys';
+import { PublicKey } from './key-interfaces';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
@@ -53,9 +54,10 @@ export class PublicKeyStore {
     }
 
     // Update cache
+    const fromIdentity = fromIdentityResponse(currentKey);
     const keyInfo = {
-      ...fromIdentityResponse(currentKey),
-      publicKeyObj: publicKeyFromString(fromIdentityResponse(currentKey).publicKey),
+      ...fromIdentity,
+      publicKeyObj: await publicKeyFromString(fromIdentity.publicKey),
     };
 
     this.cache[domain] = keyInfo;

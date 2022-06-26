@@ -1,4 +1,4 @@
-import { PublicKey } from '@core/crypto/keys';
+import { PublicKey } from '@core/crypto/key-interfaces';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,

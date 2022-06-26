@@ -266,7 +266,7 @@ export class BindingElement<T, M extends IModel>
     return element;
   }
 
-  private getString(key: T): string | null {
+  protected getString(key: T): string | null {
     const keyJSON = JSON.stringify(key);
     for (const item of this.pairs) {
       if (JSON.stringify(item[0]) === keyJSON) {

@@ -1,5 +1,8 @@
 declare module 'ecdsa-secp256r1' {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  declare const ECDSA: any = {};
+  export declare interface ECDSA {
+    fromJWK: (ECKey) => PublicKey | PrivateKey | Promise<PublicKey> | Promise<PrivateKey>;
+    generateKey: () => Promise<PrivateKey>;
+  }
+  declare const ECDSA: ECDSA = {};
   export default ECDSA;
 }

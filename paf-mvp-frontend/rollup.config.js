@@ -50,7 +50,7 @@ export default [
           return []
         } else {
           return [
-            terser(), // minify js output
+            //terser(), // minify js output
           ]
         }
       })(),

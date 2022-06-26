@@ -2,22 +2,22 @@ import ECDSA from 'ecdsa-secp256r1';
 import ECKey from 'ec-key';
 import { Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
+import { PublicKey, PrivateKey } from '@core/crypto/key-interfaces';
 
-// Not provided by ecdsa-secp256r1 unfortunately
-export interface PrivateKey {
-  sign: (toSign: string) => string;
-}
+/**
+ * Needs to support promises for usage in the browser audit module.
+ * @param keyString
+ * @returns
+ */
+export const publicKeyFromString = async (keyString: string): Promise<PublicKey> =>
+  <PublicKey>await ECDSA.fromJWK(new ECKey(keyString));
 
-export interface PublicKey {
-  verify: (toVerify: string, signature: string) => boolean;
-}
-
-export interface PublicKeys {
-  [host: string]: PublicKey;
-}
-
-export const publicKeyFromString = (keyString: string): PublicKey => ECDSA.fromJWK(new ECKey(keyString));
-export const privateKeyFromString = (keyString: string): PrivateKey => ECDSA.fromJWK(new ECKey(keyString));
+/**
+ * Only used in Node so no need to support promises.
+ * @param keyString
+ * @returns
+ */
+export const privateKeyFromString = (keyString: string): PrivateKey => <PrivateKey>ECDSA.fromJWK(new ECKey(keyString));
 
 /**
  * Return true if this key is valid according to start and end dates

@@ -1,0 +1,1 @@
+Place mock audit logs in this folder for use with UI testing. See model.test.ts for details of how these are generated.

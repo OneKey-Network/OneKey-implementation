@@ -21,6 +21,23 @@ advertDate: As you indicated on [Date]
 advertThankYouPersonalized: Thank you for supporting high value advertising and journalism by choosing personalized ads. ❤️
 advertThankYouStandard: Thank you for using [BrandName] to support journalism.
 
+## Advert statuses
+advertGoodTitle: No suspicious transactions found
+advertGoodBody:
+  - Everything is fine with the participants who helped display this advertisement.
+advertSuspiciousTitle: Suspicious transactions detected
+advertSuspiciousBody: 
+  - There were [SuspiciousParticipants] participants who helped display this advertisement that can't be verified at the moment. This is likely because the internet is busy.
+advertSuspiciousButton: Check participants
+advertViolationTitle: Violations detected
+advertViolationBody:
+  - Found [ViolatingParticipants] participants that have violated the terms and conditions for the use of data. [BrandName] is contacting the participants. You can also contact them directly.
+advertViolationButton: Contact violating participants
+advertInProgressTitle: Fetching the data&hellip;
+advertInProgressBody:
+  - Checking the participants involved in selecting this advert.
+advertLearnMore: Learn more
+
 ## Advert pause
 advertPauseTitle: Pause this advert
 advertPauseInstruction: If you don’t want to see this advert in the future you can pause it.
@@ -33,16 +50,15 @@ participantViolating: Violation detected
 
 # Participants
 participantsTitle: Participants
-auditHeading: Your ad-funded access (US)
 participantsIntro: 
   - The following OneKey participating providers funded your access to this site's content. These organizations do not directly identify you, but rely instead on your OneKey ID and preferences for this purpose. Your OneKey ID will automatically reset every 6 months or you can reset your ID or preference at any time by clicking&nbsp;<a data-action="settings" class="ok-ui-link">here</a>.
-auditFooter: If you believe an organization didn't honour your preferences, click the email icon to send them this audit for investigation. You may also download the same audit data to send to the appropriate government authority.
+participantsFooter: If you believe an organization didn't honour your preferences, click the email icon to send them this audit for investigation. You may also download the same audit data to send to the appropriate government authority.
 participantsWinner: This advert
 participantsAll: All companies
 participantsWarning: Suspicious companies
 
 # Button text
-download: Download text file
+download: Download data (JSON)
 close: Close
 terms: See Terms
 contact: Contact
@@ -73,3 +89,14 @@ emailBody:
   - --- DO NOT CHANGE THE TEXT BELOW THIS LINE ---
   - '[Proof]'
   - --- DO NOT CHANGE THE TEXT ABOVE THIS LINE ---
+
+# Download
+downloadTitle: Download the full audit data
+downloadBody:
+  - Use this data to help keep advertising safe for everyone.
+downloadBox1Title: 3rd party plugins
+downloadBox1Body: Encourage 3rd parties to collect this data to help monitor online safety.
+downloadBox2Title: Report to authorities
+downloadBox2Body: Send to data protection authorities.
+downloadBox3Title: Keep records
+downloadBox3Body: Record all the advertising you've been exposed to.

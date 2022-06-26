@@ -1,5 +1,5 @@
 import { Signer } from '@core/crypto/signer';
-import { PrivateKey } from '@core/crypto/keys';
+import { PrivateKey } from '@core/crypto/key-interfaces';
 import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
 
 describe('Signer', () => {

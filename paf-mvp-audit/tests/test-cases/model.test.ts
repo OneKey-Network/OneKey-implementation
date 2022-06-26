@@ -1,8 +1,9 @@
-import { AutomobileExample, AuditLogMock } from '../../src/audit-log-mock';
+import { AutomobileExample, AuditLogMock } from '../helpers/audit-log-mock';
 import { IdentityResolverMap } from '../../src/identity-resolver';
 import { Model, OverallStatus, VerifiedStatus } from '../../src/model';
 import { AuditLog } from '@core/model';
 import { Log } from '@core/Log';
+import * as fs from 'fs';
 
 describe('testing model', () => {
   let mock: AuditLogMock;
@@ -25,8 +26,21 @@ describe('testing model', () => {
     resolver.get(AutomobileExample.host).then((i) => expect(i.name).toBe(AutomobileExample.name));
   });
 
+  test('write a mock audit log for client side testing', async () => {
+    const mockAuditLogFileName = globalThis['mock-audit-log-filename'];
+    if (mockAuditLogFileName) {
+      fs.writeFileSync(
+        mockAuditLogFileName,
+        JSON.stringify({
+          auditLog: auditLog,
+          resolver: Array.from(resolver.map.entries()),
+        })
+      );
+    }
+  });
+
   test('check identity resolution works for all nodes', async () => {
-    const model = await new Model(resolver, auditLog).verify();
+    const model = await new Model(log, resolver, auditLog).verify();
 
     // Check the properties for all verified fields are as expected.
     model.allVerifiedFields.forEach((i) => expect(i.value.verifiedStatus).toBe(VerifiedStatus.Valid));
@@ -34,7 +48,7 @@ describe('testing model', () => {
     model.allVerifiedFields.forEach((i) => expect(i.value.identity).toBeDefined());
 
     // Check that the overall status is good.
-    expect(model.overall()).toBe(OverallStatus.Good);
+    expect(model.overall.value).toBe(OverallStatus.Good);
   });
 
   test("check identity resolution fails when one identity can't be found", async () => {
@@ -44,7 +58,7 @@ describe('testing model', () => {
     resolver.map.delete(toRemove.source.domain);
 
     // Create the model.
-    const model = await new Model(resolver, auditLog).verify();
+    const model = await new Model(log, resolver, auditLog).verify();
 
     // Check the seed and ids and preferences fields are valid.
     expect(model.seed.value.verifiedStatus).toBe(VerifiedStatus.Valid);
@@ -68,7 +82,7 @@ describe('testing model', () => {
     expect(model.count(VerifiedStatus.IdentityNotFound)).toBe(1);
 
     // Check that the overall status is caution as the identity can't be found.
-    expect(model.overall()).toBe(OverallStatus.Suspicious);
+    expect(model.overall.value).toBe(OverallStatus.Suspicious);
   });
 
   test('check verification fails when one signature is corrupted', async () => {
@@ -77,7 +91,7 @@ describe('testing model', () => {
     toCorrupt.source.signature = '0' + toCorrupt.source.signature;
 
     // Create the model.
-    const model = await new Model(resolver, auditLog).verify();
+    const model = await new Model(log, resolver, auditLog).verify();
 
     // Check the seed and ids and preferences fields are valid.
     expect(model.seed.value.verifiedStatus).toBe(VerifiedStatus.Valid);
@@ -101,7 +115,7 @@ describe('testing model', () => {
     expect(model.count(VerifiedStatus.NotValid)).toBe(1);
 
     // Check that the overall status is bad as the signature is invalid.
-    expect(model.overall()).toBe(OverallStatus.Violation);
+    expect(model.overall.value).toBe(OverallStatus.Violation);
   });
 
   test('check verification when response is not success for one result', async () => {
@@ -110,9 +124,9 @@ describe('testing model', () => {
     toCorrupt.status = 'error_cannot_process';
 
     // Create the model.
-    const model = new Model(resolver, auditLog);
+    const model = await new Model(log, resolver, auditLog).verify();
 
     // Check that the overall status is bad as the signature is invalid.
-    expect(await model.overall()).toBe(OverallStatus.Suspicious);
+    expect(await model.overall.value).toBe(OverallStatus.Suspicious);
   });
 });

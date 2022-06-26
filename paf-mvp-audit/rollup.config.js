@@ -19,6 +19,11 @@ import { string } from 'rollup-plugin-string';
 // Used to set the locale for each of the bundles.
 import replace from '@rollup/plugin-replace';
 
+// Needed for crypto and http functions of the audit viewer.
+import json from '@rollup/plugin-json';
+import globals from 'rollup-plugin-node-globals';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
+
 // Used to get the locales available for each of the bundles.
 import * as fs from 'fs';
 import * as path from 'path';
@@ -42,10 +47,23 @@ const terserOptions = {
   mangle: true
 };
 
+// Get mock audit log JSON.
+function getMockAuditLogs() {
+  const mocks = new Map();
+  const directory = './assets/mocks';
+  fs.readdirSync(directory).forEach(mockFile => {
+    if (path.extname(mockFile) === '.json') {
+      const mockName = mockFile.split('.')[0];
+      mocks[mockName] = JSON.parse(fs.readFileSync(path.join(directory, mockFile), 'utf8'));
+    }
+  });
+  return mocks;
+}
+
 // Adds the SVG images to the local. Could be expanded to support other images in the future.
 function addImages(locale) {
   const directory = './src/images';
-  fs.readdirSync('./src/images').forEach(imageFile => {
+  fs.readdirSync(directory).forEach(imageFile => {
     if (path.extname(imageFile) === '.svg') {
       const imageName = imageFile.split('.')[0];
       locale[imageName] = fs.readFileSync(path.join(directory, imageFile), 'utf8')
@@ -64,8 +82,18 @@ function toText(list) { return list.join('\r\n'); }
 function addHTML(locale) {
   locale.emailBodyText = toText(locale.emailBody);
   locale.participantsIntroHTML = toHtml(locale.participantsIntro);
+  locale.advertGoodBodyHTML = toHtml(locale.advertGoodBody);
+  locale.advertSuspiciousBodyHTML = toHtml(locale.advertSuspiciousBody);
+  locale.advertViolationBodyHTML = toHtml(locale.advertViolationBody);
+  locale.advertInProgressBodyHTML = toHtml(locale.advertInProgressBody);
+  locale.downloadBodyHTML = toHtml(locale.downloadBody);
   delete locale['emailBody'];
   delete locale['participantsIntro'];
+  delete locale['advertGoodBody'];
+  delete locale['advertSuspiciousBody'];
+  delete locale['advertViolationBody'];
+  delete locale['advertInProgressBody'];
+  delete locale['downloadBody'];
   return locale;
 }
 
@@ -130,14 +158,15 @@ function buildLoader() {
       }),
       commonjs(),
       nodeResolve({
-        browser: true
+        browser: true,
+        preferBuiltins: false
       })
     ],
     treeshake: true,
     output: [
       {
         file: `./dist/${namePrefix}.js`,
-        sourcemap: true,
+        sourcemap: false,
         format: 'iife'
       },
       {
@@ -148,7 +177,7 @@ function buildLoader() {
       },
       {
         file: `../paf-mvp-demo-express/public/assets/${namePrefix}.js`,
-        sourcemap: true,
+        sourcemap: false,
         format: 'iife'
       },
       {
@@ -164,18 +193,27 @@ function buildLoader() {
 // Returns configuration for a specific locale.
 // localeCode the code of the locale being built for. i.e. en-GB
 // localeContent the JSON object with the content
-function buildLocaleConfig(localeCode, localeContent) {
+// mockAuditLogs the JSON object with mock audit logs included
+function buildLocaleConfig(localeCode, localeContent, mockAuditLogs) {
+  const baseOutput = {
+    sourcemap: false,
+    format: 'umd',
+    name: globalName
+  };
   return {
     input: './src/controller.ts',
     plugins: [
       replace({
         include: './src/controller.ts',
         preventAssignment: true,
-        __Locale__: localeContent
+        __Locale__: localeContent,
+        __MockAuditLogs__: mockAuditLogs
       }),
       replace({
         preventAssignment: true,
-        'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production')
+        'process.env.NODE_ENV': JSON.stringify(DEV ? 'development' : 'production'),
+        // Needed to ensure the client side version with Promise based functions is used.
+        'ecdsa-secp256r1': 'ecdsa-secp256r1/browser'
       }),
       postHTML({ template: true }),
       minifyHTML({
@@ -187,39 +225,37 @@ function buildLocaleConfig(localeCode, localeContent) {
         }
       }),
       string({ include: ['**/*.css'] }),
-      typescript({
-        tsconfig: '../tsconfig.json',
+      nodeResolve({
+        browser: true,
+        preferBuiltins: false
       }),
       commonjs(),
-      nodeResolve()
+      globals(),
+      json(),
+      nodePolyfills( { crypto: false, fs: false }),
+      typescript({
+        tsconfig: '../tsconfig.json'
+      })
     ],
     treeshake: true,
     output: [
       {
+        ...baseOutput,
         file: `./dist/${namePrefix}-${localeCode}.js`,
-        sourcemap: true,
-        format: 'umd',
-        name: globalName
       },
       {
+        ...baseOutput,
         file: `./dist/${namePrefix}-${localeCode}.min.js`,
-        format: 'umd',
-        sourcemap: false,
         plugins: [terser(terserOptions)],
-        name: globalName
       },
       {
+        ...baseOutput,
         file: `../paf-mvp-demo-express/public/assets/${namePrefix}-${localeCode}.js`,
-        sourcemap: true,
-        format: 'umd',
-        name: globalName
       },
       {
+        ...baseOutput,
         file: `../paf-mvp-demo-express/public/assets/${namePrefix}-${localeCode}.min.js`,
-        format: 'umd',
-        sourcemap: false,
         plugins: [terser(terserOptions)],
-        name: globalName
       },
     ]
   }
@@ -228,9 +264,10 @@ function buildLocaleConfig(localeCode, localeContent) {
 // Create the template for each locale bundle and the loader if server side selection is not being used.
 async function getConfigs(locales) {
   const configs = [];
+  const mockAuditLogs = JSON.stringify(getMockAuditLogs());
   configs.push(buildLoader());
   locales.forEach((value, locale) => {
-    configs.push(buildLocaleConfig(locale, value));
+    configs.push(buildLocaleConfig(locale, value, mockAuditLogs));
   });
   return configs;
 }

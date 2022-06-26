@@ -1,4 +1,4 @@
-import { PublicKey } from '@core/crypto/keys';
+import { PublicKey } from '@core/crypto/key-interfaces';
 import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
 import { PublicKeyProvider, Verifier } from '@core/crypto/verifier';
 import SpyInstance = jest.SpyInstance;
