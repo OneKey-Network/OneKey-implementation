@@ -49,7 +49,7 @@
                         delDomain: 'sademo-d.openx.net',
                         unit: '540096529',
                         test: true,
-                        customFloor: 0.1
+                        customFloor: 0.01
                     }
                 },
                 {
@@ -113,6 +113,7 @@
                         }
                     }
                 },
+                priceGranularity: 'high',
                 debug: true,
                 realTimeData: {
                     auctionDelay: 1000,
@@ -204,7 +205,7 @@
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
 <script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js"
-    data-display-intro="true"
+    data-display-intro="false"
     data-snackbar-timeout-ms="5000"
     data-proxy-host-name="{{pafNodeHost}}"
     data-brand-name="Demo Publisher"
@@ -863,7 +864,7 @@
                     document.querySelector('#preferences')
                       .addEventListener('click', (e) => {
                         e.preventDefault();
-                        PAF.refreshIdsAndPreferences({ proxyHostName: "{{proxyHostName}}", showPrompt: 'doPrompt'});
+                        PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}", showPrompt: 'doPrompt'});
                       });
                   </script>
                 </div>
