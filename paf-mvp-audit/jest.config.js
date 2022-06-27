@@ -8,6 +8,6 @@ module.exports = {
   testEnvironment: 'jsdom', 
   globals: {
     ...rootConfig.globals,
-    'mock-audit-log-filename': path.join(__dirname, './assets/mocks/audit-log.json'),
+    'mock-audit-log-path': path.join(__dirname, './assets/mocks'),
   },
 };

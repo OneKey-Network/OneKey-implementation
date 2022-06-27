@@ -14,7 +14,8 @@
       "@operator/*": ["./paf-mvp-operator-express/src/*"],
       "@client/*": ["./paf-mvp-client-express/src/*"],
       "@frontend/*": ["./paf-mvp-frontend/src/*"],
-      "@operator-client/*": ["./paf-mvp-client-express/src/*"]
+      "@operator-client/*": ["./paf-mvp-client-express/src/*"],
+      "ecdsa-secp256r1": ["./ecdsa-secp256r1"]
     },
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },

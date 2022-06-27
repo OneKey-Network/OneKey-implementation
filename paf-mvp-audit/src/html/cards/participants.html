@@ -1,21 +1,22 @@
 <h1 class="ok-ui-heading-1 ok-ui-mb-1">${ _.participantsTitle }</h1>
-<p class="ok-ui-mb-1">${ _.participantsIntro }</p>
+<div class="ok-ui-mb-1">${ _.participantsIntroHTML }</div>
 <hr class="ok-ui-divide">
 <div class="ok-ui-tabs-container">
     <div class="ok-ui-tabs-wrapper">
         <nav class="ok-ui-tabs">
-            <button type="button" class="ok-ui-button ok-ui-button--outlined ok-ui-button--primary">
-                <span class="ok-ui-button__label">${ _.participantsWinner }</span>
+            <button type="button" class="ok-ui-button" id="participants-this" data-action="participants-this">
+                <span class="ok-ui-button__label">${ _.participantsThisContent }</span>
             </button>
-            <button type="button" class="ok-ui-button ok-ui-button--text">
+            <button type="button" class="ok-ui-button" id="participants-all" data-action="participants-all">
                 <span class="ok-ui-button__label">${ _.participantsAll }</span>
             </button>
-            <button type="button" class="ok-ui-button ok-ui-button--text">
-                <span class="ok-ui-button__label">${ _.participantsWarning }</span>
+            <button type="button" class="ok-ui-button" id="participants-suspicious" data-action="participants-suspicious">
+                <span class="ok-ui-button__label">${ _.participantsSuspicious }</span>
             </button>
         </nav>
     </div>
 </div>
-<div class="ok-ui-mb-3">${ _.participantsIntroHTML }</div>
+<div class="ok-ui-mb-3">${ _.participantsThisContentIntro }</div>
 <div id="participants-tree">
 </div>
+<div class="ok-ui-mt-3">${ _.participantsFooterHTML }</div>

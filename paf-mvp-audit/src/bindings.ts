@@ -167,10 +167,14 @@ export class BindingParticipant extends BindingViewOnly<VerifiedTransmissionResu
     return current;
   }
 
+  /**
+   * Refreshes the HTML associated with the element and adds event listeners for the participant specific actions.
+   * @param element element associated with the field bound to
+   */
   private refreshVerified(element: HTMLDivElement) {
     element.innerHTML = participantComponent({
       statusHtml: this.getStatusTemplate(this.field.value.verifiedStatus)(this.locale),
-      name: this.field.value.identity !== null ? this.field.value.identity.name : this.field.value.value.source.domain,
+      name: this.field.value.identity ? this.field.value.identity.name : this.field.value.value.source.domain,
       terms: this.locale.terms,
       contact: this.locale.contact,
     });
@@ -275,5 +279,27 @@ export class BindingElementIdsAndPreferences extends BindingViewOnly<VerifiedIds
       }
     }
     return null;
+  }
+}
+
+export class BindingTabButton<T, M extends IModel> extends BindingViewOnly<T, M, HTMLButtonElement> {
+  constructor(view: IView, id: string, private readonly value: T) {
+    super(view, id);
+  }
+
+  public refresh(): HTMLButtonElement {
+    const active = ['ok-ui-button--outlined', 'ok-ui-button--primary'];
+    const waiting = ['ok-ui-button--text'];
+    const element = super.getElement();
+    if (element !== null) {
+      if (this.value === this.field.value) {
+        waiting.forEach((c) => element.classList.remove(c));
+        active.forEach((c) => element.classList.add(c));
+      } else {
+        active.forEach((c) => element.classList.remove(c));
+        waiting.forEach((c) => element.classList.add(c));
+      }
+    }
+    return element;
   }
 }

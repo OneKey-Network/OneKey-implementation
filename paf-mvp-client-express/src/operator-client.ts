@@ -27,8 +27,8 @@ import { Request } from 'express';
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
   private readonly deleteIdsPrefsRequestBuilder: DeleteIdsPrefsRequestBuilder;
-  private readonly prefsSigner: Signer<IdsAndUnsignedPreferences>;
-  private readonly seedSigner: Signer<SeedSignatureContainer>;
+  public readonly prefsSigner: Signer<IdsAndUnsignedPreferences>;
+  public readonly seedSigner: Signer<SeedSignatureContainer>;
 
   constructor(
     protected operatorHost: string,

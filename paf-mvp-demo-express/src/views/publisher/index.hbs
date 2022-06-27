@@ -138,8 +138,6 @@
             // Generate and store the OneKey Audit Log
             // once the winner is elected.
             pbjs.onEvent("bidWon", bid => {
-
-                
                 {{!-- 
                 // TODO reinstate once the audit log is being passed back.
                 let pafObj = bid.meta.paf;
@@ -148,14 +146,21 @@
                 }
                 --}}
                 PAF.queue.push(() => {
-                    {{!-- PAF.registerTransmissionResponse({
+                    {{!-- 
+                    // TODO Commented out as the bid response does not include audit log data.
+                    PAF.registerTransmissionResponse({
                         prebidTransactionId: bid.transactionId,
                         divIdOrAdUnitCode: bid.adUnitCode,
                         contentId: pafObj.contentId,
                         auditHandler: new OKA.Controller()
-                    }, pafObj.transmission); --}}
+                    }, pafObj.transmission); 
+                    --}}
                     // TODO remove the hack to use mock audit log data if an audit log is not available in the ad unit
                     // element.
+                    const element = document.getElementById(bid.adUnitCode);
+                    // See tests for audit component for creation of mock audit log options.
+                    // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
+                    element.setAttribute('auditLog', 'identity-not-found');
                     new OKA.Controller().bind(bid.adUnitCode);
                 });
             });
@@ -419,7 +424,7 @@
                                     <i class="mdi mdi-comment-outline"></i>
                                 </p>
                             </div>
-                            <div class="carousel-image">
+                            <div id="mock" class="carousel-image">
                                 <img src="/assets/publisher/images/dashboard/banner.webp" alt=""/>
                             </div>
                         </div>
@@ -927,20 +932,21 @@
                             <li><a href="#">Advertise with us Transcripts.</a></li>
                             <li><a href="#">License.</a></li>
                             <li><a href="#">Sitemap</a></li>
-                        </ul>
-                        <p class="font-weight-medium">
-                            © 2020 <a href="https://www.bootstrapdash.com/" target="_blank" class="text-dark">@
-                            BootstrapDash</a>, Inc.All Rights Reserved.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+iv>
     </footer>
 </div>
 
 
-<script src="https://{{cdnHost}}/assets/ok-ui-audit-en-us.js" defer></script>
+<script src="https://{{cdnHost}}/assets/ok-ui-audit-en-us.js"></script>
+<script>
+    const element = document.getElementById("mock");
+    console.log(element);
+    // See tests for audit component for creation of mock audit log options.
+    // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
+    element.setAttribute('auditLog', 'identity-not-found');
+    new OKA.Controller().bind(element.id);
+</script>
 
 </body>
 </html>

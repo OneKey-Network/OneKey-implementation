@@ -1,13 +1,20 @@
 import { ILocale } from '@core/ui/ILocale';
 import { AuditLog, GetIdentityResponse, PreferencesData } from '@core/model/generated-model';
 import { Log } from '@core/log';
-import { Model } from './model';
+import { Model, ParticipantsTabs, YourChoicesTab as DataTabs } from './model';
 import { View } from './view';
 import { Window } from '@frontend/global';
 import { AuditHandler } from '@frontend/lib/paf-lib';
 import { IdentityResolver, IdentityResolverHttp, IdentityResolverMap } from './identity-resolver';
-import { BindingElementIdsAndPreferences, BindingParticipant, BindingPreferenceDate, BindingStatus } from './bindings';
+import {
+  BindingElementIdsAndPreferences,
+  BindingParticipant,
+  BindingPreferenceDate,
+  BindingStatus,
+  BindingTabButton,
+} from './bindings';
 import { Marketing } from '@core/model/marketing';
+import { BindingButton } from '@core/ui/binding';
 
 // TODO: Remove the mock audit log code.
 interface Mock {
@@ -67,19 +74,28 @@ export class Controller implements AuditHandler {
   public initModel() {
     if (this.modelPromise === null) {
       // TODO: Replace this with a fetch for the real audit log once available.
-      let auditLog = <AuditLog>JSON.parse(this.element.getAttribute('auditLog'));
+      let auditLog: AuditLog;
+      try {
+        auditLog = <AuditLog>JSON.parse(this.element.getAttribute('auditLog'));
+      } catch (e) {
+        Controller.log.Warn('audit log not valid', e);
+      }
       if (auditLog) {
         // A real audit log is present that should be verified with HTTP identities.
         this.identityResolver = new IdentityResolverHttp(Controller.log);
       } else {
         // No audit log was provided so use a mock one if present.
-        const mock = Controller.MockAuditLogs['audit-log'];
-        const identityResolver = new IdentityResolverMap(Controller.log);
-        mock.resolver.map((i) => {
-          identityResolver.map.set(i[0], i[1]);
-        });
-        this.identityResolver = identityResolver;
-        auditLog = mock.auditLog;
+        const name = this.element.getAttribute('auditLog');
+        if (name) {
+          Controller.log.Message('using mock audit log', name);
+          const mock = Controller.MockAuditLogs[name];
+          const identityResolver = new IdentityResolverMap(Controller.log);
+          mock.resolver.map((i) => {
+            identityResolver.map.set(i[0], i[1]);
+          });
+          this.identityResolver = identityResolver;
+          auditLog = mock.auditLog;
+        }
       }
       this.modelPromise = this.verifyModel(auditLog);
     }
@@ -143,6 +159,23 @@ export class Controller implements AuditHandler {
     // Bind the model fields to the participants tab.
     this.model.results.forEach((r) =>
       r.addBinding(new BindingParticipant(this.view, 'participants-tree', Controller.locale))
+    );
+    this.model.participantsTab.addBinding(
+      new BindingTabButton<ParticipantsTabs, Model>(this.view, 'participants-this', ParticipantsTabs.This)
+    );
+    this.model.participantsTab.addBinding(
+      new BindingTabButton<ParticipantsTabs, Model>(this.view, 'participants-all', ParticipantsTabs.All)
+    );
+    this.model.participantsTab.addBinding(
+      new BindingTabButton<ParticipantsTabs, Model>(this.view, 'participants-suspicious', ParticipantsTabs.Suspicious)
+    );
+
+    // Bind the your data fields.
+    this.model.dataTab.addBinding(
+      new BindingTabButton<DataTabs, Model>(this.view, 'data-identifiers', DataTabs.Identifiers)
+    );
+    this.model.dataTab.addBinding(
+      new BindingTabButton<DataTabs, Model>(this.view, 'data-preferences', DataTabs.Preferences)
     );
   }
 
@@ -212,7 +245,7 @@ export class Controller implements AuditHandler {
         break;
       case 'open':
         this.initModel();
-        this.view.display('advert');
+        this.processCard('advert');
         break;
       case 'close':
         this.view.hide();
@@ -220,9 +253,34 @@ export class Controller implements AuditHandler {
       case 'download':
         this.view.download(this.model);
         break;
+      case 'participants-this':
+        this.changeParticipantsTab(ParticipantsTabs.This);
+        break;
+      case 'participants-all':
+        this.changeParticipantsTab(ParticipantsTabs.All);
+        break;
+      case 'participants-suspicious':
+        this.changeParticipantsTab(ParticipantsTabs.Suspicious);
+        break;
+      case 'data-identifiers':
+        this.changeDataTab(DataTabs.Identifiers);
+        break;
+      case 'data-preferences':
+        this.changeDataTab(DataTabs.Preferences);
+        break;
       default:
         Controller.log.Warn(`Action '${action}' is not known`);
         break;
     }
+  }
+
+  private changeParticipantsTab(tab: ParticipantsTabs) {
+    this.model.participantsTab.value = tab;
+    this.bindActions();
+  }
+
+  private changeDataTab(tab: DataTabs) {
+    this.model.dataTab.value = tab;
+    this.bindActions();
   }
 }

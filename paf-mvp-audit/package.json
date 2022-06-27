@@ -12,5 +12,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "ec-key": "^0.0.4"
+  }
 }

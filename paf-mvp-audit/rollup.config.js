@@ -82,6 +82,7 @@ function toText(list) { return list.join('\r\n'); }
 function addHTML(locale) {
   locale.emailBodyText = toText(locale.emailBody);
   locale.participantsIntroHTML = toHtml(locale.participantsIntro);
+  locale.participantsFooterHTML = toHtml(locale.participantsFooter);
   locale.advertGoodBodyHTML = toHtml(locale.advertGoodBody);
   locale.advertSuspiciousBodyHTML = toHtml(locale.advertSuspiciousBody);
   locale.advertViolationBodyHTML = toHtml(locale.advertViolationBody);
@@ -89,6 +90,7 @@ function addHTML(locale) {
   locale.downloadBodyHTML = toHtml(locale.downloadBody);
   delete locale['emailBody'];
   delete locale['participantsIntro'];
+  delete locale['participantsFooter'];
   delete locale['advertGoodBody'];
   delete locale['advertSuspiciousBody'];
   delete locale['advertViolationBody'];

@@ -1,13 +1,13 @@
-import { PublicKey } from '@core/crypto/key-interfaces';
 import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
 import { PublicKeyProvider, Verifier } from '@core/crypto/verifier';
+import { IECDSA } from 'ecdsa-secp256r1';
 import SpyInstance = jest.SpyInstance;
 
 describe('Verifier', () => {
-  const publicKeyA: PublicKey = {
+  const publicKeyA: IECDSA = {
     verify: (toVerify: string, signature: string) => signature === `SIGNED[${toVerify}]`,
   };
-  const publicKeyB: PublicKey = {
+  const publicKeyB: IECDSA = {
     verify: (toVerify: string, signature: string) => signature === `SIGNED_B[${toVerify}]`,
   };
 

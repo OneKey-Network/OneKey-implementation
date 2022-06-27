@@ -1,12 +1,12 @@
 import { fromIdentityResponse, PublicKeyInfo } from './identity';
 import { isValidKey, publicKeyFromString } from './keys';
-import { PublicKey } from './key-interfaces';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { IECDSA } from 'ecdsa-secp256r1';
 
-export type PublicKeyWithObject = PublicKeyInfo & { publicKeyObj: PublicKey };
+export type PublicKeyWithObject = PublicKeyInfo & { publicKeyObj: IECDSA };
 
 export class PublicKeyStore {
   protected cache: { [domain: string]: PublicKeyWithObject } = {};

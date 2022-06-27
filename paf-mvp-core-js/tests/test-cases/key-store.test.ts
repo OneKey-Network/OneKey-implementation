@@ -1,7 +1,6 @@
 import { PublicKeyStore, PublicKeyWithObject } from '@core/crypto/key-store';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { publicKeyFromString } from '@core/crypto/keys';
-import { PublicKey } from '@core/crypto/key-interfaces';
 import { getTimeStampInSec } from '@core/timestamp';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';

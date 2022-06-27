@@ -10,6 +10,24 @@ import { getDate } from '@core/timestamp';
 import { Log } from '@core/log';
 
 /**
+ * The currently selected tab on the participants card.
+ */
+export enum ParticipantsTabs {
+  This,
+  All,
+  Suspicious,
+}
+
+/**
+ * The currently selected tab on the your choices card.
+ */
+export enum YourChoicesTab {
+  Identifiers,
+  Preferences,
+  SyncId, // Not used.
+}
+
+/**
  * Different status associated with fields in the model.
  */
 export enum VerifiedStatus {
@@ -158,7 +176,7 @@ export class VerifiedSeed extends VerifiedValue<Seed> {
 
   protected verifySignature(): Promise<boolean> {
     const verifier = new Verifier<SeedSignatureContainer>(
-      new PublicKeyResolver(this.log, this.identity).provider,
+      new PublicKeyResolver(this.log, this.identity, this.value.source.timestamp).provider,
       VerifiedSeed.definition
     );
     return verifier.verifySignature({ seed: this.value, idsAndPreferences: this.idsAndPreferences });
@@ -183,7 +201,7 @@ export class VerifiedIdsAndPreferences extends VerifiedValue<IdsAndPreferences> 
 
   protected verifySignature(): Promise<boolean> {
     const verifier = new IdsAndPreferencesVerifier(
-      new PublicKeyResolver(this.log, this.identity).provider,
+      new PublicKeyResolver(this.log, this.identity, this.value.preferences.source.timestamp).provider,
       VerifiedIdsAndPreferences.definition
     );
     return verifier.verifySignature(this.value);
@@ -219,7 +237,7 @@ export class VerifiedTransmissionResult extends VerifiedValue<TransmissionResult
 
   protected verifySignature(): Promise<boolean> {
     const verifier = new Verifier<TransmissionContainer>(
-      new PublicKeyResolver(this.log, this.identity).provider,
+      new PublicKeyResolver(this.log, this.identity, this.value.source.timestamp).provider,
       VerifiedTransmissionResult.definition
     );
     return verifier.verifySignature({ idsAndPreferences: this.idsAndPreferences, seed: this.seed, result: this.value });
@@ -255,6 +273,16 @@ export class VerifiedTransmissionResult extends VerifiedValue<TransmissionResult
  * The model used in the module.
  */
 export class Model implements IModel {
+  /**
+   * Current tab for the display of participants.
+   */
+  public participantsTab = new Field<ParticipantsTabs, Model>(this, ParticipantsTabs.This);
+
+  /**
+   * Current tab for the display of choices and data.
+   */
+  public dataTab = new Field<YourChoicesTab, Model>(this, YourChoicesTab.Preferences);
+
   /**
    * Set to true when model update operations are occurring. Results in the methods to update other properties being
    * disabled.
@@ -299,7 +327,10 @@ export class Model implements IModel {
    * @param identityResolver used to retrieve identities for host names.
    */
   constructor(log: Log, identityResolver: IdentityResolver, private readonly auditLog: AuditLog) {
+    // Add the simple fields created before the constructor runs.
     this.allFields.push(this.overall);
+    this.allFields.push(this.participantsTab);
+    this.allFields.push(this.dataTab);
 
     // Create the field for the seed and add the value to the list of values being verified.
     this.seed = new Field<VerifiedSeed, Model>(

@@ -4,6 +4,7 @@ import { Model, OverallStatus, VerifiedStatus } from '../../src/model';
 import { AuditLog } from '@core/model';
 import { Log } from '@core/Log';
 import * as fs from 'fs';
+import path from 'path';
 
 describe('testing model', () => {
   let mock: AuditLogMock;
@@ -26,19 +27,6 @@ describe('testing model', () => {
     resolver.get(AutomobileExample.host).then((i) => expect(i.name).toBe(AutomobileExample.name));
   });
 
-  test('write a mock audit log for client side testing', async () => {
-    const mockAuditLogFileName = globalThis['mock-audit-log-filename'];
-    if (mockAuditLogFileName) {
-      fs.writeFileSync(
-        mockAuditLogFileName,
-        JSON.stringify({
-          auditLog: auditLog,
-          resolver: Array.from(resolver.map.entries()),
-        })
-      );
-    }
-  });
-
   test('check identity resolution works for all nodes', async () => {
     const model = await new Model(log, resolver, auditLog).verify();
 
@@ -49,6 +37,8 @@ describe('testing model', () => {
 
     // Check that the overall status is good.
     expect(model.overall.value).toBe(OverallStatus.Good);
+
+    saveAuditLog('all-good.json', auditLog, resolver);
   });
 
   test("check identity resolution fails when one identity can't be found", async () => {
@@ -83,6 +73,8 @@ describe('testing model', () => {
 
     // Check that the overall status is caution as the identity can't be found.
     expect(model.overall.value).toBe(OverallStatus.Suspicious);
+
+    saveAuditLog('identity-not-found.json', auditLog, resolver);
   });
 
   test('check verification fails when one signature is corrupted', async () => {
@@ -116,6 +108,8 @@ describe('testing model', () => {
 
     // Check that the overall status is bad as the signature is invalid.
     expect(model.overall.value).toBe(OverallStatus.Violation);
+
+    saveAuditLog('corrupt-signature.json', auditLog, resolver);
   });
 
   test('check verification when response is not success for one result', async () => {
@@ -128,5 +122,27 @@ describe('testing model', () => {
 
     // Check that the overall status is bad as the signature is invalid.
     expect(await model.overall.value).toBe(OverallStatus.Suspicious);
+
+    saveAuditLog('result-error.json', auditLog, resolver);
   });
 });
+
+/**
+ * Saves the audit log and resolver in the name provided if there is a global variable 'mock-audit-log-path'.
+ * @param fileName
+ * @param auditLog
+ * @param resolver
+ */
+function saveAuditLog(fileName: string, auditLog: AuditLog, resolver: IdentityResolverMap) {
+  const mockAuditLogPath = globalThis['mock-audit-log-path'];
+  if (mockAuditLogPath) {
+    const fullPath = path.join(mockAuditLogPath, fileName);
+    fs.writeFileSync(
+      fullPath,
+      JSON.stringify({
+        auditLog: auditLog,
+        resolver: Array.from(resolver.map.entries()),
+      })
+    );
+  }
+}

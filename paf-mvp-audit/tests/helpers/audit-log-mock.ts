@@ -1,7 +1,6 @@
 import { IdentifierDefinition } from '@core/crypto';
 import { PublicKeyInfo } from '@core/crypto/identity';
 import { PublicKeyStore } from '@core/crypto/key-store';
-import { PrivateKey } from '@core/crypto/key-interfaces';
 import { privateKeyFromString } from '@core/crypto/keys';
 import { Signer } from '@core/crypto/signer';
 import { Config } from '@core/express';
@@ -23,10 +22,11 @@ import {
 import { CurrentModelVersion } from '@core/model/model';
 import { getTimeStampInSec } from '@core/timestamp';
 import { OperatorClient } from '@operator-client/operator-client';
-import ECKey from 'ec-key';
 import { v4 as uuidv4 } from 'uuid';
 import { IdentityResolverMap } from '../../src/identity-resolver';
 import { SeedDefinition, SignedSeedSignatureContainer } from '../../src/signing-definitions';
+import ECDSA from 'ecdsa-secp256r1';
+import { IECDSA } from 'ecdsa-secp256r1';
 
 /**
  * See the documentation for logic details.
@@ -340,9 +340,9 @@ export class AuditLogMock {
     details: TransmissionDetails,
     children: TransmissionResponse[]
   ): TransmissionResponse {
-    const currentPrivateKey = <PrivateKey>privateKeyFromString(sender.config.currentPrivateKey);
+    const currentPrivateKey = <IECDSA>privateKeyFromString(sender.config.currentPrivateKey);
     const signer = new Signer<SignedSeedSignatureContainer>(currentPrivateKey, AuditLogMock.seedDefinition);
-    return {
+    const response = {
       version: CurrentModelVersion,
       receiver: receiver.config.host,
       contents,
@@ -355,6 +355,8 @@ export class AuditLogMock {
       },
       children,
     };
+    (<any>response).toSign = signer.toSign;
+    return response;
   }
 
   /**
@@ -369,7 +371,9 @@ export class AuditLogMock {
     transaction_ids: string[],
     idsAndPreferences: IdsAndPreferences
   ): Seed {
-    return client.buildSeed(transaction_ids, idsAndPreferences);
+    const seed = client.buildSeed(transaction_ids, idsAndPreferences);
+    (<any>seed).toSign = client.seedSigner.toSign;
+    return seed;
   }
 
   /**
@@ -385,6 +389,7 @@ export class AuditLogMock {
     data: PreferencesData
   ): IdsAndPreferences {
     const preferences = client.buildPreferences(identifiers, data);
+    (<any>preferences).toSign = client.prefsSigner.toSign;
     return { identifiers, preferences };
   }
 
@@ -412,9 +417,9 @@ export class AuditLogMock {
    * @param params instance of new client parameters
    */
   private static BuildConfig(params: ConfigParams): Config {
-    const privateKey = ECKey.createECKey();
-    const currentPrivateKey = privateKey.toString('pem');
-    const publicKey = privateKey.asPublicECKey().toString('pem');
+    const privateKey = ECDSA.generateKey();
+    const currentPrivateKey = <string>privateKey.toPEM();
+    const publicKey = <string>privateKey.asPublic().toPEM();
     return <Config>{
       identity: {
         name: params.name,

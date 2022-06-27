@@ -1,39 +1,48 @@
 import { PublicKeyProvider } from '@core/crypto';
-import { PublicKey } from '@core/crypto/key-interfaces';
-import { isValidKey } from '@core/crypto/keys';
+import { isValidKey, publicKeyFromString } from '@core/crypto/keys';
 import { Log } from '@core/log';
 import { GetIdentityResponse } from '@core/model';
-import ECKey from 'ec-key';
-import ECDSA from 'ecdsa-secp256r1';
-
+import { IECDSA } from 'ecdsa-secp256r1';
 /**
  * Utility class used to take an GetIdentityResponse response and turn it into a public key provider that can be used
  * for verification.
  */
 export class PublicKeyResolver {
-  constructor(private readonly log: Log, private readonly identity: GetIdentityResponse) {}
+  /**
+   * Returns a public key resolver for the identity and time stamp provided.
+   * @param log
+   * @param identity to use for the public key, the domain parameter of the provider method is ignored
+   * @param requiredTimestamp the time stamp for the data that requires the public key
+   */
+  constructor(
+    private readonly log: Log,
+    private readonly identity: GetIdentityResponse,
+    private readonly requiredTimestamp: number
+  ) {}
 
   /**
    * Core crypto implementation of the public key provider function.
    * @param domain is not used as the identity to return is passed to the constructor
    * @returns
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public readonly provider: PublicKeyProvider = async (domain: string) => {
-    let jwk: PublicKey = null;
-    const publicKeyIndex = PublicKeyResolver.getValidPublicKeyIndex(this.identity);
+    let publicKey: IECDSA = null;
+    const publicKeyIndex = this.getValidPublicKeyIndex(this.identity);
     if (publicKeyIndex >= 0) {
-      const key = this.identity.keys[publicKeyIndex];
       try {
-        const eckey = new ECKey(key.key).toJSON();
-        jwk = await (<Promise<PublicKey>>ECDSA.fromJWK(eckey));
+        publicKey = await publicKeyFromString(this.identity.keys[publicKeyIndex].key);
       } catch (e) {
+        console.log(e);
         this.log.Warn('PublicKeyResolver', e);
       }
     } else {
-      this.log.Warn(`No valid keys for '${domain}' with identity '${JSON.stringify(this.identity)}'`);
+      const message = `No valid keys for '${domain}' at timestamp '${
+        this.requiredTimestamp
+      }' with identity '${JSON.stringify(this.identity)}'`;
+      console.log(message);
+      this.log.Warn(message);
     }
-    return jwk;
+    return publicKey;
   };
 
   /**
@@ -41,9 +50,16 @@ export class PublicKeyResolver {
    * @param identity whose keys member is inspected
    * @returns
    */
-  private static getValidPublicKeyIndex(identity: GetIdentityResponse): number {
+  private getValidPublicKeyIndex(identity: GetIdentityResponse): number {
     for (let index = 0; index < identity.keys.length; index++) {
-      if (isValidKey(identity.keys[index])) {
+      const key = identity.keys[index];
+      if (
+        isValidKey(key) &&
+        // The start of the public key must be the same or earlier than the time stamp being validated.
+        key.start <= this.requiredTimestamp &&
+        // Either the end time stamp is missing or the end is greater than the time stamp being validated.
+        (!key.end || key.end > this.requiredTimestamp)
+      ) {
         return index;
       }
     }
