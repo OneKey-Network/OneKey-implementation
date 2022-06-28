@@ -1,5 +1,5 @@
 import Button from './Button';
-import { Check, Attention, Warning, ChevronDown, Trophy } from './Icons';
+import { Check, Attention, Warning, ChevronDown, Trophy, External } from './Icons';
 
 export const ParticipantParties = (args) => `
   <div class="ok-ui-participant-parties">
@@ -51,8 +51,8 @@ export default (args) => {
           </p>
         </div>
         <div class="ok-ui-participant__actions">
-          ${Button({ style: 'outlined', type: 'primary', label: 'See Terms' })}
-          ${Button({ style: 'outlined', type: 'danger', label: 'Report' })}
+          ${Button({ style: 'outlined', type: 'primary', label: 'See Terms', icon: External(), iconPosition: 'end' })}
+          ${Button({ style: 'outlined', type: 'danger', label: 'Report', icon: External(), iconPosition: 'end' })}
         </div>
       </div>
       ${args.parties ? `

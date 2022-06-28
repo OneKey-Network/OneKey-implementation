@@ -4,6 +4,7 @@ import Option from '../components/Option';
 import { Hide, Show, Cross } from '../components/Icons';
 import AdvertImage, { BlockedAdvertImage } from '../components/AdvertImage';
 import AdvertStatus from '../components/AdvertStatus';
+import { StatusWrapper } from '../components/Status';
 
 export default {
   title: 'Groups/Advert'
@@ -24,7 +25,9 @@ export const Advert = (args = {}) => Card({
 
         <div class="ok-ui-advert-details">
           <h1 class="ok-ui-heading-1 ok-ui-mb-0.5">This ad is personalized for you</h1>
-          <p class="ok-ui-meta ok-ui-mb-2">As you requested on 30-03-2022</p>
+          <p class="ok-ui-meta ok-ui-mb-2">
+            ${StatusWrapper({ type: 'good', children: 'As you requested on 30-03-2022', iconPosition: 'end' })}
+          </p>
 
           <p class="ok-ui-lede">Thank you for supporting high value advertising and journalism 
           by choosing personalized ads. ❤️</p>
