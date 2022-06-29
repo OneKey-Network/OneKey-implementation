@@ -27,21 +27,35 @@ advertGoodBody:
   - Everything is fine with the participants who helped display this content.
 advertSuspiciousTitle: Suspicious transactions detected
 advertSuspiciousBody: 
-  - "[SuspiciousParticipants] participants who helped display this content couldn't be verified."
+  - "[SuspiciousParticipants] participants who helped display this content couldn't be verified." 
 advertSuspiciousButton: Check participants
 advertViolationTitle: Violations detected
 advertViolationBody:
-  - The terms and conditions for the use of data were violated by [ViolatingParticipants] participants. You can <a href="#" data-card="participants">contact</a> them directly.
+  - The terms and conditions for the use of data were violated by [ViolatingParticipants] . You can <a href="#" data-card="participants">contact</a> them directly.
 advertViolationButton: Contact violating participants
 advertInProgressTitle: Fetching the data&hellip;
 advertInProgressBody:
   - Checking the participants involved in selecting this content.
 advertLearnMore: Learn more
+advertLearnMoreUrl: https://portal.onekey.network
 
 ## Advert pause
 advertPauseTitle: Pause this Ad
 advertPauseInstruction: If you don’t like this advert, you can let the brand know.
 advertPauseButton: Pause this Ad
+
+# Data
+dataTitle: Data
+dataIntro: This is the data used to select this content.
+
+dataPreference: Marketing preference
+dataPreferenceStandard: Standard
+dataPreferencePersonalized: Personalized
+dataRandomIdField: Random browser ID
+dataSetupDateField: Setup date
+dataSetupDateText: Set up on [Date] by [Name]
+dataTermsUsedField: Terms used
+dataModifyPreferences: Modify preferences
 
 # Participant statuses
 participantTrusted: Trusted
@@ -51,15 +65,15 @@ participantViolating: Violation detected
 # Participants
 participantsTitle: Participants
 participantsIntro: 
-  - The following OneKey participating providers funded your access to this site's content. These organizations do not directly identify you, but rely instead on your OneKey ID and preferences for this purpose. Your OneKey ID will automatically reset every 6 months or you can reset your ID or preference at any time by clicking&nbsp;<a data-action="settings" class="ok-ui-link">here</a>.
+  - The following OneKey participating providers funded your access to this site's content. These organizations do not directly identify you but rely instead on your OneKey ID and preferences for this purpose. Your OneKey ID will automatically reset every 6 months or you can reset your ID or preference at any time by clicking&nbsp;<a data-action="settings" class="ok-ui-link">here</a>.
 participantsFooter: 
-  - If you believe an organization didn't honour your preferences, select the email icon to send them this audit for investigation. You may also download the same audit data to send to the appropriate government authority.
+  - If you believe an organization didn't honour your preferences, select the contact button to send them this audit for investigation. You may also download the same audit data to send to the appropriate government authority.
 participantsThisContent: This content
 participantsThisContentIntro: The following participants were specifically involved in showing you this content.
 participantsAll: All participants
 participantsAllIntro: The following participants were involved in the selection of this content.
 participantsSuspicious: Suspicious participants
-participantsSuspiciousIntro: The following participants either could not be verified, or failed validation. Click the email icon to send them this audit for investigation.
+participantsSuspiciousIntro: The following participants either could not be verified, or failed validation. Click the contact button to send them this audit for investigation.
 
 # Button text
 download: Download data (JSON)
@@ -74,7 +88,7 @@ emailSubject: OneKey Data Protection Request
 emailBody:
   - To whom it may concern, 
   -
-  - I believe [Participant] used my personal information without a valid legal basis on [TimeStamp]. 
+  - I believe [Name] used my personal information without a valid legal basis on [TimeStamp]. 
   - 
   - On the [PreferenceDate] I consented to the use of my data for [PreferenceText]. 
   - 

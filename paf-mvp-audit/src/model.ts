@@ -1,8 +1,14 @@
 import { Field, IFieldBind, IModel } from '@core/ui/fields';
-import { AuditLog, IdsAndPreferences, Seed, TransmissionResult } from '@core/model/generated-model';
+import { AuditLog, Identifier, IdsAndPreferences, Seed, TransmissionResult } from '@core/model/generated-model';
 import { GetIdentityResponse } from '@core/model/generated-model';
 import { IdentityResolver } from './identity-resolver';
-import { IdsAndPreferencesDefinition, IdsAndPreferencesVerifier, SeedSignatureContainer, Verifier } from '@core/crypto';
+import {
+  IdentifierDefinition,
+  IdsAndPreferencesDefinition,
+  IdsAndPreferencesVerifier,
+  SeedSignatureContainer,
+  Verifier,
+} from '@core/crypto';
 import { PublicKeyResolver } from './public-key-resolver';
 import { SeedDefinition, TransmissionContainer, TransmissionDefinition } from './signing-definitions';
 import { ILocale } from '@core/ui/ILocale';
@@ -21,7 +27,7 @@ export enum ParticipantsTabs {
 /**
  * The currently selected tab on the your choices card.
  */
-export enum YourChoicesTab {
+export enum DataTabs {
   Identifiers,
   Preferences,
   SyncId, // Not used.
@@ -183,6 +189,31 @@ export class VerifiedSeed extends VerifiedValue<Seed> {
   }
 }
 
+export class VerifiedIdentifier extends VerifiedValue<Identifier> {
+  /**
+   * Static instance of the identifier definition for use with the verifier.
+   */
+  private static readonly definition = new IdentifierDefinition();
+
+  /**
+   * Constructs a new instance of the verified ids and preferences value.
+   * @param log
+   * @param identityResolver used to retrieve identities for host names.
+   * @param identifier
+   */
+  constructor(log: Log, identityResolver: IdentityResolver, identifier: Identifier) {
+    super(log, identityResolver.get(identifier.source.domain), identifier);
+  }
+
+  protected verifySignature(): Promise<boolean> {
+    const verifier = new Verifier<Identifier>(
+      new PublicKeyResolver(this.log, this.identity, this.value.source.timestamp).provider,
+      VerifiedIdentifier.definition
+    );
+    return verifier.verifySignature(this.value);
+  }
+}
+
 export class VerifiedIdsAndPreferences extends VerifiedValue<IdsAndPreferences> {
   /**
    * Static instance of the ids and preferences definition for use with the verifier.
@@ -254,14 +285,14 @@ export class VerifiedTransmissionResult extends VerifiedValue<TransmissionResult
         .replace('[Name]', this.identity.name)
         .replace('[TimeStamp]', getDate(this.value.source.timestamp).toLocaleString())
         .replace('[PrivacyURL]', this.identity.privacy_policy_url)
-        .replace('[PreferenceDate', getDate(this.idsAndPreferences.preferences.source.timestamp).toLocaleString())
+        .replace('[PreferenceDate]', getDate(this.idsAndPreferences.preferences.source.timestamp).toLocaleString())
         .replace(
           '[PreferenceText]',
           this.idsAndPreferences.preferences.data.use_browsing_for_personalization
             ? <string>locale.emailPreferencePersonalized
             : <string>locale.emailPreferenceStandard
         )
-        .replace('[Proof]', [JSON.stringify(this.value.source), JSON.stringify(this.seed)].join('\r\n'))
+        .replace('[Proof]', [JSON.stringify(this.seed)].join('\r\n'))
         .trim()
     );
     const subject = encodeURIComponent(<string>locale.emailSubject);
@@ -281,7 +312,7 @@ export class Model implements IModel {
   /**
    * Current tab for the display of choices and data.
    */
-  public dataTab = new Field<YourChoicesTab, Model>(this, YourChoicesTab.Preferences);
+  public dataTab = new Field<DataTabs, Model>(this, DataTabs.Preferences);
 
   /**
    * Set to true when model update operations are occurring. Results in the methods to update other properties being
@@ -300,9 +331,14 @@ export class Model implements IModel {
   readonly seed: Field<VerifiedSeed, Model>;
 
   /**
-   * Verified field for the ids and preferences.
+   * Verified field for the preferences which must also include the identifiers.
    */
   readonly idsAndPreferences: Field<VerifiedIdsAndPreferences, Model>;
+
+  /**
+   * Array of identifier fields.
+   */
+  readonly identifiers: Field<VerifiedIdentifier, Model>[];
 
   /**
    * All the fields that relate to verified values.
@@ -331,6 +367,15 @@ export class Model implements IModel {
     this.allFields.push(this.overall);
     this.allFields.push(this.participantsTab);
     this.allFields.push(this.dataTab);
+
+    // Add the identifier fields to the model.
+    this.identifiers = [];
+    auditLog.data.identifiers.forEach((i) => {
+      const field = new Field<VerifiedIdentifier, Model>(this, new VerifiedIdentifier(log, identityResolver, i));
+      this.identifiers.push(field);
+      this.allVerifiedFields.push(field);
+      this.allFields.push(field);
+    });
 
     // Create the field for the seed and add the value to the list of values being verified.
     this.seed = new Field<VerifiedSeed, Model>(

@@ -1,4 +1,4 @@
-import { BindingViewOnly, IBindingField, IView } from '@core/ui/binding';
+import { BindingViewOnly, IView } from '@core/ui/binding';
 import { ILocale } from '@core/ui/ILocale';
 import {
   VerifiedTransmissionResult,
@@ -7,6 +7,9 @@ import {
   VerifiedStatus,
   VerifiedIdsAndPreferences,
   VerifiedValue,
+  VerifiedIdentifier,
+  DataTabs as DataTabs,
+  ParticipantsTabs,
 } from './model';
 import { View } from './view';
 import statusInProgress from './html/components/statusinprogress.html';
@@ -17,9 +20,13 @@ import participantComponent from './html/components/participant.html';
 import participantTrusted from './html/components/participantTrusted.html';
 import participantSuspicious from './html/components/participantSuspicious.html';
 import participantViolating from './html/components/participantViolating.html';
+import dataComponent from './html/components/data.html';
+import statusSlugGood from './html/components/statussluggood.html';
+import statusSlugSuspicious from './html/components/statusslugsuspicious.html';
+import statusSlugViolation from './html/components/statusslugviolation.html';
 import { getDate } from '@core/timestamp';
 import { IModel } from '@core/ui/fields';
-import { Preferences, PreferencesData } from '@core/model';
+import { Identifier, IdsAndPreferences, PreferencesData, TransmissionResult } from '@core/model';
 
 export abstract class BindingVerifiedIdsAndPreferences extends BindingViewOnly<
   VerifiedIdsAndPreferences,
@@ -37,30 +44,9 @@ export abstract class BindingVerifiedIdsAndPreferences extends BindingViewOnly<
   }
 }
 
-export class BindingIds extends BindingVerifiedIdsAndPreferences {
-  constructor(view: View, id: string, locale: ILocale, private readonly type: string) {
-    super(view, id, locale);
-  }
-
-  /**
-   * Sets the elements text to the preferences date text.
-   * @returns
-   */
-  refresh(): HTMLDivElement {
-    const element = super.getElement();
-    if (element !== null) {
-      const ids = this.field.value.value.identifiers;
-      for (let i = 0; i < ids.length; i++) {
-        if (ids[i].type === this.type) {
-          element.innerText = ids[i].value;
-          break;
-        }
-      }
-    }
-    return element;
-  }
-}
-
+/**
+ * Displays the preference date.
+ */
 export class BindingPreferenceDate extends BindingVerifiedIdsAndPreferences {
   /**
    * Sets the elements text to the preferences date text.
@@ -78,7 +64,11 @@ export class BindingPreferenceDate extends BindingVerifiedIdsAndPreferences {
   }
 }
 
-export class BindingStatus extends BindingViewOnly<OverallStatus, Model, HTMLDivElement> {
+/**
+ * Shows the overall status for the audit log at the current point in time. Will display an inprogress indicator if
+ * verification is happening, or the result of verification when complete.
+ */
+export class BindingOverallStatus extends BindingViewOnly<OverallStatus, Model, HTMLDivElement> {
   /**
    * Constructs a new binding to show the status of the model.
    * @param view
@@ -113,35 +103,51 @@ export class BindingStatus extends BindingViewOnly<OverallStatus, Model, HTMLDiv
 }
 
 /**
- * Custom UI binding to display the providers from the audit log.
+ * Base class for bindings that display the results of verified fields via HTML insertion.
  */
-export class BindingParticipant extends BindingViewOnly<VerifiedTransmissionResult, Model, HTMLDivElement> {
+export abstract class BindingVerifiedField<T, F extends VerifiedValue<T>> extends BindingViewOnly<
+  F,
+  Model,
+  HTMLElement
+> {
   /**
    * Count of bindings constructed.
    */
   private static count = 0;
 
   /**
-   * Unique index of the participant in the parent element.
+   * Unique index of the participant in the user interface.
    */
-  private readonly uniqueId: string;
+  protected readonly uniqueId: string;
 
   /**
-   * Constructs a new instance of the participant binding.
+   * Constructs a new instance of the verified field binding.
    * @param view
    * @param id
    * @param locale
    */
-  constructor(view: View, id: string, private readonly locale: ILocale) {
+  constructor(view: View, id: string, protected readonly locale: ILocale) {
     super(view, id);
-    this.uniqueId = `${id}${BindingParticipant.count++}`;
+    this.uniqueId = `${id}${BindingVerifiedField.count++}`;
     this.locale = locale;
   }
 
   /**
+   * Returns the current element for the item in the collection or adds it if it does not already exist.
+   * @param container
+   */
+  protected abstract getCurrentElement(container: HTMLElement): HTMLElement;
+
+  /**
+   * Refreshes the HTML associated with the element.
+   * @param element element associated with the field bound to
+   */
+  protected abstract refreshVerified(element: HTMLElement): void;
+
+  /**
    * Adds the transmission provider's text and status to the bound element.
    */
-  public refresh(): HTMLDivElement {
+  public refresh(): HTMLElement {
     const container = super.getElement();
     if (container !== null) {
       const element = this.getCurrentElement(container);
@@ -157,12 +163,77 @@ export class BindingParticipant extends BindingViewOnly<VerifiedTransmissionResu
     return null;
   }
 
-  private getCurrentElement(container: HTMLDivElement): HTMLDivElement {
-    let current = <HTMLDivElement>this.view.root.getElementById(this.uniqueId);
+  /**
+   * Adds a field specific event handler to elements with the id provided.
+   * @remarks the method to get the value is passed because it might be time consuming so only worth doing when the user
+   * selects the option.
+   * @param id id of the element to bind to
+   * @param url method to get the url when the click event fires
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected addEventListener(id: string, url: (instance: any) => URL) {
+    const element = this.view.root.getElementById(id);
+    if (element) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (<any>element).binding = this;
+      element.addEventListener('click', (e) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        window.open(url((<any>e.currentTarget).binding), '_blank');
+        e.preventDefault();
+      });
+    }
+  }
+
+  /**
+   *
+   * @returns URL for the participants privacy policy
+   */
+  public privacyUrl(instance: BindingVerifiedField<T, F>): URL {
+    return new URL(instance.field.value.identity.privacy_policy_url);
+  }
+}
+
+/**
+ * Custom UI binding to display the preferences and ids from the audit log.
+ */
+export abstract class BindingIdsAndPreferences<T, F extends VerifiedValue<T>> extends BindingVerifiedField<T, F> {
+  /**
+   * The string value to display.
+   */
+  protected abstract getValueAsString(): string;
+
+  /**
+   * The name of the field.
+   */
+  protected abstract getField(): string;
+
+  /**
+   * The date that the field was setup.
+   */
+  protected abstract getDate(): string;
+
+  /**
+   * The name of the organization that created or captured the value.
+   */
+  protected abstract getName(): string;
+
+  /**
+   * True if the field should be visible based on the current state of the model.
+   */
+  protected abstract visible(): boolean;
+
+  protected getCurrentElement(container: HTMLElement): HTMLElement {
+    let current = <HTMLElement>this.view.root.getElementById(this.uniqueId);
     if (!current) {
-      current = document.createElement('div');
+      current = document.createElement('ul');
+      current.classList.add('ok-ui-data');
       current.id = this.uniqueId;
       container.appendChild(current);
+    }
+    if (this.visible()) {
+      current.classList.remove('ok-ui-hidden');
+    } else {
+      current.classList.add('ok-ui-hidden');
     }
     return current;
   }
@@ -171,36 +242,195 @@ export class BindingParticipant extends BindingViewOnly<VerifiedTransmissionResu
    * Refreshes the HTML associated with the element and adds event listeners for the participant specific actions.
    * @param element element associated with the field bound to
    */
-  private refreshVerified(element: HTMLDivElement) {
-    element.innerHTML = participantComponent({
+  protected refreshVerified(element: HTMLElement) {
+    const html = dataComponent({
+      field: this.getField(),
+      value: this.getValueAsString(),
+      statusSlug: this.getStatusSlugHTML(),
+      dataSetupDateField: this.locale.dataSetupDateField,
+      dataSetupDateText: (<string>this.locale.dataSetupDateText)
+        .replace('[Date]', this.getDate())
+        .replace('[Name]', this.getName()),
+      dataTermsUsedField: this.locale.dataTermsUsedField,
+      terms: this.locale.terms,
+      uniqueId: this.uniqueId,
+    });
+    if (element.innerHTML !== html) {
+      element.innerHTML = html;
+      this.addEventListener(`terms-${this.uniqueId}`, this.privacyUrl);
+    }
+  }
+
+  private getStatusSlugHTML(): string {
+    switch (this.field.value.verifiedStatus) {
+      case VerifiedStatus.Valid:
+        return statusSlugGood(this.locale);
+      case VerifiedStatus.NotValid:
+        return statusSlugViolation(this.locale);
+      case VerifiedStatus.IdentityNotFound:
+        return statusSlugSuspicious(this.locale);
+    }
+    return '';
+  }
+}
+
+/**
+ * Binding specifically for the preference part of the ids and preferences.
+ */
+export class BindingPreferences extends BindingIdsAndPreferences<IdsAndPreferences, VerifiedIdsAndPreferences> {
+  /**
+   * Constructs a new instance of the verified field binding.
+   * @param view
+   * @param id
+   * @param locale
+   * @param model
+   * @param map of preference data value to text strings
+   */
+  constructor(
+    view: View,
+    id: string,
+    locale: ILocale,
+    private readonly model: Model,
+    private readonly map: Map<PreferencesData, string>
+  ) {
+    super(view, id, locale);
+  }
+
+  protected getValueAsString(): string {
+    const keyJSON = JSON.stringify(this.field.value.value.preferences.data);
+    for (const item of this.map) {
+      if (JSON.stringify(item[0]) === keyJSON) {
+        return item[1];
+      }
+    }
+    return null;
+  }
+
+  protected getField(): string {
+    return <string>this.locale.dataPreference;
+  }
+
+  protected getDate(): string {
+    return getDate(this.field.value.value.preferences.source.timestamp).toLocaleString();
+  }
+
+  protected getName(): string {
+    return this.field.value.identity
+      ? this.field.value.identity.name
+      : this.field.value.value.preferences.source.domain;
+  }
+
+  protected visible(): boolean {
+    return this.model.dataTab.value === DataTabs.Preferences;
+  }
+}
+
+/**
+ * Binding specifically for the preference part of the ids and preferences.
+ */
+export class BindingIdentifier extends BindingIdsAndPreferences<Identifier, VerifiedIdentifier> {
+  /**
+   * Constructs a new instance of the verified field binding.
+   * @param view
+   * @param id
+   * @param locale
+   * @param model
+   */
+  constructor(view: View, id: string, locale: ILocale, private readonly model: Model) {
+    super(view, id, locale);
+  }
+
+  protected getValueAsString(): string {
+    return this.field.value.value.value;
+  }
+
+  protected getField(): string {
+    return <string>this.locale.dataRandomIdField;
+  }
+
+  protected getDate(): string {
+    return getDate(this.field.value.value.source.timestamp).toLocaleString();
+  }
+
+  protected getName(): string {
+    return this.field.value.identity ? this.field.value.identity.name : this.field.value.value.source.domain;
+  }
+
+  protected visible(): boolean {
+    return this.model.dataTab.value === DataTabs.Identifiers;
+  }
+}
+
+/**
+ * Custom UI binding to display the providers from the audit log.
+ */
+export class BindingParticipant extends BindingVerifiedField<TransmissionResult, VerifiedTransmissionResult> {
+  /**
+   * Constructs a new instance of the verified field binding.
+   * @param view
+   * @param id
+   * @param locale
+   * @param model
+   */
+  constructor(view: View, id: string, locale: ILocale, private readonly model: Model) {
+    super(view, id, locale);
+  }
+
+  protected getCurrentElement(container: HTMLElement): HTMLElement {
+    let current = <HTMLElement>this.view.root.getElementById(this.uniqueId);
+    if (!current) {
+      current = document.createElement('article');
+      current.classList.add('ok-ui-participant', 'ok-ui-participant--winning');
+      current.id = this.uniqueId;
+      container.appendChild(current);
+    }
+    switch (this.model.participantsTab.value) {
+      case ParticipantsTabs.All:
+        current.classList.remove('ok-ui-hidden');
+        break;
+      case ParticipantsTabs.Suspicious:
+        if (this.field.value.verifiedStatus === VerifiedStatus.Valid) {
+          current.classList.add('ok-ui-hidden');
+        } else {
+          current.classList.remove('ok-ui-hidden');
+        }
+        break;
+      case ParticipantsTabs.This:
+        current.classList.remove('ok-ui-hidden');
+        break;
+    }
+    return current;
+  }
+
+  /**
+   * Refreshes the HTML associated with the element and adds event listeners for the participant specific actions if the
+   * identity is available. If not available the terms and contact buttons are hidden.
+   * @param element element associated with the field bound to
+   */
+  protected refreshVerified(element: HTMLElement) {
+    const meta: string[] = [];
+    if (this.field.value.identity?.type) meta.push(this.field.value.identity.type);
+    if (this.field.value.value?.status) meta.push(this.field.value.value.status);
+    if (this.field.value.value?.details) meta.push(this.field.value.value.details);
+
+    const html = participantComponent({
       statusHtml: this.getStatusTemplate(this.field.value.verifiedStatus)(this.locale),
       name: this.field.value.identity ? this.field.value.identity.name : this.field.value.value.source.domain,
       terms: this.locale.terms,
       contact: this.locale.contact,
+      uniqueId: this.uniqueId,
+      meta: meta.join(', '),
     });
-    this.addEventListener(element, 'ok-ui-button--primary', BindingParticipant.privacyUrl, this);
-    this.addEventListener(element, 'ok-ui-button--danger', BindingParticipant.contactUrl, this);
-  }
+    element.innerHTML = html;
 
-  /**
-   * Adds a field specific event handler.
-   * @param element
-   * @param className
-   * @param url
-   */
-  private addEventListener(
-    element: HTMLDivElement,
-    className: string,
-    url: (binding: BindingParticipant) => URL,
-    binding: BindingParticipant
-  ) {
-    const elements = element.getElementsByClassName(className);
-    if (elements && elements.length > 0) {
-      const button = elements[0];
-      button.addEventListener('click', (e) => {
-        window.open(url(binding), '_blank');
-        e.preventDefault();
-      });
+    const termsId = `terms-${this.uniqueId}`;
+    const contactId = `contact-${this.uniqueId}`;
+    if (this.field.value.identity) {
+      this.addEventListener(termsId, this.privacyUrl);
+      this.addEventListener(contactId, BindingParticipant.contactUrl);
+    } else {
+      this.view.root.getElementById(termsId).classList.add('ok-ui-hidden');
+      this.view.root.getElementById(contactId).classList.add('ok-ui-hidden');
     }
   }
 
@@ -208,16 +438,8 @@ export class BindingParticipant extends BindingViewOnly<VerifiedTransmissionResu
    * URL to use to open the contact email.
    * @returns the mail to URL
    */
-  public static contactUrl(binding: BindingParticipant): URL {
-    return new URL(binding.field.value.buildEmailUrl(binding.locale));
-  }
-
-  /**
-   *
-   * @returns URL for the participants privacy policy
-   */
-  public static privacyUrl(binding: BindingParticipant): URL {
-    return new URL(binding.field.value.identity.privacy_policy_url);
+  public static contactUrl(instance: BindingParticipant): URL {
+    return new URL(instance.field.value.buildEmailUrl(instance.locale));
   }
 
   /**
@@ -239,7 +461,7 @@ export class BindingParticipant extends BindingViewOnly<VerifiedTransmissionResu
 }
 
 /**
- * Binding class for verified values to map entries.
+ * Binding class for ids and preferences.
  */
 export class BindingElementIdsAndPreferences extends BindingViewOnly<VerifiedIdsAndPreferences, Model, HTMLElement> {
   /**
@@ -282,8 +504,18 @@ export class BindingElementIdsAndPreferences extends BindingViewOnly<VerifiedIds
   }
 }
 
+/**
+ * Binding used for the buttons in the tab bar in the data and participants cards.
+ */
 export class BindingTabButton<T, M extends IModel> extends BindingViewOnly<T, M, HTMLButtonElement> {
-  constructor(view: IView, id: string, private readonly value: T) {
+  /**
+   * Binding for tab buttons in the data and participants cards.
+   * @param view
+   * @param id
+   * @param value associated with the tab
+   * @param visible optional function to determine if the tab should be displayed
+   */
+  constructor(view: IView, id: string, private readonly value: T, private readonly visible?: () => boolean) {
     super(view, id);
   }
 
@@ -292,6 +524,9 @@ export class BindingTabButton<T, M extends IModel> extends BindingViewOnly<T, M,
     const waiting = ['ok-ui-button--text'];
     const element = super.getElement();
     if (element !== null) {
+      if (this.visible && this.visible() === false) {
+        element.classList.add('ok-ui-hidden');
+      }
       if (this.value === this.field.value) {
         waiting.forEach((c) => element.classList.remove(c));
         active.forEach((c) => element.classList.add(c));

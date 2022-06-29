@@ -122,7 +122,7 @@ export const AutomobileExample = <OpenRTBNode>{
           type: 'vendor',
           children: [
             {
-              name: 'Corvette"',
+              name: 'Corvette',
               host: 'corvette.example',
               type: 'vendor',
             },
@@ -355,7 +355,6 @@ export class AuditLogMock {
       },
       children,
     };
-    (<any>response).toSign = signer.toSign;
     return response;
   }
 
@@ -372,7 +371,6 @@ export class AuditLogMock {
     idsAndPreferences: IdsAndPreferences
   ): Seed {
     const seed = client.buildSeed(transaction_ids, idsAndPreferences);
-    (<any>seed).toSign = client.seedSigner.toSign;
     return seed;
   }
 
@@ -389,7 +387,6 @@ export class AuditLogMock {
     data: PreferencesData
   ): IdsAndPreferences {
     const preferences = client.buildPreferences(identifiers, data);
-    (<any>preferences).toSign = client.prefsSigner.toSign;
     return { identifiers, preferences };
   }
 
@@ -488,7 +485,7 @@ class ConfigAndClientStore {
         keys: ConfigAndClientStore.TransformPublicKeys(v.config.identity.publicKeys),
       })
     );
-    return new IdentityResolverMap(this.log, map);
+    return new IdentityResolverMap(0, map);
   }
 
   private static TransformPublicKeys(keys: PublicKeyInfo[]): GetIdentityResponsePublicKey[] {

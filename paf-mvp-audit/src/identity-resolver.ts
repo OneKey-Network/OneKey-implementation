@@ -16,18 +16,24 @@ export interface IdentityResolver {
  * Returns the identity using a map of host keys to identities.
  */
 export class IdentityResolverMap implements IdentityResolver {
-  /**
-   * Map used to relate host names to identity information.
-   */
   public readonly map: Map<string, GetIdentityResponse>;
 
   /**
    * New instance of the identity resolver backed with a map.
-   * @log
+   * @param millisecondDelay length of time to wait in milliseconds before responding
    * @param map of prepared identities or empty of not available
    */
-  constructor(protected readonly log: Log, map?: Map<string, GetIdentityResponse>) {
+  constructor(private readonly millisecondDelay: number, map?: Map<string, GetIdentityResponse>) {
     this.map = map ?? new Map<string, GetIdentityResponse>();
+  }
+
+  /**
+   * Waits for the time to pass before responding. Simulates network latency.
+   * @param milliseconds to wait before responding
+   * @returns
+   */
+  private delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 
   /**
@@ -35,21 +41,32 @@ export class IdentityResolverMap implements IdentityResolver {
    * @param host
    */
   public get(host: string): Promise<GetIdentityResponse> {
-    return Promise.resolve(this.map.get(host));
+    return this.delay(this.millisecondDelay).then(() => this.map.get(host));
   }
 }
 
 /**
  * Returns the identity using an HTTP request to the host.
  */
-export class IdentityResolverHttp extends IdentityResolverMap {
+export class IdentityResolverHttp implements IdentityResolver {
+  /**
+   * Cache of responses found so far.
+   */
+  private readonly map = new Map<string, GetIdentityResponse>();
+
+  /**
+   * Constructs a new HTTP identity resolver.
+   * @param log for recording HTTP response text when an error occurs
+   */
+  constructor(private readonly log: Log) {}
+
   /**
    * Returns the identity for the host, or null if the host has no identity.
    * Uses a map to avoid requesting the same identity information from the network.
    * @param host
    */
   public async get(host: string): Promise<GetIdentityResponse> {
-    let identity = await super.get(host);
+    let identity = this.map.get(host);
     if (identity === null) {
       const response = await fetch(`https://${host}/paf/v1/identity`, {
         method: 'GET',

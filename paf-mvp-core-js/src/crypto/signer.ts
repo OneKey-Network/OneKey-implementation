@@ -20,8 +20,6 @@ export interface ISigner<U> {
 export class Signer<U> implements ISigner<U> {
   protected logger = new Log('Signer', 'red');
 
-  public toSign: string;
-
   /**
    * @param ecdsaPrivateKey the private key that will be used to sign
    * @param definition defines how to get input string for signing
@@ -30,8 +28,6 @@ export class Signer<U> implements ISigner<U> {
 
   sign(inputData: U): string {
     this.logger.Debug('Sign', inputData, this.ecdsaPrivateKey);
-    const toSign = this.definition.getInputString(inputData);
-    this.toSign = toSign;
-    return this.ecdsaPrivateKey.sign(toSign);
+    return this.ecdsaPrivateKey.sign(this.definition.getInputString(inputData));
   }
 }

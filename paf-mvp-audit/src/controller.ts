@@ -1,7 +1,7 @@
 import { ILocale } from '@core/ui/ILocale';
 import { AuditLog, GetIdentityResponse, PreferencesData } from '@core/model/generated-model';
 import { Log } from '@core/log';
-import { Model, ParticipantsTabs, YourChoicesTab as DataTabs } from './model';
+import { Model, ParticipantsTabs, DataTabs as DataTabs, OverallStatus } from './model';
 import { View } from './view';
 import { Window } from '@frontend/global';
 import { AuditHandler } from '@frontend/lib/paf-lib';
@@ -10,11 +10,12 @@ import {
   BindingElementIdsAndPreferences,
   BindingParticipant,
   BindingPreferenceDate,
-  BindingStatus,
+  BindingOverallStatus,
   BindingTabButton,
+  BindingPreferences,
+  BindingIdentifier,
 } from './bindings';
 import { Marketing } from '@core/model/marketing';
-import { BindingButton } from '@core/ui/binding';
 
 // TODO: Remove the mock audit log code.
 interface Mock {
@@ -31,7 +32,7 @@ export class Controller implements AuditHandler {
    */
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore rollup replaces this with the JS object for the language.
-  private static readonly locale = <ILocale>__Locale__;
+  private readonly locale = <ILocale>__Locale__;
 
   // TODO: Remove the mock audit log code.
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -61,8 +62,11 @@ export class Controller implements AuditHandler {
    * @advertElementOrId that contains the advert and audit log.
    */
   public async bind(advertElementOrId: HTMLElement | string) {
+    if (this.element) return; // Audit is already registered for this element.
     this.setElement(advertElementOrId);
-    this.view = new View(this.element, Controller.locale, Controller.log);
+    this.locale.advertHtml = this.element.innerHTML;
+    this.locale.advertStyle = `width:${this.element.clientWidth};height:${this.element.clientHeight}`;
+    this.view = new View(this.element, this.locale, Controller.log);
     this.view.initView(); // Initializes the view sufficient to display the icon.
     this.bindActions(); // Needed to bind the open icon before the model is created and verified.
     Controller.log.Info('Audit registered', this.element.id);
@@ -73,23 +77,24 @@ export class Controller implements AuditHandler {
    */
   public initModel() {
     if (this.modelPromise === null) {
-      // TODO: Replace this with a fetch for the real audit log once available.
       let auditLog: AuditLog;
+      const value = this.element.getAttribute('auditLog');
+
+      // TODO: Replace this with a fetch for the real audit log once available.
       try {
-        auditLog = <AuditLog>JSON.parse(this.element.getAttribute('auditLog'));
-      } catch (e) {
-        Controller.log.Warn('audit log not valid', e);
+        auditLog = <AuditLog>JSON.parse(value);
+      } catch {
+        // Do nothing. Try getting a mock audit log by name.
       }
       if (auditLog) {
         // A real audit log is present that should be verified with HTTP identities.
         this.identityResolver = new IdentityResolverHttp(Controller.log);
       } else {
         // No audit log was provided so use a mock one if present.
-        const name = this.element.getAttribute('auditLog');
-        if (name) {
-          Controller.log.Message('using mock audit log', name);
-          const mock = Controller.MockAuditLogs[name];
-          const identityResolver = new IdentityResolverMap(Controller.log);
+        if (value) {
+          Controller.log.Message('using mock audit log', value);
+          const mock = Controller.MockAuditLogs[value];
+          const identityResolver = new IdentityResolverMap(2000);
           mock.resolver.map((i) => {
             identityResolver.map.set(i[0], i[1]);
           });
@@ -97,7 +102,11 @@ export class Controller implements AuditHandler {
           auditLog = mock.auditLog;
         }
       }
-      this.modelPromise = this.verifyModel(auditLog);
+      if (auditLog) {
+        this.modelPromise = this.verifyModel(auditLog);
+      } else {
+        Controller.log.Warn('invalid audit log', value);
+      }
     }
   }
 
@@ -135,30 +144,24 @@ export class Controller implements AuditHandler {
       new BindingElementIdsAndPreferences(
         this.view,
         'advert-preference-title',
-        this.buildMap([
-          <string>Controller.locale.advertTitlePersonalized,
-          <string>Controller.locale.advertTitleStandard,
-        ])
+        this.buildMap([<string>this.locale.advertTitlePersonalized, <string>this.locale.advertTitleStandard])
       )
     );
     this.model.idsAndPreferences.addBinding(
       new BindingElementIdsAndPreferences(
         this.view,
         'advert-preference-thank-you',
-        this.buildMap([
-          <string>Controller.locale.advertThankYouPersonalized,
-          <string>Controller.locale.advertThankYouStandard,
-        ])
+        this.buildMap([<string>this.locale.advertThankYouPersonalized, <string>this.locale.advertThankYouStandard])
       )
     );
     this.model.idsAndPreferences.addBinding(
-      new BindingPreferenceDate(this.view, 'advert-preference-date', Controller.locale)
+      new BindingPreferenceDate(this.view, 'advert-preference-date', this.locale)
     );
-    this.model.overall.addBinding(new BindingStatus(this.view, 'advert-status', Controller.locale, this.model));
+    this.model.overall.addBinding(new BindingOverallStatus(this.view, 'advert-status', this.locale, this.model));
 
     // Bind the model fields to the participants tab.
     this.model.results.forEach((r) =>
-      r.addBinding(new BindingParticipant(this.view, 'participants-tree', Controller.locale))
+      r.addBinding(new BindingParticipant(this.view, 'participants-tree', this.locale, this.model))
     );
     this.model.participantsTab.addBinding(
       new BindingTabButton<ParticipantsTabs, Model>(this.view, 'participants-this', ParticipantsTabs.This)
@@ -167,7 +170,13 @@ export class Controller implements AuditHandler {
       new BindingTabButton<ParticipantsTabs, Model>(this.view, 'participants-all', ParticipantsTabs.All)
     );
     this.model.participantsTab.addBinding(
-      new BindingTabButton<ParticipantsTabs, Model>(this.view, 'participants-suspicious', ParticipantsTabs.Suspicious)
+      new BindingTabButton<ParticipantsTabs, Model>(
+        this.view,
+        'participants-suspicious',
+        ParticipantsTabs.Suspicious,
+        // Only show the suspicious participants if the overall status is not good.
+        () => this.model.overall.value !== OverallStatus.Good
+      )
     );
 
     // Bind the your data fields.
@@ -177,6 +186,18 @@ export class Controller implements AuditHandler {
     this.model.dataTab.addBinding(
       new BindingTabButton<DataTabs, Model>(this.view, 'data-preferences', DataTabs.Preferences)
     );
+    this.model.idsAndPreferences.addBinding(
+      new BindingPreferences(
+        this.view,
+        'data',
+        this.locale,
+        this.model,
+        this.buildMap([<string>this.locale.dataPreferencePersonalized, <string>this.locale.dataPreferencePersonalized])
+      )
+    );
+    this.model.identifiers.forEach((i) => {
+      i.addBinding(new BindingIdentifier(this.view, 'data', this.locale, this.model));
+    });
   }
 
   /**
@@ -199,7 +220,7 @@ export class Controller implements AuditHandler {
   }
 
   /**
-   * Binds specific HTML elements to the actions.
+   * Binds specific HTML elements to the actions and removes the attribute to prevent the same element being rebound.
    * @param elements to have the event provided bound to
    * @param event the name of the event in the addEventListener
    */
@@ -212,6 +233,7 @@ export class Controller implements AuditHandler {
           this.processCard(card);
           e.preventDefault();
         });
+        element.removeAttribute('data-card');
       }
       const action = element.getAttribute('data-action');
       if (action !== null) {
@@ -219,6 +241,7 @@ export class Controller implements AuditHandler {
           this.processAction(action);
           e.preventDefault();
         });
+        element.removeAttribute('data-action');
       }
     }
   }

@@ -1,69 +1,24 @@
 <div class="ok-ui-data-header">
     <div>
-        <h1 class="ok-ui-heading-1 ok-ui-mb-1">Your data</h1>
-        <p class="ok-ui-mb-1">This is your data which was associated with this advert.</p>
+        <h1 class="ok-ui-heading-1 ok-ui-mb-1">${ _.dataTitle }</h1>
+        <p class="ok-ui-mb-1">${ _.dataIntro}</p>
     </div>
-    <a href="#" class="ok-ui-link">Modify settings</a>
+    <a href="#" class="ok-ui-link" id="settings" data-action>${ _.dataModifyPreferences }</a>
 </div>
 <hr class="ok-ui-divide">
 <div class="ok-ui-tabs-container">
     <div class="ok-ui-tabs-wrapper">
         <nav class="ok-ui-tabs">
             <button type="button" class="ok-ui-button" id="data-identifiers" data-action="data-identifiers">
-                <span class="ok-ui-button__label">Your random ID</span>
+                <span class="ok-ui-button__label">${ _.dataRandomIdField }</span>
             </button>
             <button type="button" class="ok-ui-button" id="data-preferences" data-action="data-preferences">
-                <span class="ok-ui-button__label">Your marketing preferences</span>
+                <span class="ok-ui-button__label">${ _.dataPreference }</span>
             </button>
         </nav>
     </div>
 </div>
 <p class="ok-ui-mb-3">We don't use any of your personal data, we identify you with a string of characters, that's all
     advertisers see.</p>
-<ul class="ok-ui-data">
-    <li class="ok-ui-datum">
-        <div class="ok-ui-datum__body">
-            <svg width="1em" height="1em" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M6.99999 13.6666C5.99202 13.6694 4.9968 13.4414 4.09065 12.9999C3.75902 12.8386 3.44127 12.6502 3.14065 12.4366L3.04932 12.3699C2.22253 11.7597 1.54657 10.9681 1.07332 10.0559C0.583809 9.11184 0.329923 8.06336 0.333285 6.99992C0.333285 3.31802 3.31809 0.333252 6.99999 0.333252C10.6819 0.333252 13.6667 3.31802 13.6667 6.99992C13.67 8.06285 13.4164 9.11084 12.9273 10.0546C12.4547 10.9662 11.7797 11.7575 10.954 12.3679C10.6425 12.5959 10.3119 12.7967 9.96599 12.9679L9.91265 12.9946C9.00593 13.4384 8.00949 13.6683 6.99999 13.6666ZM6.99999 10.3332C6.00097 10.3313 5.08509 10.8893 4.62865 11.7779C6.12291 12.518 7.87706 12.518 9.37132 11.7779V11.7746C8.91431 10.8869 7.9984 10.3302 6.99999 10.3332ZM6.99999 8.99992C8.44406 9.0018 9.77559 9.77999 10.486 11.0373L10.496 11.0286L10.5053 11.0206L10.494 11.0306L10.4873 11.0359C12.1733 9.57932 12.7762 7.22814 11.9991 5.13999C11.222 3.05184 9.22871 1.6668 7.00065 1.6668C4.77259 1.6668 2.77931 3.05184 2.00222 5.13999C1.22512 7.22814 1.82799 9.57932 3.51399 11.0359C4.22482 9.77928 5.55623 9.00167 6.99999 8.99992ZM6.99999 8.33325C5.52723 8.33325 4.33332 7.13934 4.33332 5.66659C4.33332 4.19383 5.52723 2.99992 6.99999 2.99992C8.47274 2.99992 9.66665 4.19383 9.66665 5.66659C9.66665 6.37383 9.3857 7.05211 8.8856 7.5522C8.38551 8.0523 7.70723 8.33325 6.99999 8.33325ZM6.99999 4.33325C6.26361 4.33325 5.66665 4.93021 5.66665 5.66659C5.66665 6.40297 6.26361 6.99992 6.99999 6.99992C7.73637 6.99992 8.33332 6.40297 8.33332 5.66659C8.33332 4.93021 7.73637 4.33325 6.99999 4.33325Z"
-                    fill="currentColor" />
-            </svg>
-            <h3 class="ok-ui-heading-3 ok-ui-datum__name">Your random ID</h3>
-            <p class="ok-ui-meta ok-ui-datum__value">a939bd3f-3b90-4c05-a94f-b4521e685bbe</p>
-        </div>
-    </li>
-    <li class="ok-ui-datum">
-        <div class="ok-ui-datum__body">
-            <svg width="0.857em" height="1em" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M10.6659 13.6666H1.3326C0.596221 13.6666 -0.000732422 13.0696 -0.000732422 12.3333V2.99992C-0.000732422 2.26354 0.596221 1.66659 1.3326 1.66659H2.66593V0.333252H3.99927V1.66659H7.99927V0.333252H9.3326V1.66659H10.6659C11.4023 1.66659 11.9993 2.26354 11.9993 2.99992V12.3333C11.9993 13.0696 11.4023 13.6666 10.6659 13.6666ZM1.3326 5.66659V12.3333H10.6659V5.66659H1.3326ZM1.3326 2.99992V4.33325H10.6659V2.99992H1.3326Z"
-                    fill="currentColor" />
-            </svg>
-            <h3 class="ok-ui-heading-3 ok-ui-datum__name">Setup date</h3>
-            <p class="ok-ui-meta ok-ui-datum__value">Set up on 30-03-2022 at 10:35 by OneKey Operator</p>
-        </div>
-    </li>
-    <li class="ok-ui-datum">
-        <div class="ok-ui-datum__body">
-            <svg width="0.857em" height="1em" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M10.0001 13.6666H2.00008C1.2637 13.6666 0.666748 13.0696 0.666748 12.3333V1.66659C0.666748 0.930206 1.2637 0.333252 2.00008 0.333252H6.66675C6.67401 0.333567 6.6812 0.334914 6.68808 0.337252C6.69459 0.339263 6.7013 0.340604 6.70808 0.341252C6.76687 0.345021 6.82492 0.356451 6.88075 0.375252L6.89941 0.381252C6.91452 0.386373 6.92923 0.392613 6.94341 0.399919C7.01604 0.432201 7.08222 0.477375 7.13875 0.533252L11.1387 4.53325C11.1946 4.58978 11.2398 4.65596 11.2721 4.72859C11.2787 4.74325 11.2834 4.75859 11.2887 4.77392L11.2947 4.79125C11.3134 4.84685 11.3243 4.90471 11.3274 4.96325C11.3284 4.96938 11.33 4.9754 11.3321 4.98125C11.3333 4.9874 11.3337 4.99367 11.3335 4.99992V12.3333C11.3335 13.0696 10.7365 13.6666 10.0001 13.6666ZM2.00008 1.66659V12.3333H10.0001V5.66659H6.66675C6.29856 5.66659 6.00008 5.36811 6.00008 4.99992V1.66659H2.00008ZM7.33341 2.60925V4.33325H9.05741L7.33341 2.60925Z"
-                    fill="currentColor" />
-            </svg>
-            <h3 class="ok-ui-heading-3 ok-ui-datum__name">Terms used</h3>
-            <p class="ok-ui-meta ok-ui-datum__value">Set up on 30-03-2022 at 10:35</p>
-        </div>
-        <div class="ok-ui-mt-2">
-            <button type="button"
-                class="ok-ui-button ok-ui-button--outlined ok-ui-button--primary ok-ui-button--icon-end">
-                <svg width="0.857em" height="0.857em" viewBox="0 0 12 12" fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M9.3339 11.3334H2.00057C1.26419 11.3334 0.667236 10.7365 0.667236 10.0001V2.66675C0.667236 1.93037 1.26419 1.33341 2.00057 1.33341H4.66724V2.66675H2.00057V10.0001H9.3339V7.33341H10.6672V10.0001C10.6672 10.7365 10.0703 11.3334 9.3339 11.3334ZM5.80057 7.13808L4.86057 6.19541L9.0559 2.00008H6.66724V0.666748H11.3339V5.33341H10.0006V2.94341L5.80057 7.13808Z"
-                        fill="currentColor" />
-                </svg>
-                <span class="ok-ui-button__label">See Terms</span>
-            </button>
-        </div>
-    </li>
-</ul>
+<div id="data">
+</div>

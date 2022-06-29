@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OK UI Audit Sample Implementation</title>
+</head>
+<body>
+
+    <div id="advert" style="width: 100%;">
+      <p style="text-align: center">Advert</p>
+    </div>
+
+    <script src="dist/ok-ui-audit-en-us.js"></script>
+    <script>
+        const element = document.getElementById("advert");
+        // See tests for audit component for creation of mock audit log options.
+        // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
+        element.setAttribute('auditLog', 'identity-not-found');
+        new OKA.Controller().bind(element.id);
+    </script>
+
+</body>
+</html>
