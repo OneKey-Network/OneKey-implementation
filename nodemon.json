@@ -7,5 +7,8 @@
     "../**/*.d.ts",
     "../**/*.js.map"
   ],
-  "exec": "npm run gcp-build && npm run start"
+  "exec": "npm run gcp-build && npm run start",
+  "env": {
+    "__LOCAL__": true
+  }
 }

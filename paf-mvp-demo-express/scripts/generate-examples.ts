@@ -22,7 +22,7 @@ import {
 import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import path from 'path';
-import { OperatorClient } from '@operator-client/operator-client';
+import { OperatorClient } from '@client/operator-client';
 import {
   Get3PCRequestBuilder,
   GetIdsPrefsRequestBuilder,

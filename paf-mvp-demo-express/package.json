@@ -1,5 +1,5 @@
 {
-  "name": "paf-mvp-demo-express",
+  "name": "@onkey/demo",
   "description": "Prebid Addressability Framework (PAF): Demo websites",
   "main": "src/index.ts",
   "scripts": {
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/criteo/paf-mvp-demo-express.git"
+    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
+    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
   },
-  "homepage": "https://github.com/criteo/paf-mvp-demo-express/paf-mvp-demo-express#readme",
+  "homepage": "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-demo-express#readme",
   "dependencies": {
     "@types/body-parser": "^1.19.2",
     "@types/cookie-parser": "^1.4.2",

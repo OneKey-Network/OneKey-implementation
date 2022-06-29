@@ -53,7 +53,7 @@ export class IdsAndPreferencesVerifier extends Verifier<IdsAndPreferences> {
   }
 
   async verifySignature(signedData: IdsAndPreferences): Promise<boolean> {
-    // Note: preferences are signed using the PAF ID signature => when verifying the preferences' signature, we also first verify the PAF ID signature!
+    // Note: preferences are signed using the OneKey ID signature => when verifying the preferences' signature, we also first verify the OneKey ID signature!
     return (
       (await this.idVerifier.verifySignature(this.definition.getPafId(signedData))) &&
       (await super.verifySignature(signedData))

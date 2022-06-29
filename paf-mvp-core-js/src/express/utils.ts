@@ -36,7 +36,7 @@ export const metaRedirect = (res: Response, redirectUrl: string, view: string) =
 };
 
 /**
- * Extract PAF data from query string if the "paf" query string parameter is set.
+ * Extract OneKey data from query string if the "paf" query string parameter is set.
  * @param req
  */
 export const getPafDataFromQueryString = <T>(req: Request): T | undefined => {

@@ -1,6 +1,6 @@
 {
   "identity": {
-    "name": "Some PAF operator",
+    "name": "Some OneKey operator",
     "dpoEmailAddress": "contact@crto-poc-1.onekey.network",
     "privacyPolicyUrl": "https://crto-poc-1.onekey.network/privacy",
     "keyPairs": [

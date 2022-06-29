@@ -1,12 +1,12 @@
 {
-  "name": "paf-mvp-demo",
+  "name": "paf-mvp-implementation",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "paf-mvp-demo-express/src/index.ts",
   "scripts": {
     "test": "jest --passWithNoTests",
     "build-front": "npm run build --prefix paf-mvp-frontend && npm run build:tcf --prefix paf-mvp-cmp && npm run build --prefix paf-mvp-audit",
-    "build-back": "npm run build --prefix paf-mvp-operator-express && npm run build --prefix paf-mvp-operator-client-express",
+    "build-back": "npm run build --prefix paf-mvp-operator-express && npm run build --prefix paf-mvp-client-express",
     "start:watch": "nodemon --debug .",
     "lint": "eslint .",
     "lint:all": "npm run lint && npm run lint:frontend",
@@ -23,14 +23,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/criteo/paf-mvp-demo-express.git"
+    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/criteo/paf-mvp-demo-express/issues"
+    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
   },
-  "homepage": "https://github.com/criteo/paf-mvp-demo-express#readme",
+  "homepage": "https://github.com/prebid/paf-mvp-implementation#readme",
   "dependencies": {
     "@types/body-parser": "^1.19.2",
     "@types/cookie-parser": "^1.4.2",
@@ -140,7 +140,7 @@
   "_moduleAliases": {
     "@core": "paf-mvp-core-js/src",
     "@operator": "paf-mvp-operator-express/src",
-    "@operator-client": "paf-mvp-operator-client-express/src",
+    "@client": "paf-mvp-client-express/src",
     "@frontend": "paf-mvp-frontend/src"
   },
   "lint-staged": {
