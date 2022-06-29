@@ -22,10 +22,10 @@ adding a OneKey icon under the initial div element.
 </script>
 ```
 
-In production use the method that handles the bid response must use the paf-lib
+In production use the method that handles the bid response must use the `paf-lib`
 functions to build the audit log from the OpenRTB response. The audit log JSON
-returned from paf-lib can then set in the auditLog attribute of the advert
-element before the new instance of OKA.Controller is created and the bind method
+returned from `paf-lib` can then set in the auditLog attribute of the advert
+element before the new instance of `OKA.Controller` is created and the bind method
 called with the id of the advert.
 
 The bind method will insert a OneKey icon under the advert which when pressed
@@ -33,7 +33,7 @@ will open the Audit Viewer.
 
 ## Configuration Options
 
-The constructor of the OKA.Controller class takes two parameters.
+The constructor of the `OKA.Controller` class takes two parameters.
 
 -   brandName: provides the name used whenever an entity that is responsible for
     providing the audit log needs to be named. This will typically be the name
@@ -57,7 +57,7 @@ the module. As such the audit viewer module does not know if the audit log is
 valid or contains suspicious activity or violations until the user interacts
 with the OneKey icon under the advert.
 
-The clicking of the OneKey icon under the advert will initiate all activity. A
+The tapping of the OneKey icon under the advert will initiate all activity. A
 single parent Promise is used to commence verification which only resolves when
 all the identifies are fetched and verification has been completed. The module
 displays an in-progress status page whilst this background activity is being
@@ -65,11 +65,17 @@ carried out.
 
 ## Developers
 
-The approach taken to localization, and other aspects of the module design, is
-identical to the Consent Management Platform (CMP) and is not described in this
+The approach taken to localization, and other aspects of the module design, are
+identical to the Consent Management Platform (CMP) and are not described in this
 readme.
 
-The rollup.config.js contains some additional features to bindle the mock audit
+The jest tests of the audit log model save their mocked audit logs to the
+`assets/mocks` folder. These are then used if available at build time to add mock
+audit logs into the bundle that can selected by using the file name without the
+`.json` extension. For example; ‘all-good.json’ would be referred to as ‘all-good’
+when adding the attribute to the advert element.
+
+The `rollup.config.js` contains some additional features to bundle the mock audit
 logs for the purposes of demonstration and testing.
 
 The resulting bundle is a umd format bundle that contains the OKA.Controller
@@ -77,16 +83,16 @@ public class.
 
 ### Cryptography
 
-Modules ec-key and ecdsa-secp256r1 are used for common cryptography functions
-across the repository.
+Modules `ec-key and` and `ecdsa-secp256r1` are used for common cryptography
+functions across the repository.
 
-ec-key only to convert PEM format public keys into JWK format.
+`ec-key only` to convert PEM format public keys into JWK format.
 
-ecdsa-secp256r1 is used across the project in Node and browser code. Prior to
+`ecdsa-secp256r1` is used across the project in Node and browser code. Prior to
 use in the audit module only the Node version was being used. The audit module
 requires the browser version. A bug in the current NPM module relating to the
 decoding of signatures in the web browser needs to be fixed by the package
 maintainer before the official package can be used. A fork of the package has
 been made and added to the repository as a sub module where the bug has been
 fixed. Once confirmed working in Prebid the maintainer can be contacted to apply
-the fix to the ecdsa-secp256r1 package.
+the fix to the `ecdsa-secp256r1` package.
