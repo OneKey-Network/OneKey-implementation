@@ -119,7 +119,7 @@
                     auctionDelay: 1000,
                     dataProviders: [
                             {
-                            name: "paf",
+                            name: "oneKey",
                             waitForIt: true,
                             params: {proxyHostName: "{{pafNodeHost}}" }
                         }
@@ -127,7 +127,7 @@
                 },
                 userSync: {
                     userIds: [{
-                        name: "pafData",
+                        name: "oneKeyData",
                         params: { proxyHostName: "{{pafNodeHost}}" }
                     }],
                     auctionDelay: 1000,
