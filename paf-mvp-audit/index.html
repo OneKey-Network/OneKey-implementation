@@ -1,25 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OK UI Audit Sample Implementation</title>
 </head>
-<body>
 
-    <div id="advert" style="width: 100%;">
-      <p style="text-align: center">Advert</p>
-    </div>
+<body style="width: 100%">
 
-    <script src="dist/ok-ui-audit-en-us.js"></script>
-    <script>
-        const element = document.getElementById("advert");
-        // See tests for audit component for creation of mock audit log options.
-        // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
-        element.setAttribute('auditLog', 'identity-not-found');
-        new OKA.Controller().bind(element.id);
-    </script>
+  <div id="advert" style="width: 200px; margin: 0 auto; background-color: aqua;">
+    <p style="text-align: center">Narrow Advert</p>
+  </div>
+  <script src="dist/ok-ui-audit-en-us.js"></script>
+  <script>
+    const advert = document.getElementById("advert");
+
+    // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
+    advert.setAttribute('auditLog', 'all-good');
+
+    // Add the audit viewer.
+    new OKA.Controller().bind(advert.id);
+  </script>
+
+
+  <div id="advert-narrow" style="width: 200px; margin: 0 auto; background-color: aqua;">
+    <p style="text-align: center">Narrow Advert</p>
+  </div>
+
+  <div id="advert-wide" style="width: 720px; margin: 0 auto; background-color: aqua;">
+    <p style="text-align: center">Wide Advert</p>
+  </div>
+
+  <script src="dist/ok-ui-audit-en-us.js"></script>
+  <script>
+    const wide = document.getElementById("advert-wide");
+    const narrow = document.getElementById("advert-narrow");
+
+    // See tests for audit component for creation of mock audit log options.
+    // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
+    wide.setAttribute('auditLog', 'all-good');
+    narrow.setAttribute('auditLog', 'identity-not-found');
+
+    // Add the audit viewer.
+    new OKA.Controller().bind(wide.id);
+    new OKA.Controller().bind(narrow.id);
+  </script>
 
 </body>
+
 </html>

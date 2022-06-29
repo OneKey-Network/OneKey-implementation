@@ -158,10 +158,12 @@
                     // TODO remove the hack to use mock audit log data if an audit log is not available in the ad unit
                     // element.
                     const element = document.getElementById(bid.adUnitCode);
-                    // See tests for audit component for creation of mock audit log options.
-                    // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
-                    element.setAttribute('auditLog', 'identity-not-found');
-                    new OKA.Controller().bind(bid.adUnitCode);
+                    if (!element.getAttribute('auditLog')) {
+                        // See tests for audit component for creation of mock audit log options.
+                        // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
+                        element.setAttribute('auditLog', 'identity-not-found');
+                        new OKA.Controller('Prebid', ['https://prebid.org/wp-content/uploads/2021/02/Prebid-Logo-RGB-Full-Color-Medium.svg']).bind(bid.adUnitCode);
+                    }
                 });
             });
 
@@ -943,7 +945,7 @@ iv>
     const element = document.getElementById("mock");
     // See tests for audit component for creation of mock audit log options.
     // Options; 'all-good', 'result-error', 'corrupt-signature', 'identity-not-found'
-    element.setAttribute('auditLog', 'identity-not-found');
+    element.setAttribute('auditLog', 'all-good');
     new OKA.Controller().bind(element.id);
 </script>
 

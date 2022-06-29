@@ -468,7 +468,7 @@ export class Model implements IModel {
    * Also replaces the dot in the domain name with hyphen to avoid problems with extension identification.
    */
   public get fileNameNoExtension(): string {
-    const date = new Date(this.auditLog.seed.source.timestamp).toISOString().replace(':', '-');
+    const date = getDate(this.auditLog.seed.source.timestamp).toISOString().replace(':', '-');
     const publisher = this.auditLog.seed.publisher.replace('.', '-');
     return `audit-log-${publisher}-${date}`;
   }

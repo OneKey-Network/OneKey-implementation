@@ -35,24 +35,17 @@ export class View implements IView {
   // The list of navigation elements.
   private navigationList: HTMLUListElement | null = null;
 
-  // The element that contains the advert. Used to add the UI components to the DOM around the advert.
-  private readonly advert: HTMLElement;
-
-  // Log used to output status messages.
-  private readonly log: Log;
-
-  // The locale that the UI should adopt.
-  public readonly locale: ILocale;
+  // The width of the advert before any module changes.
+  private readonly advertWidth: number;
 
   /**
    * Constructs a new instance of View.
    * @param advert element the module relates to
    * @param locale the language file to use with the UI
+   * @param log
    */
-  constructor(advert: HTMLElement, locale: ILocale, log: Log) {
-    this.advert = advert;
-    this.locale = locale;
-    this.log = log;
+  constructor(private readonly advert: HTMLElement, public readonly locale: ILocale, private readonly log: Log) {
+    this.advertWidth = advert.clientWidth;
   }
 
   /**
@@ -79,13 +72,23 @@ export class View implements IView {
   }
 
   /**
-   * Displays the audit log card ready for the providers to be added.
+   * Displays the audit log card ready for the providers to be added. If the advert is wide then switch to landscape
+   * mode to display the advert card if present.
    */
   public display(card: string) {
     this.initPopUp();
     this.setCard(card);
     this.setNavigation(card);
     this.popupContainer.classList.add('ok-ui-popup--open');
+
+    // If this is the advert card and the width of the advert requires landscape layout then add the class name to the
+    // card content.
+    if (card === 'advert' && this.advertWidth > 320) {
+      const wrappers = this.cardContainer.getElementsByClassName('ok-ui-advert-wrapper');
+      for (let i = 0; i < wrappers.length; i++) {
+        wrappers[i].classList.add('ok-ui-advert-wrapper--landscape');
+      }
+    }
   }
 
   /**
@@ -155,7 +158,7 @@ export class View implements IView {
       default:
         throw `Card '${card}' is not known`;
     }
-    this.cardContainer.innerHTML = template(this.locale);
+    this.cardContainer.innerHTML = template(this.locale).replace('[BrandName]', <string>this.locale.brandName);
   }
 
   /**
@@ -194,6 +197,17 @@ export class View implements IView {
     this.innerContainer = document.createElement('div');
     this.innerContainer.classList.add('ok-ui');
     this.innerContainer.innerHTML = auditTemplate(this.locale);
+
+    // Add the logos provided at construction to the controller to the header of the pop up.
+    if (this.locale.logoUrls) {
+      const logos = this.innerContainer.getElementsByClassName('ok-ui-card__header-logos');
+      for (let i = 0; i < logos.length; i++) {
+        (<string[]>this.locale.logoUrls).forEach((u) => {
+          // TODO: Update pattern library to avoid the need to style the li element.
+          logos[i].innerHTML += `<li style="min-width: 100px; max-width: 150px;"><img src='${u}'/><li>`;
+        });
+      }
+    }
     this.root.appendChild(this.innerContainer);
 
     // Find the card body from the audit container which is where the cards will be set.

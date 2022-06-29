@@ -58,14 +58,23 @@ export class Controller implements AuditHandler {
   private identityResolver: IdentityResolver = null;
 
   /**
+   * Constructs a new instance of the controller.
+   * @param brandName to use to replace the [BrandName] tokens
+   * @param logoUrls to use in the header of the UI
+   */
+  constructor(brandName?: string, logoUrls?: string[]) {
+    this.locale.brandName = brandName;
+    this.locale.logoUrls = logoUrls;
+  }
+
+  /**
    * Binds the controller to the element with the advert and displays the icon.
    * @advertElementOrId that contains the advert and audit log.
    */
   public async bind(advertElementOrId: HTMLElement | string) {
     if (this.element) return; // Audit is already registered for this element.
     this.setElement(advertElementOrId);
-    this.locale.advertHtml = this.element.innerHTML;
-    this.locale.advertStyle = `width:${this.element.clientWidth};height:${this.element.clientHeight}`;
+    this.locale.advertHtml = this.element.outerHTML; // Must get the advert HTML *before* adding the audit viewer.
     this.view = new View(this.element, this.locale, Controller.log);
     this.view.initView(); // Initializes the view sufficient to display the icon.
     this.bindActions(); // Needed to bind the open icon before the model is created and verified.
@@ -75,7 +84,7 @@ export class Controller implements AuditHandler {
   /**
    * Starts the process of verifying the audit log data by creating the model.
    */
-  public initModel() {
+  private initModel() {
     if (this.modelPromise === null) {
       let auditLog: AuditLog;
       const value = this.element.getAttribute('auditLog');
