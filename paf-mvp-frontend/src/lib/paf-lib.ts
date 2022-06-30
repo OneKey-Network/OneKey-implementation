@@ -37,13 +37,6 @@ declare const PAFUI: {
   showNotification: (notificationType: NotificationEnum) => void;
 };
 
-/**
- * Global variable that will be set to true if a redirect is effectively triggered,
- * to stop any processing in this case
- */
-
-let isRedirecting = false;
-
 const log = new Log('OneKey', '#3bb8c3');
 
 const redirect = (url: string): void => {
@@ -318,14 +311,6 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
   log.Debug('refreshIdsAndPreferences');
 
-  // If a redirect is needed, immediately exit to avoid "concurrent" redirects
-  if (isRedirecting) {
-    log.Debug('Redirection in progress: exit');
-    return {
-      status: PafStatus.REDIRECT_NEEDED,
-    };
-  }
-
   const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
   let { showPrompt } = mergedOptions;
 
@@ -444,9 +429,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     if (pafStatus === PafStatus.REDIRECT_NEEDED) {
       log.Info('Redirect previously deferred');
 
-      if (triggerRedirectIfNeeded && !isRedirecting) {
-        // /!\ Note: important to set the global variable here, before any await to get the actual URL from the client node
-        isRedirecting = true;
+      if (triggerRedirectIfNeeded) {
         await redirectToRead();
       }
 
@@ -533,11 +516,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     }
 
     if (triggerRedirectIfNeeded) {
-      if (!isRedirecting) {
-        // /!\ Note: important to set the global variable here, before any await to get the actual URL from the client node
-        isRedirecting = true;
-        await redirectToRead();
-      }
+      await redirectToRead();
     } else {
       log.Info('Deffer redirect to later, in agreement with options');
       saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
