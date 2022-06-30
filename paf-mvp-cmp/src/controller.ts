@@ -4,6 +4,7 @@ import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
 import {
+  deleteIdsAndPreferences,
   getIdsAndPreferences,
   getNewId,
   refreshIdsAndPreferences,
@@ -11,7 +12,6 @@ import {
   ShowPromptOption,
   signPreferences,
   updateIdsAndPreferences,
-  deleteIdsAndPreferences,
 } from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@frontend/enums/status.enum';
@@ -471,7 +471,7 @@ export class Controller {
     this.setPersistedFlag(w?.identifiers);
     this.model.setFromIdsAndPreferences(w);
 
-    // Ensure the this site only data is removed.
+    // Ensure the "this site only" data is removed.
     if (this.config.siteOnlyEnabled) {
       removeCookie(this.config.siteOnlyCookieTcfCore);
     }
@@ -522,18 +522,9 @@ export class Controller {
     */
 
     // Update the ids and preferences.
-    await updateIdsAndPreferences(this.config.proxyHostName, this.model.pref.value.use_browsing_for_personalization, [
+    return updateIdsAndPreferences(this.config.proxyHostName, this.model.pref.value.use_browsing_for_personalization, [
       this.model.rid.value,
     ]);
-
-    // Refresh the ids and preferences.
-    const r = await refreshIdsAndPreferences({
-      proxyHostName: this.config.proxyHostName,
-      triggerRedirectIfNeeded: true,
-      showPrompt: ShowPromptOption.doNotPrompt,
-    });
-
-    return r.data;
   }
 
   /**

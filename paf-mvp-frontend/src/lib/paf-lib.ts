@@ -37,6 +37,13 @@ declare const PAFUI: {
   showNotification: (notificationType: NotificationEnum) => void;
 };
 
+/**
+ * Global variable that will be set to true if a redirect is effectively triggered,
+ * to stop any processing in this case
+ */
+
+let isRedirecting = false;
+
 const log = new Log('OneKey', '#3bb8c3');
 
 const redirect = (url: string): void => {
@@ -185,7 +192,11 @@ export interface RefreshResult {
  * @param optIn
  * @param identifiers
  */
-export const updateIdsAndPreferences = async (proxyHostName: string, optIn: boolean, identifiers: Identifier[]) => {
+export const updateIdsAndPreferences = async (
+  proxyHostName: string,
+  optIn: boolean,
+  identifiers: Identifier[]
+): Promise<IdsAndOptionalPreferences | undefined> => {
   // 1. sign preferences
   const unsignedPreferences = {
     version: '0.1',
@@ -202,7 +213,7 @@ export const updateIdsAndPreferences = async (proxyHostName: string, optIn: bool
   );
 
   // 2. write
-  await writeIdsAndPref(
+  return await writeIdsAndPref(
     { proxyHostName },
     {
       identifiers,
@@ -289,6 +300,7 @@ const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus => {
 
   return PafStatus.PARTICIPATING;
 };
+
 /**
  * Ensure local cookies for OneKey identifiers and preferences are up-to-date.
  * If they aren't, contact the operator to get fresh values.
@@ -303,6 +315,17 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     ...defaultsRefreshIdsAndPrefsOptions,
     ...options,
   };
+
+  log.Debug('refreshIdsAndPreferences');
+
+  // If a redirect is needed, immediately exit to avoid "concurrent" redirects
+  if (isRedirecting) {
+    log.Debug('Redirection in progress: exit');
+    return {
+      status: PafStatus.REDIRECT_NEEDED,
+    };
+  }
+
   const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
   let { showPrompt } = mergedOptions;
 
@@ -318,6 +341,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
   const redirectToRead = async () => {
     log.Info('Redirect to operator');
+
     const clientUrl = new URL(getUrl(redirectProxyEndpoints.read));
     const currentPageUrl = new URL(location.href);
 
@@ -420,7 +444,9 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     if (pafStatus === PafStatus.REDIRECT_NEEDED) {
       log.Info('Redirect previously deferred');
 
-      if (triggerRedirectIfNeeded) {
+      if (triggerRedirectIfNeeded && !isRedirecting) {
+        // /!\ Note: important to set the global variable here, before any await to get the actual URL from the client node
+        isRedirecting = true;
         await redirectToRead();
       }
 
@@ -507,7 +533,11 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     }
 
     if (triggerRedirectIfNeeded) {
-      await redirectToRead();
+      if (!isRedirecting) {
+        // /!\ Note: important to set the global variable here, before any await to get the actual URL from the client node
+        isRedirecting = true;
+        await redirectToRead();
+      }
     } else {
       log.Info('Deffer redirect to later, in agreement with options');
       saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
@@ -521,7 +551,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
   const idsAndPreferences = await processGetIdsAndPreferences();
 
-  log.Info('Processed refresh', idsAndPreferences);
+  log.Debug('refreshIdsAndPreferences return', idsAndPreferences);
 
   // Now handle prompt, if relevant
   await updateDataWithPrompt(idsAndPreferences, proxyHostName, showPrompt);
