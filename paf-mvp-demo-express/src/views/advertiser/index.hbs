@@ -4,14 +4,14 @@
 
 {{#if useCmpUI}}
 
-    <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
-    <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
+  <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
+  <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
+  <link rel="preload" href="https://{{cdnHost}}/assets/paf-lib.js" as="script" />
 
 {{else}}
 
-    <!-- OneKey integration -->
-    <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
-    <link rel="preload" href="https://{{cdnHost}}/assets/paf-lib.js" as="script" />
+  <!-- OneKey integration -->
+  <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
 
 {{/if}}
 
@@ -39,11 +39,11 @@
     data-site-only-cookie-tcf-core="core-tcf"
     data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
+<script src="https://{{cdnHost}}/assets/paf-lib.js"></script>
 
 {{else}}
 
-<script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}"></script>
-<script src="https://{{cdnHost}}/assets/paf-lib.js"
+<script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}"
         onload="PAF.refreshIdsAndPreferences({proxyHostName: '{{pafNodeHost}}', showPrompt: 'doNotPrompt'});"></script>
 
 {{/if}}
