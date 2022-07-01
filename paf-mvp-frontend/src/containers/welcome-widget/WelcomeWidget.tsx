@@ -25,10 +25,10 @@ export interface IWelcomeWidgetProps {
   emitConsent?: (value: boolean) => void;
 }
 
-export const WelcomeWidget = ({ emitConsent }: IWelcomeWidgetProps) => {
+export const WelcomeWidget = async ({ emitConsent }: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
-  const originalData = (window as Window).PAF.getIdsAndPreferences();
+  const originalData = await (window as Window).PAF.getIdsAndPreferences();
 
   const originalIdentifier = originalData?.identifiers?.[0];
   const originalConsent = originalData?.preferences?.data?.use_browsing_for_personalization;

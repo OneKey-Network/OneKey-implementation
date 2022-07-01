@@ -1,11 +1,4 @@
-import {
-  getIdsAndPreferences,
-  getNewId,
-  queue,
-  refreshIdsAndPreferences,
-  signPreferences,
-  updateIdsAndPreferences,
-} from '../src/lib/paf-lib';
+import { getIdsAndPreferences, getNewId, signPreferences, updateIdsAndPreferences } from '../src/lib/paf-lib';
 import { NotificationEnum } from '../src/enums/notification.enum';
 
 declare global {
@@ -18,11 +11,9 @@ declare global {
 
   interface Window {
     PAF: {
-      queue: typeof queue;
       getNewId: typeof getNewId;
       signPreferences: typeof signPreferences;
       getIdsAndPreferences: typeof getIdsAndPreferences;
-      refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
       updateIdsAndPreferences: typeof updateIdsAndPreferences;
     };
     PAFUI: {

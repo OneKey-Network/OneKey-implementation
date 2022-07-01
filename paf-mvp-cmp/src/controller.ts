@@ -7,9 +7,7 @@ import {
   deleteIdsAndPreferences,
   getIdsAndPreferences,
   getNewId,
-  refreshIdsAndPreferences,
   removeCookie,
-  ShowPromptOption,
   signPreferences,
   updateIdsAndPreferences,
 } from '@frontend/lib/paf-lib';
@@ -194,7 +192,7 @@ export class Controller {
    * proceed.
    */
   private async load() {
-    if (this.getIdsAndPreferencesFromLocal()) {
+    if (await this.getIdsAndPreferencesFromLocal()) {
       return;
     }
     if (await this.getIdsAndPreferencesFromGlobal(false)) {
@@ -221,30 +219,24 @@ export class Controller {
       removeCookie(Cookies.lastRefresh);
     }
 
-    const r = await refreshIdsAndPreferences({
-      proxyHostName: this.config.proxyHostName,
-      triggerRedirectIfNeeded,
-      showPrompt: ShowPromptOption.doNotPrompt,
-    });
+    const r = await getIdsAndPreferences();
     this.log.Message('global data', r);
-    this.model.status = r.status;
 
-    // Only process the response if a redirect is not needed and there is data present.
-    if (r.status !== PafStatus.REDIRECT_NEEDED && r.data) {
-      // TODO: The data returned does not always match the interface and should really include a status value to avoid
-      // this try catch block.
-      try {
-        this.setPersistedFlag(r.data.identifiers);
-        this.model.setFromIdsAndPreferences(r.data);
-        return true;
-      } catch (ex) {
-        this.log.Warn('Problem parsing global ids and preferences', ex);
+    // FIXME remove
+    //this.model.status = r.status;
 
-        // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't.
-        this.model.status = PafStatus.REDIRECT_NEEDED;
-      }
+    // TODO: The data returned does not always match the interface and should really include a status value to avoid
+    // this try catch block.
+    try {
+      this.setPersistedFlag(r.identifiers);
+      this.model.setFromIdsAndPreferences(r);
+      return true;
+    } catch (ex) {
+      this.log.Warn('Problem parsing global ids and preferences', ex);
+
+      // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't.
+      this.model.status = PafStatus.REDIRECT_NEEDED;
     }
-    return false;
   }
 
   /**
@@ -252,7 +244,7 @@ export class Controller {
    * available and the configuration supports this site only then looks for the local data.
    * @returns true if found in local domain storage, otherwise false.
    */
-  private getIdsAndPreferencesFromLocal(): boolean {
+  private async getIdsAndPreferencesFromLocal(): Promise<boolean> {
     // Get the data from local TCF core cookie if available and set the status to not participating.
     if (this.config.siteOnlyEnabled) {
       const tcf = getCookieValue(this.config.siteOnlyCookieTcfCore);
@@ -263,7 +255,7 @@ export class Controller {
     }
 
     // Try and get the OneKey data from local cookies.
-    const data = getIdsAndPreferences();
+    const data = await getIdsAndPreferences();
     if (data !== undefined) {
       // TODO: The data returned does not match the interface and should really include a status value to avoid this
       // try catch block.

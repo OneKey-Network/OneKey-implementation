@@ -210,11 +210,10 @@
     data-site-only-cookie-tcf-core="tcf-core"
     data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
-<script src="https://{{cdnHost}}/assets/paf-lib.js"></script>
 
 {{else}}
 
-<script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}" });'></script>
+<script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}"></script>
 
 {{/if}}
 

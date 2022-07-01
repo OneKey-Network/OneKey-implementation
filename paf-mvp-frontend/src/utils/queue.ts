@@ -40,16 +40,31 @@ export interface IQueueContainer {
  * Set up an immediate processing queue to the container and
  * execute the previously deferred commands of the queue.
  * @param container Container of the queue to setup
+ * @param preRun method to run before any other command
  */
-export const setUpImmediateProcessingQueue = (container: IQueueContainer): void => {
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const setUpImmediateProcessingQueue = (container: IQueueContainer, preRun: () => void = () => {}): void => {
   if (container === undefined) {
     return;
   }
 
   const { queue } = container;
+
+  if (queue && !Array.isArray(queue)) {
+    // If it's not an array, it must be an ImmediateProcessingQueue
+    log.Debug('queue.setup: already configured');
+    return;
+  }
+
   const processor = new ImmediateProcessingQueue();
 
+  log.Debug('queue.setup: prerun');
+
+  // Run the "pre-run" before anything else
+  preRun();
+
   if (queue && Array.isArray(queue)) {
+    log.Debug(`queue.setup: run ${queue.length} pre-recorded commands`);
     while (queue.length > 0) {
       const cmd = queue.shift();
       processor.push(cmd);
