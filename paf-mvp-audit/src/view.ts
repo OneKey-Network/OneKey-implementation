@@ -86,7 +86,11 @@ export class View implements IView {
     if (card === 'advert' && this.advertWidth > 320) {
       const wrappers = this.cardContainer.getElementsByClassName('ok-ui-advert-wrapper');
       for (let i = 0; i < wrappers.length; i++) {
-        wrappers[i].classList.add('ok-ui-advert-wrapper--landscape');
+        (<HTMLElement>wrappers[i]).classList.add('ok-ui-advert-wrapper--landscape');
+      }
+      const images = this.cardContainer.getElementsByClassName('ok-ui-advert__image');
+      for (let i = 0; i < images.length; i++) {
+        (<HTMLElement>images[i]).style.width = `${this.advertWidth}px`;
       }
     }
   }
