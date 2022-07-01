@@ -19,6 +19,9 @@ pifPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
     pafNodeHost,
     useCmpUI: true,
   });
+
+  // Allow resources from other origins to avoid error NotSameOriginAfterDefaultedToSameOriginByCoep when loading external resources
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 });
 
 export const pifPublisherCdnApp = new VHostApp(name, cdnHost);
