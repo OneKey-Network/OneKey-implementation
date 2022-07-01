@@ -347,6 +347,7 @@ export class Controller {
           this.display(card);
           e.preventDefault();
         });
+        element.removeAttribute('data-card');
       }
       const action = element.getAttribute('data-action');
       if (action !== null) {
@@ -354,6 +355,7 @@ export class Controller {
           this.processAction(action);
           e.preventDefault();
         });
+        element.removeAttribute('data-action');
       }
     }
   }
