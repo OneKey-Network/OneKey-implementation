@@ -2,7 +2,7 @@ import { AutomobileExample, AuditLogMock } from '../helpers/audit-log-mock';
 import { IdentityResolverMap } from '../../src/identity-resolver';
 import { Model, OverallStatus, VerifiedStatus } from '../../src/model';
 import { AuditLog } from '@core/model';
-import { Log } from '@core/Log';
+import { Log } from '@core/log';
 import * as fs from 'fs';
 import path from 'path';
 
