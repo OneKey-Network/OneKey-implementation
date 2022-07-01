@@ -1,0 +1,1317 @@
+{
+    "auditLog": {
+        "version": "0.1",
+        "data": {
+            "identifiers": [
+                {
+                    "version": "0.1",
+                    "type": "paf_browser_id",
+                    "value": "88bd6b8d-f07d-4342-86b9-8ba40949b34c",
+                    "source": {
+                        "domain": "automobiles.example",
+                        "timestamp": 1656518480,
+                        "signature": "6cLY12RlT34PWZHYJUaItFzZdpsnWGYlGaQ8xpD1WsDAjcXSwcA21ZZQHELlj+eza+uERhhTrWyEk7qF95Aqew=="
+                    },
+                    "persisted": false
+                }
+            ],
+            "preferences": {
+                "version": "0.1",
+                "data": {
+                    "use_browsing_for_personalization": true
+                },
+                "source": {
+                    "domain": "automobiles.example",
+                    "timestamp": 1656518480,
+                    "signature": "OmcvnQN4e+vbxrzgorDOGQI2EplvfUTyauTxxF+qYLx9lynuoa+Ca8Vl4dUI/UgoDTe8SraaYfBn6SdMIAUtsw=="
+                }
+            }
+        },
+        "seed": {
+            "version": "0.1",
+            "transaction_ids": [
+                "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c"
+            ],
+            "publisher": "automobiles.example",
+            "source": {
+                "domain": "automobiles.example",
+                "timestamp": 1656518480,
+                "signature": "cUaitgmokEUSA5CYWUdMnhYDbdXHAa0xUaLjqtN8sBM31XSWa9F3vL9vdtgEBVB5A+rHvm3wb+s/51uvS29bTw=="
+            }
+        },
+        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+        "transmissions": [
+            {
+                "version": "0.1",
+                "receiver": "automobiles.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "united-states.example",
+                    "signature": "yVVrg+s0MH0f1msMoxfiKJ6SvsAfNcfruDJzOvqATYzNKMARLgIzeQwfo66v+ElrNkUqGOMkr836eW7hGsx9"
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "united-states.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "ford.example",
+                            "signature": "Z/uW66spyHkMD0B9vUTxXT1nUhG65KkILJvZdXt7VV3HHu3Scc+Yzsl7U2nXvwJsUvQRKC00MLiwSl0jdqF6Pw=="
+                        },
+                        "children": [
+                            {
+                                "version": "0.1",
+                                "receiver": "ford.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "model-t.example",
+                                    "signature": "0OGAFQCdW8X7tpwnpPUs+WMVxbZQuArh56c9o1nTS82zW70Zuv1eJUNL30iDUs7+QWyt2rgyH1fvOYpUPisWwQ=="
+                                },
+                                "children": []
+                            },
+                            {
+                                "version": "0.1",
+                                "receiver": "ford.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "mustang.example",
+                                    "signature": "gHGYUoM2DRD52G/mVWkv/fPtV5BdOerOgWmHanBj5KhQW1j9WoBiIqn6Lmc1C6B//gEIPKa+rzjNBkNTek9LBA=="
+                                },
+                                "children": []
+                            },
+                            {
+                                "version": "0.1",
+                                "receiver": "ford.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "model-18.example",
+                                    "signature": "8NoFwvvI9wSb2Eb223YUteTfwRvk77nlW0003JHw96HJzArqFXWwP7qusmEAMALenJVYJ9zVSPeOz6s0Bt+mMQ=="
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "united-states.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "duesenberg.example",
+                            "signature": "bJ5SUZ0r0Bi8MtiXikcijFt66gdhxp5YQQEJYr+E2JbRI8JjIRnaJd6U8/VAixlf/sXPfvxvrmDDUySoMiqyxQ=="
+                        },
+                        "children": [
+                            {
+                                "version": "0.1",
+                                "receiver": "duesenberg.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "model-sj.example",
+                                    "signature": "eamGiYu0eRXd0Cu3yZlMP0URK5/3496SW58gSu3wTMGllmq9yweWSGpSqHCXthEn1TqycvzfwBO/H7QNrzXjpw=="
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "united-states.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "jeep.example",
+                            "signature": "nhrzo1VOrHk5QWgxuscXCw6yvqIN0atkCwfqEOgi5Prm1s4FKuyZFkhONiyuxKLNZuWITx57olKPevWjWvD1ZA=="
+                        },
+                        "children": [
+                            {
+                                "version": "0.1",
+                                "receiver": "jeep.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "mb.example",
+                                    "signature": "oZ6rksc0p/1ojcwSDmhbE4zx9ztDl38QjWkheWFMjx3V9ufEh8rI21Rual9I9jIqlaDmZRq2EMcnw/r+/pHeSw=="
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "united-states.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "oldsmobile.example",
+                            "signature": "ZVw1ZPHA7554niTEE8Gsq7LupP7Wh7/y4VqNc1o7INTwBrTe8kZZA19MmK7nh5q6+WjrZreJPTlOWS76z2eFPA=="
+                        },
+                        "children": [
+                            {
+                                "version": "0.1",
+                                "receiver": "oldsmobile.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "rocket-88.example",
+                                    "signature": "8JTR/agH6LSKwq5YCO7L4Ll8t+e+7x2SBhMPlj8NkQUOW+7b3IwgK0NPFb767sLxgv//EDJdOpkcEYHJ8boDLg=="
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "united-states.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "chevrolet.example",
+                            "signature": "RDmQc3r5naGVsKcRQ1bmW/sH8qgktPyXgso4G1Nl31LqO4HyfDH9Z6gQlptFtuMcO7cAOQJZPHa5wfGlOwPlhQ=="
+                        },
+                        "children": [
+                            {
+                                "version": "0.1",
+                                "receiver": "chevrolet.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "corvette.example",
+                                    "signature": "GWYgH1JZbfSRJRChxROChz3YHhOPQhezx57CBhVD/XS2jskJTQY2LfD7EbgTgQDrCzmxtGWYglKXEgIV25QgBA=="
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "united-states.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "Chrysler.example",
+                            "signature": "sj6SdTlyHs33dLFTOb8CBuxhTHQ/kAMk7jYJItQ8ZrLqhImo5Lb6/D1UL/xAr0oVODvGZEOTIflU4VFcOAmwog=="
+                        },
+                        "children": [
+                            {
+                                "version": "0.1",
+                                "receiver": "Chrysler.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "minivan.example",
+                                    "signature": "0tGo2gnwlP/tb5wUWFBanCWchH09ZOrMKsi+ZgzHMCTuWD5WF45Tzm8pR9slQLEKU+e9iIHBmbHeXe4DIxZHhJg=="
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "united-states.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "tesla.example",
+                            "signature": "1IErokjHMQ2N+ruBdZ9InWc9OJTZRfFppH3p1qdvHlNRJse7DDFPHINp+IFdC1WJgYX4/Maub8SfuWmWAwoRZQ=="
+                        },
+                        "children": [
+                            {
+                                "version": "0.1",
+                                "receiver": "tesla.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "model-s.example",
+                                    "signature": "/vJQZ8N/aCbf9Uq/qdyWeFIsY6pTGruzElaYIgzVnL/j+2IVGONcma8TUbeE9l+CKyiNvUIv1GC1xN4srtDzqg=="
+                                },
+                                "children": []
+                            },
+                            {
+                                "version": "0.1",
+                                "receiver": "tesla.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "model-x.example",
+                                    "signature": "NSFoWEnOzb7V1Wz/P2ookeJovorM/Ml7LrG1AuNKPveqKfW4Owyr5mPYF9Z3MD+GI+tkBHv9Lhefy566xOrw9A=="
+                                },
+                                "children": []
+                            },
+                            {
+                                "version": "0.1",
+                                "receiver": "tesla.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "model-3.example",
+                                    "signature": "Uj4Pl45LB7TkqWBVF4EW8/Q+tHmuMKw+dPV5IUhkdV72gqPEhay4cMGpKSmHAz0PLYG5EVI1rVWFfziJd72udA=="
+                                },
+                                "children": []
+                            },
+                            {
+                                "version": "0.1",
+                                "receiver": "tesla.example",
+                                "contents": [
+                                    {
+                                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                        "content_id": null
+                                    }
+                                ],
+                                "status": "success",
+                                "details": "mocked",
+                                "source": {
+                                    "timestamp": 1656518480,
+                                    "domain": "model-y.example",
+                                    "signature": "zLvDcTq93mB4+tLFKMW6fsLn8kxp/z0EPz3iD2vSoRJ4Q09QtBYv3JyzM8wtV2pxc6c2YmueOzqoGJaMggjLcQ=="
+                                },
+                                "children": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "united-states.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "ford.example",
+                    "signature": "Z/uW66spyHkMD0B9vUTxXT1nUhG65KkILJvZdXt7VV3HHu3Scc+Yzsl7U2nXvwJsUvQRKC00MLiwSl0jdqF6Pw=="
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "ford.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "model-t.example",
+                            "signature": "0OGAFQCdW8X7tpwnpPUs+WMVxbZQuArh56c9o1nTS82zW70Zuv1eJUNL30iDUs7+QWyt2rgyH1fvOYpUPisWwQ=="
+                        },
+                        "children": []
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "ford.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "mustang.example",
+                            "signature": "gHGYUoM2DRD52G/mVWkv/fPtV5BdOerOgWmHanBj5KhQW1j9WoBiIqn6Lmc1C6B//gEIPKa+rzjNBkNTek9LBA=="
+                        },
+                        "children": []
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "ford.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "model-18.example",
+                            "signature": "8NoFwvvI9wSb2Eb223YUteTfwRvk77nlW0003JHw96HJzArqFXWwP7qusmEAMALenJVYJ9zVSPeOz6s0Bt+mMQ=="
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "ford.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "model-t.example",
+                    "signature": "0OGAFQCdW8X7tpwnpPUs+WMVxbZQuArh56c9o1nTS82zW70Zuv1eJUNL30iDUs7+QWyt2rgyH1fvOYpUPisWwQ=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "ford.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "mustang.example",
+                    "signature": "gHGYUoM2DRD52G/mVWkv/fPtV5BdOerOgWmHanBj5KhQW1j9WoBiIqn6Lmc1C6B//gEIPKa+rzjNBkNTek9LBA=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "ford.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "model-18.example",
+                    "signature": "8NoFwvvI9wSb2Eb223YUteTfwRvk77nlW0003JHw96HJzArqFXWwP7qusmEAMALenJVYJ9zVSPeOz6s0Bt+mMQ=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "united-states.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "duesenberg.example",
+                    "signature": "bJ5SUZ0r0Bi8MtiXikcijFt66gdhxp5YQQEJYr+E2JbRI8JjIRnaJd6U8/VAixlf/sXPfvxvrmDDUySoMiqyxQ=="
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "duesenberg.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "model-sj.example",
+                            "signature": "eamGiYu0eRXd0Cu3yZlMP0URK5/3496SW58gSu3wTMGllmq9yweWSGpSqHCXthEn1TqycvzfwBO/H7QNrzXjpw=="
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "duesenberg.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "model-sj.example",
+                    "signature": "eamGiYu0eRXd0Cu3yZlMP0URK5/3496SW58gSu3wTMGllmq9yweWSGpSqHCXthEn1TqycvzfwBO/H7QNrzXjpw=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "united-states.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "jeep.example",
+                    "signature": "nhrzo1VOrHk5QWgxuscXCw6yvqIN0atkCwfqEOgi5Prm1s4FKuyZFkhONiyuxKLNZuWITx57olKPevWjWvD1ZA=="
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "jeep.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "mb.example",
+                            "signature": "oZ6rksc0p/1ojcwSDmhbE4zx9ztDl38QjWkheWFMjx3V9ufEh8rI21Rual9I9jIqlaDmZRq2EMcnw/r+/pHeSw=="
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "jeep.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "mb.example",
+                    "signature": "oZ6rksc0p/1ojcwSDmhbE4zx9ztDl38QjWkheWFMjx3V9ufEh8rI21Rual9I9jIqlaDmZRq2EMcnw/r+/pHeSw=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "united-states.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "oldsmobile.example",
+                    "signature": "ZVw1ZPHA7554niTEE8Gsq7LupP7Wh7/y4VqNc1o7INTwBrTe8kZZA19MmK7nh5q6+WjrZreJPTlOWS76z2eFPA=="
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "oldsmobile.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "rocket-88.example",
+                            "signature": "8JTR/agH6LSKwq5YCO7L4Ll8t+e+7x2SBhMPlj8NkQUOW+7b3IwgK0NPFb767sLxgv//EDJdOpkcEYHJ8boDLg=="
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "oldsmobile.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "rocket-88.example",
+                    "signature": "8JTR/agH6LSKwq5YCO7L4Ll8t+e+7x2SBhMPlj8NkQUOW+7b3IwgK0NPFb767sLxgv//EDJdOpkcEYHJ8boDLg=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "united-states.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "chevrolet.example",
+                    "signature": "RDmQc3r5naGVsKcRQ1bmW/sH8qgktPyXgso4G1Nl31LqO4HyfDH9Z6gQlptFtuMcO7cAOQJZPHa5wfGlOwPlhQ=="
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "chevrolet.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "corvette.example",
+                            "signature": "GWYgH1JZbfSRJRChxROChz3YHhOPQhezx57CBhVD/XS2jskJTQY2LfD7EbgTgQDrCzmxtGWYglKXEgIV25QgBA=="
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "chevrolet.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "corvette.example",
+                    "signature": "GWYgH1JZbfSRJRChxROChz3YHhOPQhezx57CBhVD/XS2jskJTQY2LfD7EbgTgQDrCzmxtGWYglKXEgIV25QgBA=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "united-states.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "Chrysler.example",
+                    "signature": "sj6SdTlyHs33dLFTOb8CBuxhTHQ/kAMk7jYJItQ8ZrLqhImo5Lb6/D1UL/xAr0oVODvGZEOTIflU4VFcOAmwog=="
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "Chrysler.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "minivan.example",
+                            "signature": "0tGo2gnwlP/tb5wUWFBanCWchH09ZOrMKsi+ZgzHMCTuWD5WF45Tzm8pR9slQLEKU+e9iIHBmbHeXe4DIxZHhJg=="
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "Chrysler.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "minivan.example",
+                    "signature": "0tGo2gnwlP/tb5wUWFBanCWchH09ZOrMKsi+ZgzHMCTuWD5WF45Tzm8pR9slQLEKU+e9iIHBmbHeXe4DIxZHhJg=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "united-states.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "tesla.example",
+                    "signature": "1IErokjHMQ2N+ruBdZ9InWc9OJTZRfFppH3p1qdvHlNRJse7DDFPHINp+IFdC1WJgYX4/Maub8SfuWmWAwoRZQ=="
+                },
+                "children": [
+                    {
+                        "version": "0.1",
+                        "receiver": "tesla.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "model-s.example",
+                            "signature": "/vJQZ8N/aCbf9Uq/qdyWeFIsY6pTGruzElaYIgzVnL/j+2IVGONcma8TUbeE9l+CKyiNvUIv1GC1xN4srtDzqg=="
+                        },
+                        "children": []
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "tesla.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "model-x.example",
+                            "signature": "NSFoWEnOzb7V1Wz/P2ookeJovorM/Ml7LrG1AuNKPveqKfW4Owyr5mPYF9Z3MD+GI+tkBHv9Lhefy566xOrw9A=="
+                        },
+                        "children": []
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "tesla.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "model-3.example",
+                            "signature": "Uj4Pl45LB7TkqWBVF4EW8/Q+tHmuMKw+dPV5IUhkdV72gqPEhay4cMGpKSmHAz0PLYG5EVI1rVWFfziJd72udA=="
+                        },
+                        "children": []
+                    },
+                    {
+                        "version": "0.1",
+                        "receiver": "tesla.example",
+                        "contents": [
+                            {
+                                "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                                "content_id": null
+                            }
+                        ],
+                        "status": "success",
+                        "details": "mocked",
+                        "source": {
+                            "timestamp": 1656518480,
+                            "domain": "model-y.example",
+                            "signature": "zLvDcTq93mB4+tLFKMW6fsLn8kxp/z0EPz3iD2vSoRJ4Q09QtBYv3JyzM8wtV2pxc6c2YmueOzqoGJaMggjLcQ=="
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "version": "0.1",
+                "receiver": "tesla.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "model-s.example",
+                    "signature": "/vJQZ8N/aCbf9Uq/qdyWeFIsY6pTGruzElaYIgzVnL/j+2IVGONcma8TUbeE9l+CKyiNvUIv1GC1xN4srtDzqg=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "tesla.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "model-x.example",
+                    "signature": "NSFoWEnOzb7V1Wz/P2ookeJovorM/Ml7LrG1AuNKPveqKfW4Owyr5mPYF9Z3MD+GI+tkBHv9Lhefy566xOrw9A=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "tesla.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "model-3.example",
+                    "signature": "Uj4Pl45LB7TkqWBVF4EW8/Q+tHmuMKw+dPV5IUhkdV72gqPEhay4cMGpKSmHAz0PLYG5EVI1rVWFfziJd72udA=="
+                },
+                "children": []
+            },
+            {
+                "version": "0.1",
+                "receiver": "tesla.example",
+                "contents": [
+                    {
+                        "transaction_id": "cf54c433-2bfd-4c00-88f3-3d3a2e11b79c",
+                        "content_id": null
+                    }
+                ],
+                "status": "success",
+                "details": "mocked",
+                "source": {
+                    "timestamp": 1656518480,
+                    "domain": "model-y.example",
+                    "signature": "zLvDcTq93mB4+tLFKMW6fsLn8kxp/z0EPz3iD2vSoRJ4Q09QtBYv3JyzM8wtV2pxc6c2YmueOzqoGJaMggjLcQ=="
+                },
+                "children": []
+            }
+        ]
+    },
+    "resolver": [
+        [
+            "automobiles.example",
+            {
+                "version": "0.1",
+                "name": "automobiles",
+                "type": "operator",
+                "dpo_email": "dpo@automobiles.example",
+                "privacy_policy_url": "https://automobiles.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEm+Biy404Q+wQebqctpsYT6+DKf2g\nO0yeCs4JtbCrjp68VwSLhd7jTU2ieSGQzT8LglLCHjVDJ9Zyj4EpXjS1jQ==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "model-t.example",
+            {
+                "version": "0.1",
+                "name": "Model T",
+                "type": "vendor",
+                "dpo_email": "dpo@model-t.example",
+                "privacy_policy_url": "https://model-t.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0d/3axcARmM//PKVJVsRzQ8qor/c\nPM0vI/W+RKv2ZXh+gh4XTyV84VIdJDnwT3NulqjeNnZBH1JrczjqhBgoVw==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "ford.example",
+            {
+                "version": "0.1",
+                "name": "Ford",
+                "type": "vendor",
+                "dpo_email": "dpo@ford.example",
+                "privacy_policy_url": "https://ford.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAET4FRG98jWGES6boXWrHny2FlzWZL\nZsk/mewb1vQfRq6g0+W2f9GdFGzTDQYqiBkm8gMZanL+2a8+f6DaVt+LWw==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "mustang.example",
+            {
+                "version": "0.1",
+                "name": "Mustang",
+                "type": "vendor",
+                "dpo_email": "dpo@mustang.example",
+                "privacy_policy_url": "https://mustang.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAESQLVM/RsaCpFrmdMMNOj6onDqcpE\nyysEVqcT20HUR+hFMj7D8j43mVTRIyY+QoQHG7AQ7UE6Vx1BOL5WZcDWsA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "model-18.example",
+            {
+                "version": "0.1",
+                "name": "Model 18",
+                "type": "vendor",
+                "dpo_email": "dpo@model-18.example",
+                "privacy_policy_url": "https://model-18.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2M56mJOGQkktDL6pcu+Gh7R4sy/u\nqzESm3TdRZV7jBdpUFWQD70nxx/JkRGjTNLnzBOzED41yCzQinbo2bhYdg==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "united-states.example",
+            {
+                "version": "0.1",
+                "name": "United States",
+                "type": "vendor",
+                "dpo_email": "dpo@united-states.example",
+                "privacy_policy_url": "https://united-states.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWu+LfiuBcoABprDx0a+6j5gGtJ5o\nww5yjW6nE9kTS2A1mJumzBHlM/SKGgMxGq3hVkfmcLMvMeFDZxLxBnN4oA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "model-sj.example",
+            {
+                "version": "0.1",
+                "name": "Model SJ",
+                "type": "vendor",
+                "dpo_email": "dpo@model-sj.example",
+                "privacy_policy_url": "https://model-sj.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFzEawIGixvauTgzC15LEPZjj37/M\nfDy1Sl9qWQRApHZAxKS8FiktzyJD5FhJ3bVvuZf5fQXBby/MgiED0BB8xg==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "duesenberg.example",
+            {
+                "version": "0.1",
+                "name": "Duesenberg",
+                "type": "vendor",
+                "dpo_email": "dpo@duesenberg.example",
+                "privacy_policy_url": "https://duesenberg.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwJzsZvQYe1Xo9AVZNnnvmd7EAQ58\nm0DvpBa8v5f7FoXQjjc3DZBRtPSv/kbD09uAObNIu0lROXO0gSLwJVbZ/Q==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "mb.example",
+            {
+                "version": "0.1",
+                "name": "MD",
+                "type": "vendor",
+                "dpo_email": "dpo@mb.example",
+                "privacy_policy_url": "https://mb.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERWTDMuHGxqrdEl4CGVnjhce3sJT/\nJ6Pys8XEWrKa5H76tvUGJ9VExUKjiAWhjuhFDgXyQg4etPVY8EwQdGRCIw==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "jeep.example",
+            {
+                "version": "0.1",
+                "name": "Jeep",
+                "type": "vendor",
+                "dpo_email": "dpo@jeep.example",
+                "privacy_policy_url": "https://jeep.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEF2VHxKRcpOcTOHvmwsseD+Hy8OI\n6PVOpt6GBjfnX1you90uQEG/cXT867jOK81YE2CUbaotHn3+7Ms+40bfXw==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "rocket-88.example",
+            {
+                "version": "0.1",
+                "name": "\"Rocket 88\"",
+                "type": "vendor",
+                "dpo_email": "dpo@rocket-88.example",
+                "privacy_policy_url": "https://rocket-88.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEQxgnBkMHI/6RmVfp2R3Cy7M43RZl\n3d5AesXA7We3zNet0+nIzDVdjos5BNWtiCHjpaEAw+eZYT5GzJdR+NSV8w==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "oldsmobile.example",
+            {
+                "version": "0.1",
+                "name": "Oldsmobile",
+                "type": "vendor",
+                "dpo_email": "dpo@oldsmobile.example",
+                "privacy_policy_url": "https://oldsmobile.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE61VoQc32a2Cgxz2OQBDLoVvs/Wnn\nQKOAGJAo971lpM0OfE8bQ+Ar6ca+U6HcUbyYsYYcQEqHA4pOi+nLutVSFA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "corvette.example",
+            {
+                "version": "0.1",
+                "name": "Corvette",
+                "type": "vendor",
+                "dpo_email": "dpo@corvette.example",
+                "privacy_policy_url": "https://corvette.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExrOlqCFRWc+Pw3jvXeBQfm947Zq3\nlt+2/MC3Fq2Cum8oY2olaMOw83PRfy3YVb5UgGbGBPV8vc37k/UUr5Qe1Q==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "chevrolet.example",
+            {
+                "version": "0.1",
+                "name": "Chevrolet",
+                "type": "vendor",
+                "dpo_email": "dpo@chevrolet.example",
+                "privacy_policy_url": "https://chevrolet.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhUBes3f91RTxamnWILyAYNLSPMct\nCZey8vr78AGLD6hy4qfRYTxWWsV4qmhuGZz4easwBg2tMQdAoi+/3g/hIA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "minivan.example",
+            {
+                "version": "0.1",
+                "name": "Minivan",
+                "type": "vendor",
+                "dpo_email": "dpo@minivan.example",
+                "privacy_policy_url": "https://minivan.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAET02J3Krh0m5TszxbPUOByK+NB9/Z\nLazIiBBdTLPhNDhjcFpWZfR0aXO47yhq1O0Ckbo8cAtPy6m6c8k92Go3Eg==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "Chrysler.example",
+            {
+                "version": "0.1",
+                "name": "Chrysler",
+                "type": "vendor",
+                "dpo_email": "dpo@Chrysler.example",
+                "privacy_policy_url": "https://chrysler.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE1dIGH6Rmgt2TCXCbyhgo0SfNu+bw\n4L9g45BdX7PbEtOr8pJtkq+gPgI5tHj4ouMrzChJvrscNl0Bg1cQlLbf1g==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "model-s.example",
+            {
+                "version": "0.1",
+                "name": "Model S",
+                "type": "vendor",
+                "dpo_email": "dpo@model-s.example",
+                "privacy_policy_url": "https://model-s.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpJ+KguACRgvvFrS19A7GH55iQnRD\n07oRVMUfzfwE5IAp0xmzXzMC7vLganMJ7E5QqqNwt1LoWM4ody/lYtulJA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "tesla.example",
+            {
+                "version": "0.1",
+                "name": "Tesla",
+                "type": "vendor",
+                "dpo_email": "dpo@tesla.example",
+                "privacy_policy_url": "https://tesla.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEb5QKE/JYF+jBFAyoHCWgJdIBFM2J\nh2TbbA6Pxal6CX4wBDbGwBZL9MKZFdUVfxipmi8O3lsTgtnFHks8zNYjtA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "model-x.example",
+            {
+                "version": "0.1",
+                "name": "Model X",
+                "type": "vendor",
+                "dpo_email": "dpo@model-x.example",
+                "privacy_policy_url": "https://model-x.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEa2J7ISQExfbeAHTjw8FIQ4Xd2ucP\n6pt563l36IGs9R/Z0WN+wwHL56CS/2HvxAFNZsx8vVXR+af1Om+cl379lA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "model-3.example",
+            {
+                "version": "0.1",
+                "name": "Model 3",
+                "type": "vendor",
+                "dpo_email": "dpo@model-3.example",
+                "privacy_policy_url": "https://model-3.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnr/VYXxImFnVz3uJ+fBk5PjtwYgp\nKFaXmcP0YT0AQLT/r90wufk5ubOotzuVJzDCKPRQyLCcrRb2TK1tXr4Uew==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ],
+        [
+            "model-y.example",
+            {
+                "version": "0.1",
+                "name": "Model Y",
+                "type": "vendor",
+                "dpo_email": "dpo@model-y.example",
+                "privacy_policy_url": "https://model-y.example/privacy.html",
+                "keys": [
+                    {
+                        "key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEh0q3IlmJso/mWqay9xs4mpxpBOqT\nLY9vBqSr/aAMxRPzAYYgtrCtRXY5qY4QXqgoXxTG+nC/3OTvbQvy6YGboA==\n-----END PUBLIC KEY-----\n",
+                        "start": 1656518480
+                    }
+                ]
+            }
+        ]
+    ]
+}

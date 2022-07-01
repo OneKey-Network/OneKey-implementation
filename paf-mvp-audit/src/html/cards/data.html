@@ -1,0 +1,24 @@
+<div class="ok-ui-data-header">
+    <div>
+        <h1 class="ok-ui-heading-1 ok-ui-mb-1">${ _.dataTitle }</h1>
+        <p class="ok-ui-mb-1">${ _.dataIntro}</p>
+    </div>
+    <a href="#" class="ok-ui-link" id="settings" data-action>${ _.dataModifyPreferences }</a>
+</div>
+<hr class="ok-ui-divide">
+<div class="ok-ui-tabs-container">
+    <div class="ok-ui-tabs-wrapper">
+        <nav class="ok-ui-tabs">
+            <button type="button" class="ok-ui-button" id="data-identifiers" data-action="data-identifiers">
+                <span class="ok-ui-button__label">${ _.dataRandomIdField }</span>
+            </button>
+            <button type="button" class="ok-ui-button" id="data-preferences" data-action="data-preferences">
+                <span class="ok-ui-button__label">${ _.dataPreference }</span>
+            </button>
+        </nav>
+    </div>
+</div>
+<p class="ok-ui-mb-3">We don't use any of your personal data, we identify you with a string of characters, that's all
+    advertisers see.</p>
+<div id="data">
+</div>
