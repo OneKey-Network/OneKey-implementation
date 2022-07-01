@@ -3,14 +3,6 @@ import { BindingDisplayRandomId, BindingShowRandomIdDiv, BindingThisSiteOnly } f
 import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
-import {
-  deleteIdsAndPreferences,
-  getIdsAndPreferences,
-  getNewId,
-  removeCookie,
-  signPreferences,
-  updateIdsAndPreferences,
-} from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@frontend/enums/status.enum';
 import { View } from './view';
@@ -18,6 +10,9 @@ import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { TcfCore } from './tcfcore';
 import { ILocale } from './ILocale';
+import { Window } from '@frontend/global';
+
+const OneKeyLib = (<Window>window).PAF;
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -195,42 +190,48 @@ export class Controller {
     if (await this.getIdsAndPreferencesFromLocal()) {
       return;
     }
-    if (await this.getIdsAndPreferencesFromGlobal(false)) {
-      return;
-    }
+    await this.getIdsAndPreferencesFromGlobal();
+    /*
     if (this.config.displayIntro === false) {
       await this.getIdsAndPreferencesFromGlobal(true);
     }
-    return;
+    
+     */
   }
 
   /**
    * Gets the Ids and preferences which might involve a redirect completing this instance if the redirect is allowed.
    * If data is returned then the model is updated and the display method called.
-   * @param triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
    * @returns true if the data is valid, otherwise false
    */
-  private async getIdsAndPreferencesFromGlobal(triggerRedirectIfNeeded: boolean) {
-    // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't and the
-    // paf_last_refresh cookie is present. Deleting the paf_last_refresh cookie will resolve the data issue, but as
-    // that is not practical for those demoing the CMP this work around just sets the redirect needed status to
-    // force the expected downstream behavior and removes the cookies.
-    if (triggerRedirectIfNeeded) {
-      removeCookie(Cookies.lastRefresh);
-    }
-
-    const r = await getIdsAndPreferences();
-    this.log.Message('global data', r);
-
-    // FIXME remove
-    //this.model.status = r.status;
+  private async getIdsAndPreferencesFromGlobal() {
+    this.log.Debug('getIdsAndPreferencesFromGlobal');
+    const r = await OneKeyLib.getIdsAndPreferences();
 
     // TODO: The data returned does not always match the interface and should really include a status value to avoid
     // this try catch block.
     try {
-      this.setPersistedFlag(r.identifiers);
-      this.model.setFromIdsAndPreferences(r);
-      return true;
+      let data: IdsAndOptionalPreferences;
+
+      this.model.status = OneKeyLib.status;
+
+      if (r) {
+        data = r;
+      } else if (OneKeyLib.unpersistedIds) {
+        data = {
+          identifiers: OneKeyLib.unpersistedIds,
+        };
+      }
+
+      this.log.Message('global data', data);
+      this.log.Message('status', status);
+
+      if (data) {
+        this.setPersistedFlag(data.identifiers);
+        this.model.setFromIdsAndPreferences(data);
+        return true;
+      }
+      return false;
     } catch (ex) {
       this.log.Warn('Problem parsing global ids and preferences', ex);
 
@@ -250,12 +251,13 @@ export class Controller {
       const tcf = getCookieValue(this.config.siteOnlyCookieTcfCore);
       if (tcf !== undefined) {
         this.getIdsAndPreferencesFromTcf(tcf);
+        this.log.Debug('Getting data from TCF');
         return true;
       }
     }
 
     // Try and get the OneKey data from local cookies.
-    const data = await getIdsAndPreferences();
+    const data = await OneKeyLib.getIdsAndPreferences();
     if (data !== undefined) {
       // TODO: The data returned does not match the interface and should really include a status value to avoid this
       // try catch block.
@@ -359,7 +361,7 @@ export class Controller {
         this.actionReset().catch((e) => this.log.Error(e));
         break;
       case 'refresh':
-        this.getIdsAndPreferencesFromGlobal(true).catch((e) => this.log.Error(e));
+        this.getIdsAndPreferencesFromGlobal().catch((e) => this.log.Error(e));
         break;
       case 'save':
         this.actionSave().catch((e) => this.log.Error(e));
@@ -386,9 +388,9 @@ export class Controller {
    * Refuses all data processing, writes cookies to indicate this to the domain, and closes the UI.
    */
   private async actionRefuseAll() {
-    removeCookie(Cookies.lastRefresh);
+    OneKeyLib.removeCookie(Cookies.lastRefresh);
 
-    await deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
+    await OneKeyLib.deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
     this.model.status = PafStatus.NOT_PARTICIPATING;
     this.model.setFromIdsAndPreferences(undefined);
     this.display('snackbar');
@@ -441,9 +443,9 @@ export class Controller {
     document.cookie = `${
       this.config.siteOnlyCookieTcfCore
     }=${tcfCore.toString()};expires=${getPrebidDataCacheExpiration()}`;
-    removeCookie(Cookies.identifiers);
-    removeCookie(Cookies.preferences);
-    removeCookie(Cookies.lastRefresh);
+    OneKeyLib.removeCookie(Cookies.identifiers);
+    OneKeyLib.removeCookie(Cookies.preferences);
+    OneKeyLib.removeCookie(Cookies.lastRefresh);
   }
 
   /**
@@ -465,7 +467,7 @@ export class Controller {
 
     // Ensure the "this site only" data is removed.
     if (this.config.siteOnlyEnabled) {
-      removeCookie(this.config.siteOnlyCookieTcfCore);
+      OneKeyLib.removeCookie(this.config.siteOnlyCookieTcfCore);
     }
   }
 
@@ -514,9 +516,11 @@ export class Controller {
     */
 
     // Update the ids and preferences.
-    return updateIdsAndPreferences(this.config.proxyHostName, this.model.pref.value.use_browsing_for_personalization, [
-      this.model.rid.value,
-    ]);
+    return OneKeyLib.updateIdsAndPreferences(
+      this.config.proxyHostName,
+      this.model.pref.value.use_browsing_for_personalization,
+      [this.model.rid.value]
+    );
   }
 
   /**
@@ -535,7 +539,7 @@ export class Controller {
    * @returns
    */
   private resetId(): Promise<Identifier> {
-    return getNewId({
+    return OneKeyLib.getNewId({
       proxyHostName: this.config.proxyHostName,
     });
   }
@@ -546,7 +550,7 @@ export class Controller {
    */
   private signIfNeeded(): Promise<Preferences> {
     if (this.model.pref.hasChanged) {
-      return signPreferences(
+      return OneKeyLib.signPreferences(
         { proxyHostName: this.config.proxyHostName },
         {
           identifiers: [this.model.rid.value],

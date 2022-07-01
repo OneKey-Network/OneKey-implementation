@@ -18,17 +18,18 @@ import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
 import { currentScript } from '@frontend/utils/current-script';
 import { Window } from '@frontend/global';
+import { IdsAndPreferences } from '@core/model';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;
   brandLogoUrl?: string;
   emitConsent?: (value: boolean) => void;
+  originalData?: IdsAndPreferences;
 }
 
-export const WelcomeWidget = async ({ emitConsent }: IWelcomeWidgetProps) => {
+export const WelcomeWidget = ({ emitConsent, originalData }: IWelcomeWidgetProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
-  const originalData = await (window as Window).PAF.getIdsAndPreferences();
 
   const originalIdentifier = originalData?.identifiers?.[0];
   const originalConsent = originalData?.preferences?.data?.use_browsing_for_personalization;

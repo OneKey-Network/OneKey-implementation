@@ -35,6 +35,11 @@ const showNotification = (type: NotificationEnum) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
+// become a data layer only without any UI considerations.
+window.PAFUI ??= { promptConsent, showNotification };
+
 // Construct the controller with the loosely typed language object.
 controller = new Controller(
   document.currentScript,
@@ -42,8 +47,3 @@ controller = new Controller(
   locale,
   log
 );
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
-// become a data layer only without any UI considerations.
-window.PAFUI ??= { promptConsent, showNotification };

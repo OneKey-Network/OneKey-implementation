@@ -40,28 +40,30 @@ export interface IQueueContainer {
  * Set up an immediate processing queue to the container and
  * execute the previously deferred commands of the queue.
  * @param container Container of the queue to setup
- * @param preRun method to run before any other command
+ * @param preRun method to run before any other command. Return false to **stop** the execution of other commands
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-export const setUpImmediateProcessingQueue = (container: IQueueContainer, preRun: () => void = () => {}): void => {
+export const setUpImmediateProcessingQueue = async (
+  container: IQueueContainer,
+  preRun: () => Promise<boolean> = () => Promise.resolve(true)
+): Promise<void> => {
   if (container === undefined) {
     return;
   }
 
-  const { queue } = container;
+  // First thing to do, to avoid errors
+  container.queue ??= [];
 
-  if (queue && !Array.isArray(queue)) {
-    // If it's not an array, it must be an ImmediateProcessingQueue
-    log.Debug('queue.setup: already configured');
-    return;
-  }
+  const { queue } = container;
 
   const processor = new ImmediateProcessingQueue();
 
   log.Debug('queue.setup: prerun');
 
   // Run the "pre-run" before anything else
-  preRun();
+  if (!(await preRun())) {
+    log.Info('queue.setup: prerun false => stop execution of commands');
+    return;
+  }
 
   if (queue && Array.isArray(queue)) {
     log.Debug(`queue.setup: run ${queue.length} pre-recorded commands`);
@@ -69,6 +71,8 @@ export const setUpImmediateProcessingQueue = (container: IQueueContainer, preRun
       const cmd = queue.shift();
       processor.push(cmd);
     }
+  } else {
+    log.Debug('queue.setup: no pre-recorded command');
   }
 
   container.queue = processor;
@@ -84,6 +88,7 @@ class ImmediateProcessingQueue implements IProcessingQueue {
 
     for (const op of ops) {
       if (typeof op === 'function') {
+        log.Debug('Processing function', op.name);
         try {
           op();
         } catch (e) {
