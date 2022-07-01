@@ -24,6 +24,7 @@ jobs:
           key: modules-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
+        run: git submodule update --init --recursive
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Cypress run
@@ -39,6 +40,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
+        run: git submodule update --init --recursive
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Build
