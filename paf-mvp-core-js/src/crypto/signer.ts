@@ -1,5 +1,5 @@
-import { PrivateKey } from '@core/crypto/keys';
 import { Log } from '@core/log';
+import { IECDSA } from 'ecdsa-secp256r1';
 
 export interface SignatureStringBuilder<U> {
   /**
@@ -24,7 +24,7 @@ export class Signer<U> implements ISigner<U> {
    * @param ecdsaPrivateKey the private key that will be used to sign
    * @param definition defines how to get input string for signing
    */
-  constructor(private ecdsaPrivateKey: PrivateKey, protected definition: SignatureStringBuilder<U>) {}
+  constructor(private ecdsaPrivateKey: IECDSA, protected definition: SignatureStringBuilder<U>) {}
 
   sign(inputData: U): string {
     this.logger.Debug('Sign', inputData);

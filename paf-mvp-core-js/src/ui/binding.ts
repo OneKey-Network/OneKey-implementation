@@ -52,7 +52,7 @@ export abstract class BindingBase<E extends HTMLElement> {
   /**
    * The view that will contain the element with the id.
    */
-  private readonly view: IView;
+  protected readonly view: IView;
 
   /**
    * Id of the HTML elements that the field is bound to.
@@ -266,7 +266,7 @@ export class BindingElement<T, M extends IModel>
     return element;
   }
 
-  private getString(key: T): string | null {
+  protected getString(key: T): string | null {
     const keyJSON = JSON.stringify(key);
     for (const item of this.pairs) {
       if (JSON.stringify(item[0]) === keyJSON) {

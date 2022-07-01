@@ -1,23 +1,23 @@
 import ECDSA from 'ecdsa-secp256r1';
-import ECKey from 'ec-key';
+import { IECDSA } from 'ecdsa-secp256r1';
+import ECKey from 'ec-key'; // Used to convert PEM keys to JWK format for use with ECDSA.
 import { Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 
-// Not provided by ecdsa-secp256r1 unfortunately
-export interface PrivateKey {
-  sign: (toSign: string) => string;
-}
+/**
+ * Needs to support promises for usage in the browser audit module.
+ * @param pem format public key
+ * @returns IECDSA instance ready for verification
+ */
+export const publicKeyFromString = async (pem: string): Promise<IECDSA> =>
+  <IECDSA>await ECDSA.fromJWK(new ECKey(pem).toJSON());
 
-export interface PublicKey {
-  verify: (toVerify: string, signature: string) => boolean;
-}
-
-export interface PublicKeys {
-  [host: string]: PublicKey;
-}
-
-export const publicKeyFromString = (keyString: string): PublicKey => ECDSA.fromJWK(new ECKey(keyString));
-export const privateKeyFromString = (keyString: string): PrivateKey => ECDSA.fromJWK(new ECKey(keyString));
+/**
+ * Only used in Node so no need to support promises.
+ * @param pem format private key
+ * @returns IECDSA instance ready for signing
+ */
+export const privateKeyFromString = (pem: string): IECDSA => <IECDSA>ECDSA.fromJWK(new ECKey(pem).toJSON());
 
 /**
  * Return true if this key is valid according to start and end dates
