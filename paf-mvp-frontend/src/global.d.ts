@@ -30,7 +30,7 @@ export type Window = WindowProxy &
       getAuditLogByTransaction: typeof getAuditLogByTransaction;
       getAuditLogByDivId: typeof getAuditLogByDivId;
       unpersistedIds?: Identifiers;
-      status: PafStatus;
+      status?: PafStatus;
     };
     PAFUI: {
       promptConsent: () => Promise<boolean>;

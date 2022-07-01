@@ -40,6 +40,24 @@ declare const PAFUI: {
 
 const log = new Log('OneKey', '#3bb8c3');
 
+const executeInQueue = <In, Out>(method: (input: In) => Out): ((input: In) => Promise<Out>) => {
+  return (input: In) =>
+    new Promise((resolve) => {
+      const queue = (<Window>window).PAF.queue;
+
+      if (queue && Array.isArray(queue)) {
+        log.Debug('executeInQueue: Will execute command later', method.name);
+      } else {
+        log.Debug('executeInQueue: Will execute command now', method.name);
+      }
+
+      queue.push(() => {
+        const out = method(input);
+        resolve(out);
+      });
+    });
+};
+
 const redirect = (url: string): void => {
   log.Info('Redirecting to:', url);
   location.replace(url);
@@ -310,7 +328,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     ...options,
   };
 
-  log.Debug('refreshIdsAndPreferences');
+  log.Debug('refreshIdsAndPreferences', mergedOptions);
 
   const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
   let { showPrompt } = mergedOptions;
@@ -343,10 +361,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
   };
 
   const processGetIdsAndPreferences = async (): Promise<RefreshResult> => {
+    // TODO the parsing and cleaning of the query string should be moved to a dedicated function
     const urlParams = new URLSearchParams(window.location.search);
     const uriOperatorData = urlParams.get(QSParam.paf);
     const uriShowPrompt = urlParams.get(localQSParamShowPrompt);
-
     cleanUpUrL();
 
     // 1. Any Prebid 1st party cookie?
@@ -402,6 +420,10 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
         triggerNotification(preferences?.data?.use_browsing_for_personalization);
 
         status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
+
+        if (!hasPersistedId) {
+          (<Window>window).PAF.unpersistedIds = operatorData.body.identifiers;
+        }
       }
 
       return {
@@ -500,6 +522,9 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
         thirdPartyCookiesSupported = true;
 
+        // Save the newly generated id(s)
+        (<Window>window).PAF.unpersistedIds = operatorData.body.identifiers;
+
         return {
           status: PafStatus.UNKNOWN,
           data: {
@@ -535,6 +560,8 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
   // Now handle prompt, if relevant
   await updateDataWithPrompt(idsAndPreferences, proxyHostName, showPrompt);
+
+  (<Window>window).PAF.status = idsAndPreferences.status;
 
   return idsAndPreferences;
 };
@@ -637,16 +664,6 @@ export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Iden
   const response = await get(await newIdUrl.text());
   // Assume no error. FIXME should handle potential errors
   return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
-};
-
-const executeInQueue = <In, Out>(method: (input: In) => Out): ((input: In) => Promise<Out>) => {
-  return (input: In) =>
-    new Promise((resolve) => {
-      (<Window>window).PAF.queue.push(() => {
-        const out = method(input);
-        resolve(out);
-      });
-    });
 };
 
 /**
@@ -889,15 +906,21 @@ export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPre
 
 currentScript.setScript(document.currentScript as HTMLScriptElement);
 const proxyHostName = currentScript.getData()?.proxyHostName;
-const triggerRedirectIfNeeded = currentScript.getData()?.upFrontRedirect
-  ? (JSON.parse(currentScript.getData().upFrontRedirect) as boolean)
-  : undefined;
 
 // Set up the queue of asynchronous commands
-setUpImmediateProcessingQueue((<Window>window).PAF, () =>
-  refreshIdsAndPreferences({
-    proxyHostName,
-    showPrompt: ShowPromptOption.doNotPrompt,
-    triggerRedirectIfNeeded,
-  })
-);
+// Before anything else, the cookies are refreshed with a call to the operator
+const refreshOptions: RefreshIdsAndPrefsOptions = {
+  proxyHostName,
+  showPrompt: ShowPromptOption.promptIfUnknownUser,
+};
+const optionRedirect = currentScript.getData()?.upFrontRedirect;
+if (optionRedirect !== undefined) {
+  refreshOptions.triggerRedirectIfNeeded = JSON.parse(currentScript.getData().upFrontRedirect) as boolean;
+}
+
+(async () =>
+  await setUpImmediateProcessingQueue((<Window>window).PAF, async () => {
+    const result = await refreshIdsAndPreferences(refreshOptions);
+    // If a redirect is needed, return false
+    return result.status !== PafStatus.REDIRECT_NEEDED;
+  }))();
