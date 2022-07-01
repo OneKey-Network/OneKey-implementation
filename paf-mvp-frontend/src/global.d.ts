@@ -4,7 +4,6 @@ import {
   getAuditLogByTransaction,
   getIdsAndPreferences,
   getNewId,
-  refreshIdsAndPreferences,
   registerTransmissionResponse,
   signPreferences,
   updateIdsAndPreferences,
@@ -19,7 +18,6 @@ export type Window = WindowProxy &
       getNewId: typeof getNewId;
       signPreferences: typeof signPreferences;
       getIdsAndPreferences: typeof getIdsAndPreferences;
-      refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
       updateIdsAndPreferences: typeof updateIdsAndPreferences;
       generateSeed: typeof generateSeed;
       registerTransmissionResponse: typeof registerTransmissionResponse;

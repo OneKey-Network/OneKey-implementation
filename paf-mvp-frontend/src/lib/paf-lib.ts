@@ -30,6 +30,7 @@ import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 import { setUpImmediateProcessingQueue } from '../utils/queue';
 import { Window } from '../global';
+import { currentScript } from '@frontend/utils/current-script';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
@@ -281,7 +282,7 @@ const fromClientCookieValues = (idsCookie: string, prefsCookie: string): IdsAndO
   };
 };
 
-const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus => {
+export const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus => {
   if (idsCookie === PafStatus.REDIRECT_NEEDED || prefsCookie === PafStatus.REDIRECT_NEEDED) {
     return PafStatus.REDIRECT_NEEDED;
   }
@@ -638,11 +639,24 @@ export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Iden
   return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
 };
 
+const executeInQueue = <In, Out>(method: (input: In) => Out): ((input: In) => Promise<Out>) => {
+  return (input: In) =>
+    new Promise((resolve) => {
+      (<Window>window).PAF.queue.push(() => {
+        const out = method(input);
+        resolve(out);
+      });
+    });
+};
+
 /**
  * If at least one identifier and some preferences are present as a 1P cookie, return them
  * Otherwise, return undefined
  */
-export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
+export const getIdsAndPreferences: () => Promise<IdsAndPreferences | undefined> = executeInQueue<
+  void,
+  IdsAndPreferences | undefined
+>(() => {
   if (!getCookieValue(Cookies.lastRefresh)) {
     return undefined;
   }
@@ -661,7 +675,7 @@ export const getIdsAndPreferences = (): IdsAndPreferences | undefined => {
   }
 
   return values as IdsAndPreferences;
-};
+});
 
 /**
  * Aggregate Seed and Preferences for storage.
@@ -717,7 +731,7 @@ export const createSeed = async (
   }
   const getUrl = getProxyUrl(proxyHostName);
   const url = getUrl(jsonProxyEndpoints.createSeed);
-  const idsAndPreferences = getIdsAndPreferences();
+  const idsAndPreferences = await getIdsAndPreferences();
   if (idsAndPreferences === undefined) {
     return undefined;
   }
@@ -873,5 +887,17 @@ export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPre
   redirect(operatorUrl);
 };
 
+currentScript.setScript(document.currentScript as HTMLScriptElement);
+const proxyHostName = currentScript.getData()?.proxyHostName;
+const triggerRedirectIfNeeded = currentScript.getData()?.upFrontRedirect
+  ? (JSON.parse(currentScript.getData().upFrontRedirect) as boolean)
+  : undefined;
+
 // Set up the queue of asynchronous commands
-setUpImmediateProcessingQueue((<Window>window).PAF);
+setUpImmediateProcessingQueue((<Window>window).PAF, () =>
+  refreshIdsAndPreferences({
+    proxyHostName,
+    showPrompt: ShowPromptOption.doNotPrompt,
+    triggerRedirectIfNeeded,
+  })
+);
