@@ -22,6 +22,9 @@ pafPublisherWebSiteApp.expressApp.get(anythingButAssets, (req, res) => {
 
   // Send full URL in referer header, for testing this config
   res.setHeader('Referrer-Policy', 'unsafe-url');
+
+  // Allow resources from other origins to avoid error NotSameOriginAfterDefaultedToSameOriginByCoep when loading external resources
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 });
 
 export const pafPublisherCdnApp = new VHostApp(name, cdnHost);
