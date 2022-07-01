@@ -13,7 +13,8 @@ import {
   updateIdsAndPreferences,
   deleteIdsAndPreferences,
 } from '@frontend/lib/paf-lib';
-import { Marketing, Model } from './model';
+import { Marketing } from '@core/model/marketing';
+import { Model } from './model';
 import { PafStatus } from '@frontend/enums/status.enum';
 import { View } from './view';
 import { getCookieValue } from '@frontend/utils/cookie';
