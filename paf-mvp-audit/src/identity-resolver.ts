@@ -41,7 +41,10 @@ export class IdentityResolverMap implements IdentityResolver {
    * @param host
    */
   public get(host: string): Promise<GetIdentityResponse> {
-    return this.delay(this.millisecondDelay).then(() => this.map.get(host));
+    if (this.millisecondDelay > 0) {
+      return this.delay(this.millisecondDelay).then(() => this.map.get(host));
+    }
+    return Promise.resolve(this.map.get(host));
   }
 }
 
