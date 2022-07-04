@@ -7,7 +7,7 @@ import { getTimeStampInSec } from '@core/timestamp';
 /**
  * Needs to support promises for usage in the browser audit module.
  * @param pem format public key
- * @returns IECDSA instance ready for verification
+ * @returns Promise for an IECDSA instance to use for verification
  */
 export const publicKeyFromString = (pem: string): Promise<IECDSA> => {
   const result = ECDSA.fromJWK(new ECKey(pem).toJSON());
