@@ -29,6 +29,14 @@ export class Signer<U> implements ISigner<U> {
   sign(inputData: U): string {
     this.logger.Debug('Sign', inputData);
     const toSign = this.definition.getInputString(inputData);
-    return this.ecdsaPrivateKey.sign(toSign);
+
+    // TODO: There is a failure in the underlying crypto implementation that can return signatures that will
+    // subsequently fail validation. The change to resign the signature can be removed when the underlying bug is
+    // resolved.
+    let signature = this.ecdsaPrivateKey.sign(toSign);
+    while (this.ecdsaPrivateKey.verify(toSign, signature) === false) {
+      signature = this.ecdsaPrivateKey.sign(toSign);
+    }
+    return signature;
   }
 }
