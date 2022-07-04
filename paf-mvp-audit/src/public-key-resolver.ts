@@ -32,14 +32,12 @@ export class PublicKeyResolver {
       try {
         publicKey = await publicKeyFromString(this.identity.keys[publicKeyIndex].key);
       } catch (e) {
-        console.log(e);
         this.log.Warn('PublicKeyResolver', e);
       }
     } else {
       const message = `No valid keys for '${domain}' at timestamp '${
         this.requiredTimestamp
       }' with identity '${JSON.stringify(this.identity)}'`;
-      console.log(message);
       this.log.Warn(message);
     }
     return publicKey;
