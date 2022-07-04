@@ -121,7 +121,7 @@ describe('testing model', () => {
     const model = await new Model(log, resolver, auditLog).verify();
 
     // Check that the overall status is bad as the signature is invalid.
-    expect(await model.overall.value).toBe(OverallStatus.Suspicious);
+    expect(model.overall.value).toBe(OverallStatus.Suspicious);
 
     saveAuditLog('result-error.json', auditLog, resolver);
   });
