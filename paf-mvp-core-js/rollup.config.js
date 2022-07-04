@@ -49,17 +49,9 @@ export default [
       json(),
       commonjs(),
       nodeResolve(),
-      ...(() => {
-        if (DEV) {
-          return [];
-        } else {
-          return [
-            terser() // minify js output
-          ];
-        }
-      })()
+      ...(DEV ? [] : [terser()]) // minify js output if production
     ],
-    // Ignore all npm dependencies
+    // All NPM dependencies must be part of the export, they are "externals"
     external: [
       ...builtinModules,
       ...(pkg.dependencies == null ? [] : Object.keys(pkg.dependencies)),
