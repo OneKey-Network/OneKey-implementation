@@ -34,8 +34,10 @@ export class Signer<U> implements ISigner<U> {
     // subsequently fail validation. The change to resign the signature can be removed when the underlying bug is
     // resolved.
     let signature = this.ecdsaPrivateKey.sign(toSign);
-    while (<boolean>this.ecdsaPrivateKey.verify(toSign, signature) === false) {
-      signature = this.ecdsaPrivateKey.sign(toSign);
+    if (this.ecdsaPrivateKey.verify) {
+      while (<boolean>this.ecdsaPrivateKey.verify(toSign, signature) === false) {
+        signature = this.ecdsaPrivateKey.sign(toSign);
+      }
     }
     return signature;
   }
