@@ -34,7 +34,8 @@ export class Verifier<T> {
     const signature = this.definition.getSignature(signedData);
     const toVerify = this.definition.getInputString(signedData);
 
-    const result = await publicKey.verify(toVerify, signature);
+    const verifyResult = publicKey.verify(toVerify, signature);
+    const result = verifyResult instanceof Promise ? await verifyResult : verifyResult;
 
     if (result) this.logger.Debug('Verified', signedData);
     else this.logger.Error('Verification failed for', signedData);
