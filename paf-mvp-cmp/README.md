@@ -12,7 +12,7 @@ proxy-host-name domain. A list of CMP providers is available in the
 page.
 
 ```HTML
-<script src="https://[proxy-host-name]/assets/cmp/ok-ui.min.js" 
+<script src="https://[proxy-host-name]/assets/ok-ui-cmp.min.js" 
     data-brand-name="Your Publisher Name"
     data-brand-privacy-url="Your Privacy Policy URL"></script>
 ```
@@ -127,14 +127,14 @@ particularly noticeable when HTTPS/2 is used.
 For example to preload the loader the following then following would be used.
 
 ```html
-<link rel="preload" as="script" href="https://domain.com/assets/cmp/ok-ui.js">
+<link rel="preload" as="script" href="https://domain.com/assets/ok-ui-cmp.js">
 ```
 
 If the server has already worked out the correct language bundle the following
 would be used.
 
 ```html
-<link rel="preload" as="script" href="https://domain.com/assets/cmp/ok-ui-en-gb.js">
+<link rel="preload" as="script" href="https://domain.com/assets/ok-ui-cmp-en-gb.js">
 ```
 
 If this link is not added, then the functionality will still be provided by page

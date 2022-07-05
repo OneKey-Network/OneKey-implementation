@@ -13,13 +13,14 @@ import {
   updateIdsAndPreferences,
   deleteIdsAndPreferences,
 } from '@frontend/lib/paf-lib';
-import { Marketing, Model } from './model';
+import { Marketing } from '@core/model/marketing';
+import { Model } from './model';
 import { PafStatus } from '@frontend/enums/status.enum';
 import { View } from './view';
 import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { TcfCore } from './tcfcore';
-import { ILocale } from './ILocale';
+import { ILocale } from '@core/ui/ILocale';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -346,6 +347,7 @@ export class Controller {
           this.display(card);
           e.preventDefault();
         });
+        element.removeAttribute('data-card');
       }
       const action = element.getAttribute('data-action');
       if (action !== null) {
@@ -353,6 +355,7 @@ export class Controller {
           this.processAction(action);
           e.preventDefault();
         });
+        element.removeAttribute('data-action');
       }
     }
   }

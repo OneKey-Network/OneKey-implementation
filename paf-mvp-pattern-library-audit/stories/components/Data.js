@@ -1,9 +1,13 @@
+import { StatusWrapper } from './Status';
+
 export const Datum = (args) => `
   <li class="ok-ui-datum">
     <div class="ok-ui-datum__body">
       ${args.icon}
       <h3 class="ok-ui-heading-3 ok-ui-datum__name">${args.name}</h3>
-      <p class="ok-ui-meta ok-ui-datum__value">${args.value}</p>
+      <p class="ok-ui-meta ok-ui-datum__value">
+        ${StatusWrapper({ type: args.type, children: args.value })}
+      </p>
     </div>
 
     ${args.action ? `

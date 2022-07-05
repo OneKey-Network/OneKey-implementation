@@ -7,11 +7,13 @@
   },
   "description": "The output from this project is a single JavaScript resource file that contains the entire Audit log viewer.",
   "version": "0.1.0",
-  "main": "./src/main.ts",
   "directories": {
     "test": "tests"
   },
   "keywords": [],
   "author": "",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "ec-key": "^0.0.4"
+  }
 }

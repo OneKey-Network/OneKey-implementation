@@ -8,6 +8,7 @@ import {
   registerTransmissionResponse,
   signPreferences,
   updateIdsAndPreferences,
+  getSeedStorageWorkAround,
 } from './lib/paf-lib';
 import { NotificationEnum } from './enums/notification.enum';
 import { ICommandProcessor } from './utils/queue';
@@ -25,6 +26,7 @@ export type Window = WindowProxy &
       registerTransmissionResponse: typeof registerTransmissionResponse;
       getAuditLogByTransaction: typeof getAuditLogByTransaction;
       getAuditLogByDivId: typeof getAuditLogByDivId;
+      getSeedStorageWorkAround: typeof getSeedStorageWorkAround;
     };
     PAFUI: {
       promptConsent: () => Promise<boolean>;

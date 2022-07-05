@@ -1,0 +1,32 @@
+.ok-ui-status-wrapper {
+  display: inline-flex;
+  align-items: center;
+
+  .ok-ui-status {
+    margin: 0 em(8px) 0 0;
+  }
+
+  &--icon-end {
+    .ok-ui-status {
+      order: 2;
+      margin: 0 0 0 em(8px);
+    }
+  }
+}
+
+.ok-ui-status {
+  display: inline-flex;
+  align-items: center;
+
+  &--good {
+    color: $status-good;
+  }
+
+  &--suspicious {
+    color: $status-warning;
+  }
+
+  &--violation {
+    color: $status-bad;
+  }
+}

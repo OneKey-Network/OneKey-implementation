@@ -1,5 +1,6 @@
 import Button from './Button';
-import { Attention, Warning, ArrowRight, Check, External } from './Icons';
+import Status from './Status';
+import { ArrowRight, External } from './Icons';
 
 const content = {
   'loading': {
@@ -8,19 +9,16 @@ const content = {
   },
   'good': {
     title: 'No suspicious transactions found',
-    body: 'With the advertisement that the publisher has displayed for you, everything is perfectly fine.',
-    icon: Check(),
+    body: 'With the advertisement that the publisher has displayed for you, everything is perfectly fine.'
   },
   'suspicious': {
     title: 'Suspicious transaction detected',
     body: 'We detected one or more suspicous transaction in this advertisement\'s supply chain.',
-    icon: Attention(),
     button: 'warning'
   },
   'violation': {
     title: 'Violation detected',
     body: 'We take your privacy seriously, we removed bad parties from our supply chain and we are reported to the authorites. If you want to take steps yourself this is what you can do:',
-    icon: Warning(),
     button: 'danger'
   },
 };
@@ -31,9 +29,7 @@ export default (args) => {
 
   return `
     <div class="${classes.join(' ')}">
-      ${content[type].icon ? `
-        <span class="ok-ui-icon--xl">${content[type].icon}</span>
-      ` : ''}
+      ${Status({ type, large: true })}
 
       ${type === 'loading' ? `
         <span class="ok-ui-loading"></span>

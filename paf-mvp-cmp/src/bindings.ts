@@ -1,7 +1,8 @@
 import { Config } from './config';
 import { BindingViewOnly } from '@core/ui/binding';
 import { Identifier, PreferencesData } from '@core/model/generated-model';
-import { Marketing, Model } from './model';
+import { Model } from './model';
+import { Marketing } from '@core/model/marketing';
 import { View } from './view';
 
 /**

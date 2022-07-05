@@ -1,0 +1,23 @@
+<div class="ok-ui-advert-status ok-ui-advert-status--violation">
+    <span class="ok-ui-icon--xl"><svg width="1em" height="0.857em" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M13.1774 11.9989H0.822045C0.583871 11.9989 0.363792 11.8718 0.244708 11.6656C0.125623 11.4593 0.125625 11.2052 0.244712 10.9989L6.42205 0.332239C6.54123 0.126313 6.76112 -0.000488281 6.99905 -0.000488281C7.23697 -0.000488281 7.45687 0.126313 7.57605 0.332239L13.7534 10.9989C13.8724 11.2051 13.8725 11.4591 13.7536 11.6653C13.6346 11.8715 13.4148 11.9987 13.1767 11.9989H13.1774ZM7.00005 1.99891L1.97938 10.6656H12.022L7.00005 1.99891ZM7.66338 7.99957H6.33005V4.66557H7.66338V7.99957Z" fill="currentColor"/>
+    <path d="M6.33338 8.66691H7.66671V10.0002H6.33338V8.66691Z" fill="currentColor"/>
+  </svg></span>
+    <h3 class="ok-ui-heading-3 ok-ui-mt-1 ok-ui-mb-1">${ _.advertViolationTitle }</h3>
+    ${ _.advertViolationBodyHTML }
+    <div class="ok-ui-advert-status__footer">
+      <button type="button" class="ok-ui-button ok-ui-button--filled ok-ui-button--danger ok-ui-button--icon-end" data-card="participants">
+        <svg width="0.857em" height="0.571em" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.77996 4.66667L6.39329 7.06L7.33329 8L11.3333 4L7.33329 0L6.39329 0.94L8.77996 3.33333H0.666626V4.66667H8.77996Z" fill="currentColor" />
+        </svg>
+        <span class="ok-ui-button__label">${ _.advertViolationButton }</span>
+      </button>
+      <hr class="ok-ui-divide" />
+      <button type="button" class="ok-ui-button ok-ui-button--undefined ok-ui-button--text ok-ui-button--icon-end" onclick="window.open('${ _.advertLearnMoreUrl}')">
+        <svg width="0.857em" height="0.857em" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.3339 11.3334H2.00057C1.26419 11.3334 0.667236 10.7365 0.667236 10.0001V2.66675C0.667236 1.93037 1.26419 1.33341 2.00057 1.33341H4.66724V2.66675H2.00057V10.0001H9.3339V7.33341H10.6672V10.0001C10.6672 10.7365 10.0703 11.3334 9.3339 11.3334ZM5.80057 7.13808L4.86057 6.19541L9.0559 2.00008H6.66724V0.666748H11.3339V5.33341H10.0006V2.94341L5.80057 7.13808Z" fill="currentColor" />
+        </svg>
+        <span class="ok-ui-button__label">${ _.advertLearnMore }</span>
+      </button>
+    </div>
+  </div>

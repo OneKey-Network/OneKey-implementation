@@ -15,12 +15,14 @@ export const Data = () => DataComponent({ children: `
   ${Datum({
     icon: Calendar(),
     name: 'Setup date',
+    type: 'suspicious',
     value: 'Set up on 30-03-2022 at 10:35 by OneKey Operator'
   })}
   ${Datum({
     icon: File(),
     name: 'Terms used',
     value: 'Set up on 30-03-2022 at 10:35',
+    type: 'violation',
     action: Button({ style: 'outlined', type: 'primary', label: 'See Terms', icon: External(), iconPosition: 'end' })
   })}
 ` });

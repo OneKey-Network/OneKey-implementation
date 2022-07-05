@@ -1,10 +1,10 @@
 import { Signer } from '@core/crypto/signer';
-import { PrivateKey } from '@core/crypto/keys';
 import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
+import { IECDSA } from 'ecdsa-secp256r1';
 
 describe('Signer', () => {
   test('should sign based on definition', () => {
-    const mockPrivateKey: PrivateKey = {
+    const mockPrivateKey: IECDSA = {
       sign: (data: string) => `SIGNED[${data}]`,
     };
 

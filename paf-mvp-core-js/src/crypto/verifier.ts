@@ -1,4 +1,3 @@
-import { PublicKey } from '@core/crypto/keys';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
@@ -10,9 +9,10 @@ import { Identifier, IdsAndPreferences, MessageBase } from '@core/model/generate
 import { getTimeStampInSec } from '@core/timestamp';
 import { Unsigned } from '@core/model/model';
 import { Log } from '@core/log';
+import { IECDSA } from 'ecdsa-secp256r1';
 
 export interface PublicKeyProvider {
-  (domain: string): Promise<PublicKey>;
+  (domain: string): Promise<IECDSA>;
 }
 
 /**
@@ -34,7 +34,8 @@ export class Verifier<T> {
     const signature = this.definition.getSignature(signedData);
     const toVerify = this.definition.getInputString(signedData);
 
-    const result = publicKey.verify(toVerify, signature);
+    const verifyResult = publicKey.verify(toVerify, signature);
+    const result = verifyResult instanceof Promise ? await verifyResult : verifyResult;
 
     if (result) this.logger.Debug('Verified', signedData);
     else this.logger.Error('Verification failed for', signedData);

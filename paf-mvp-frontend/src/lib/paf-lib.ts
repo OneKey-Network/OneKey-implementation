@@ -759,6 +759,15 @@ export const generateSeed = async (
 };
 
 /**
+ * TODO a work around to enable the demo to get a valid PAF ID. Needs to be removed when the end to end system is
+ * working.
+ * @returns
+ */
+export const getSeedStorageWorkAround = (): Map<TransactionId, SeedEntry> => {
+  return seedStorage;
+};
+
+/**
  * Register the Transmission Response of an initial Transmission Request for a given Seed.
  * @param context
  * @param transmissionResponse Transmission Response of an initial Transmission Request containing all the children.
@@ -787,6 +796,9 @@ export const registerTransmissionResponse = (
   auditLogByPrebidTransactionId.set(prebidTransactionId, auditLog);
   prebidTransactionIdByDivId.set(divId, prebidTransactionId);
 
+  // Set the audit log attribute of the advert div container to include the data needed by the auditHandler.
+  // TODO: Change the interface to pass the audit log as a second parameter to the audit handler.
+  divContainer.setAttribute('auditLog', JSON.stringify(auditLog));
   if (auditHandler) {
     auditHandler.bind(divContainer);
   }

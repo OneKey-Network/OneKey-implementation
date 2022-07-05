@@ -1,0 +1,3 @@
+[submodule "ecdsa-secp256r1"]
+	path = ecdsa-secp256r1
+	url = https://github.com/51Degrees/ecdsa-secp256r1.git

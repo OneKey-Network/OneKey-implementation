@@ -58,7 +58,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       startTimestampInSec: currentKey.start,
       endTimestampInSec: currentKey.end,
       publicKey: currentKey.key,
-      publicKeyObj: publicKeyFromString(currentKey.key),
+      publicKeyObj: await publicKeyFromString(currentKey.key),
     };
 
     // Two consecutive calls
@@ -94,7 +94,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       startTimestampInSec: currentKey.start,
       // No end date
       publicKey: currentKey.key,
-      publicKeyObj: publicKeyFromString(currentKey.key),
+      publicKeyObj: await publicKeyFromString(currentKey.key),
     };
 
     // Two consecutive calls
@@ -125,7 +125,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       startTimestampInSec: oldKey.start,
       endTimestampInSec: oldKey.end,
       publicKey: oldKey.key,
-      publicKeyObj: publicKeyFromString(oldKey.key),
+      publicKeyObj: await publicKeyFromString(oldKey.key),
     };
 
     // First call will query it
@@ -139,7 +139,7 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
       startTimestampInSec: currentKey.start,
       endTimestampInSec: currentKey.end,
       publicKey: currentKey.key,
-      publicKeyObj: publicKeyFromString(currentKey.key),
+      publicKeyObj: await publicKeyFromString(currentKey.key),
     };
 
     expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedNewKey);
