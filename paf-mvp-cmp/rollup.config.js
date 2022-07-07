@@ -182,6 +182,7 @@ function buildLoader() {
 function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
   return {
     input: './src/main.ts',
+    // paf-lib must not be included in the bundle: it is imported separately
     external: [ path.resolve( '../paf-mvp-frontend/src/lib/paf-lib.ts' ) ],
     plugins: [
       replace({

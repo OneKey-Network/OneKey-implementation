@@ -138,9 +138,9 @@ const showNotificationIfValid = (consent: boolean | undefined) => {
 };
 
 const getProxyUrl =
-  (proxyHost: string) =>
+  (clientHostname: string) =>
   (endpoint: string): string =>
-    `https://${proxyHost}${endpoint}`;
+    `https://${clientHostname}${endpoint}`;
 
 export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
   const valueToStore = cookieValue === undefined ? PafStatus.NOT_PARTICIPATING : JSON.stringify(cookieValue);
@@ -156,39 +156,11 @@ export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefine
 
 let thirdPartyCookiesSupported: boolean | undefined;
 
-export interface Options {
-  proxyHostName: string;
-}
-
 export enum ShowPromptOption {
   doNotPrompt = 'doNotPrompt',
   doPrompt = 'doPrompt',
   promptIfUnknownUser = 'promptIfUnknownUser',
 }
-
-export interface RefreshIdsAndPrefsOptions extends Options {
-  triggerRedirectIfNeeded?: boolean;
-  returnUrl?: URL;
-  showPrompt?: ShowPromptOption;
-}
-
-const defaultsRefreshIdsAndPrefsOptions: RefreshIdsAndPrefsOptions = {
-  proxyHostName: 'MISSING_PROXY_HOST_NAME',
-  showPrompt: ShowPromptOption.promptIfUnknownUser,
-  triggerRedirectIfNeeded: true,
-};
-
-export type WriteIdsAndPrefsOptions = Options;
-
-export type SignPrefsOptions = Options;
-
-export type GetNewIdOptions = Options;
-
-export interface GenerateSeedOptions extends Options {
-  callback?: (seed: Seed) => void;
-}
-
-export type DeleteIdsAndPreferencesOptions = Options;
 
 /**
  * Refresh result
@@ -205,7 +177,6 @@ export interface RefreshResult {
  * @param identifiers
  */
 export const updateIdsAndPreferences = async (
-  proxyHostName: string,
   optIn: boolean,
   identifiers: Identifier[]
 ): Promise<IdsAndOptionalPreferences | undefined> => {
@@ -216,35 +187,24 @@ export const updateIdsAndPreferences = async (
       use_browsing_for_personalization: optIn,
     },
   };
-  const signedPreferences = await signPreferences(
-    { proxyHostName },
-    {
-      identifiers,
-      unsignedPreferences,
-    }
-  );
+  const signedPreferences = await signPreferences({
+    identifiers,
+    unsignedPreferences,
+  });
 
   // 2. write
-  return await writeIdsAndPref(
-    { proxyHostName },
-    {
-      identifiers,
-      preferences: signedPreferences,
-    }
-  );
+  return await writeIdsAndPref({
+    identifiers,
+    preferences: signedPreferences,
+  });
 };
 
 /**
  *
  * @param idsAndPreferences
- * @param proxyHostName
  * @param showPrompt
  */
-async function updateDataWithPrompt(
-  idsAndPreferences: RefreshResult,
-  proxyHostName: string,
-  showPrompt: ShowPromptOption
-) {
+async function updateDataWithPrompt(idsAndPreferences: RefreshResult, showPrompt: ShowPromptOption) {
   const { status, data } = idsAndPreferences;
 
   log.Debug('showPrompt', showPrompt);
@@ -262,7 +222,7 @@ async function updateDataWithPrompt(
     showPrompt === ShowPromptOption.doPrompt ||
     (showPrompt === ShowPromptOption.promptIfUnknownUser && status === PafStatus.UNKNOWN)
   ) {
-    optIn = await PAFUI.promptConsent();
+    optIn = await promptManager.showUI();
   }
 
   if (optIn === undefined) {
@@ -279,9 +239,9 @@ async function updateDataWithPrompt(
     let identifiers = data.identifiers;
     if (identifiers?.length === 0) {
       // If opening the prompt while the user is unknown, it can happen that we need to query for a new id
-      identifiers = [await getNewId({ proxyHostName })];
+      identifiers = [await getNewId()];
     }
-    await updateIdsAndPreferences(proxyHostName, optIn, identifiers);
+    await updateIdsAndPreferences(optIn, identifiers);
   }
 }
 
@@ -313,6 +273,115 @@ export const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus 
   return PafStatus.PARTICIPATING;
 };
 
+type CookieData = {
+  strIds: string;
+  lastRefresh: string;
+  strPreferences: string;
+  currentlySelectedConsent: boolean;
+  currentPafData: IdsAndOptionalPreferences;
+};
+
+const getAllCookies = (): CookieData => {
+  const strIds = getCookieValue(Cookies.identifiers);
+  const strPreferences = getCookieValue(Cookies.preferences);
+  const currentPafData = fromClientCookieValues(strIds, strPreferences);
+  return {
+    strIds,
+    lastRefresh: getCookieValue(Cookies.lastRefresh),
+    strPreferences,
+    currentPafData,
+    currentlySelectedConsent: currentPafData.preferences?.data?.use_browsing_for_personalization,
+  };
+};
+
+const triggerNotification = (initialData: CookieData, newConsent: boolean) => {
+  // the new value is different from the previous one
+  if (newConsent !== initialData.currentlySelectedConsent) {
+    log.Debug(
+      `Preferences changes detected (${initialData.currentlySelectedConsent} => ${newConsent}), show notification`
+    );
+    showNotificationIfValid(newConsent);
+  } else {
+    log.Debug(`No preferences changes (${initialData.currentlySelectedConsent}), don't show notification`);
+  }
+};
+
+const handleAfterBoomerangRedirect = async () => {
+  // Update the URL shown in the address bar, without OneKey data
+  const urlParams = new URLSearchParams(window.location.search);
+  const uriOperatorData = urlParams.get(QSParam.paf);
+  const uriShowPrompt = urlParams.get(localQSParamShowPrompt);
+
+  const cleanedUrl = removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]);
+  history.pushState(null, '', cleanedUrl);
+
+  // 1. Any Prebid 1st party cookie?
+  const initialData = getAllCookies();
+
+  // 2. Redirected from operator?
+  if (uriOperatorData) {
+    log.Info('Redirected from operator: YES');
+
+    // Consider that if we have been redirected, it means 3PC are not supported
+    thirdPartyCookiesSupported = false;
+
+    // Verify message
+    const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
+    const operatorData = (await response.json()) as GetIdsPrefsResponse | PostIdsPrefsResponse | DeleteIdsPrefsResponse;
+
+    if (!operatorData) {
+      throw 'Verification failed';
+    }
+
+    log.Debug('Operator data after redirect', operatorData);
+
+    let status: PafStatus;
+
+    // Remember what was asked for prompt, before the redirect
+    const showPrompt = uriShowPrompt as ShowPromptOption;
+
+    // 3. Received data?
+    if (operatorData.body.preferences === undefined && operatorData.body.identifiers.length === 0) {
+      // Deletion of ids and preferences requested
+      saveCookieValue(Cookies.identifiers, undefined);
+      saveCookieValue(Cookies.preferences, undefined);
+      status = PafStatus.NOT_PARTICIPATING;
+
+      log.Info('Deleted ids and preferences');
+    } else {
+      // Ids and preferences received
+      const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
+      const hasPersistedId = persistedIds.length > 0;
+      const preferences = operatorData?.body?.preferences;
+      const hasPreferences = preferences !== undefined;
+      saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
+      saveCookieValue(Cookies.preferences, preferences);
+
+      triggerNotification(initialData, preferences?.data?.use_browsing_for_personalization);
+
+      status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
+
+      if (!hasPersistedId) {
+        (<Window>window).PAF.unpersistedIds = operatorData.body.identifiers;
+      }
+    }
+
+    // Now handle prompt, if relevant
+    await updateDataWithPrompt(
+      {
+        status,
+        data: operatorData.body,
+      },
+      showPrompt
+    );
+  }
+
+  log.Info('Redirected from operator: NO');
+};
+
+// Special query string param to remember the prompt must be shown
+const localQSParamShowPrompt = 'paf_show_prompt';
+
 /**
  * Ensure local cookies for OneKey identifiers and preferences are up-to-date.
  * If they aren't, contact the operator to get fresh values.
@@ -322,35 +391,16 @@ export const getPafStatus = (idsCookie: string, prefsCookie: string): PafStatus 
  * - returnUrl: the URL that must be called in return (after a redirect to the operator) when no 3PC are available. Default = current page
  * @return a status and optional data
  */
-export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOptions): Promise<RefreshResult> => {
-  const mergedOptions: RefreshIdsAndPrefsOptions = {
-    ...defaultsRefreshIdsAndPrefsOptions,
-    ...options,
-  };
-
-  log.Debug('refreshIdsAndPreferences', mergedOptions);
-
-  const { proxyHostName, triggerRedirectIfNeeded, returnUrl } = mergedOptions;
-  let { showPrompt } = mergedOptions;
-
-  // Special query string param to remember the prompt must be shown
-  const localQSParamShowPrompt = 'paf_show_prompt';
-
-  // Update the URL shown in the address bar, without OneKey data
-  const cleanUpUrL = () => {
-    const cleanedUrl = removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]);
-    history.pushState(null, '', cleanedUrl);
-  };
-  const getUrl = getProxyUrl(proxyHostName);
+export const refreshIdsAndPreferences = async (
+  showPrompt: ShowPromptOption = ShowPromptOption.promptIfUnknownUser
+): Promise<RefreshResult> => {
+  log.Debug('refreshIdsAndPreferences', showPrompt);
 
   const redirectToRead = async () => {
     log.Info('Redirect to operator');
 
     const clientUrl = new URL(getUrl(redirectProxyEndpoints.read));
-    const currentPageUrl = new URL(location.href);
-
-    // Use provided URL or the current page URL as the final "return URL"
-    const boomerangUrl = returnUrl ?? currentPageUrl;
+    const boomerangUrl = new URL(location.href);
     boomerangUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
 
     clientUrl.searchParams.set(proxyUriParams.returnUrl, boomerangUrl.toString());
@@ -360,94 +410,11 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     redirect(operatorUrl);
   };
 
-  const processGetIdsAndPreferences = async (): Promise<RefreshResult> => {
+  const processRefreshIdsAndPreferences = async (): Promise<RefreshResult> => {
     // TODO the parsing and cleaning of the query string should be moved to a dedicated function
-    const urlParams = new URLSearchParams(window.location.search);
-    const uriOperatorData = urlParams.get(QSParam.paf);
-    const uriShowPrompt = urlParams.get(localQSParamShowPrompt);
-    cleanUpUrL();
+    const initialData = getAllCookies();
 
-    // 1. Any Prebid 1st party cookie?
-    const strIds = getCookieValue(Cookies.identifiers);
-    const lastRefresh = getCookieValue(Cookies.lastRefresh);
-    const strPreferences = getCookieValue(Cookies.preferences);
-    const currentPafData = fromClientCookieValues(strIds, strPreferences);
-    const currentlySelectedConsent = currentPafData.preferences?.data?.use_browsing_for_personalization;
-
-    const triggerNotification = (freshConsent: boolean) => {
-      // the new value is different from the previous one
-      if (freshConsent !== currentlySelectedConsent) {
-        log.Debug(`Preferences changes detected (${currentlySelectedConsent} => ${freshConsent}), show notification`);
-        showNotificationIfValid(freshConsent);
-      } else {
-        log.Debug(`No preferences changes (${currentlySelectedConsent}), don't show notification`);
-      }
-    };
-
-    async function handleAfterRedirect() {
-      // Verify message
-      const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
-      const operatorData = (await response.json()) as
-        | GetIdsPrefsResponse
-        | PostIdsPrefsResponse
-        | DeleteIdsPrefsResponse;
-
-      if (!operatorData) {
-        throw 'Verification failed';
-      }
-
-      log.Debug('Operator data after redirect', operatorData);
-
-      let status: PafStatus;
-
-      // 3. Received data?
-      if (operatorData.body.preferences === undefined && operatorData.body.identifiers.length === 0) {
-        // Deletion of ids and preferences requested
-        saveCookieValue(Cookies.identifiers, undefined);
-        saveCookieValue(Cookies.preferences, undefined);
-        status = PafStatus.NOT_PARTICIPATING;
-
-        log.Info('Deleted ids and preferences');
-      } else {
-        // Ids and preferences received
-        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
-        const hasPersistedId = persistedIds.length > 0;
-        const preferences = operatorData?.body?.preferences;
-        const hasPreferences = preferences !== undefined;
-        saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
-        saveCookieValue(Cookies.preferences, preferences);
-
-        triggerNotification(preferences?.data?.use_browsing_for_personalization);
-
-        status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
-
-        if (!hasPersistedId) {
-          (<Window>window).PAF.unpersistedIds = operatorData.body.identifiers;
-        }
-      }
-
-      return {
-        status,
-        data: operatorData.body,
-      };
-    }
-
-    // 2. Redirected from operator?
-    if (uriOperatorData) {
-      log.Info('Redirected from operator: YES');
-
-      // Consider that if we have been redirected, it means 3PC are not supported
-      thirdPartyCookiesSupported = false;
-
-      // Remember what was asked for prompt, before the redirect
-      showPrompt = uriShowPrompt as ShowPromptOption;
-
-      return await handleAfterRedirect();
-    }
-
-    log.Info('Redirected from operator: NO');
-
-    const pafStatus = getPafStatus(strIds, strPreferences);
+    const pafStatus = getPafStatus(initialData.strIds, initialData.strPreferences);
 
     if (pafStatus === PafStatus.REDIRECT_NEEDED) {
       log.Info('Redirect previously deferred');
@@ -461,7 +428,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
       };
     }
 
-    if (lastRefresh) {
+    if (initialData.lastRefresh) {
       log.Info('Cookie found: YES');
 
       if (pafStatus === PafStatus.NOT_PARTICIPATING) {
@@ -470,7 +437,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
 
       return {
         status: pafStatus,
-        data: currentPafData,
+        data: initialData.currentPafData,
       };
     }
 
@@ -501,7 +468,7 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
         saveCookieValue(Cookies.identifiers, persistedIds);
         saveCookieValue(Cookies.preferences, operatorData.body.preferences);
 
-        triggerNotification(operatorData.body.preferences?.data?.use_browsing_for_personalization);
+        triggerNotification(initialData, operatorData.body.preferences?.data?.use_browsing_for_personalization);
 
         return {
           status: PafStatus.PARTICIPATING,
@@ -554,12 +521,12 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
     };
   };
 
-  const idsAndPreferences = await processGetIdsAndPreferences();
+  const idsAndPreferences = await processRefreshIdsAndPreferences();
 
   log.Debug('refreshIdsAndPreferences return', idsAndPreferences);
 
   // Now handle prompt, if relevant
-  await updateDataWithPrompt(idsAndPreferences, proxyHostName, showPrompt);
+  await updateDataWithPrompt(idsAndPreferences, showPrompt);
 
   (<Window>window).PAF.status = idsAndPreferences.status;
 
@@ -573,11 +540,8 @@ export const refreshIdsAndPreferences = async (options: RefreshIdsAndPrefsOption
  * @param input the identifiers and preferences to write
  * @return the written identifiers and preferences
  */
-const writeIdsAndPref = async (
-  { proxyHostName }: WriteIdsAndPrefsOptions,
-  input: IdsAndPreferences
-): Promise<IdsAndOptionalPreferences | undefined> => {
-  const getUrl = getProxyUrl(proxyHostName);
+const writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptionalPreferences | undefined> => {
+  const getUrl = getProxyUrl(clientHostname);
 
   const processWriteIdsAndPref = async (): Promise<IdsAndOptionalPreferences | undefined> => {
     log.Info('Attempt to write:', input.identifiers, input.preferences);
@@ -640,11 +604,8 @@ const writeIdsAndPref = async (
  * @param input the main identifier of the web user, and the optin value
  * @return the signed Preferences
  */
-export const signPreferences = async (
-  { proxyHostName }: SignPrefsOptions,
-  input: PostSignPreferencesRequest
-): Promise<Preferences> => {
-  const getUrl = getProxyUrl(proxyHostName);
+export const signPreferences = async (input: PostSignPreferencesRequest): Promise<Preferences> => {
+  const getUrl = getProxyUrl(clientHostname);
 
   // TODO use ProxyRestSignPreferencesRequestBuilder
   const signedResponse = await postJson(getUrl(jsonProxyEndpoints.signPrefs), input);
@@ -657,8 +618,8 @@ export const signPreferences = async (
  * - proxyBase: base URL (scheme, servername) of the OneKey client node. ex: https://paf.my-website.com
  * @return the new Id, signed
  */
-export const getNewId = async ({ proxyHostName }: GetNewIdOptions): Promise<Identifier> => {
-  const getUrl = getProxyUrl(proxyHostName);
+export const getNewId = async (): Promise<Identifier> => {
+  const getUrl = getProxyUrl(clientHostname);
 
   const newIdUrl = await get(getUrl(jsonProxyEndpoints.newId));
   const response = await get(await newIdUrl.text());
@@ -739,14 +700,11 @@ const auditLogByPrebidTransactionId = new Map<PrebidTransactionId, AuditLog>();
  */
 const prebidTransactionIdByDivId = new Map<DivId, PrebidTransactionId>();
 
-export const createSeed = async (
-  { proxyHostName }: GenerateSeedOptions,
-  transactionIds: TransactionId[]
-): Promise<SeedEntry | undefined> => {
+export const createSeed = async (transactionIds: TransactionId[]): Promise<SeedEntry | undefined> => {
   if (transactionIds.length == 0) {
     return undefined;
   }
-  const getUrl = getProxyUrl(proxyHostName);
+  const getUrl = getProxyUrl(clientHostname);
   const url = getUrl(jsonProxyEndpoints.createSeed);
   const idsAndPreferences = await getIdsAndPreferences();
   if (idsAndPreferences === undefined) {
@@ -774,11 +732,8 @@ export const createSeed = async (
  * @param pafTransactionIds List of Transaction Ids for OneKey (visible in the Audit).
  * @returns A new signed Seed that can be used to start Transmissions Requests.
  */
-export const generateSeed = async (
-  options: GenerateSeedOptions,
-  pafTransactionIds: TransactionId[]
-): Promise<Seed | undefined> => {
-  const entry = await createSeed(options, pafTransactionIds);
+export const generateSeed = async (pafTransactionIds: TransactionId[]): Promise<Seed | undefined> => {
+  const entry = await createSeed(pafTransactionIds);
 
   if (entry !== undefined) {
     for (const id of pafTransactionIds) {
@@ -786,16 +741,7 @@ export const generateSeed = async (
     }
   }
 
-  if (options.callback) {
-    if (entry !== undefined) {
-      options.callback(entry.seed);
-    } else {
-      options.callback(undefined);
-    }
-    return;
-  }
-
-  return entry.seed;
+  return entry?.seed;
 };
 
 /**
@@ -859,7 +805,7 @@ export const getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
  * @param options:
  * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
  */
-export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPreferencesOptions): Promise<void> => {
+export const deleteIdsAndPreferences = async (): Promise<void> => {
   log.Info('Attempt to delete ids and preferences');
 
   const strIds = getCookieValue(Cookies.identifiers);
@@ -871,7 +817,7 @@ export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPre
     return;
   }
 
-  const getUrl = getProxyUrl(proxyHostName);
+  const getUrl = getProxyUrl(clientHostname);
 
   // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
   if (thirdPartyCookiesSupported) {
@@ -904,23 +850,48 @@ export const deleteIdsAndPreferences = async ({ proxyHostName }: DeleteIdsAndPre
   redirect(operatorUrl);
 };
 
+// Get proxy-hostname
 currentScript.setScript(document.currentScript as HTMLScriptElement);
-const proxyHostName = currentScript.getData()?.proxyHostName;
+const clientHostname = currentScript.getData()?.clientHostname;
 
-// Set up the queue of asynchronous commands
-// Before anything else, the cookies are refreshed with a call to the operator
-const refreshOptions: RefreshIdsAndPrefsOptions = {
-  proxyHostName,
-  showPrompt: ShowPromptOption.promptIfUnknownUser,
-};
-const optionRedirect = currentScript.getData()?.upFrontRedirect;
-if (optionRedirect !== undefined) {
-  refreshOptions.triggerRedirectIfNeeded = JSON.parse(currentScript.getData().upFrontRedirect) as boolean;
+const getUrl = getProxyUrl(clientHostname);
+
+const triggerRedirectIfNeeded =
+  currentScript.getData()?.upFrontRedirect !== undefined ? currentScript.getData().upFrontRedirect : true;
+
+class UIManager<T> {
+  private _handler?: () => Promise<T>;
+  private _handlerResolver: { resolve: (value: T | PromiseLike<T>) => void; reject: (reason?: any) => void };
+
+  showUI() {
+    if (this._handler) {
+      return this._handler();
+    }
+    return new Promise<T>((resolve, reject) => {
+      this._handlerResolver = {
+        resolve,
+        reject,
+      };
+    });
+  }
+
+  set handler(handler: () => Promise<T>) {
+    if (this._handlerResolver) {
+      const optIn = handler();
+      optIn.then(this._handlerResolver.resolve, this._handlerResolver.reject);
+    }
+    this._handler = handler;
+  }
 }
+
+const promptManager = new UIManager<boolean>();
+
+export const setPromptHandler = (handler: () => Promise<boolean>) => {
+  promptManager.handler = handler;
+};
 
 (async () =>
   await setUpImmediateProcessingQueue((<Window>window).PAF, async () => {
-    const result = await refreshIdsAndPreferences(refreshOptions);
-    // If a redirect is needed, return false
-    return result.status !== PafStatus.REDIRECT_NEEDED;
+    await handleAfterBoomerangRedirect();
+    return true;
   }))();

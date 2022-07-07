@@ -13,6 +13,7 @@ import {
   getNewId,
   registerTransmissionResponse,
   removeCookie,
+  setPromptHandler,
   signPreferences,
   updateIdsAndPreferences,
 } from './lib/paf-lib';
@@ -29,6 +30,7 @@ currentScript.setScript(document.currentScript as HTMLScriptElement);
   removeCookie,
   getIdsAndPreferences,
   updateIdsAndPreferences,
+  setPromptHandler,
   generateSeed,
   registerTransmissionResponse,
   getAuditLogByTransaction,
@@ -42,4 +44,5 @@ currentScript.setScript(document.currentScript as HTMLScriptElement);
   const showNotification = (type: NotificationEnum) => notificationService.showNotification(type);
 
   (<Window>window).PAFUI ??= { promptConsent, showNotification };
+  (window as Window).PAF.setPromptHandler(promptConsent);
 })();
