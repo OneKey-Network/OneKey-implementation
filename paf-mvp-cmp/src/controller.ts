@@ -390,7 +390,7 @@ export class Controller {
   private async actionRefuseAll() {
     OneKeyLib.removeCookie(Cookies.lastRefresh);
 
-    await OneKeyLib.deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
+    await OneKeyLib.deleteIdsAndPreferences();
     this.model.status = PafStatus.NOT_PARTICIPATING;
     this.model.setFromIdsAndPreferences(undefined);
     this.display('snackbar');
@@ -497,9 +497,6 @@ export class Controller {
     
       updateIdsAndPreferences(
         {
-          proxyHostName: this.config.proxyHostName
-        },
-        {
           identifiers: [ array of identifiers ],
           preferences: signedPreferences
         }
@@ -516,11 +513,9 @@ export class Controller {
     */
 
     // Update the ids and preferences.
-    return OneKeyLib.updateIdsAndPreferences(
-      this.config.proxyHostName,
-      this.model.pref.value.use_browsing_for_personalization,
-      [this.model.rid.value]
-    );
+    return OneKeyLib.updateIdsAndPreferences(this.model.pref.value.use_browsing_for_personalization, [
+      this.model.rid.value,
+    ]);
   }
 
   /**
@@ -539,9 +534,7 @@ export class Controller {
    * @returns
    */
   private resetId(): Promise<Identifier> {
-    return OneKeyLib.getNewId({
-      proxyHostName: this.config.proxyHostName,
-    });
+    return OneKeyLib.getNewId();
   }
 
   /**
@@ -550,16 +543,13 @@ export class Controller {
    */
   private signIfNeeded(): Promise<Preferences> {
     if (this.model.pref.hasChanged) {
-      return OneKeyLib.signPreferences(
-        { proxyHostName: this.config.proxyHostName },
-        {
-          identifiers: [this.model.rid.value],
-          unsignedPreferences: {
-            data: this.model.pref.value,
-            version: null,
-          },
-        }
-      );
+      return OneKeyLib.signPreferences({
+        identifiers: [this.model.rid.value],
+        unsignedPreferences: {
+          data: this.model.pref.value,
+          version: null,
+        },
+      });
     }
     return Promise.resolve<Preferences>(this.model.pref.persistedSignedValue);
   }

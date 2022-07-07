@@ -56,7 +56,7 @@ export const WelcomeWidget = ({ emitConsent, originalData }: IWelcomeWidgetProps
 
   const updateIdentifier = async () => {
     setAppIdentifier(undefined);
-    const newIdentifier = await (window as Window).PAF.getNewId({ proxyHostName: pafClientNodeHost });
+    const newIdentifier = await (window as Window).PAF.getNewId();
     setAppIdentifier(newIdentifier);
   };
 
@@ -64,7 +64,7 @@ export const WelcomeWidget = ({ emitConsent, originalData }: IWelcomeWidgetProps
     // Remove previous OneKey id from the list
     const identifiers = (originalData?.identifiers ?? []).filter((id) => id.type !== 'paf_browser_id');
     identifiers.push(appIdentifier);
-    await (window as Window).PAF.updateIdsAndPreferences(pafClientNodeHost, consent, identifiers);
+    await (window as Window).PAF.updateIdsAndPreferences(consent, identifiers);
     closeWidget();
   };
 

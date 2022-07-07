@@ -2,6 +2,7 @@ import { Config } from './config';
 import { Controller } from './controller';
 import { Log } from '@core/log';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
+import { Window } from '@frontend/global';
 
 /**
  * The language text object populated by rollup.config.js at build time based on the YAML resource language files.
@@ -22,6 +23,7 @@ const promptConsent = () =>
   new Promise<boolean | undefined>((resolve) => {
     log.Message('promptConsent');
     if (controller !== null) {
+      log.Message('show settings');
       controller.display('settings');
     }
     resolve(undefined);
@@ -47,3 +49,5 @@ controller = new Controller(
   locale,
   log
 );
+
+(window as Window).PAF.setPromptHandler(promptConsent);

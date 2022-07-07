@@ -68,10 +68,7 @@ Example usage:
 ```html
 <script
   src="https://my-cdn.domain/assets/paf-lib.js"
-  onload="PAF.refreshIdsAndPreferences({
-    proxyHostName: 'my-paf-proxy.domain',
-    triggerRedirectIfNeeded: true
-  });"
+  onload="PAF.refreshIdsAndPreferences();"
 ></script>
 ```
 

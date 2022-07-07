@@ -7,6 +7,7 @@ import {
   getNewId,
   registerTransmissionResponse,
   removeCookie,
+  setPromptHandler,
   signPreferences,
   updateIdsAndPreferences,
 } from './lib/paf-lib';
@@ -25,6 +26,7 @@ export type Window = WindowProxy &
       signPreferences: typeof signPreferences;
       getIdsAndPreferences: typeof getIdsAndPreferences;
       updateIdsAndPreferences: typeof updateIdsAndPreferences;
+      setPromptHandler: typeof setPromptHandler;
       generateSeed: typeof generateSeed;
       registerTransmissionResponse: typeof registerTransmissionResponse;
       getAuditLogByTransaction: typeof getAuditLogByTransaction;
@@ -33,6 +35,7 @@ export type Window = WindowProxy &
       status?: PafStatus;
     };
     PAFUI: {
+      // FIXME remove
       promptConsent: () => Promise<boolean>;
       showNotification: (notificationType: NotificationEnum) => void;
     };
