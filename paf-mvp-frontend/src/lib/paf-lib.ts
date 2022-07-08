@@ -32,12 +32,6 @@ import { setUpImmediateProcessingQueue } from '../utils/queue';
 import { Window } from '../global';
 import { currentScript } from '@frontend/utils/current-script';
 
-// TODO: avoid global declaration
-declare const PAFUI: {
-  promptConsent: () => Promise<boolean>;
-  showNotification: (notificationType: NotificationEnum) => void;
-};
-
 const log = new Log('OneKey', '#3bb8c3');
 
 const executeInQueue = <In, Out>(method: (input: In) => Out): ((input: In) => Promise<Out>) => {
@@ -631,29 +625,28 @@ export const getNewId = async (): Promise<Identifier> => {
  * If at least one identifier and some preferences are present as a 1P cookie, return them
  * Otherwise, return undefined
  */
-export const getIdsAndPreferences: () => Promise<IdsAndPreferences | undefined> = executeInQueue<
-  void,
-  IdsAndPreferences | undefined
->(() => {
-  if (!getCookieValue(Cookies.lastRefresh)) {
-    return undefined;
-  }
-  // Remove special string values
-  const cleanCookieValue = (rawValue: string) =>
-    rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;
+export const getIdsAndPreferences: () => Promise<IdsAndPreferences | undefined> = async () => {
+  // Systematically refresh data if needed
+  await executeInQueue(refreshIdsAndPreferences)(ShowPromptOption.promptIfUnknownUser);
 
-  const strIds = cleanCookieValue(getCookieValue(Cookies.identifiers));
-  const strPreferences = cleanCookieValue(getCookieValue(Cookies.preferences));
+  return await executeInQueue<void, IdsAndPreferences | undefined>(() => {
+    // Remove special string values
+    const cleanCookieValue = (rawValue: string) =>
+      rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;
 
-  const values = fromClientCookieValues(strIds, strPreferences);
+    const strIds = cleanCookieValue(getCookieValue(Cookies.identifiers));
+    const strPreferences = cleanCookieValue(getCookieValue(Cookies.preferences));
 
-  // If the object is not complete (no identifier or no preferences), then consider no valid data
-  if (values.identifiers === undefined || values.identifiers.length === 0 || values.preferences === undefined) {
-    return undefined;
-  }
+    const values = fromClientCookieValues(strIds, strPreferences);
 
-  return values as IdsAndPreferences;
-});
+    // If the object is not complete (no identifier or no preferences), then consider no valid data
+    if (values.identifiers === undefined || values.identifiers.length === 0 || values.preferences === undefined) {
+      return undefined;
+    }
+
+    return values as IdsAndPreferences;
+  })();
+};
 
 /**
  * Aggregate Seed and Preferences for storage.
