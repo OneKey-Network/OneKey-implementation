@@ -28,7 +28,7 @@ import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
-import { setUpImmediateProcessingQueue } from '../utils/queue';
+import { ImmediateProcessingQueue, setUpImmediateProcessingQueue } from '../utils/queue';
 import { Window } from '../global';
 import { currentScript } from '@frontend/utils/current-script';
 
@@ -55,6 +55,8 @@ const executeInQueue = <In, Out>(method: (input: In) => Out): ((input: In) => Pr
 const redirect = (url: string): void => {
   log.Info('Redirecting to:', url);
   location.replace(url);
+  log.Info('Stop queue');
+  ((<Window>window).PAF.queue as ImmediateProcessingQueue).stopped = true;
 };
 
 // Note: we don't use Content-type JSON to avoid having to trigger OPTIONS pre-flight.
