@@ -13,14 +13,14 @@ import {
   updateIdsAndPreferences,
 } from './lib/paf-lib';
 import { NotificationEnum } from './enums/notification.enum';
-import { ICommandProcessor } from './utils/queue';
+import { IProcessingQueue } from './utils/queue';
 import { Identifiers } from '@core/model';
 import { PafStatus } from '@frontend/enums/status.enum';
 
 export type Window = WindowProxy &
   typeof globalThis & {
     PAF: {
-      queue?: ICommandProcessor;
+      queue?: IProcessingQueue;
       deleteIdsAndPreferences: typeof deleteIdsAndPreferences;
       removeCookie: typeof removeCookie;
       getNewId: typeof getNewId;
