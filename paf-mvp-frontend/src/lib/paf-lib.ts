@@ -31,6 +31,7 @@ import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
 import { executeInQueueAsync, setUpImmediateProcessingQueue } from '../utils/queue';
 import { Window } from '../global';
 import { currentScript } from '@frontend/utils/current-script';
+import { EventHandler } from '@frontend/utils/event-handler';
 
 // TODO: avoid global declaration
 declare const PAFUI: {
@@ -855,36 +856,6 @@ const getUrl = getProxyUrl(clientHostname);
 
 const triggerRedirectIfNeeded =
   currentScript.getData()?.upFrontRedirect !== undefined ? currentScript.getData().upFrontRedirect : true;
-
-class EventHandler<IN, OUT> {
-  private _handler?: (arg: IN) => Promise<OUT>;
-  private _handlerResolver: { resolve: (value: OUT | PromiseLike<OUT>) => void; reject: (reason?: any) => void };
-  private _arg: IN;
-
-  fireEvent(arg: IN): Promise<OUT> {
-    if (this._handler) {
-      // The handler already exists, let's trigger it
-      return this._handler(arg);
-    }
-    // If the handler has not been set yet, create a promise that will resolve when it is set
-    return new Promise<OUT>((resolve, reject) => {
-      // TODO might need to deal with the situation where the handlerResolver is already set
-      this._handlerResolver = {
-        resolve,
-        reject,
-      };
-      this._arg = arg;
-    });
-  }
-
-  set handler(handler: (arg: IN) => Promise<OUT>) {
-    if (this._handlerResolver) {
-      // An event was already waiting for this, resolve the promise
-      handler(this._arg).then(this._handlerResolver.resolve, this._handlerResolver.reject);
-    }
-    this._handler = handler;
-  }
-}
 
 const promptManager = new EventHandler<void, boolean>();
 
