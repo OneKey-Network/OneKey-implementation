@@ -28,29 +28,12 @@ import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
-import { ImmediateProcessingQueue, setUpImmediateProcessingQueue } from '../utils/queue';
+import { executeInQueueAsync, ImmediateProcessingQueue, setUpImmediateProcessingQueue } from '../utils/queue';
 import { Window } from '../global';
 import { currentScript } from '@frontend/utils/current-script';
+import { EventHandler } from '@frontend/utils/event-handler';
 
 const log = new Log('OneKey', '#3bb8c3');
-
-const executeInQueue = <In, Out>(method: (input: In) => Out): ((input: In) => Promise<Out>) => {
-  return (input: In) =>
-    new Promise((resolve) => {
-      const queue = (<Window>window).PAF.queue;
-
-      if (queue && Array.isArray(queue)) {
-        log.Debug('executeInQueue: Will execute command later', method.name);
-      } else {
-        log.Debug('executeInQueue: Will execute command now', method.name);
-      }
-
-      queue.push(() => {
-        const out = method(input);
-        resolve(out);
-      });
-    });
-};
 
 const redirect = (url: string): void => {
   log.Info('Redirecting to:', url);
@@ -311,13 +294,13 @@ const handleAfterBoomerangRedirect = async () => {
   const cleanedUrl = removeUrlParameters(location.href, [QSParam.paf, localQSParamShowPrompt]);
   history.pushState(null, '', cleanedUrl);
 
-  // 1. Any Prebid 1st party cookie?
+  // 1. Any OneKey 1st party cookie?
   const initialData = getAllCookies();
+
+  log.Info(`Redirected from operator: ${uriOperatorData ? 'YES' : 'NO'}`);
 
   // 2. Redirected from operator?
   if (uriOperatorData) {
-    log.Info('Redirected from operator: YES');
-
     // Consider that if we have been redirected, it means 3PC are not supported
     thirdPartyCookiesSupported = false;
 
@@ -371,8 +354,6 @@ const handleAfterBoomerangRedirect = async () => {
       showPrompt
     );
   }
-
-  log.Info('Redirected from operator: NO');
 };
 
 // Special query string param to remember the prompt must be shown
@@ -624,30 +605,45 @@ export const getNewId = async (): Promise<Identifier> => {
 };
 
 /**
+ * Get Ids and Preferences by checking locally and refresh it if necessary.
+ */
+export const getIdsAndPreferences: () => Promise<IdsAndPreferences | undefined> = executeInQueueAsync<
+  void,
+  IdsAndPreferences | undefined
+>(async () => {
+  let data = getIdsAndPreferencesFromCookies();
+
+  // If data is not available locally, refresh from the operator
+  if (data === undefined) {
+    const refreshed = await refreshIdsAndPreferences();
+    if (refreshed.status === PafStatus.PARTICIPATING) {
+      data = refreshed.data as IdsAndPreferences;
+    }
+  }
+
+  return data;
+});
+
+/**
  * If at least one identifier and some preferences are present as a 1P cookie, return them
  * Otherwise, return undefined
  */
-export const getIdsAndPreferences: () => Promise<IdsAndPreferences | undefined> = async () => {
-  // Systematically refresh data if needed
-  await executeInQueue(refreshIdsAndPreferences)(ShowPromptOption.promptIfUnknownUser);
+export const getIdsAndPreferencesFromCookies = (): IdsAndPreferences | undefined => {
+  // Remove special string values
+  const cleanCookieValue = (rawValue: string) =>
+    rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;
 
-  return await executeInQueue<void, IdsAndPreferences | undefined>(() => {
-    // Remove special string values
-    const cleanCookieValue = (rawValue: string) =>
-      rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;
+  const strIds = cleanCookieValue(getCookieValue(Cookies.identifiers));
+  const strPreferences = cleanCookieValue(getCookieValue(Cookies.preferences));
 
-    const strIds = cleanCookieValue(getCookieValue(Cookies.identifiers));
-    const strPreferences = cleanCookieValue(getCookieValue(Cookies.preferences));
+  const values = fromClientCookieValues(strIds, strPreferences);
 
-    const values = fromClientCookieValues(strIds, strPreferences);
+  // If the object is not complete (no identifier or no preferences), then consider no valid data
+  if (values.identifiers === undefined || values.identifiers.length === 0 || values.preferences === undefined) {
+    return undefined;
+  }
 
-    // If the object is not complete (no identifier or no preferences), then consider no valid data
-    if (values.identifiers === undefined || values.identifiers.length === 0 || values.preferences === undefined) {
-      return undefined;
-    }
-
-    return values as IdsAndPreferences;
-  })();
+  return values as IdsAndPreferences;
 };
 
 /**
@@ -853,36 +849,6 @@ const getUrl = getProxyUrl(clientHostname);
 
 const triggerRedirectIfNeeded =
   currentScript.getData()?.upFrontRedirect !== undefined ? currentScript.getData().upFrontRedirect : true;
-
-class EventHandler<IN, OUT> {
-  private _handler?: (arg: IN) => Promise<OUT>;
-  private _handlerResolver: { resolve: (value: OUT | PromiseLike<OUT>) => void; reject: (reason?: any) => void };
-  private _arg: IN;
-
-  fireEvent(arg: IN): Promise<OUT> {
-    if (this._handler) {
-      // The handler already exists, let's trigger it
-      return this._handler(arg);
-    }
-    // If the handler has not been set yet, create a promise that will resolve when it is set
-    return new Promise<OUT>((resolve, reject) => {
-      // TODO might need to deal with the situation where the handlerResolver is already set
-      this._handlerResolver = {
-        resolve,
-        reject,
-      };
-      this._arg = arg;
-    });
-  }
-
-  set handler(handler: (arg: IN) => Promise<OUT>) {
-    if (this._handlerResolver) {
-      // An event was already waiting for this, resolve the promise
-      handler(this._arg).then(this._handlerResolver.resolve, this._handlerResolver.reject);
-    }
-    this._handler = handler;
-  }
-}
 
 const promptManager = new EventHandler<void, boolean>();
 
