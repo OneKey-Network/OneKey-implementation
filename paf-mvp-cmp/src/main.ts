@@ -26,16 +26,18 @@ const promptConsent = () =>
       log.Message('show settings');
       controller.display('settings');
     }
-    resolve(undefined);
+    resolve(undefined); // FIXME should return values!
   });
 
 // TODO: See later comment on how to align the UI and data layer.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const showNotification = (type: NotificationEnum) => {
-  if (controller !== null) {
-    controller.display('settings');
-  }
-};
+const showNotification = (type: NotificationEnum) =>
+  new Promise<void>((resolve) => {
+    if (controller !== null) {
+      controller.display('settings'); // TODO should use the notification type
+    }
+    resolve();
+  });
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore this is needed because the paf-lib expects a global object called PAFUI. Consider altering paf-lib to
@@ -51,3 +53,4 @@ controller = new Controller(
 );
 
 (window as Window).PAF.setPromptHandler(promptConsent);
+(window as Window).PAF.setNotificationHandler(showNotification);

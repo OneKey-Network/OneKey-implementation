@@ -133,7 +133,7 @@ export const removeCookie = (cookieName: string) => {
 
 const showNotificationIfValid = (consent: boolean | undefined) => {
   if (consent !== undefined) {
-    PAFUI.showNotification(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent);
+    notificationManager.fireEvent(consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent);
   }
 };
 
@@ -222,7 +222,7 @@ async function updateDataWithPrompt(idsAndPreferences: RefreshResult, showPrompt
     showPrompt === ShowPromptOption.doPrompt ||
     (showPrompt === ShowPromptOption.promptIfUnknownUser && status === PafStatus.UNKNOWN)
   ) {
-    optIn = await promptManager.showUI();
+    optIn = await promptManager.fireEvent();
   }
 
   if (optIn === undefined) {
@@ -859,35 +859,46 @@ const getUrl = getProxyUrl(clientHostname);
 const triggerRedirectIfNeeded =
   currentScript.getData()?.upFrontRedirect !== undefined ? currentScript.getData().upFrontRedirect : true;
 
-class UIManager<T> {
-  private _handler?: () => Promise<T>;
-  private _handlerResolver: { resolve: (value: T | PromiseLike<T>) => void; reject: (reason?: any) => void };
+class EventHandler<IN, OUT> {
+  private _handler?: (arg: IN) => Promise<OUT>;
+  private _handlerResolver: { resolve: (value: OUT | PromiseLike<OUT>) => void; reject: (reason?: any) => void };
+  private _arg: IN;
 
-  showUI() {
+  fireEvent(arg: IN): Promise<OUT> {
     if (this._handler) {
-      return this._handler();
+      // The handler already exists, let's trigger it
+      return this._handler(arg);
     }
-    return new Promise<T>((resolve, reject) => {
+    // If the handler has not been set yet, create a promise that will resolve when it is set
+    return new Promise<OUT>((resolve, reject) => {
+      // TODO might need to deal with the situation where the handlerResolver is already set
       this._handlerResolver = {
         resolve,
         reject,
       };
+      this._arg = arg;
     });
   }
 
-  set handler(handler: () => Promise<T>) {
+  set handler(handler: (arg: IN) => Promise<OUT>) {
     if (this._handlerResolver) {
-      const optIn = handler();
-      optIn.then(this._handlerResolver.resolve, this._handlerResolver.reject);
+      // An event was already waiting for this, resolve the promise
+      handler(this._arg).then(this._handlerResolver.resolve, this._handlerResolver.reject);
     }
     this._handler = handler;
   }
 }
 
-const promptManager = new UIManager<boolean>();
+const promptManager = new EventHandler<void, boolean>();
 
 export const setPromptHandler = (handler: () => Promise<boolean>) => {
   promptManager.handler = handler;
+};
+
+const notificationManager = new EventHandler<NotificationEnum, void>();
+
+export const setNotificationHandler = (handler: (notificationType: NotificationEnum) => Promise<void>) => {
+  notificationManager.handler = handler;
 };
 
 (async () =>

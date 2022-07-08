@@ -7,6 +7,7 @@ import {
   getNewId,
   registerTransmissionResponse,
   removeCookie,
+  setNotificationHandler,
   setPromptHandler,
   signPreferences,
   updateIdsAndPreferences,
@@ -27,6 +28,7 @@ export type Window = WindowProxy &
       getIdsAndPreferences: typeof getIdsAndPreferences;
       updateIdsAndPreferences: typeof updateIdsAndPreferences;
       setPromptHandler: typeof setPromptHandler;
+      setNotificationHandler: typeof setNotificationHandler;
       generateSeed: typeof generateSeed;
       registerTransmissionResponse: typeof registerTransmissionResponse;
       getAuditLogByTransaction: typeof getAuditLogByTransaction;
