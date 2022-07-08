@@ -85,10 +85,8 @@ class ImmediateProcessingQueue implements IProcessingQueue {
     if (ops === undefined) {
       return;
     }
-
     for (const op of ops) {
       if (typeof op === 'function') {
-        log.Debug('Processing function', op.name);
         try {
           op();
         } catch (e) {
@@ -98,3 +96,24 @@ class ImmediateProcessingQueue implements IProcessingQueue {
     }
   }
 }
+
+/**
+ * Return a function that, once called, executes the given
+ * Promise-based operation always in a queue.
+ */
+export const executeInQueueAsync = <In, Out>(operation: (input: In) => Promise<Out>): ((input: In) => Promise<Out>) => {
+  let executionContext: Promise<void> = Promise.resolve();
+
+  return (input: In) => {
+    return new Promise<Out>((resolve, reject) => {
+      executionContext = executionContext.then(async () => {
+        try {
+          const result = await operation(input);
+          resolve(result);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+  };
+};
