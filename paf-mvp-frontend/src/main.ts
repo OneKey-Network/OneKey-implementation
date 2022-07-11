@@ -40,7 +40,7 @@ currentScript.setScript(document.currentScript as HTMLScriptElement);
 };
 
 (async () => {
-  const originalData = await (window as Window).PAF.getIdsAndPreferences();
+  const originalData = (await (window as Window).PAF.getIdsAndPreferences()).data;
   const promptConsent = () =>
     new Promise<boolean>((resolve) => new PromptConsent({ emitConsent: resolve, originalData }).render());
   const showNotification = (type: NotificationEnum) => notificationService.showNotification(type);

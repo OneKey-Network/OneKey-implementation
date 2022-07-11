@@ -28,18 +28,23 @@ import { NotificationEnum } from '../enums/notification.enum';
 import { Log } from '@core/log';
 import { buildAuditLog } from '@core/model/audit-log';
 import { mapAdUnitCodeToDivId } from '../utils/ad-unit-code';
-import { executeInQueueAsync, setUpImmediateProcessingQueue, ImmediateProcessingQueue } from '../utils/queue';
+import { executeInQueueAsync, setUpImmediateProcessingQueue } from '../utils/queue';
 import { Window } from '../global';
-import { currentScript } from '@frontend/utils/current-script';
+import { CurrentScript } from '@frontend/utils/current-script';
 import { EventHandler } from '@frontend/utils/event-handler';
 
 const log = new Log('OneKey', '#3bb8c3');
 
+let redirecting = false;
+
 const redirect = (url: string): void => {
-  log.Info('Redirecting to:', url);
-  location.replace(url);
-  log.Info('Stop queue');
-  ((<Window>window).PAF.queue as ImmediateProcessingQueue).stopped = true;
+  if (redirecting) {
+    log.Warn('Not redirecting, because already redirecting', url);
+  } else {
+    log.Info('Redirecting to:', url);
+    redirecting = true;
+    location.replace(url);
+  }
 };
 
 // Note: we don't use Content-type JSON to avoid having to trigger OPTIONS pre-flight.
@@ -116,10 +121,7 @@ const showNotificationIfValid = (consent: boolean | undefined) => {
   }
 };
 
-const getProxyUrl =
-  (clientHostname: string) =>
-  (endpoint: string): string =>
-    `https://${clientHostname}${endpoint}`;
+const getProxyUrl = (endpoint: string): string => `https://${clientHostname}${endpoint}`;
 
 export const saveCookieValue = <T>(cookieName: string, cookieValue: T | undefined): string => {
   const valueToStore = cookieValue === undefined ? PafStatus.NOT_PARTICIPATING : JSON.stringify(cookieValue);
@@ -147,6 +149,14 @@ export enum ShowPromptOption {
 export interface RefreshResult {
   status: PafStatus;
   data?: IdsAndOptionalPreferences;
+}
+
+/**
+ * Refresh result
+ */
+export interface IdsAndPreferencesResult {
+  status: PafStatus;
+  data?: IdsAndPreferences;
 }
 
 /**
@@ -305,7 +315,7 @@ const handleAfterBoomerangRedirect = async () => {
     thirdPartyCookiesSupported = false;
 
     // Verify message
-    const response = await postText(getUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
+    const response = await postText(getProxyUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
     const operatorData = (await response.json()) as GetIdsPrefsResponse | PostIdsPrefsResponse | DeleteIdsPrefsResponse;
 
     if (!operatorData) {
@@ -376,7 +386,7 @@ export const refreshIdsAndPreferences = async (
   const redirectToRead = async () => {
     log.Info('Redirect to operator');
 
-    const clientUrl = new URL(getUrl(redirectProxyEndpoints.read));
+    const clientUrl = new URL(getProxyUrl(redirectProxyEndpoints.read));
     const boomerangUrl = new URL(location.href);
     boomerangUrl.searchParams.set(localQSParamShowPrompt, showPrompt);
 
@@ -424,7 +434,7 @@ export const refreshIdsAndPreferences = async (
       log.Info('Browser known to support 3PC: YES');
 
       log.Info('Attempt to read from JSON');
-      const readUrl = await get(getUrl(jsonProxyEndpoints.read));
+      const readUrl = await get(getProxyUrl(jsonProxyEndpoints.read));
       const readResponse = await get(await readUrl.text());
       const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
 
@@ -456,7 +466,7 @@ export const refreshIdsAndPreferences = async (
 
       log.Info('Verify 3PC on operator');
       // Note: need to include credentials to make sure cookies are sent
-      const verifyUrl = await get(getUrl(jsonProxyEndpoints.verify3PC));
+      const verifyUrl = await get(getProxyUrl(jsonProxyEndpoints.verify3PC));
       const verifyResponse = await get(await verifyUrl.text());
       const testOk: Get3PcResponse | Error = await verifyResponse.json();
 
@@ -505,8 +515,6 @@ export const refreshIdsAndPreferences = async (
   // Now handle prompt, if relevant
   await updateDataWithPrompt(idsAndPreferences, showPrompt);
 
-  (<Window>window).PAF.status = idsAndPreferences.status;
-
   return idsAndPreferences;
 };
 
@@ -518,8 +526,6 @@ export const refreshIdsAndPreferences = async (
  * @return the written identifiers and preferences
  */
 const writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptionalPreferences | undefined> => {
-  const getUrl = getProxyUrl(clientHostname);
-
   const processWriteIdsAndPref = async (): Promise<IdsAndOptionalPreferences | undefined> => {
     log.Info('Attempt to write:', input.identifiers, input.preferences);
 
@@ -532,12 +538,12 @@ const writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptional
       log.Info('3PC supported');
 
       // 1) sign the request
-      const signedResponse = await postJson(getUrl(jsonProxyEndpoints.signWrite), input);
+      const signedResponse = await postJson(getProxyUrl(jsonProxyEndpoints.signWrite), input);
       const signedData = (await signedResponse.json()) as PostIdsPrefsRequest;
 
       // 2) send
       // TODO in fact, this post endpoint should take the unsigned input, sign it and return both the signed input and the url to call
-      const clientResponse = await postText(getUrl(jsonProxyEndpoints.write), '');
+      const clientResponse = await postText(getProxyUrl(jsonProxyEndpoints.write), '');
       // TODO handle errors
       const operatorUrl = await clientResponse.text();
       const operatorResponse = await postJson(operatorUrl, signedData);
@@ -557,7 +563,7 @@ const writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptional
     log.Info('3PC not supported: redirect');
 
     // Redirect. Signing of the request will happen on the backend proxy
-    const clientUrl = new URL(getUrl(redirectProxyEndpoints.write));
+    const clientUrl = new URL(getProxyUrl(redirectProxyEndpoints.write));
     clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
     clientUrl.searchParams.set(proxyUriParams.message, JSON.stringify(input));
 
@@ -582,10 +588,8 @@ const writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptional
  * @return the signed Preferences
  */
 export const signPreferences = async (input: PostSignPreferencesRequest): Promise<Preferences> => {
-  const getUrl = getProxyUrl(clientHostname);
-
   // TODO use ProxyRestSignPreferencesRequestBuilder
-  const signedResponse = await postJson(getUrl(jsonProxyEndpoints.signPrefs), input);
+  const signedResponse = await postJson(getProxyUrl(jsonProxyEndpoints.signPrefs), input);
   return (await signedResponse.json()) as Preferences;
 };
 
@@ -596,9 +600,7 @@ export const signPreferences = async (input: PostSignPreferencesRequest): Promis
  * @return the new Id, signed
  */
 export const getNewId = async (): Promise<Identifier> => {
-  const getUrl = getProxyUrl(clientHostname);
-
-  const newIdUrl = await get(getUrl(jsonProxyEndpoints.newId));
+  const newIdUrl = await get(getProxyUrl(jsonProxyEndpoints.newId));
   const response = await get(await newIdUrl.text());
   // Assume no error. FIXME should handle potential errors
   return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
@@ -607,11 +609,12 @@ export const getNewId = async (): Promise<Identifier> => {
 /**
  * Get Ids and Preferences by checking locally and refresh it if necessary.
  */
-export const getIdsAndPreferences: () => Promise<IdsAndPreferences | undefined> = executeInQueueAsync<
+export const getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined> = executeInQueueAsync<
   void,
-  IdsAndPreferences | undefined
+  IdsAndPreferencesResult | undefined
 >(async () => {
   let data = getIdsAndPreferencesFromCookies();
+  let status = PafStatus.PARTICIPATING;
 
   // If data is not available locally, refresh from the operator
   if (data === undefined) {
@@ -619,20 +622,24 @@ export const getIdsAndPreferences: () => Promise<IdsAndPreferences | undefined> 
     if (refreshed.status === PafStatus.PARTICIPATING) {
       data = refreshed.data as IdsAndPreferences;
     }
+    status = refreshed.status;
   }
 
-  return data;
+  return {
+    data,
+    status,
+  };
 });
 
 /**
  * If at least one identifier and some preferences are present as a 1P cookie, return them
  * Otherwise, return undefined
  */
-export const getIdsAndPreferencesFromCookies: () => IdsAndPreferences | undefined = () => {
+export const getIdsAndPreferencesFromCookies = (): IdsAndPreferences | undefined => {
   if (!getCookieValue(Cookies.lastRefresh)) {
     return undefined;
   }
-  
+
   // Remove special string values
   const cleanCookieValue = (rawValue: string) =>
     rawValue === PafStatus.REDIRECT_NEEDED || rawValue === PafStatus.NOT_PARTICIPATING ? undefined : rawValue;
@@ -699,23 +706,22 @@ export const createSeed = async (transactionIds: TransactionId[]): Promise<SeedE
   if (transactionIds.length == 0) {
     return undefined;
   }
-  const getUrl = getProxyUrl(clientHostname);
-  const url = getUrl(jsonProxyEndpoints.createSeed);
-  const idsAndPreferences = await getIdsAndPreferences();
-  if (idsAndPreferences === undefined) {
+  const url = getProxyUrl(jsonProxyEndpoints.createSeed);
+  const idsAndPreferencesResult = await getIdsAndPreferences();
+  if (idsAndPreferencesResult === undefined) {
     return undefined;
   }
 
   const requestContent: PostSeedRequest = {
     transaction_ids: transactionIds,
-    data: idsAndPreferences,
+    data: idsAndPreferencesResult.data,
   };
   const response = await postJson(url, requestContent);
   const seed = (await response.json()) as Seed;
 
   return {
     seed,
-    idsAndPreferences,
+    idsAndPreferences: idsAndPreferencesResult.data,
   };
 };
 
@@ -812,14 +818,12 @@ export const deleteIdsAndPreferences = async (): Promise<void> => {
     return;
   }
 
-  const getUrl = getProxyUrl(clientHostname);
-
   // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
   if (thirdPartyCookiesSupported) {
     log.Info('3PC supported: deleting the ids and preferences');
 
     // Get the signed request for the operator
-    const clientNodeDeleteResponse = await deleteHttp(getUrl(jsonProxyEndpoints.delete));
+    const clientNodeDeleteResponse = await deleteHttp(getProxyUrl(jsonProxyEndpoints.delete));
     const operatorDeleteUrl = await clientNodeDeleteResponse.text();
 
     // Call the operator, which will clean its cookies
@@ -836,7 +840,7 @@ export const deleteIdsAndPreferences = async (): Promise<void> => {
   log.Info('3PC not supported: redirecting to delete ids and preferences');
 
   // Redirect. Signing of the request will happen on the backend proxy
-  const clientUrl = new URL(getUrl(redirectProxyEndpoints.delete));
+  const clientUrl = new URL(getProxyUrl(redirectProxyEndpoints.delete));
   clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
   const clientResponse = await get(clientUrl.toString());
 
@@ -845,14 +849,19 @@ export const deleteIdsAndPreferences = async (): Promise<void> => {
   redirect(operatorUrl);
 };
 
-// Get proxy-hostname
-currentScript.setScript(document.currentScript as HTMLScriptElement);
-const clientHostname = currentScript.getData()?.clientHostname;
+// Script properties
+let clientHostname: string;
+export const setClientHostname = (value: string) => (clientHostname = value);
 
-const getUrl = getProxyUrl(clientHostname);
+let triggerRedirectIfNeeded: boolean;
+// Notice default value for "redirect if needed" is `true`
+export const setTriggerRedirectIfNeeded = (value = 'true') => (triggerRedirectIfNeeded = value === 'true');
 
-const triggerRedirectIfNeeded =
-  currentScript.getData()?.upFrontRedirect !== undefined ? currentScript.getData().upFrontRedirect : true;
+// Get properties from HTML
+const pafLibScript = new CurrentScript<{ clientHostname: string; upFrontRedirect?: string }>();
+pafLibScript.setScript(document.currentScript);
+setClientHostname(pafLibScript.getData()?.clientHostname);
+setTriggerRedirectIfNeeded(pafLibScript.getData()?.upFrontRedirect);
 
 const promptManager = new EventHandler<void, boolean>();
 

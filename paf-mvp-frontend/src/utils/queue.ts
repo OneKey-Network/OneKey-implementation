@@ -69,11 +69,6 @@ export const setUpImmediateProcessingQueue = async (container: IQueueContainer):
 const log = new Log('OneKey', '#3bb8c3');
 
 export class ImmediateProcessingQueue implements IProcessingQueue {
-  /**
-   * Set this to true to ignore commands that are pushed to the queue
-   */
-  stopped = false;
-
   push(...ops: Command[]): void {
     if (ops === undefined) {
       return;
@@ -81,10 +76,6 @@ export class ImmediateProcessingQueue implements IProcessingQueue {
 
     for (const op of ops) {
       if (typeof op === 'function') {
-        if (this.stopped) {
-          log.Debug('Queue stopped, ignore function', op.name);
-          continue;
-        }
         log.Debug('Processing function', op.name);
         try {
           op();
