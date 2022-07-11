@@ -1,4 +1,3 @@
-import { IdsAndPreferencesResult, OneKeyLib } from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '../../src/enums/status.enum';
@@ -12,6 +11,8 @@ import {
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
+import { IdsAndPreferencesResult } from '@frontend/lib/i-one-key-lib';
+import { OneKeyLib } from '@frontend/lib/one-key-lib';
 
 jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
@@ -407,12 +408,6 @@ describe('Function createSeed', () => {
     expect(seed).toBeUndefined();
   });
 
-  test('with no id and preferences', async () => {
-    CookiesHelpers.clearPafCookies();
-    const seed = await lib.createSeed(transmission_ids);
-    expect(seed).toBeUndefined();
-  });
-
   test('nominal path', async () => {
     const entry = await lib.createSeed(transmission_ids);
     expect(entry).toEqual({
@@ -439,15 +434,14 @@ describe('Function handleAfterBoomerangRedirect', () => {
       search: `?paf=${uriData}`,
       href: 'fake-href?foo=42&paf=TO_BE_REMOVED&baz=bar',
     } as unknown as Location;
-    global.PAFUI = {
-      showNotification: jest.fn(),
-    };
+
     notificationHandler = jest.fn(() => Promise.resolve());
     lib.setNotificationHandler(notificationHandler);
   });
 
   afterEach(() => {
     historySpy.mockClear();
+    CookiesHelpers.clearPafCookies();
   });
 
   afterAll(() => {
@@ -507,7 +501,24 @@ describe('Function handleAfterBoomerangRedirect', () => {
     expect(document.cookie).toContain(JSON.stringify(preferences));
   });
 
-  test('should display notification', async () => {
+  test('should not display notification if no change', async () => {
+    fetch.mockResponseOnce(
+      JSON.stringify({
+        body: {
+          identifiers: [identifier],
+          preferences,
+        },
+      })
+    );
+
+    await lib.handleAfterBoomerangRedirect();
+
+    expect(notificationHandler).toBeCalledWith('PERSONALIZED');
+  });
+
+  test('should display notification if any change', async () => {
+    CookiesHelpers.mockIdentifiers(identifier.value);
+    CookiesHelpers.mockPreferences(false); // Will be different in URI
     fetch.mockResponseOnce(
       JSON.stringify({
         body: {

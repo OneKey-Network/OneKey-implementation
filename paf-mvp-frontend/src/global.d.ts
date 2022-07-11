@@ -1,6 +1,6 @@
-import { IOneKeyLib } from './lib/paf-lib';
 import { NotificationEnum } from './enums/notification.enum';
 import { IProcessingQueue } from './utils/queue';
+import { IOneKeyLib } from '@frontend/lib/i-one-key-lib';
 
 export type Window = WindowProxy &
   typeof globalThis & {
