@@ -19,16 +19,23 @@ jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
 
 const pafClientNodeHost = 'http://localhost';
 
+let lib: OneKeyLib;
+let notificationHandler: jest.Mock<Promise<void>, []>;
+
+const resetLib = () => {
+  lib = new OneKeyLib(pafClientNodeHost);
+  notificationHandler = jest.fn(() => Promise.resolve());
+  lib.setNotificationHandler(notificationHandler);
+};
+
 afterEach(() => {
   // cleaning up the mess left behind the previous test
   fetch.resetMocks();
 });
 
 describe('Function getIdsAndPreferences', () => {
-  let lib: OneKeyLib;
-
   beforeEach(() => {
-    lib = new OneKeyLib(pafClientNodeHost);
+    resetLib();
     CookiesHelpers.clearPafCookies();
   });
 
@@ -36,7 +43,6 @@ describe('Function getIdsAndPreferences', () => {
   test('should return undefined with no cookies', () => {
     await expect(getIdsAndPreferences()).resolves.toBeUndefined();
   });
-
    */
 
   test('should return value stored in cookies', async () => {
@@ -88,10 +94,9 @@ describe('Function getIdsAndPreferences', () => {
 
 describe('Function getNewId', () => {
   const FAKE_ID = 'A-B-TEST-ID';
-  let lib: OneKeyLib;
 
   beforeEach(() => {
-    lib = new OneKeyLib(pafClientNodeHost);
+    resetLib();
   });
 
   test('should return new ID', async () => {
@@ -149,10 +154,8 @@ describe('Function writeIdsAndPref', () => {
 
 describe('Function refreshIdsAndPreferences', () => {
   const realLocation = location;
-  let lib: OneKeyLib;
-
   beforeEach(() => {
-    lib = new OneKeyLib(pafClientNodeHost);
+    resetLib();
   });
 
   describe('when redirect needed', () => {
@@ -220,22 +223,17 @@ describe('Function refreshIdsAndPreferences', () => {
     {
       cachedCookies: false,
       message: 'no local cookies',
-    } /*
+    },
     {
       cachedCookies: true,
-      message: 'local cookies expired'
-    }
-    */,
+      message: 'local cookies expired',
+    },
   ];
 
   describe.each(cases)('when $message', (data) => {
     const fakeId = 'FAKE_IDENTIFIER';
 
     beforeAll(() => {
-      global.PAFUI = {
-        showNotification: jest.fn(),
-      };
-
       if (data.cachedCookies) {
         CookiesHelpers.mockPreferences(true);
         CookiesHelpers.mockIdentifiers(fakeId);
@@ -363,7 +361,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
 describe('Function signPreferences', () => {
   test('should return fetch response', async () => {
-    const lib = new OneKeyLib(pafClientNodeHost);
+    resetLib();
     const mockResponse = { body: 'response' };
     fetch.mockResponseOnce(JSON.stringify(mockResponse));
     const input = { unsignedPreferences: getFakePreferences(), identifiers: getFakeIdentifiers() };
@@ -373,8 +371,6 @@ describe('Function signPreferences', () => {
 });
 
 describe('Function createSeed', () => {
-  let lib: OneKeyLib;
-
   const transmission_ids = ['1234', '5678'];
   const idsAndPreferences: IdsAndPreferences = {
     preferences: getFakePreferences(true),
@@ -392,7 +388,7 @@ describe('Function createSeed', () => {
   };
 
   beforeEach(() => {
-    lib = new OneKeyLib(pafClientNodeHost);
+    resetLib();
     CookiesHelpers.clearPafCookies();
     CookiesHelpers.setIdsAndPreferences(idsAndPreferences);
     fetch.mockResponseOnce(JSON.stringify(response));
@@ -423,20 +419,14 @@ describe('Function handleAfterBoomerangRedirect', () => {
   const uriData = 'TEST-STRING';
   const identifier = getFakeIdentifiers()[0];
   const preferences = getFakePreferences(true);
-  let notificationHandler: jest.Mock<Promise<void>, []>;
-
-  let lib: OneKeyLib;
 
   beforeEach(() => {
-    lib = new OneKeyLib(pafClientNodeHost);
+    resetLib();
     delete global.location;
     global.location = {
       search: `?paf=${uriData}`,
       href: 'fake-href?foo=42&paf=TO_BE_REMOVED&baz=bar',
     } as unknown as Location;
-
-    notificationHandler = jest.fn(() => Promise.resolve());
-    lib.setNotificationHandler(notificationHandler);
   });
 
   afterEach(() => {
