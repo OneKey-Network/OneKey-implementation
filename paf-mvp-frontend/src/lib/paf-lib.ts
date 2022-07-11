@@ -127,6 +127,11 @@ export interface IOneKeyLib {
   deleteIdsAndPreferences: () => Promise<void>;
   setPromptHandler: (handler: () => Promise<boolean>) => void;
   setNotificationHandler: (handler: (notificationType: NotificationEnum) => Promise<void>) => void;
+  updateIdsAndPreferences: (
+    optIn: boolean,
+    identifiers: Identifier[]
+  ) => Promise<IdsAndOptionalPreferences | undefined>;
+  removeCookie: (cookieName: string) => void;
 }
 
 export class OneKeyLib implements IOneKeyLib {
@@ -337,7 +342,7 @@ export class OneKeyLib implements IOneKeyLib {
     };
   };
 
-  removeCookie(cookieName: string) {
+  removeCookie(cookieName: string): void {
     this.setCookie(cookieName, null, new Date(0));
   }
 
