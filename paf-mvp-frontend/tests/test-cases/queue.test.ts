@@ -1,6 +1,6 @@
-import { TestWatcher } from 'jest';
-import { isExportDeclaration } from 'typescript';
-import { IProcessingQueue, IQueueContainer, setUpImmediateProcessingQueue } from '../../src/utils/queue';
+import { fail } from 'assert';
+import { executeInQueueAsync, IQueueContainer, setUpImmediateProcessingQueue } from '../../src/utils/queue';
+import { PromiseMock } from '../helpers/promises';
 
 describe('queue', () => {
   let cmd1: jest.Mock;
@@ -74,5 +74,54 @@ describe('queue', () => {
     });
 
     expect(cmd1.mock.calls.length).toBe(1);
+  });
+});
+
+describe('executeInQueueAsync', () => {
+  let promiseMocker1: PromiseMock<number>;
+  let promiseMocker2: PromiseMock<number>;
+  let promiseMocker3: PromiseMock<number>;
+  let currentIndex: number;
+  let queuedFunc: (n: number) => Promise<number>;
+
+  beforeEach(() => {
+    promiseMocker1 = new PromiseMock<number>();
+    promiseMocker2 = new PromiseMock<number>();
+    promiseMocker3 = new PromiseMock<number>();
+    currentIndex = 0;
+    const promises = [promiseMocker1.promise, promiseMocker2.promise, promiseMocker3.promise];
+    queuedFunc = executeInQueueAsync((_n: number) => {
+      const promise = promises[currentIndex];
+      currentIndex += 1;
+      return promise;
+    });
+  });
+
+  test('return directly resolved promises', async () => {
+    promiseMocker1.resolve(1);
+    promiseMocker2.resolve(2);
+
+    const res1 = await queuedFunc(1);
+    const res2 = await queuedFunc(2);
+
+    expect(res1).toBe(1);
+    expect(res2).toBe(2);
+  });
+
+  test('wait for processing of the second promise', () => {
+    promiseMocker1.resolve(1);
+    promiseMocker3.resolve(3);
+
+    queuedFunc(1);
+    queuedFunc(2).finally(() => {
+      fail('rest2 should not be resolved');
+    });
+    queuedFunc(3).finally(() => {
+      fail('rest3 should not be resolved');
+    });
+
+    return new Promise((resolve) => {
+      setTimeout(resolve, 100);
+    });
   });
 });
