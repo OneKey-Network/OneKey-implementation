@@ -4,20 +4,7 @@ import { PromptConsent } from './widgets/prompt-consent';
 import { notificationService } from './services/notification.service';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
 import { currentScript } from '@frontend/utils/current-script';
-import {
-  deleteIdsAndPreferences,
-  generateSeed,
-  getAuditLogByDivId,
-  getAuditLogByTransaction,
-  getIdsAndPreferences,
-  getNewId,
-  registerTransmissionResponse,
-  removeCookie,
-  setNotificationHandler,
-  setPromptHandler,
-  signPreferences,
-  updateIdsAndPreferences,
-} from './lib/paf-lib';
+import { oneKeyLib } from './lib/paf-lib';
 import { Window } from './global';
 
 currentScript.setScript(document.currentScript as HTMLScriptElement);
@@ -25,18 +12,7 @@ currentScript.setScript(document.currentScript as HTMLScriptElement);
 (<Window>window).PAF = {
   ...((<Window>window).PAF ?? {}),
   // The rest has to be the official methods, should not be overridden from the outside
-  getNewId,
-  signPreferences,
-  deleteIdsAndPreferences,
-  removeCookie,
-  getIdsAndPreferences,
-  updateIdsAndPreferences,
-  setPromptHandler,
-  setNotificationHandler,
-  generateSeed,
-  registerTransmissionResponse,
-  getAuditLogByTransaction,
-  getAuditLogByDivId,
+  ...oneKeyLib,
 };
 
 (async () => {
