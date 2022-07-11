@@ -866,8 +866,7 @@ export const setNotificationHandler = (handler: (notificationType: NotificationE
   notificationManager.handler = handler;
 };
 
-(async () =>
-  await setUpImmediateProcessingQueue((<Window>window).PAF, async () => {
-    await handleAfterBoomerangRedirect();
-    return true;
-  }))();
+(async () => {
+  await handleAfterBoomerangRedirect();
+  await setUpImmediateProcessingQueue((<Window>window).PAF);
+})();

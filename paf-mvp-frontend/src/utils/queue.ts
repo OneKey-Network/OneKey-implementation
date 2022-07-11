@@ -40,12 +40,8 @@ export interface IQueueContainer {
  * Set up an immediate processing queue to the container and
  * execute the previously deferred commands of the queue.
  * @param container Container of the queue to setup
- * @param preRun method to run before any other command. Return false to **stop** the execution of other commands
  */
-export const setUpImmediateProcessingQueue = async (
-  container: IQueueContainer,
-  preRun: () => Promise<boolean> = () => Promise.resolve(true)
-): Promise<void> => {
+export const setUpImmediateProcessingQueue = async (container: IQueueContainer): Promise<void> => {
   if (container === undefined) {
     return;
   }
@@ -56,14 +52,6 @@ export const setUpImmediateProcessingQueue = async (
   const { queue } = container;
 
   const processor = new ImmediateProcessingQueue();
-
-  log.Debug('queue.setup: prerun');
-
-  // Run the "pre-run" before anything else
-  if (!(await preRun())) {
-    log.Info('queue.setup: prerun false => stop execution of commands');
-    return;
-  }
 
   if (queue && Array.isArray(queue)) {
     log.Debug(`queue.setup: run ${queue.length} pre-recorded commands`);
