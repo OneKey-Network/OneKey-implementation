@@ -213,10 +213,10 @@ export class Controller {
     try {
       let data: IdsAndOptionalPreferences;
 
-      this.model.status = OneKeyLib.status;
+      this.model.status = r.status;
 
       if (r) {
-        data = r;
+        data = r.data;
       } else if (OneKeyLib.unpersistedIds) {
         data = {
           identifiers: OneKeyLib.unpersistedIds,
@@ -257,7 +257,7 @@ export class Controller {
     }
 
     // Try and get the OneKey data from local cookies.
-    const data = await OneKeyLib.getIdsAndPreferences();
+    const data = (await OneKeyLib.getIdsAndPreferences()).data;
     if (data !== undefined) {
       // TODO: The data returned does not match the interface and should really include a status value to avoid this
       // try catch block.
