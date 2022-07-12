@@ -685,7 +685,7 @@ export class OneKeyLib implements IOneKeyLib {
     }
     const url = this.getProxyUrl(jsonProxyEndpoints.createSeed);
     const idsAndPreferencesResult = await this.getIdsAndPreferences();
-    if (idsAndPreferencesResult === undefined) {
+    if (idsAndPreferencesResult === undefined || idsAndPreferencesResult.data === undefined) {
       return undefined;
     }
 
