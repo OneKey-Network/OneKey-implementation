@@ -1,5 +1,5 @@
-import { getIdsAndPreferences, getNewId, signPreferences, updateIdsAndPreferences } from '../src/lib/paf-lib';
-import { NotificationEnum } from '../src/enums/notification.enum';
+import { IOneKeyLib } from '../src/lib/i-one-key-lib';
+import { IProcessingQueue } from '../src/utils/queue';
 
 declare global {
   namespace Cypress {
@@ -10,15 +10,8 @@ declare global {
   }
 
   interface Window {
-    PAF: {
-      getNewId: typeof getNewId;
-      signPreferences: typeof signPreferences;
-      getIdsAndPreferences: typeof getIdsAndPreferences;
-      updateIdsAndPreferences: typeof updateIdsAndPreferences;
-    };
-    PAFUI: {
-      promptConsent: () => Promise<boolean>;
-      showNotification: (notificationType: NotificationEnum) => void;
+    PAF: IOneKeyLib & {
+      queue?: IProcessingQueue;
     };
   }
 }

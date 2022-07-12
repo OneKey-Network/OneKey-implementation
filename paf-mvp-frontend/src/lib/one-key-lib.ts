@@ -267,8 +267,16 @@ export class OneKeyLib implements IOneKeyLib {
     this.promptManager.handler = handler;
   };
 
+  async promptConsent(): Promise<boolean> {
+    return this.promptManager.fireEvent();
+  }
+
   setNotificationHandler(handler: (notificationType: NotificationEnum) => Promise<void>) {
     this.notificationManager.handler = handler;
+  }
+
+  showNotification(notificationType: NotificationEnum): Promise<void> {
+    return this.notificationManager.fireEvent(notificationType);
   }
 
   /**

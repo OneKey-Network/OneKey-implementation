@@ -14,6 +14,9 @@ currentScript.setScript(document.currentScript as HTMLScriptElement);
     new Promise<boolean>((resolve) => new PromptConsent({ emitConsent: resolve, originalData }).render());
   const showNotification = (type: NotificationEnum) => notificationService.showNotification(type);
 
-  (<Window>window).PAFUI ??= { promptConsent, showNotification };
   (window as Window).PAF.setPromptHandler(promptConsent);
+  (window as Window).PAF.setNotificationHandler((type) => {
+    showNotification(type);
+    return Promise.resolve();
+  });
 })();

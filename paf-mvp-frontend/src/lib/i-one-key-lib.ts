@@ -61,7 +61,9 @@ export interface IOneKeyLib {
   getAuditLogByDivId: (divId: DivId) => AuditLog | undefined;
   deleteIdsAndPreferences: () => Promise<void>;
   setPromptHandler: (handler: () => Promise<boolean>) => void;
+  promptConsent: () => Promise<boolean>;
   setNotificationHandler: (handler: (notificationType: NotificationEnum) => Promise<void>) => void;
+  showNotification: (notificationType: NotificationEnum) => Promise<void>;
   updateIdsAndPreferences: (
     optIn: boolean,
     identifiers: Identifier[]
