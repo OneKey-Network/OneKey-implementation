@@ -33,87 +33,105 @@
     var PREBID_TIMEOUT = 3000;
     var FAILSAFE_TIMEOUT = 3000;
 
-        var adUnits = [
-            {
-                code: 'div-1',
-                mediaTypes: {
-                    banner: {
-                        sizes: div_1_sizes
-                    }
-                },
-                bids: [
-                {
-                    bidder: 'criteo',
-                    params: {
-                        zoneId: 1661193
-                    }
-                }]
-            },
-            {
-                code: 'div-2',
-                mediaTypes: {
-                    banner: {
-                        sizes: div_2_sizes
-                    }
-                },
-                bids: [{
-                    bidder: 'criteo',
-                    params: {
-                        zoneId: 1661192
-                    }
-                }]
+    var adUnits = [
+      {
+        code: 'div-1',
+        mediaTypes: {
+          banner: {
+            sizes: div_1_sizes
+          }
+        },
+        bids: [{
+          bidder: 'openx',
+          params: {
+            delDomain: 'sademo-d.openx.net',
+            unit: '540096529',
+            test: true,
+            customFloor: 0.01
+          }
+        },
+          {
+            bidder: 'criteo',
+            params: {
+              zoneId: 1661193
             }
-        ];
+          }]
+      },
+      {
+        code: 'div-2',
+        mediaTypes: {
+          banner: {
+            sizes: div_2_sizes
+          }
+        },
+        bids: [{
+          bidder: 'openx',
+          params: {
+            delDomain: 'sademo-d.openx.net',
+            unit: '540096529',
+            test: true
+          }
+        },
+          {
+            bidder: 'criteo',
+            params: {
+              zoneId: 1661192
+            }
+          }]
+      }
+    ];
 
 
-        var googletag = googletag || {};
-        googletag.cmd = googletag.cmd || [];
-        googletag.cmd.push(function() {
-            googletag.pubads().disableInitialLoad();
-        });
+    var googletag = googletag || {};
+    googletag.cmd = googletag.cmd || [];
+    googletag.cmd.push(function() {
+        googletag.pubads().disableInitialLoad();
+    });
 
-        var pbjs = pbjs || {};
-        pbjs.que = pbjs.que || [];
+    var pbjs = pbjs || {};
+    pbjs.que = pbjs.que || [];
 
-        var PAF = PAF || {};
-        PAF.queue = PAF.queue || [];
+    var PAF = PAF || {};
+    PAF.queue = PAF.queue || [];
 
-        pbjs.que.push(function() {
-            pbjs.addAdUnits(adUnits);
-            pbjs.setConfig({
-                consentManagement: {
-                cmpApi: "static",
-                consentData: {
-                    getTCData: {
-                        tcString: "CO-HDlqO-HDlqAKAXCENBDCsAP_AAH_AACiQHKNd_X_fb39j-_59_9t0eY1f9_7_v20zjgeds-8Nyd_X_L8X42M7vF36pq4KuR4Eu3LBIQFlHOHcTUmw6IkVqTPsak2Mr7NKJ7PEinMbe2dYGHtfn9VTuZKYr97s___z__-__v__75f_r-3_3_vp9V---_fA5QAkw1L4CLMSxwJJo0qhRAhCuJDoAQAUUIwtE1hASuCnZXAR-ggYAIDUBGBECDEFGLIIAAAAAkoiAkAPBAIgCIBAACAFSAhAARoAgsAJAwCAAUA0LACKAIQJCDI4KjlMCAiRaKCeSMASi72MMIQyigBoFH4AAAAA.cAAAAAAAAAAA",
-                        cmpId: 10,
-                        cmpVersion: 23,
-                        tcfPolicyVersion: 2,
-                        gdprApplies: false,
-                        cmpStatus: "loaded",
-                        eventStatus: "tcloaded"
-                        }
-                    }
-                },
-                priceGranularity: 'high',
-                debug: true,
-                realTimeData: {
-                    auctionDelay: 1000,
-                    dataProviders: [
-                            {
-                            name: "oneKey",
-                            waitForIt: true
-                        }
-                    ]
-                },
-                userSync: {
-                    userIds: [{
-                        name: "oneKeyData"
-                    }],
-                    auctionDelay: 1000,
-                    syncDelay: 3000
-                }
-            });
+    pbjs.que.push(function() {
+      pbjs.addAdUnits(adUnits);
+      pbjs.setConfig({
+        consentManagement: {
+          cmpApi: 'static',
+          consentData: {
+            getTCData: {
+              tcString: 'CO-HDlqO-HDlqAKAXCENBDCsAP_AAH_AACiQHKNd_X_fb39j-_59_9t0eY1f9_7_v20zjgeds-8Nyd_X_L8X42M7vF36pq4KuR4Eu3LBIQFlHOHcTUmw6IkVqTPsak2Mr7NKJ7PEinMbe2dYGHtfn9VTuZKYr97s___z__-__v__75f_r-3_3_vp9V---_fA5QAkw1L4CLMSxwJJo0qhRAhCuJDoAQAUUIwtE1hASuCnZXAR-ggYAIDUBGBECDEFGLIIAAAAAkoiAkAPBAIgCIBAACAFSAhAARoAgsAJAwCAAUA0LACKAIQJCDI4KjlMCAiRaKCeSMASi72MMIQyigBoFH4AAAAA.cAAAAAAAAAAA',
+              cmpId: 10,
+              cmpVersion: 23,
+              tcfPolicyVersion: 2,
+              gdprApplies: false,
+              cmpStatus: 'loaded',
+              eventStatus: 'tcloaded'
+            }
+          }
+        },
+        priceGranularity: 'high',
+        debug: true,
+        realTimeData: {
+          auctionDelay: 1000,
+          dataProviders: [
+            {
+              name: 'oneKey',
+              waitForIt: true,
+              params: { proxyHostName: "{{pafNodeHost}}" }
+            }
+          ]
+        },
+        userSync: {
+          userIds: [{
+            name: 'oneKeyData',
+            params: {}
+          }],
+          auctionDelay: 1000,
+          syncDelay: 3000
+        }
+      });
 
             // Generate and store the OneKey Audit Log
             // once the winner is elected.
