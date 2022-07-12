@@ -107,9 +107,9 @@ To integrate the widget into a website, website owners should inject the app bun
 ```
 To get the user's consent, the widget provides the next API:
 
-`PAFUI.promptConsent(): Promise<boolean>` - displays the widget with OneKey information and returns Promise with user's response
+`PAF.promptConsent(): Promise<boolean>` - displays the widget with OneKey information and returns Promise with user's response
 
-`PAFUI.showNotification(notificationType: NotificationEnum)` - displays a snack bar with a predefined message
+`PAF.showNotification(notificationType: NotificationEnum)` - displays a snack bar with a predefined message
 
 ## Development
 
