@@ -42,7 +42,7 @@
           }
         },
         bids: [{
-          bidder: 'openx2',
+          bidder: 'openx',
           params: {
             delDomain: 'sademo-d.openx.net',
             unit: '540096529',
@@ -65,7 +65,7 @@
           }
         },
         bids: [{
-          bidder: 'openx2',
+          bidder: 'openx',
           params: {
             delDomain: 'sademo-d.openx.net',
             unit: '540096529',
@@ -82,17 +82,17 @@
     ];
 
 
-        var googletag = googletag || {};
-        googletag.cmd = googletag.cmd || [];
-        googletag.cmd.push(function() {
-            googletag.pubads().disableInitialLoad();
-        });
+    var googletag = googletag || {};
+    googletag.cmd = googletag.cmd || [];
+    googletag.cmd.push(function() {
+        googletag.pubads().disableInitialLoad();
+    });
 
-        var pbjs = pbjs || {};
-        pbjs.que = pbjs.que || [];
+    var pbjs = pbjs || {};
+    pbjs.que = pbjs.que || [];
 
-        var PAF = PAF || {};
-        PAF.queue = PAF.queue || [];
+    var PAF = PAF || {};
+    PAF.queue = PAF.queue || [];
 
     pbjs.que.push(function() {
       pbjs.addAdUnits(adUnits);
