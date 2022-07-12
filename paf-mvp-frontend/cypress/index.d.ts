@@ -1,5 +1,5 @@
-import { IOneKeyLib } from '../src/lib/i-one-key-lib';
 import { IProcessingQueue } from '../src/utils/queue';
+import { IOneKeyLib } from '../src/lib/paf-lib';
 
 declare global {
   namespace Cypress {
