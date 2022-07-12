@@ -204,6 +204,10 @@ export class OneKeyLib implements IOneKeyLib {
     document.cookie = `${cookieName}=${value};expires=${expiration.toUTCString()}`;
   }
 
+  removeCookie(cookieName: string): void {
+    this.setCookie(cookieName, null, new Date(0));
+  }
+
   private async showNotificationIfValid(consent: boolean | undefined) {
     if (consent !== undefined) {
       await this.notificationManager.fireEvent(
@@ -226,6 +230,32 @@ export class OneKeyLib implements IOneKeyLib {
     this.setCookie(Cookies.lastRefresh, new Date().toISOString(), getPafRefreshExpiration());
 
     return valueToStore;
+  }
+
+  /**
+   * Sign new optin value and send it with ids to the operator for writing
+   */
+  async updateIdsAndPreferences(
+    optIn: boolean,
+    identifiers: Identifier[]
+  ): Promise<IdsAndOptionalPreferences | undefined> {
+    // 1. sign preferences
+    const unsignedPreferences = {
+      version: '0.1',
+      data: {
+        use_browsing_for_personalization: optIn,
+      },
+    };
+    const signedPreferences = await this.signPreferences({
+      identifiers,
+      unsignedPreferences,
+    });
+
+    // 2. write
+    return await this.writeIdsAndPref({
+      identifiers,
+      preferences: signedPreferences,
+    });
   }
 
   /**
@@ -301,151 +331,6 @@ export class OneKeyLib implements IOneKeyLib {
 
     return PafStatus.PARTICIPATING;
   }
-
-  private getAllCookies = (): CookieData => {
-    const strIds = getCookieValue(Cookies.identifiers);
-    const strPreferences = getCookieValue(Cookies.preferences);
-    const currentPafData = this.fromClientCookieValues(strIds, strPreferences);
-    return {
-      strIds,
-      lastRefresh: getCookieValue(Cookies.lastRefresh),
-      strPreferences,
-      currentPafData,
-      currentlySelectedConsent: currentPafData.preferences?.data?.use_browsing_for_personalization,
-    };
-  };
-
-  removeCookie(cookieName: string): void {
-    this.setCookie(cookieName, null, new Date(0));
-  }
-
-  setPromptHandler = (handler: () => Promise<boolean>) => {
-    this.promptManager.handler = handler;
-  };
-
-  async promptConsent(): Promise<boolean> {
-    return this.promptManager.fireEvent();
-  }
-
-  setNotificationHandler(handler: (notificationType: NotificationEnum) => Promise<void>) {
-    this.notificationManager.handler = handler;
-  }
-
-  showNotification(notificationType: NotificationEnum): Promise<void> {
-    return this.notificationManager.fireEvent(notificationType);
-  }
-
-  /**
-   * Sign new optin value and send it with ids to the operator for writing
-   */
-  async updateIdsAndPreferences(
-    optIn: boolean,
-    identifiers: Identifier[]
-  ): Promise<IdsAndOptionalPreferences | undefined> {
-    // 1. sign preferences
-    const unsignedPreferences = {
-      version: '0.1',
-      data: {
-        use_browsing_for_personalization: optIn,
-      },
-    };
-    const signedPreferences = await this.signPreferences({
-      identifiers,
-      unsignedPreferences,
-    });
-
-    // 2. write
-    return await this.writeIdsAndPref({
-      identifiers,
-      preferences: signedPreferences,
-    });
-  }
-
-  triggerNotification = async (initialData: CookieData, newConsent: boolean) => {
-    // the new value is different from the previous one
-    if (newConsent !== initialData.currentlySelectedConsent) {
-      this.log.Debug(
-        `Preferences changes detected (${initialData.currentlySelectedConsent} => ${newConsent}), show notification`
-      );
-      await this.showNotificationIfValid(newConsent);
-    } else {
-      this.log.Debug(`No preferences changes (${initialData.currentlySelectedConsent}), don't show notification`);
-    }
-  };
-
-  handleAfterBoomerangRedirect = async () => {
-    // Update the URL shown in the address bar, without OneKey data
-    const urlParams = new URLSearchParams(window.location.search);
-    const uriOperatorData = urlParams.get(QSParam.paf);
-    const uriShowPrompt = urlParams.get(this.localQSParamShowPrompt);
-
-    const cleanedUrl = this.removeUrlParameters(location.href, [QSParam.paf, this.localQSParamShowPrompt]);
-    history.pushState(null, '', cleanedUrl);
-
-    // 1. Any OneKey 1st party cookie?
-    const initialData = this.getAllCookies();
-
-    this.log.Info(`Redirected from operator: ${uriOperatorData ? 'YES' : 'NO'}`);
-
-    // 2. Redirected from operator?
-    if (uriOperatorData) {
-      // Consider that if we have been redirected, it means 3PC are not supported
-      this.thirdPartyCookiesSupported = false;
-
-      // Verify message
-      const response = await this.postText(this.getProxyUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
-      const operatorData = (await response.json()) as
-        | GetIdsPrefsResponse
-        | PostIdsPrefsResponse
-        | DeleteIdsPrefsResponse;
-
-      if (!operatorData) {
-        throw 'Verification failed';
-      }
-
-      this.log.Debug('Operator data after redirect', operatorData);
-
-      let status: PafStatus;
-
-      // Remember what was asked for prompt, before the redirect
-      const showPrompt = uriShowPrompt as ShowPromptOption;
-
-      // 3. Received data?
-      if (operatorData.body.preferences === undefined && operatorData.body.identifiers.length === 0) {
-        // Deletion of ids and preferences requested
-        this.saveCookieValue(Cookies.identifiers, undefined);
-        this.saveCookieValue(Cookies.preferences, undefined);
-        status = PafStatus.NOT_PARTICIPATING;
-
-        this.log.Info('Deleted ids and preferences');
-      } else {
-        // Ids and preferences received
-        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
-        const hasPersistedId = persistedIds.length > 0;
-        const preferences = operatorData?.body?.preferences;
-        const hasPreferences = preferences !== undefined;
-        this.saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
-        this.saveCookieValue(Cookies.preferences, preferences);
-
-        await this.triggerNotification(initialData, preferences?.data?.use_browsing_for_personalization);
-
-        status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
-
-        if (!hasPersistedId) {
-          this.unpersistedIds = operatorData.body.identifiers;
-        }
-      }
-
-      // Now handle prompt, if relevant
-      await this.updateDataWithPrompt(
-        {
-          status,
-          data: operatorData.body,
-        },
-        showPrompt
-      );
-    }
-  };
 
   /**
    * Ensure local cookies for OneKey identifiers and preferences are up-to-date.
@@ -598,6 +483,121 @@ export class OneKeyLib implements IOneKeyLib {
     await this.updateDataWithPrompt(idsAndPreferences, showPrompt);
 
     return idsAndPreferences;
+  };
+
+  private getAllCookies = (): CookieData => {
+    const strIds = getCookieValue(Cookies.identifiers);
+    const strPreferences = getCookieValue(Cookies.preferences);
+    const currentPafData = this.fromClientCookieValues(strIds, strPreferences);
+    return {
+      strIds,
+      lastRefresh: getCookieValue(Cookies.lastRefresh),
+      strPreferences,
+      currentPafData,
+      currentlySelectedConsent: currentPafData.preferences?.data?.use_browsing_for_personalization,
+    };
+  };
+
+  setPromptHandler = (handler: () => Promise<boolean>) => {
+    this.promptManager.handler = handler;
+  };
+
+  async promptConsent(): Promise<boolean> {
+    return this.promptManager.fireEvent();
+  }
+
+  setNotificationHandler(handler: (notificationType: NotificationEnum) => Promise<void>) {
+    this.notificationManager.handler = handler;
+  }
+
+  showNotification(notificationType: NotificationEnum): Promise<void> {
+    return this.notificationManager.fireEvent(notificationType);
+  }
+
+  triggerNotification = async (initialData: CookieData, newConsent: boolean) => {
+    // the new value is different from the previous one
+    if (newConsent !== initialData.currentlySelectedConsent) {
+      this.log.Debug(
+        `Preferences changes detected (${initialData.currentlySelectedConsent} => ${newConsent}), show notification`
+      );
+      await this.showNotificationIfValid(newConsent);
+    } else {
+      this.log.Debug(`No preferences changes (${initialData.currentlySelectedConsent}), don't show notification`);
+    }
+  };
+
+  handleAfterBoomerangRedirect = async () => {
+    // Update the URL shown in the address bar, without OneKey data
+    const urlParams = new URLSearchParams(window.location.search);
+    const uriOperatorData = urlParams.get(QSParam.paf);
+    const uriShowPrompt = urlParams.get(this.localQSParamShowPrompt);
+
+    const cleanedUrl = this.removeUrlParameters(location.href, [QSParam.paf, this.localQSParamShowPrompt]);
+    history.pushState(null, '', cleanedUrl);
+
+    // 1. Any OneKey 1st party cookie?
+    const initialData = this.getAllCookies();
+
+    this.log.Info(`Redirected from operator: ${uriOperatorData ? 'YES' : 'NO'}`);
+
+    // 2. Redirected from operator?
+    if (uriOperatorData) {
+      // Consider that if we have been redirected, it means 3PC are not supported
+      this.thirdPartyCookiesSupported = false;
+
+      // Verify message
+      const response = await this.postText(this.getProxyUrl(jsonProxyEndpoints.verifyRead), uriOperatorData);
+      const operatorData = (await response.json()) as
+        | GetIdsPrefsResponse
+        | PostIdsPrefsResponse
+        | DeleteIdsPrefsResponse;
+
+      if (!operatorData) {
+        throw 'Verification failed';
+      }
+
+      this.log.Debug('Operator data after redirect', operatorData);
+
+      let status: PafStatus;
+
+      // Remember what was asked for prompt, before the redirect
+      const showPrompt = uriShowPrompt as ShowPromptOption;
+
+      // 3. Received data?
+      if (operatorData.body.preferences === undefined && operatorData.body.identifiers.length === 0) {
+        // Deletion of ids and preferences requested
+        this.saveCookieValue(Cookies.identifiers, undefined);
+        this.saveCookieValue(Cookies.preferences, undefined);
+        status = PafStatus.NOT_PARTICIPATING;
+
+        this.log.Info('Deleted ids and preferences');
+      } else {
+        // Ids and preferences received
+        const persistedIds = operatorData.body.identifiers?.filter((identifier) => identifier?.persisted !== false);
+        const hasPersistedId = persistedIds.length > 0;
+        const preferences = operatorData?.body?.preferences;
+        const hasPreferences = preferences !== undefined;
+        this.saveCookieValue(Cookies.identifiers, hasPersistedId ? persistedIds : undefined);
+        this.saveCookieValue(Cookies.preferences, preferences);
+
+        await this.triggerNotification(initialData, preferences?.data?.use_browsing_for_personalization);
+
+        status = hasPersistedId && hasPreferences ? PafStatus.PARTICIPATING : PafStatus.UNKNOWN;
+
+        if (!hasPersistedId) {
+          this.unpersistedIds = operatorData.body.identifiers;
+        }
+      }
+
+      // Now handle prompt, if relevant
+      await this.updateDataWithPrompt(
+        {
+          status,
+          data: operatorData.body,
+        },
+        showPrompt
+      );
+    }
   };
 
   /**
