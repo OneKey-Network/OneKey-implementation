@@ -16,7 +16,6 @@ import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
-import { currentScript } from '@frontend/utils/current-script';
 import { Window } from '@frontend/global';
 import { IdsAndPreferences } from '@core/model';
 
@@ -33,7 +32,6 @@ export const WelcomeWidget = ({ emitConsent, originalData }: IWelcomeWidgetProps
 
   const originalIdentifier = originalData?.identifiers?.[0];
   const originalConsent = originalData?.preferences?.data?.use_browsing_for_personalization;
-  const pafClientNodeHost = currentScript.getData()?.proxy;
   const brandName = window.location.hostname;
 
   const [consent, setConsent] = useState(originalIdentifier && originalConsent);
