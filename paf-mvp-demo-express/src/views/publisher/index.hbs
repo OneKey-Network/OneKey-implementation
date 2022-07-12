@@ -95,6 +95,11 @@
     PAF.queue = PAF.queue || [];
 
     pbjs.que.push(function() {
+      pbjs.bidderSettings = {
+          criteo: {
+            storageAllowed: true
+          },
+      };
       pbjs.addAdUnits(adUnits);
       pbjs.setConfig({
         consentManagement: {
