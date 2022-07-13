@@ -96,7 +96,7 @@ export class Controller {
     ) {
       return 'intro';
     }
-    if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
+    if (this.model.status !== PafStatus.REDIRECT_NEEDED && this.model.status !== PafStatus.REDIRECTING) {
       return 'settings';
     }
     return null;
@@ -195,8 +195,29 @@ export class Controller {
     if (this.config.displayIntro === false) {
       await this.getIdsAndPreferencesFromGlobal(true);
     }
-    
      */
+  }
+
+  /**
+   * Get ids and preferences from local cookies, and also return un "unpersisted" id if the user was unknown
+   * @private
+   */
+  private async getIdsPreferencesAndUnPersisted(): Promise<{ status: PafStatus; data: IdsAndOptionalPreferences }> {
+    return new Promise((resolve) => {
+      // Execute in queue to make sure to have fresh data
+      OneKeyLib.queue.push(() => {
+        OneKeyLib.getIdsAndPreferences().then((response) => {
+          const idPrefsWithUnPersisted = response as { status: PafStatus; data: IdsAndOptionalPreferences };
+          if (OneKeyLib.unpersistedIds) {
+            idPrefsWithUnPersisted.data ??= { identifiers: [] };
+            idPrefsWithUnPersisted.data.identifiers ??= [];
+            idPrefsWithUnPersisted.data.identifiers.push(...OneKeyLib.unpersistedIds);
+          }
+
+          resolve(idPrefsWithUnPersisted);
+        });
+      });
+    });
   }
 
   /**
@@ -206,22 +227,12 @@ export class Controller {
    */
   private async getIdsAndPreferencesFromGlobal() {
     this.log.Debug('getIdsAndPreferencesFromGlobal');
-    const r = await OneKeyLib.getIdsAndPreferences();
 
     // TODO: The data returned does not always match the interface and should really include a status value to avoid
     // this try catch block.
     try {
-      let data: IdsAndOptionalPreferences;
-
-      this.model.status = r.status;
-
-      if (r) {
-        data = r.data;
-      } else if (OneKeyLib.unpersistedIds) {
-        data = {
-          identifiers: OneKeyLib.unpersistedIds,
-        };
-      }
+      const r = await this.getIdsPreferencesAndUnPersisted();
+      const { data, status } = r;
 
       this.log.Message('global data', data);
       this.log.Message('status', status);
@@ -256,20 +267,18 @@ export class Controller {
       }
     }
 
-    // Try and get the OneKey data from local cookies.
-    const data = (await OneKeyLib.getIdsAndPreferences()).data;
-    if (data !== undefined) {
-      // TODO: The data returned does not match the interface and should really include a status value to avoid this
-      // try catch block.
-      try {
+    try {
+      // Try and get the OneKey data from local cookies.
+      const data = (await this.getIdsPreferencesAndUnPersisted()).data;
+      if (data !== undefined) {
         this.log.Message('local OneKey data', data);
         this.model.status = PafStatus.PARTICIPATING;
         this.setPersistedFlag(data.identifiers);
         this.model.setFromIdsAndPreferences(data);
         return true;
-      } catch (ex) {
-        this.log.Warn('Problem parsing local ids and preferences', ex);
       }
+    } catch (ex) {
+      this.log.Warn('Problem parsing local ids and preferences', ex);
     }
 
     this.model.status = PafStatus.REDIRECT_NEEDED;

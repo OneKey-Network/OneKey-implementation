@@ -14,7 +14,7 @@ const triggerRedirectIfNeeded =
   pafLibScript.getData()?.upFrontRedirect !== undefined ? pafLibScript.getData().upFrontRedirect === 'true' : true;
 export const oneKeyLib = new OneKeyLib(pafLibScript.getData()?.clientHostname, triggerRedirectIfNeeded);
 
-const queue = (<Window>window).PAF?.queue;
+const queue = (<Window>window).PAF?.queue ?? [];
 (<Window>window).PAF = oneKeyLib;
 (<Window>window).PAF.queue = queue;
 

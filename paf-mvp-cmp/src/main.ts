@@ -34,6 +34,7 @@ const promptConsent = () =>
 const showNotification = (type: NotificationEnum) =>
   new Promise<void>((resolve) => {
     if (controller !== null) {
+      // TODO why is this triggering a "display of settings"??
       controller.display('settings'); // TODO should use the notification type
     }
     resolve();
