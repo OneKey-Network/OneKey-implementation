@@ -314,7 +314,7 @@ export class OneKeyLib implements IOneKeyLib {
         }
 
         return {
-          status: pafStatus,
+          status: PafStatus.REDIRECTING,
         };
       }
 
@@ -402,16 +402,19 @@ export class OneKeyLib implements IOneKeyLib {
         this.log.Info('JS redirect');
       }
 
+      let status: PafStatus;
       if (this.triggerRedirectIfNeeded) {
         await redirectToRead();
+        status = PafStatus.REDIRECTING;
       } else {
         this.log.Info('Deffer redirect to later, in agreement with options');
-        this.saveCookieValue(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
-        this.saveCookieValue(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
+        status = PafStatus.REDIRECT_NEEDED;
+        this.saveCookieValue(Cookies.identifiers, status);
+        this.saveCookieValue(Cookies.preferences, status);
       }
 
       return {
-        status: PafStatus.REDIRECT_NEEDED,
+        status,
       };
     };
 
@@ -826,6 +829,7 @@ export class OneKeyLib implements IOneKeyLib {
     this.redirect(operatorUrl);
   };
 }
+
 // TODO ------------------------------------------------------ move to one-key-lib.ts END
 
 // TODO ------------------------------------------------------ move to rtb.ts START
@@ -863,6 +867,7 @@ export interface SeedEntry {
   seed: Seed;
   idsAndPreferences: IdsAndPreferences;
 }
+
 // TODO ------------------------------------------------------ move to rtb.ts END
 
 // TODO ------------------------------------------------------ move to i-one-key-lib.ts START
@@ -923,4 +928,5 @@ export interface IOneKeyLib {
   ) => Promise<IdsAndOptionalPreferences | undefined>;
   removeCookie: (cookieName: string) => void;
 }
+
 // TODO ------------------------------------------------------ move to i-one-key-lib.ts END
