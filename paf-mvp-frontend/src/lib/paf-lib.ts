@@ -150,6 +150,7 @@ export class OneKeyLib implements IOneKeyLib {
 
   private async showNotificationIfValid(consent: boolean | undefined) {
     if (consent !== undefined) {
+      this.log.Debug('Show notification with consent', consent);
       await this.notificationManager.fireEvent(
         consent ? NotificationEnum.personalizedContent : NotificationEnum.generalContent
       );
