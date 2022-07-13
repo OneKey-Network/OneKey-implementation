@@ -305,29 +305,30 @@ export class OneKeyLib implements IOneKeyLib {
       // TODO the parsing and cleaning of the query string should be moved to a dedicated function
       const initialData = this.getAllCookies();
 
-      const pafStatus = this.getPafStatus(initialData.strIds, initialData.strPreferences);
+      let status = this.getPafStatus(initialData.strIds, initialData.strPreferences);
 
-      if (pafStatus === PafStatus.REDIRECT_NEEDED) {
+      if (status === PafStatus.REDIRECT_NEEDED) {
         this.log.Info('Redirect previously deferred');
 
         if (this.triggerRedirectIfNeeded) {
           await redirectToRead();
+          status = PafStatus.REDIRECTING;
         }
 
         return {
-          status: PafStatus.REDIRECTING,
+          status,
         };
       }
 
       if (initialData.lastRefresh) {
         this.log.Info('Cookie found: YES');
 
-        if (pafStatus === PafStatus.NOT_PARTICIPATING) {
+        if (status === PafStatus.NOT_PARTICIPATING) {
           this.log.Info('User is not participating');
         }
 
         return {
-          status: pafStatus,
+          status,
           data: initialData.currentPafData,
         };
       }
@@ -403,7 +404,6 @@ export class OneKeyLib implements IOneKeyLib {
         this.log.Info('JS redirect');
       }
 
-      let status: PafStatus;
       if (this.triggerRedirectIfNeeded) {
         await redirectToRead();
         status = PafStatus.REDIRECTING;

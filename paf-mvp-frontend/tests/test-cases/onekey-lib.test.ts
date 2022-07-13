@@ -180,18 +180,22 @@ describe('Function refreshIdsAndPreferences', () => {
 
     test('should redirect', async () => {
       lib.triggerRedirectIfNeeded = false;
-      const result = await lib.refreshIdsAndPreferences();
+      let result = await lib.refreshIdsAndPreferences();
 
       expect(global.location.replace).not.toBeCalled();
       expect(result).toEqual({
-        status: PafStatus.REDIRECTING,
+        status: PafStatus.REDIRECT_NEEDED,
       });
 
       lib.triggerRedirectIfNeeded = true;
 
-      await lib.refreshIdsAndPreferences();
+      result = await lib.refreshIdsAndPreferences();
 
       expect(redirectMock).toBeCalled();
+
+      expect(result).toEqual({
+        status: PafStatus.REDIRECTING,
+      });
     });
   });
 
