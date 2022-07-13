@@ -68,7 +68,7 @@ describe('Function getIdsAndPreferences', () => {
     CookiesHelpers.mockPreferences(testConsent);
 
     await expect(lib.getIdsAndPreferences()).resolves.toEqual({
-      status: PafStatus.REDIRECT_NEEDED,
+      status: PafStatus.REDIRECTING,
     });
   });
 
@@ -82,12 +82,15 @@ describe('Function getIdsAndPreferences', () => {
   });
 
   test('should return undefined if redirect is needed', async () => {
+    lib.triggerRedirectIfNeeded = false;
     CookiesHelpers.setCookies(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
     CookiesHelpers.setCookies(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
     CookiesHelpers.mockRefreshTime();
     await expect(lib.getIdsAndPreferences()).resolves.toEqual({
       status: PafStatus.REDIRECT_NEEDED,
     });
+
+    lib.triggerRedirectIfNeeded = true;
   });
 });
 
@@ -181,7 +184,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
       expect(global.location.replace).not.toBeCalled();
       expect(result).toEqual({
-        status: PafStatus.REDIRECT_NEEDED,
+        status: PafStatus.REDIRECTING,
       });
 
       lib.triggerRedirectIfNeeded = true;
@@ -351,7 +354,7 @@ describe('Function refreshIdsAndPreferences', () => {
         const result = await lib.refreshIdsAndPreferences();
 
         expect(result).toEqual(<IdsAndPreferencesResult>{
-          status: PafStatus.REDIRECT_NEEDED,
+          status: PafStatus.REDIRECTING,
         });
       });
     });
