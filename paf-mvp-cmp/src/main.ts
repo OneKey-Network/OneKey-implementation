@@ -48,5 +48,5 @@ controller = new Controller(
   log
 );
 
-(window as Window).PAF.setPromptHandler(promptConsent);
-(window as Window).PAF.setNotificationHandler(showNotification);
+(window as Window).OneKey.setPromptHandler(promptConsent);
+(window as Window).OneKey.setNotificationHandler(showNotification);

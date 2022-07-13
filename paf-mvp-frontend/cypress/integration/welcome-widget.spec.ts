@@ -91,7 +91,7 @@ describe('Welcome widget view', () => {
     it('should call the "new id" endpoint', () => {
       cy.window().then((win) => {
         const NEW_ID = 'NEW-USER-ID';
-        const getNewIdSpy = cy.stub(win.PAF, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
+        const getNewIdSpy = cy.stub(win.OneKey, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
         page.refreshBtn.click();
         cy.wrap(getNewIdSpy).should('have.been.called');
         page.refreshBtn.should('contain', NEW_ID.split('-')[0]);
@@ -117,8 +117,8 @@ describe('Welcome widget view', () => {
         const NEW_ID = 'NEW-USER-ID';
         const selectedConsentIndex = consent ? 0 : 1;
         const oppositeOptionIndex = Math.abs(selectedConsentIndex - 1);
-        const updateStub = cy.stub(win.PAF, 'updateIdsAndPreferences');
-        cy.stub(win.PAF, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
+        const updateStub = cy.stub(win.OneKey, 'updateIdsAndPreferences');
+        cy.stub(win.OneKey, 'getNewId').returns(Promise.resolve(getFakeIdentifiers(NEW_ID)[0]));
         // Refresh ID
         page.refreshBtn.click();
         // Change preferences

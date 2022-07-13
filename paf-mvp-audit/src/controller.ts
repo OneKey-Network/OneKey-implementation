@@ -98,7 +98,7 @@ export class Controller {
       case 'settings':
         this.view.display('button');
         this.bindActions();
-        (<Window>window).PAF.promptConsent();
+        (<Window>window).OneKey.promptConsent();
         break;
       case 'audit':
         this.view.display('audit');

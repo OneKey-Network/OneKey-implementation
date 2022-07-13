@@ -38,7 +38,7 @@ export default [
     output: {
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
-      name: 'PAF',
+      name: 'OneKey',
       sourcemap: generateSourceMap
     },
     treeshake: 'smallest', // remove unused code

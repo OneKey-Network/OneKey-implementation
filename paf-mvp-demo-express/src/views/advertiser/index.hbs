@@ -45,7 +45,7 @@
 {{/if}}
 
 <script>
-  const redirectIfNeeded = async () => await PAF.refreshIdsAndPreferences();
+  const redirectIfNeeded = async () => await OneKey.refreshIdsAndPreferences();
 </script>
 <div>
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
@@ -819,7 +819,7 @@
                   document.querySelector('#preferences')
                     .addEventListener('click', async (e) => {
                       e.preventDefault();
-                      await PAF.refreshIdsAndPreferences('doPrompt');
+                      await OneKey.refreshIdsAndPreferences('doPrompt');
                     });
                 </script>
               </div>

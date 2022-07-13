@@ -10,7 +10,7 @@ currentScript.setScript(document.currentScript as HTMLScriptElement);
 
 const promptConsent = () =>
   new Promise<boolean>((resolve) => {
-    (window as Window).PAF.getIdsAndPreferences().then((response) => {
+    (window as Window).OneKey.getIdsAndPreferences().then((response) => {
       const originalData = response.data;
       new PromptConsent({ emitConsent: resolve, originalData }).render();
     });
@@ -22,5 +22,5 @@ const showNotification = (type: NotificationEnum) =>
     resolve();
   });
 
-(window as Window).PAF.setPromptHandler(promptConsent);
-(window as Window).PAF.setNotificationHandler(showNotification);
+(window as Window).OneKey.setPromptHandler(promptConsent);
+(window as Window).OneKey.setNotificationHandler(showNotification);

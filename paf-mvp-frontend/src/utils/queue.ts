@@ -5,13 +5,13 @@ import { Log } from '@core/log';
 //
 // <script src="url/to/PAF-lib.js" async></script>
 // <script>
-//  var PAF = PAF || {};
-//  PAF.queue = PAF.queue || [];
-//  PAF.queue.push(functionToExecuteOncePAFLoads);
+//  var OneKey = OneKey || {};
+//  OneKey.queue = OneKey.queue || [];
+//  OneKey.queue.push(functionToExecuteOnceOneKeyLoads);
 // </script>
 //
 //  Call of the OneKey lib when loaded asynchronously:
-// setUpImmediateProcessingQueue(window.PAF);
+// setUpImmediateProcessingQueue(window.OneKey);
 
 /** An operation executed asynchronously after the PAF-lib is loaded. */
 export type Command = () => void;

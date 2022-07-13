@@ -91,8 +91,8 @@
     var pbjs = pbjs || {};
     pbjs.que = pbjs.que || [];
 
-    var PAF = PAF || {};
-    PAF.queue = PAF.queue || [];
+    var OneKey = OneKey || {};
+    OneKey.queue = OneKey.queue || [];
 
     pbjs.que.push(function() {
       pbjs.bidderSettings = {
@@ -146,8 +146,8 @@
                     return;
                 }
 
-                PAF.queue.push(() => {
-                    PAF.registerTransmissionResponse({
+                OneKey.queue.push(() => {
+                    OneKey.registerTransmissionResponse({
                         prebidTransactionId: bid.transactionId,
                         adUnitCode: bid.adUnitCode,
                         contentId: pafObj.contentId
@@ -155,7 +155,7 @@
                 });
             });
 
-            PAF.queue.push(() => {
+            OneKey.queue.push(() => {
                 // PrebidJS calls internally OneKey without the queue
                 pbjs.requestBids({
                     bidsBackHandler: initAdserver,
@@ -865,7 +865,7 @@
                     document.querySelector('#preferences')
                       .addEventListener('click', (e) => {
                         e.preventDefault();
-                        PAF.refreshIdsAndPreferences('doPrompt');
+                        OneKey.refreshIdsAndPreferences('doPrompt');
                       });
                   </script>
                 </div>
