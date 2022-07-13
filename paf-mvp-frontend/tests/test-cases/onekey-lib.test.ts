@@ -1,11 +1,3 @@
-import {
-  createSeed,
-  getIdsAndPreferences,
-  getNewId,
-  refreshIdsAndPreferences,
-  RefreshResult,
-  signPreferences,
-} from '../../src/lib/paf-lib';
 import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '../../src/enums/status.enum';
@@ -19,11 +11,21 @@ import {
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
+import { IdsAndPreferencesResult, OneKeyLib } from '@frontend/lib/paf-lib';
 
 jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
 
 const pafClientNodeHost = 'http://localhost';
+
+let lib: OneKeyLib;
+let notificationHandler: jest.Mock<Promise<void>, []>;
+
+const resetLib = () => {
+  lib = new OneKeyLib(pafClientNodeHost);
+  notificationHandler = jest.fn(() => Promise.resolve());
+  lib.setNotificationHandler(notificationHandler);
+};
 
 afterEach(() => {
   // cleaning up the mess left behind the previous test
@@ -32,51 +34,72 @@ afterEach(() => {
 
 describe('Function getIdsAndPreferences', () => {
   beforeEach(() => {
+    resetLib();
     CookiesHelpers.clearPafCookies();
   });
 
+  /* FIXME update with a scenario where refresh() is implemented
   test('should return undefined with no cookies', () => {
-    expect(getIdsAndPreferences()).toBeUndefined();
+    await expect(getIdsAndPreferences()).resolves.toBeUndefined();
   });
+   */
 
-  test('should return value stored in cookies', () => {
+  test('should return value stored in cookies', async () => {
     const fakeId = 'FAKE_TEST_ID';
     const testConsent = false;
 
     CookiesHelpers.mockIdentifiers(fakeId);
     CookiesHelpers.mockPreferences(testConsent);
     CookiesHelpers.mockRefreshTime();
-    expect(getIdsAndPreferences()).toEqual({
-      preferences: getFakePreferences(testConsent),
-      identifiers: getFakeIdentifiers(fakeId),
+    await expect(lib.getIdsAndPreferences()).resolves.toEqual({
+      data: {
+        preferences: getFakePreferences(testConsent),
+        identifiers: getFakeIdentifiers(fakeId),
+      },
+      status: PafStatus.PARTICIPATING,
     });
   });
 
-  test('should return undefined if refreshTime is missing', () => {
+  test('should return undefined if refreshTime is missing', async () => {
     const fakeId = 'FAKE_TEST_ID';
     const testConsent = false;
 
     CookiesHelpers.mockIdentifiers(fakeId);
     CookiesHelpers.mockPreferences(testConsent);
 
-    expect(getIdsAndPreferences()).toBeUndefined();
+    await expect(lib.getIdsAndPreferences()).resolves.toEqual({
+      status: PafStatus.REDIRECTING,
+    });
   });
 
-  test('should return undefined if user is not participating', () => {
+  test('should return undefined if user is not participating', async () => {
     CookiesHelpers.setCookies(Cookies.preferences, PafStatus.NOT_PARTICIPATING);
-    CookiesHelpers.setCookies(Cookies.identifiers, PafStatus.NOT_PARTICIPATING);
-    expect(getIdsAndPreferences()).toBeUndefined();
+    CookiesHelpers.setCookies(Cookies.preferences, PafStatus.NOT_PARTICIPATING);
+    CookiesHelpers.mockRefreshTime();
+    await expect(lib.getIdsAndPreferences()).resolves.toEqual({
+      status: PafStatus.NOT_PARTICIPATING,
+    });
   });
 
-  test('should return undefined if redirect is needed', () => {
+  test('should return undefined if redirect is needed', async () => {
+    lib.triggerRedirectIfNeeded = false;
     CookiesHelpers.setCookies(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
     CookiesHelpers.setCookies(Cookies.identifiers, PafStatus.REDIRECT_NEEDED);
-    expect(getIdsAndPreferences()).toBeUndefined();
+    CookiesHelpers.mockRefreshTime();
+    await expect(lib.getIdsAndPreferences()).resolves.toEqual({
+      status: PafStatus.REDIRECT_NEEDED,
+    });
+
+    lib.triggerRedirectIfNeeded = true;
   });
 });
 
 describe('Function getNewId', () => {
   const FAKE_ID = 'A-B-TEST-ID';
+
+  beforeEach(() => {
+    resetLib();
+  });
 
   test('should return new ID', async () => {
     const identifiers = getFakeIdentifiers(FAKE_ID);
@@ -85,7 +108,7 @@ describe('Function getNewId', () => {
       JSON.stringify(<GetIdsPrefsResponse>{ body: { identifiers } }) // Actual call to the operator
     );
     try {
-      const identifier: Identifier = await getNewId({ proxyHostName: pafClientNodeHost });
+      const identifier: Identifier = await lib.getNewId();
       expect(identifier.value).toBe(FAKE_ID);
       expect(fetch.mock.calls.length).toEqual(2);
     } catch (error) {
@@ -133,127 +156,8 @@ describe('Function writeIdsAndPref', () => {
 
 describe('Function refreshIdsAndPreferences', () => {
   const realLocation = location;
-
-  describe('with data in the URI', () => {
-    const historySpy = jest.spyOn(global.history, 'pushState');
-    const uriData = 'TEST-STRING';
-    const identifier = getFakeIdentifiers()[0];
-    const preferences = getFakePreferences(true);
-
-    beforeAll(() => {
-      delete global.location;
-      global.location = {
-        search: `?paf=${uriData}`,
-        href: 'fake-href?foo=42&paf=TO_BE_REMOVED&baz=bar',
-      } as unknown as Location;
-      global.PAFUI = {
-        showNotification: jest.fn(),
-      };
-    });
-
-    afterEach(() => {
-      historySpy.mockClear();
-    });
-
-    afterAll(() => {
-      global.location = realLocation;
-    });
-
-    test('should clean paf parameter in the URI', async () => {
-      fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
-
-      await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: true,
-      });
-
-      expect(historySpy).toBeCalledWith(null, '', 'fake-href?foo=42&baz=bar');
-    });
-
-    test('should verify uriData', async () => {
-      // Just one call to the proxy to verify data
-      fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
-
-      await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: true,
-      });
-
-      expect(fetch.mock.calls[0][1].body).toBe(uriData);
-    });
-
-    test('should throw an error if empty response received', async () => {
-      fetch.mockResponseOnce('null');
-      await expect(
-        refreshIdsAndPreferences({
-          proxyHostName: pafClientNodeHost,
-          triggerRedirectIfNeeded: true,
-        })
-      ).rejects.toBe('Verification failed');
-    });
-
-    test('should save NOT_PARTICIPATING, if no preferences received', async () => {
-      fetch.mockResponseOnce(
-        JSON.stringify({
-          body: {
-            identifiers: [],
-            preferences: undefined,
-          },
-        })
-      );
-      await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: true,
-      });
-
-      expect(document.cookie).toContain(`${Cookies.identifiers}=NOT_PARTICIPATING`);
-      expect(document.cookie).toContain(`${Cookies.preferences}=NOT_PARTICIPATING`);
-    });
-
-    test('should save persistedIds to Cookies', async () => {
-      fetch.mockResponseOnce(
-        JSON.stringify({
-          body: {
-            identifiers: [identifier],
-            preferences,
-          },
-        })
-      );
-
-      const result = await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: true,
-      });
-
-      expect(document.cookie).toContain(JSON.stringify(identifier));
-      expect(document.cookie).toContain(JSON.stringify(preferences));
-
-      expect(result).toEqual({
-        status: PafStatus.PARTICIPATING,
-        data: {
-          identifiers: [identifier],
-          preferences,
-        },
-      });
-    });
-
-    test('should display notification', async () => {
-      fetch.mockResponseOnce(
-        JSON.stringify({
-          body: {
-            identifiers: [identifier],
-            preferences,
-          },
-        })
-      );
-
-      await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: true,
-      });
-
-      expect(global.PAFUI.showNotification).toBeCalledWith('PERSONALIZED');
-    });
+  beforeEach(() => {
+    resetLib();
   });
 
   describe('when redirect needed', () => {
@@ -275,22 +179,23 @@ describe('Function refreshIdsAndPreferences', () => {
     });
 
     test('should redirect', async () => {
-      const result = await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: false,
-      });
+      lib.triggerRedirectIfNeeded = false;
+      let result = await lib.refreshIdsAndPreferences();
 
       expect(global.location.replace).not.toBeCalled();
       expect(result).toEqual({
         status: PafStatus.REDIRECT_NEEDED,
       });
 
-      await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: true,
-      });
+      lib.triggerRedirectIfNeeded = true;
+
+      result = await lib.refreshIdsAndPreferences();
 
       expect(redirectMock).toBeCalled();
+
+      expect(result).toEqual({
+        status: PafStatus.REDIRECTING,
+      });
     });
   });
 
@@ -308,10 +213,7 @@ describe('Function refreshIdsAndPreferences', () => {
     });
 
     test('should return cookies value', async () => {
-      const result = await refreshIdsAndPreferences({
-        proxyHostName: pafClientNodeHost,
-        triggerRedirectIfNeeded: true,
-      });
+      const result = await lib.refreshIdsAndPreferences();
 
       expect(result).toEqual({
         status: PafStatus.PARTICIPATING,
@@ -338,10 +240,6 @@ describe('Function refreshIdsAndPreferences', () => {
     const fakeId = 'FAKE_IDENTIFIER';
 
     beforeAll(() => {
-      global.PAFUI = {
-        showNotification: jest.fn(),
-      };
-
       if (data.cachedCookies) {
         CookiesHelpers.mockPreferences(true);
         CookiesHelpers.mockIdentifiers(fakeId);
@@ -351,6 +249,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
     afterAll(() => {
       CookiesHelpers.clearPafCookies();
+      lib.triggerRedirectIfNeeded = true;
     });
 
     describe('when browser is known to support 3PC', () => {
@@ -362,18 +261,17 @@ describe('Function refreshIdsAndPreferences', () => {
 
       test('should return data from operator', async () => {
         fetch.mockResponses(
-          'operatorURLGet', // Call to the proxy to get the operator URL
+          // Call to the proxy to get the operator URL
+          'operatorURLGet1',
+          // Actual call to the operator
           JSON.stringify(<GetIdsPrefsResponse>{
             body: {
               identifiers: getFakeIdentifiers(),
               preferences: getFakePreferences(),
             },
-          }) // Actual call to the operator
+          })
         );
-        const result = await refreshIdsAndPreferences({
-          proxyHostName: pafClientNodeHost,
-          triggerRedirectIfNeeded: false,
-        });
+        const result = await lib.refreshIdsAndPreferences();
 
         expect(isBrowserKnownToSupport3PC).toHaveBeenCalled();
         expect(result).toEqual({
@@ -411,10 +309,8 @@ describe('Function refreshIdsAndPreferences', () => {
         });
 
         test('should require redirect', async () => {
-          const result = await refreshIdsAndPreferences({
-            proxyHostName: pafClientNodeHost,
-            triggerRedirectIfNeeded: false,
-          });
+          lib.triggerRedirectIfNeeded = false;
+          const result = await lib.refreshIdsAndPreferences();
 
           expect(isBrowserKnownToSupport3PC).toHaveBeenCalled();
           expect(result).toEqual({
@@ -424,6 +320,7 @@ describe('Function refreshIdsAndPreferences', () => {
           expect(document.cookie).toContain(`${Cookies.preferences}="${PafStatus.REDIRECT_NEEDED}"`);
 
           CookiesHelpers.clearPafCookies();
+          lib.triggerRedirectIfNeeded = true;
         });
       });
 
@@ -445,10 +342,7 @@ describe('Function refreshIdsAndPreferences', () => {
         });
 
         test('triggers redirect', async () => {
-          await refreshIdsAndPreferences({
-            proxyHostName: pafClientNodeHost,
-            triggerRedirectIfNeeded: true,
-          });
+          await lib.refreshIdsAndPreferences();
 
           expect(replaceMock).toHaveBeenCalled();
         });
@@ -461,13 +355,10 @@ describe('Function refreshIdsAndPreferences', () => {
         CookiesHelpers.setCookies(Cookies.preferences, PafStatus.REDIRECT_NEEDED);
         CookiesHelpers.mockRefreshTime();
 
-        const result = await refreshIdsAndPreferences({
-          proxyHostName: pafClientNodeHost,
-          triggerRedirectIfNeeded: true,
-        });
+        const result = await lib.refreshIdsAndPreferences();
 
-        expect(result).toEqual(<RefreshResult>{
-          status: PafStatus.REDIRECT_NEEDED,
+        expect(result).toEqual(<IdsAndPreferencesResult>{
+          status: PafStatus.REDIRECTING,
         });
       });
     });
@@ -476,10 +367,11 @@ describe('Function refreshIdsAndPreferences', () => {
 
 describe('Function signPreferences', () => {
   test('should return fetch response', async () => {
+    resetLib();
     const mockResponse = { body: 'response' };
     fetch.mockResponseOnce(JSON.stringify(mockResponse));
     const input = { unsignedPreferences: getFakePreferences(), identifiers: getFakeIdentifiers() };
-    const result = await signPreferences({ proxyHostName: pafClientNodeHost }, input);
+    const result = await lib.signPreferences(input);
     expect(result).toEqual(mockResponse);
   });
 });
@@ -502,6 +394,7 @@ describe('Function createSeed', () => {
   };
 
   beforeEach(() => {
+    resetLib();
     CookiesHelpers.clearPafCookies();
     CookiesHelpers.setIdsAndPreferences(idsAndPreferences);
     fetch.mockResponseOnce(JSON.stringify(response));
@@ -513,21 +406,126 @@ describe('Function createSeed', () => {
   });
 
   test('with empty transmission_ids', async () => {
-    const seed = await createSeed({ proxyHostName: pafClientNodeHost }, []);
-    expect(seed).toBeUndefined();
-  });
-
-  test('with no id and preferences', async () => {
-    CookiesHelpers.clearPafCookies();
-    const seed = await createSeed({ proxyHostName: pafClientNodeHost }, transmission_ids);
+    const seed = await lib.createSeed([]);
     expect(seed).toBeUndefined();
   });
 
   test('nominal path', async () => {
-    const entry = await createSeed({ proxyHostName: pafClientNodeHost }, transmission_ids);
+    const entry = await lib.createSeed(transmission_ids);
     expect(entry).toEqual({
       seed: response,
       idsAndPreferences,
     });
+  });
+});
+
+describe('Function handleAfterBoomerangRedirect', () => {
+  const realLocation = location;
+  const historySpy = jest.spyOn(global.history, 'pushState');
+  const uriData = 'TEST-STRING';
+  const identifier = getFakeIdentifiers()[0];
+  const preferences = getFakePreferences(true);
+
+  beforeEach(() => {
+    resetLib();
+    delete global.location;
+    global.location = {
+      search: `?paf=${uriData}`,
+      href: 'fake-href?foo=42&paf=TO_BE_REMOVED&baz=bar',
+    } as unknown as Location;
+  });
+
+  afterEach(() => {
+    historySpy.mockClear();
+    CookiesHelpers.clearPafCookies();
+  });
+
+  afterAll(() => {
+    global.location = realLocation;
+  });
+
+  test('should clean paf parameter in the URI', async () => {
+    fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
+
+    await lib.handleAfterBoomerangRedirect();
+
+    expect(historySpy).toBeCalledWith(null, '', 'fake-href?foo=42&baz=bar');
+  });
+
+  test('should verify uriData', async () => {
+    // Just one call to the proxy to verify data
+    fetch.mockResponseOnce(JSON.stringify({ body: { identifiers: [] } }));
+
+    await lib.handleAfterBoomerangRedirect();
+
+    expect(fetch.mock.calls[0][1].body).toBe(uriData);
+  });
+
+  test('should throw an error if empty response received', async () => {
+    fetch.mockResponseOnce('null');
+    await expect(lib.handleAfterBoomerangRedirect()).rejects.toBe('Verification failed');
+  });
+
+  test('should save NOT_PARTICIPATING, if no preferences received', async () => {
+    fetch.mockResponseOnce(
+      JSON.stringify({
+        body: {
+          identifiers: [],
+          preferences: undefined,
+        },
+      })
+    );
+    await lib.handleAfterBoomerangRedirect();
+
+    expect(document.cookie).toContain(`${Cookies.identifiers}=NOT_PARTICIPATING`);
+    expect(document.cookie).toContain(`${Cookies.preferences}=NOT_PARTICIPATING`);
+  });
+
+  test('should save persistedIds to Cookies', async () => {
+    fetch.mockResponseOnce(
+      JSON.stringify({
+        body: {
+          identifiers: [identifier],
+          preferences,
+        },
+      })
+    );
+
+    await lib.handleAfterBoomerangRedirect();
+
+    expect(document.cookie).toContain(JSON.stringify(identifier));
+    expect(document.cookie).toContain(JSON.stringify(preferences));
+  });
+
+  test('should not display notification if no change', async () => {
+    fetch.mockResponseOnce(
+      JSON.stringify({
+        body: {
+          identifiers: [identifier],
+          preferences,
+        },
+      })
+    );
+
+    await lib.handleAfterBoomerangRedirect();
+
+    expect(notificationHandler).toBeCalledWith('PERSONALIZED');
+  });
+
+  test('should display notification if any change', async () => {
+    CookiesHelpers.mockIdentifiers(identifier.value);
+    CookiesHelpers.mockPreferences(false); // Will be different in URI
+    fetch.mockResponseOnce(
+      JSON.stringify({
+        body: {
+          identifiers: [identifier],
+          preferences,
+        },
+      })
+    );
+
+    await lib.handleAfterBoomerangRedirect();
+
+    expect(notificationHandler).toBeCalledWith('PERSONALIZED');
   });
 });

@@ -37,7 +37,7 @@ alter their choices is a requirement of the Model Terms.
 document.querySelector('#preferences')
     .addEventListener('click', (e) => {
         e.preventDefault();
-        PAF.refreshIdsAndPreferences({ proxyHostName: "[proxy-host-name]", showPrompt: 'doPrompt'});
+        PAF.refreshIdsAndPreferences('doPrompt');
     });
 </script>
 ```

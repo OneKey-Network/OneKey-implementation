@@ -1,11 +1,10 @@
-import { Options } from '@frontend/lib/paf-lib';
 import { Log } from '@core/log';
 import { TcfCore } from './tcfcore';
 
 /**
  * Immutable UI specific options set via the script tag's attributes.
  */
-export class Config implements Options {
+export class Config {
   /** The default snack bar timeout if a value is not provided */
   private static readonly DEFAULT_SNACKBAR_TIMEOUT_MS = 5000;
 

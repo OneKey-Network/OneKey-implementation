@@ -4,35 +4,23 @@ import { PromptConsent } from './widgets/prompt-consent';
 import { notificationService } from './services/notification.service';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
 import { currentScript } from '@frontend/utils/current-script';
-import {
-  generateSeed,
-  getAuditLogByDivId,
-  getAuditLogByTransaction,
-  getIdsAndPreferences,
-  getNewId,
-  refreshIdsAndPreferences,
-  registerTransmissionResponse,
-  signPreferences,
-  updateIdsAndPreferences,
-} from './lib/paf-lib';
 import { Window } from './global';
 
 currentScript.setScript(document.currentScript as HTMLScriptElement);
 
-const promptConsent = () => new Promise<boolean>((resolve) => new PromptConsent({ emitConsent: resolve }).render());
-const showNotification = (type: NotificationEnum) => notificationService.showNotification(type);
+const promptConsent = () =>
+  new Promise<boolean>((resolve) => {
+    (window as Window).PAF.getIdsAndPreferences().then((response) => {
+      const originalData = response.data;
+      new PromptConsent({ emitConsent: resolve, originalData }).render();
+    });
+  });
 
-(<Window>window).PAFUI ??= { promptConsent, showNotification };
-(<Window>window).PAF = {
-  ...((<Window>window).PAF ?? {}),
-  // The rest has to be the official methods, should not be overridden from the outside
-  getNewId,
-  signPreferences,
-  getIdsAndPreferences,
-  refreshIdsAndPreferences,
-  updateIdsAndPreferences,
-  generateSeed,
-  registerTransmissionResponse,
-  getAuditLogByTransaction,
-  getAuditLogByDivId,
-};
+const showNotification = (type: NotificationEnum) =>
+  new Promise<void>((resolve) => {
+    notificationService.showNotification(type);
+    resolve();
+  });
+
+(window as Window).PAF.setPromptHandler(promptConsent);
+(window as Window).PAF.setNotificationHandler(showNotification);

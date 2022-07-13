@@ -13,22 +13,28 @@ import styles from 'rollup-plugin-styles';
 import { terser } from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 
-const IS_DEV = process.env.ROLLUP_WATCH !== undefined;
-const IS_LOCAL = process.env.__LOCAL__ === "true";
+// When developing the "frontend" project independently of the other projects
+const IS_PROJECT_DEV = process.env.ROLLUP_WATCH !== undefined;
+
+// When developing the demo project, that depends on the frontend project
+const IS_DEMO_DEV = process.env.__LOCAL__ === "true"; // This variable is set in nodemon.json of demo project
+
+const IS_DEV = IS_PROJECT_DEV || IS_DEMO_DEV;
+
 const DIST = 'dist';
 
 const relative = path => join(__dirname, path);
-const getDestFolder = (path) => (IS_DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
+const getDestFolder = (path) => (IS_PROJECT_DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
 
 // To facilitate debug, generate map files in two situations:
 // - local debug in this directory (DEV), where files will be generated locally in dist
 // - even when the complete demo app is running (DEV == false), but locally with nodemon (LOCAL == true)
-const generateSourceMap = IS_DEV || IS_LOCAL;
+const generateSourceMap = IS_DEV;
 
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
-    input: relative('src/lib/paf-lib.ts'),
+    input: relative('src/lib/one-key.ts'),
     output: {
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',
@@ -112,7 +118,7 @@ export default [
               ],
             }),
           ]
-        } else { // list of plugins for development
+        } else if (IS_PROJECT_DEV) { // list of plugins for local project development
           return [
             copy({ // copy files
               targets: [
@@ -138,6 +144,8 @@ export default [
               watch: DIST,
             })
           ]
+        } else {
+          return [];
         }
       })(),
     ],

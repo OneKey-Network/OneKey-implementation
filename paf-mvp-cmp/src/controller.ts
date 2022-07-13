@@ -3,16 +3,6 @@ import { BindingDisplayRandomId, BindingShowRandomIdDiv, BindingThisSiteOnly } f
 import { Log } from '@core/log';
 import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
 import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
-import {
-  getIdsAndPreferences,
-  getNewId,
-  refreshIdsAndPreferences,
-  removeCookie,
-  ShowPromptOption,
-  signPreferences,
-  updateIdsAndPreferences,
-  deleteIdsAndPreferences,
-} from '@frontend/lib/paf-lib';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@frontend/enums/status.enum';
 import { View } from './view';
@@ -20,6 +10,9 @@ import { getCookieValue } from '@frontend/utils/cookie';
 import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
 import { TcfCore } from './tcfcore';
 import { ILocale } from './ILocale';
+import { Window } from '@frontend/global';
+
+const OneKeyLib = (<Window>window).PAF;
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -103,7 +96,7 @@ export class Controller {
     ) {
       return 'intro';
     }
-    if (this.model.status !== PafStatus.REDIRECT_NEEDED) {
+    if (this.model.status !== PafStatus.REDIRECT_NEEDED && this.model.status !== PafStatus.REDIRECTING) {
       return 'settings';
     }
     return null;
@@ -194,57 +187,68 @@ export class Controller {
    * proceed.
    */
   private async load() {
-    if (this.getIdsAndPreferencesFromLocal()) {
+    if (await this.getIdsAndPreferencesFromLocal()) {
       return;
     }
-    if (await this.getIdsAndPreferencesFromGlobal(false)) {
-      return;
-    }
+    await this.getIdsAndPreferencesFromGlobal();
+    /*
     if (this.config.displayIntro === false) {
       await this.getIdsAndPreferencesFromGlobal(true);
     }
-    return;
+     */
+  }
+
+  /**
+   * Get ids and preferences from local cookies, and also return un "unpersisted" id if the user was unknown
+   * @private
+   */
+  private async getIdsPreferencesAndUnPersisted(): Promise<{ status: PafStatus; data: IdsAndOptionalPreferences }> {
+    return new Promise((resolve) => {
+      // Execute in queue to make sure to have fresh data
+      OneKeyLib.queue.push(() => {
+        OneKeyLib.getIdsAndPreferences().then((response) => {
+          const idPrefsWithUnPersisted = response as { status: PafStatus; data: IdsAndOptionalPreferences };
+          if (OneKeyLib.unpersistedIds) {
+            idPrefsWithUnPersisted.data ??= { identifiers: [] };
+            idPrefsWithUnPersisted.data.identifiers ??= [];
+            idPrefsWithUnPersisted.data.identifiers.push(...OneKeyLib.unpersistedIds);
+          }
+
+          resolve(idPrefsWithUnPersisted);
+        });
+      });
+    });
   }
 
   /**
    * Gets the Ids and preferences which might involve a redirect completing this instance if the redirect is allowed.
    * If data is returned then the model is updated and the display method called.
-   * @param triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
    * @returns true if the data is valid, otherwise false
    */
-  private async getIdsAndPreferencesFromGlobal(triggerRedirectIfNeeded: boolean) {
-    // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't and the
-    // paf_last_refresh cookie is present. Deleting the paf_last_refresh cookie will resolve the data issue, but as
-    // that is not practical for those demoing the CMP this work around just sets the redirect needed status to
-    // force the expected downstream behavior and removes the cookies.
-    if (triggerRedirectIfNeeded) {
-      removeCookie(Cookies.lastRefresh);
-    }
+  private async getIdsAndPreferencesFromGlobal() {
+    this.log.Debug('getIdsAndPreferencesFromGlobal');
 
-    const r = await refreshIdsAndPreferences({
-      proxyHostName: this.config.proxyHostName,
-      triggerRedirectIfNeeded,
-      showPrompt: ShowPromptOption.doNotPrompt,
-    });
-    this.log.Message('global data', r);
-    this.model.status = r.status;
+    // TODO: The data returned does not always match the interface and should really include a status value to avoid
+    // this try catch block.
+    try {
+      const r = await this.getIdsPreferencesAndUnPersisted();
+      const { data, status } = r;
 
-    // Only process the response if a redirect is not needed and there is data present.
-    if (r.status !== PafStatus.REDIRECT_NEEDED && r.data) {
-      // TODO: The data returned does not always match the interface and should really include a status value to avoid
-      // this try catch block.
-      try {
-        this.setPersistedFlag(r.data.identifiers);
-        this.model.setFromIdsAndPreferences(r.data);
+      this.log.Message('global data', data);
+      this.log.Message('status', status);
+
+      if (data) {
+        this.setPersistedFlag(data.identifiers);
+        this.model.setFromIdsAndPreferences(data);
         return true;
-      } catch (ex) {
-        this.log.Warn('Problem parsing global ids and preferences', ex);
-
-        // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't.
-        this.model.status = PafStatus.REDIRECT_NEEDED;
       }
+      return false;
+    } catch (ex) {
+      this.log.Warn('Problem parsing global ids and preferences', ex);
+
+      // TODO: Workaround for a paf-lib possible issue where the status should be redirect needed but isn't.
+      this.model.status = PafStatus.REDIRECT_NEEDED;
     }
-    return false;
   }
 
   /**
@@ -252,30 +256,29 @@ export class Controller {
    * available and the configuration supports this site only then looks for the local data.
    * @returns true if found in local domain storage, otherwise false.
    */
-  private getIdsAndPreferencesFromLocal(): boolean {
+  private async getIdsAndPreferencesFromLocal(): Promise<boolean> {
     // Get the data from local TCF core cookie if available and set the status to not participating.
     if (this.config.siteOnlyEnabled) {
       const tcf = getCookieValue(this.config.siteOnlyCookieTcfCore);
       if (tcf !== undefined) {
         this.getIdsAndPreferencesFromTcf(tcf);
+        this.log.Debug('Getting data from TCF');
         return true;
       }
     }
 
-    // Try and get the OneKey data from local cookies.
-    const data = getIdsAndPreferences();
-    if (data !== undefined) {
-      // TODO: The data returned does not match the interface and should really include a status value to avoid this
-      // try catch block.
-      try {
+    try {
+      // Try and get the OneKey data from local cookies.
+      const data = (await this.getIdsPreferencesAndUnPersisted()).data;
+      if (data !== undefined) {
         this.log.Message('local OneKey data', data);
         this.model.status = PafStatus.PARTICIPATING;
         this.setPersistedFlag(data.identifiers);
         this.model.setFromIdsAndPreferences(data);
         return true;
-      } catch (ex) {
-        this.log.Warn('Problem parsing local ids and preferences', ex);
       }
+    } catch (ex) {
+      this.log.Warn('Problem parsing local ids and preferences', ex);
     }
 
     this.model.status = PafStatus.REDIRECT_NEEDED;
@@ -367,7 +370,7 @@ export class Controller {
         this.actionReset().catch((e) => this.log.Error(e));
         break;
       case 'refresh':
-        this.getIdsAndPreferencesFromGlobal(true).catch((e) => this.log.Error(e));
+        this.getIdsAndPreferencesFromGlobal().catch((e) => this.log.Error(e));
         break;
       case 'save':
         this.actionSave().catch((e) => this.log.Error(e));
@@ -394,9 +397,9 @@ export class Controller {
    * Refuses all data processing, writes cookies to indicate this to the domain, and closes the UI.
    */
   private async actionRefuseAll() {
-    removeCookie(Cookies.lastRefresh);
+    OneKeyLib.removeCookie(Cookies.lastRefresh);
 
-    await deleteIdsAndPreferences({ proxyHostName: this.config.proxyHostName });
+    await OneKeyLib.deleteIdsAndPreferences();
     this.model.status = PafStatus.NOT_PARTICIPATING;
     this.model.setFromIdsAndPreferences(undefined);
     this.display('snackbar');
@@ -449,9 +452,9 @@ export class Controller {
     document.cookie = `${
       this.config.siteOnlyCookieTcfCore
     }=${tcfCore.toString()};expires=${getPrebidDataCacheExpiration()}`;
-    removeCookie(Cookies.identifiers);
-    removeCookie(Cookies.preferences);
-    removeCookie(Cookies.lastRefresh);
+    OneKeyLib.removeCookie(Cookies.identifiers);
+    OneKeyLib.removeCookie(Cookies.preferences);
+    OneKeyLib.removeCookie(Cookies.lastRefresh);
   }
 
   /**
@@ -471,9 +474,9 @@ export class Controller {
     this.setPersistedFlag(w?.identifiers);
     this.model.setFromIdsAndPreferences(w);
 
-    // Ensure the this site only data is removed.
+    // Ensure the "this site only" data is removed.
     if (this.config.siteOnlyEnabled) {
-      removeCookie(this.config.siteOnlyCookieTcfCore);
+      OneKeyLib.removeCookie(this.config.siteOnlyCookieTcfCore);
     }
   }
 
@@ -503,9 +506,6 @@ export class Controller {
     
       updateIdsAndPreferences(
         {
-          proxyHostName: this.config.proxyHostName
-        },
-        {
           identifiers: [ array of identifiers ],
           preferences: signedPreferences
         }
@@ -522,18 +522,9 @@ export class Controller {
     */
 
     // Update the ids and preferences.
-    await updateIdsAndPreferences(this.config.proxyHostName, this.model.pref.value.use_browsing_for_personalization, [
+    return OneKeyLib.updateIdsAndPreferences(this.model.pref.value.use_browsing_for_personalization, [
       this.model.rid.value,
     ]);
-
-    // Refresh the ids and preferences.
-    const r = await refreshIdsAndPreferences({
-      proxyHostName: this.config.proxyHostName,
-      triggerRedirectIfNeeded: true,
-      showPrompt: ShowPromptOption.doNotPrompt,
-    });
-
-    return r.data;
   }
 
   /**
@@ -552,9 +543,7 @@ export class Controller {
    * @returns
    */
   private resetId(): Promise<Identifier> {
-    return getNewId({
-      proxyHostName: this.config.proxyHostName,
-    });
+    return OneKeyLib.getNewId();
   }
 
   /**
@@ -563,16 +552,13 @@ export class Controller {
    */
   private signIfNeeded(): Promise<Preferences> {
     if (this.model.pref.hasChanged) {
-      return signPreferences(
-        { proxyHostName: this.config.proxyHostName },
-        {
-          identifiers: [this.model.rid.value],
-          unsignedPreferences: {
-            data: this.model.pref.value,
-            version: null,
-          },
-        }
-      );
+      return OneKeyLib.signPreferences({
+        identifiers: [this.model.rid.value],
+        unsignedPreferences: {
+          data: this.model.pref.value,
+          version: null,
+        },
+      });
     }
     return Promise.resolve<Preferences>(this.model.pref.persistedSignedValue);
   }

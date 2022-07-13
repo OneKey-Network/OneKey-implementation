@@ -2,138 +2,141 @@
 <html lang="html">
 <head>
 
-{{#if useCmpUI}}
+  {{#if useCmpUI}}
 
     <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
     <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
-
-{{else}}
-
-    <!-- OneKey CMP in standalone -->
-    <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
-
-{{/if}}
-
-    <!-- OneKey -->
     <link rel="preload" href="https://{{cdnHost}}/assets/paf-lib.js" as="script" />
 
-    <!-- Prebid.js -->
-    <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
-    <script async src="/assets/publisher/prebid/prebid.js"></script>
+  {{else}}
 
-    <script>
+    <!-- OneKey integration -->
+    <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
 
-        var div_1_sizes = [
-            [728, 90],
-            [970, 250]
-        ];
-        var div_2_sizes = [
-            [300, 250],
-            [300, 600]
-        ];
+  {{/if}}
 
-        var PREBID_TIMEOUT = 3000;
-        var FAILSAFE_TIMEOUT = 3000;
+  <!-- Prebid.js -->
+  <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
+  <script async src="/assets/publisher/prebid/prebid.js"></script>
 
-        var adUnits = [
-            {
-                code: 'div-1',
-                mediaTypes: {
-                    banner: {
-                        sizes: div_1_sizes
-                    }
-                },
-                bids: [{
-                    bidder: 'openx2',
-                    params: {
-                        delDomain: 'sademo-d.openx.net',
-                        unit: '540096529',
-                        test: true,
-                        customFloor: 0.01
-                    }
-                },
-                {
-                    bidder: 'criteo',
-                    params: {
-                        zoneId: 1661193
-                    }
-                }]
-            },
-            {
-                code: 'div-2',
-                mediaTypes: {
-                    banner: {
-                        sizes: div_2_sizes
-                    }
-                },
-                bids: [{
-                    bidder: 'openx2',
-                    params: {
-                        delDomain: 'sademo-d.openx.net',
-                        unit: '540096529',
-                        test: true
-                    }
-                },
-                {
-                    bidder: 'criteo',
-                    params: {
-                        zoneId: 1661192
-                    }
-                }]
+  <script>
+
+    var div_1_sizes = [
+      [728, 90],
+      [970, 250]
+    ];
+    var div_2_sizes = [
+      [300, 250],
+      [300, 600]
+    ];
+
+    var PREBID_TIMEOUT = 3000;
+    var FAILSAFE_TIMEOUT = 3000;
+
+    var adUnits = [
+      {
+        code: 'div-1',
+        mediaTypes: {
+          banner: {
+            sizes: div_1_sizes
+          }
+        },
+        bids: [{
+          bidder: 'openx',
+          params: {
+            delDomain: 'sademo-d.openx.net',
+            unit: '540096529',
+            test: true,
+            customFloor: 0.01
+          }
+        },
+          {
+            bidder: 'criteo',
+            params: {
+              zoneId: 1661193
             }
-        ];
+          }]
+      },
+      {
+        code: 'div-2',
+        mediaTypes: {
+          banner: {
+            sizes: div_2_sizes
+          }
+        },
+        bids: [{
+          bidder: 'openx',
+          params: {
+            delDomain: 'sademo-d.openx.net',
+            unit: '540096529',
+            test: true
+          }
+        },
+          {
+            bidder: 'criteo',
+            params: {
+              zoneId: 1661192
+            }
+          }]
+      }
+    ];
 
 
-        var googletag = googletag || {};
-        googletag.cmd = googletag.cmd || [];
-        googletag.cmd.push(function() {
-            googletag.pubads().disableInitialLoad();
-        });
+    var googletag = googletag || {};
+    googletag.cmd = googletag.cmd || [];
+    googletag.cmd.push(function() {
+        googletag.pubads().disableInitialLoad();
+    });
 
-        var pbjs = pbjs || {};
-        pbjs.que = pbjs.que || [];
+    var pbjs = pbjs || {};
+    pbjs.que = pbjs.que || [];
 
-        var PAF = PAF || {};
-        PAF.queue = PAF.queue || [];
+    var PAF = PAF || {};
+    PAF.queue = PAF.queue || [];
 
-        pbjs.que.push(function() {
-            pbjs.addAdUnits(adUnits);
-            pbjs.setConfig({
-                consentManagement: {
-                cmpApi: "static",
-                consentData: {
-                    getTCData: {
-                        tcString: "CO-HDlqO-HDlqAKAXCENBDCsAP_AAH_AACiQHKNd_X_fb39j-_59_9t0eY1f9_7_v20zjgeds-8Nyd_X_L8X42M7vF36pq4KuR4Eu3LBIQFlHOHcTUmw6IkVqTPsak2Mr7NKJ7PEinMbe2dYGHtfn9VTuZKYr97s___z__-__v__75f_r-3_3_vp9V---_fA5QAkw1L4CLMSxwJJo0qhRAhCuJDoAQAUUIwtE1hASuCnZXAR-ggYAIDUBGBECDEFGLIIAAAAAkoiAkAPBAIgCIBAACAFSAhAARoAgsAJAwCAAUA0LACKAIQJCDI4KjlMCAiRaKCeSMASi72MMIQyigBoFH4AAAAA.cAAAAAAAAAAA",
-                        cmpId: 10,
-                        cmpVersion: 23,
-                        tcfPolicyVersion: 2,
-                        gdprApplies: false,
-                        cmpStatus: "loaded",
-                        eventStatus: "tcloaded"
-                        }
-                    }
-                },
-                priceGranularity: 'high',
-                debug: true,
-                realTimeData: {
-                    auctionDelay: 1000,
-                    dataProviders: [
-                            {
-                            name: "paf",
-                            waitForIt: true,
-                            params: {proxyHostName: "{{pafNodeHost}}" }
-                        }
-                    ]
-                },
-                userSync: {
-                    userIds: [{
-                        name: "pafData",
-                        params: {}
-                    }],
-                    auctionDelay: 1000,
-                    syncDelay: 3000
-                }
-            });
+    pbjs.que.push(function() {
+      pbjs.bidderSettings = {
+          criteo: {
+            storageAllowed: true
+          },
+      };
+      pbjs.addAdUnits(adUnits);
+      pbjs.setConfig({
+        consentManagement: {
+          cmpApi: 'static',
+          consentData: {
+            getTCData: {
+              tcString: 'CO-HDlqO-HDlqAKAXCENBDCsAP_AAH_AACiQHKNd_X_fb39j-_59_9t0eY1f9_7_v20zjgeds-8Nyd_X_L8X42M7vF36pq4KuR4Eu3LBIQFlHOHcTUmw6IkVqTPsak2Mr7NKJ7PEinMbe2dYGHtfn9VTuZKYr97s___z__-__v__75f_r-3_3_vp9V---_fA5QAkw1L4CLMSxwJJo0qhRAhCuJDoAQAUUIwtE1hASuCnZXAR-ggYAIDUBGBECDEFGLIIAAAAAkoiAkAPBAIgCIBAACAFSAhAARoAgsAJAwCAAUA0LACKAIQJCDI4KjlMCAiRaKCeSMASi72MMIQyigBoFH4AAAAA.cAAAAAAAAAAA',
+              cmpId: 10,
+              cmpVersion: 23,
+              tcfPolicyVersion: 2,
+              gdprApplies: false,
+              cmpStatus: 'loaded',
+              eventStatus: 'tcloaded'
+            }
+          }
+        },
+        priceGranularity: 'high',
+        debug: true,
+        realTimeData: {
+          auctionDelay: 1000,
+          dataProviders: [
+            {
+              name: 'oneKey',
+              waitForIt: true,
+              params: { proxyHostName: "{{pafNodeHost}}" }
+            }
+          ]
+        },
+        userSync: {
+          userIds: [{
+            name: 'oneKeyData',
+            params: {}
+          }],
+          auctionDelay: 1000,
+          syncDelay: 3000
+        }
+      });
 
             // Generate and store the OneKey Audit Log
             // once the winner is elected.
@@ -204,22 +207,20 @@
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
+<script src="https://{{cdnHost}}/assets/paf-lib.js" data-client-hostname="{{pafNodeHost}}"></script>
 <script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js"
     data-display-intro="false"
     data-snackbar-timeout-ms="5000"
-    data-proxy-host-name="{{pafNodeHost}}"
     data-brand-name="Demo Publisher"
     data-site-only-cookie-tcf-core="tcf-core"
     data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
     data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
 
 {{else}}
-
-<script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}" onload='PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}" });'></script>
+  <script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}"></script>
 
 {{/if}}
 
-<script src="https://{{cdnHost}}/assets/paf-lib.js"></script>
 
 <div>
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
@@ -864,7 +865,7 @@
                     document.querySelector('#preferences')
                       .addEventListener('click', (e) => {
                         e.preventDefault();
-                        PAF.refreshIdsAndPreferences({ proxyHostName: "{{pafNodeHost}}", showPrompt: 'doPrompt'});
+                        PAF.refreshIdsAndPreferences('doPrompt');
                       });
                   </script>
                 </div>

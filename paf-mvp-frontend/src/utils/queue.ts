@@ -41,19 +41,26 @@ export interface IQueueContainer {
  * execute the previously deferred commands of the queue.
  * @param container Container of the queue to setup
  */
-export const setUpImmediateProcessingQueue = (container: IQueueContainer): void => {
+export const setUpImmediateProcessingQueue = async (container: IQueueContainer): Promise<void> => {
   if (container === undefined) {
     return;
   }
 
+  // First thing to do, to avoid errors
+  container.queue ??= [];
+
   const { queue } = container;
+
   const processor = new ImmediateProcessingQueue();
 
   if (queue && Array.isArray(queue)) {
+    log.Debug(`queue.setup: run ${queue.length} pre-recorded commands`);
     while (queue.length > 0) {
       const cmd = queue.shift();
       processor.push(cmd);
     }
+  } else {
+    log.Debug('queue.setup: no pre-recorded command');
   }
 
   container.queue = processor;
@@ -61,20 +68,41 @@ export const setUpImmediateProcessingQueue = (container: IQueueContainer): void 
 
 const log = new Log('OneKey', '#3bb8c3');
 
-class ImmediateProcessingQueue implements IProcessingQueue {
+export class ImmediateProcessingQueue implements IProcessingQueue {
   push(...ops: Command[]): void {
     if (ops === undefined) {
       return;
     }
-
     for (const op of ops) {
       if (typeof op === 'function') {
+        log.Debug('Processing function', op.name);
         try {
           op();
         } catch (e) {
-          log.Error('Error processing operation :', e.message, e.stack);
+          log.Error('Error processing operation:', e.message, e.stack);
         }
       }
     }
   }
 }
+
+/**
+ * Return a function that, once called, executes the given
+ * Promise-based operation always in a queue.
+ */
+export const executeInQueueAsync = <In, Out>(operation: (input: In) => Promise<Out>): ((input: In) => Promise<Out>) => {
+  let executionContext: Promise<void> = Promise.resolve();
+
+  return (input: In) => {
+    return new Promise<Out>((resolve, reject) => {
+      executionContext = executionContext.then(async () => {
+        try {
+          const result = await operation(input);
+          resolve(result);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+  };
+};

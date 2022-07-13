@@ -1,33 +1,9 @@
-import {
-  generateSeed,
-  getAuditLogByDivId,
-  getAuditLogByTransaction,
-  getIdsAndPreferences,
-  getNewId,
-  refreshIdsAndPreferences,
-  registerTransmissionResponse,
-  signPreferences,
-  updateIdsAndPreferences,
-} from './lib/paf-lib';
-import { NotificationEnum } from './enums/notification.enum';
-import { ICommandProcessor } from './utils/queue';
+import { IProcessingQueue } from './utils/queue';
+import { IOneKeyLib } from '@frontend/lib/paf-lib';
 
 export type Window = WindowProxy &
   typeof globalThis & {
-    PAF: {
-      queue?: ICommandProcessor;
-      getNewId: typeof getNewId;
-      signPreferences: typeof signPreferences;
-      getIdsAndPreferences: typeof getIdsAndPreferences;
-      refreshIdsAndPreferences: typeof refreshIdsAndPreferences;
-      updateIdsAndPreferences: typeof updateIdsAndPreferences;
-      generateSeed: typeof generateSeed;
-      registerTransmissionResponse: typeof registerTransmissionResponse;
-      getAuditLogByTransaction: typeof getAuditLogByTransaction;
-      getAuditLogByDivId: typeof getAuditLogByDivId;
-    };
-    PAFUI: {
-      promptConsent: () => Promise<boolean>;
-      showNotification: (notificationType: NotificationEnum) => void;
+    PAF: IOneKeyLib & {
+      queue?: IProcessingQueue;
     };
   };
