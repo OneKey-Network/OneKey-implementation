@@ -3,8 +3,8 @@
  */
 import { Window } from '@frontend/global';
 import { setUpImmediateProcessingQueue } from '@frontend/utils/queue';
-import { OneKeyLib } from '@frontend/lib/paf-lib';
 import { CurrentScript } from '@frontend/utils/current-script';
+import { OneKeyLib } from './one-key-lib';
 
 // Get properties from HTML
 const pafLibScript = new CurrentScript<{ clientHostname: string; upFrontRedirect?: string }>();

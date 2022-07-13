@@ -34,7 +34,7 @@ const generateSourceMap = IS_DEV;
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
   defineConfig({
-    input: relative('src/lib/one-key.ts'),
+    input: relative('src/lib/main.ts'),
     output: {
       file: getDestFolder(`/paf-lib.js`),
       format: 'umd',

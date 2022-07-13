@@ -11,7 +11,8 @@ import {
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
-import { IdsAndPreferencesResult, OneKeyLib } from '@frontend/lib/paf-lib';
+import { OneKeyLib } from '../../src/lib/one-key-lib';
+import { IdsAndPreferencesResult } from '@frontend/lib/i-one-key-lib';
 
 jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
