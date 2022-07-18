@@ -10,7 +10,7 @@ declare global {
   }
 
   interface Window {
-    PAF: IOneKeyLib & {
+    OneKey: IOneKeyLib & {
       queue?: IProcessingQueue;
     };
   }

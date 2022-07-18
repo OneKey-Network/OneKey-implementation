@@ -3,7 +3,7 @@ import { IOneKeyLib } from '@frontend/lib/paf-lib';
 
 export type Window = WindowProxy &
   typeof globalThis & {
-    PAF: IOneKeyLib & {
+    OneKey: IOneKeyLib & {
       queue?: IProcessingQueue;
     };
   };

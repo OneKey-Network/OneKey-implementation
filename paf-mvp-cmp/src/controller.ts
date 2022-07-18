@@ -12,7 +12,7 @@ import { TcfCore } from './tcfcore';
 import { ILocale } from './ILocale';
 import { Window } from '@frontend/global';
 
-const OneKeyLib = (<Window>window).PAF;
+const OneKeyLib = (<Window>window).OneKey;
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.

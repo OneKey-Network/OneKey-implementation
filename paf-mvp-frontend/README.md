@@ -58,7 +58,7 @@ To integrate the identification library into a website, website owners should in
 
 Once the script is available, a couple of methods can be called to manipulate OneKey data:
 
-- `PAF.refreshIdsAndPreferences`
+- `OneKey.refreshIdsAndPreferences`
   - get existing identifiers and preferences of the current user, from the OneKey operator (via the client node)
   - this is done via XHR calls or HTTP redirect if needed, when 3d party cookies are not supported
   - local cookies `paf_identifiers` and `paf_preferences` are updated to match the values from the operator
@@ -68,24 +68,24 @@ Example usage:
 ```html
 <script
   src="https://my-cdn.domain/assets/paf-lib.js"
-  onload="PAF.refreshIdsAndPreferences();"
+  onload="OneKey.refreshIdsAndPreferences();"
 ></script>
 ```
 
-- `PAF.signPreferences`
+- `OneKey.signPreferences`
   - takes identifiers and unsigned preferences as input, and **sign it** through a call to the backend proxy.
 
-- `PAF.writeIdsAndPref`
+- `OneKey.writeIdsAndPref`
   - write (persist) new preferences and ids to the OneKey TLD+1 domain
 
-- `PAF.getNewId`
+- `OneKey.getNewId`
   - calls the operator (via the client node) to get a new OneKey ID value
-  - note that this id is **not** yet persisted: to persist it, a subsequent call to `PAF.writeIdsAndPref` must be made
+  - note that this id is **not** yet persisted: to persist it, a subsequent call to `OneKey.writeIdsAndPref` must be made
 
 All these methods take at least a `proxyHostName` parameter to locate the client node
 needed to sign and verify messages sent to and received from the operator.
 
-- `PAF.getIdsAndPreferences`
+- `OneKey.getIdsAndPreferences`
   - no parameter
   - simply return the list of identifiers and the user preferences, if they exist as 1PC
 
@@ -107,9 +107,9 @@ To integrate the widget into a website, website owners should inject the app bun
 ```
 To get the user's consent, the widget provides the next API:
 
-`PAF.promptConsent(): Promise<boolean>` - displays the widget with OneKey information and returns Promise with user's response
+`OneKey.promptConsent(): Promise<boolean>` - displays the widget with OneKey information and returns Promise with user's response
 
-`PAF.showNotification(notificationType: NotificationEnum)` - displays a snack bar with a predefined message
+`OneKey.showNotification(notificationType: NotificationEnum)` - displays a snack bar with a predefined message
 
 ## Development
 

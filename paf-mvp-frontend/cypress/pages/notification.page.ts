@@ -4,7 +4,7 @@ import { NotificationEnum } from '../../src/enums/notification.enum';
 export class NotificationPage extends BasePage {
   open(notificationType: NotificationEnum) {
     super.open();
-    cy.window().then((win) => win.PAF.showNotification(notificationType));
+    cy.window().then((win) => win.OneKey.showNotification(notificationType));
   }
 
   get closeBtn() {
