@@ -44,7 +44,7 @@ Checks the common OneKey global scope scenarios.
 
 -   Replace “personalized” with “standard”.
 
-![Personalized Marketing Global Full Test - Recording](images/Personalized Marketing Global Full Test.gif)
+![Personalized Marketing Global Full Test - Recording](images/Personalized%20Marketing%20Global%20Full%20Test.gif)
 
 ## Refuse All
 
@@ -89,7 +89,7 @@ Checks the customized this site only data is retained and displayed correctly.
 -   Use combinations of other customized toggle options.
 -   Cancel the dialogue to verify that changes are not saved.
 
-![Personalized Marketing Local Customized - Recording](images/Personalized Marketing Local Customized.gif)
+![Personalized Marketing Local Customized - Recording](images/Personalized%20Marketing%20Local%20Customized.gif)
 
 ## Snackbar Global Personalized to Standard Change
 
@@ -111,4 +111,4 @@ the ID being reset.
 -   Check that “turn on standard marketing” is now the selected option.
 -   Check that the “Your browsing ID” value is the same that displayed earlier.
 
-![Snackbar Global Personalized to Standard Change - Recording](images/Snackbar Global Personalized to Standard Change.gif)
+![Snackbar Global Personalized to Standard Change - Recording](images/Snackbar%20Global%20Personalized%20to%20Standard%20Change.gif)
