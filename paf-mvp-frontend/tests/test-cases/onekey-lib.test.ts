@@ -7,11 +7,14 @@ import {
   Identifier,
   IdsAndPreferences,
   PostSeedResponse,
+  TransactionId,
 } from '@core/model/generated-model';
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
-import { IdsAndPreferencesResult, OneKeyLib } from '@frontend/lib/paf-lib';
+import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@frontend/lib/paf-lib';
+import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
+import { ISeedStorageService } from '@frontend/services/seed-storage.service';
 
 jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
@@ -21,8 +24,20 @@ const pafClientNodeHost = 'http://localhost';
 let lib: OneKeyLib;
 let notificationHandler: jest.Mock<Promise<void>, []>;
 
+const auditLogStorageService: IAuditLogStorageService = {
+  saveAuditLog: jest.fn(),
+  getAuditLogByDivId: jest.fn(),
+};
+const seedEntry: SeedEntry = {
+  seed: undefined,
+  idsAndPreferences: undefined,
+};
+const seedStorageService: ISeedStorageService = {
+  saveSeed: jest.fn(),
+  getSeed: jest.fn((transactionId: TransactionId) => seedEntry),
+};
 const resetLib = () => {
-  lib = new OneKeyLib(pafClientNodeHost);
+  lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
   notificationHandler = jest.fn(() => Promise.resolve());
   lib.setNotificationHandler(notificationHandler);
 };
@@ -418,7 +433,6 @@ describe('Function createSeed', () => {
     });
   });
 });
-
 describe('Function handleAfterBoomerangRedirect', () => {
   const realLocation = location;
   const historySpy = jest.spyOn(global.history, 'pushState');
