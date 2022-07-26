@@ -1,5 +1,4 @@
-import { Request, Response } from 'express';
-import cors, { CorsOptions } from 'cors';
+import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
 import {
   DeleteIdsPrefsRequestBuilder,
@@ -14,21 +13,11 @@ import {
   RedirectGetIdsPrefsResponse,
 } from '@core/model';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import {
-  addIdentityEndpoint,
-  Config,
-  escapeRegExp,
-  getPayload,
-  getTopLevelDomain,
-  Node,
-  parseConfig,
-  VHostApp,
-} from '@core/express';
+import { Config, getPayload, Node, parseConfig } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyStore } from '@core/crypto/key-store';
-import { Log } from '@core/log';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
+import { OriginValidator } from '@client/origin-validator';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
@@ -67,415 +56,418 @@ export interface ClientNodeConfig extends Config {
   operatorHost: string;
 }
 
-export class ClientNode implements Node {
+export class ClientNode extends Node {
+  private client: OperatorClient;
+  private postIdsPrefsRequestBuilder: PostIdsPrefsRequestBuilder;
+  private get3PCRequestBuilder: Get3PCRequestBuilder;
+  private getNewIdRequestBuilder: GetNewIdRequestBuilder;
+  private deleteIdsPrefsRequestBuilder: DeleteIdsPrefsRequestBuilder;
+  private originValidator: OriginValidator;
+
   /**
    * Add OneKey client node endpoints to an Express app
    * @param config
-   * @param app the Express app
    *   hostName: the OneKey client host name
    *   privateKey: the OneKey client private key string
-   * @param s2sOptions? [optional] server to server configuration for local dev
+   * @param s2sOptions?? [optional] server to server configuration for local dev
    */
-  constructor(
-    config: ClientNodeConfig,
-    s2sOptions?: AxiosRequestConfig,
-    public app = new VHostApp(config.identity.name, config.host)
-  ) {
-    const { identity, currentPrivateKey } = config;
+  constructor(config: ClientNodeConfig, s2sOptions?: AxiosRequestConfig) {
+    super(
+      config.host,
+      {
+        ...config.identity,
+        type: 'vendor',
+      },
+      s2sOptions
+    );
+
+    const { currentPrivateKey } = config;
     const hostName = config.host;
     const operatorHost = config.operatorHost;
 
-    // Start by adding identity endpoint FIXME inheritence with IdentityNode
-    addIdentityEndpoint(app.expressApp, {
-      ...identity,
-      type: 'vendor',
-    });
-    const logger = new Log('Client node', '#bbb');
-    const client = new OperatorClient(operatorHost, hostName, currentPrivateKey, new PublicKeyStore(s2sOptions));
+    this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.keyStore);
+    this.postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
+    this.get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
+    this.getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, currentPrivateKey);
+    this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
 
-    // FIXME class attributes
-    const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
-    const get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
-    const getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, currentPrivateKey);
-    const deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
-
-    const tld = getTopLevelDomain(hostName);
-
-    // Only allow calls from the same TLD+1, under HTTPS
-    const allowedOrigins: RegExp[] = [
-      new RegExp(
-        `^https:\\/\\/(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*${escapeRegExp(tld)}(/?$|\\/.*$)`
-      ),
-    ];
-
-    const isValidOrigin = (origin: string) => allowedOrigins.findIndex((regexp: RegExp) => regexp.test(origin)) !== -1;
-
-    const checkOrigin = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
-      const origin = req.header('origin');
-
-      if (isValidOrigin(origin)) {
-        next();
-      } else {
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.INVALID_ORIGIN,
-          details: `Origin is not allowed: ${origin}`,
-        };
-        logger.Error(endpoint, error);
-        res.status(400);
-        res.json(error);
-      }
-    };
-
-    const checkReferer = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
-      const referer = req.header('referer');
-
-      if (isValidOrigin(referer)) {
-        next();
-      } else {
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.INVALID_REFERER,
-          details: `Referer is not allowed: ${referer}`,
-        };
-        logger.Error(endpoint, error);
-        res.status(400);
-        res.json(error);
-      }
-    };
-
-    const corsOptions: CorsOptions = {
-      origin: allowedOrigins,
-      optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
-      credentials: true,
-      allowedHeaders: ['Content-Type'],
-    };
-    // FIXME methods for each endpoint
+    this.originValidator = new OriginValidator(hostName, this.logger);
 
     // *****************************************************************************************************************
-    // ************************************************************************************************************ JSON
+    // ************************************************************************************************************ REST
     // *****************************************************************************************************************
+    this.app.expressApp.get(
+      jsonProxyEndpoints.read,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.read),
+      this.startSpan(jsonProxyEndpoints.read),
+      this.restRead.bind(this),
+      this.handleErrors(jsonProxyEndpoints.read),
+      this.endSpan(jsonProxyEndpoints.read)
+    );
 
-    app.expressApp.get(jsonProxyEndpoints.read, cors(corsOptions), checkOrigin(jsonProxyEndpoints.read), (req, res) => {
-      logger.Info(jsonProxyEndpoints.read);
+    this.app.expressApp.post(
+      jsonProxyEndpoints.write,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.write),
+      this.startSpan(jsonProxyEndpoints.write),
+      this.restWrite.bind(this),
+      this.handleErrors(jsonProxyEndpoints.write),
+      this.endSpan(jsonProxyEndpoints.write)
+    );
 
+    this.app.expressApp.get(
+      jsonProxyEndpoints.verify3PC,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.verify3PC),
+      this.startSpan(jsonProxyEndpoints.verify3PC),
+      this.verify3PC.bind(this),
+      this.handleErrors(jsonProxyEndpoints.verify3PC),
+      this.endSpan(jsonProxyEndpoints.verify3PC)
+    );
+
+    this.app.expressApp.get(
+      jsonProxyEndpoints.newId,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.newId),
+      this.startSpan(jsonProxyEndpoints.newId),
+      this.getNewId.bind(this),
+      this.handleErrors(jsonProxyEndpoints.newId),
+      this.endSpan(jsonProxyEndpoints.newId)
+    );
+
+    // enable pre-flight request for DELETE request
+    this.app.expressApp.options(jsonProxyEndpoints.delete, this.originValidator.cors);
+    this.app.expressApp.delete(
+      jsonProxyEndpoints.delete,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.delete),
+      this.startSpan(jsonProxyEndpoints.delete),
+      this.restDelete.bind(this),
+      this.handleErrors(jsonProxyEndpoints.delete),
+      this.endSpan(jsonProxyEndpoints.delete)
+    );
+
+    // *****************************************************************************************************************
+    // ******************************************************************************************************* REDIRECTS
+    // *****************************************************************************************************************
+    this.app.expressApp.get(
+      redirectProxyEndpoints.read,
+      this.originValidator.cors,
+      this.originValidator.checkReferer(redirectProxyEndpoints.read),
+      this.originValidator.checkReturnUrl(redirectProxyEndpoints.read),
+      this.startSpan(redirectProxyEndpoints.read),
+      this.redirectRead.bind(this),
+      this.handleErrors(redirectProxyEndpoints.read),
+      this.endSpan(redirectProxyEndpoints.read)
+    );
+
+    this.app.expressApp.get(
+      redirectProxyEndpoints.write,
+      this.originValidator.cors,
+      this.originValidator.checkReferer(redirectProxyEndpoints.write),
+      this.originValidator.checkReturnUrl(redirectProxyEndpoints.write),
+      this.startSpan(redirectProxyEndpoints.write),
+      this.redirectWrite.bind(this),
+      this.handleErrors(redirectProxyEndpoints.write),
+      this.endSpan(redirectProxyEndpoints.write)
+    );
+
+    this.app.expressApp.get(
+      redirectProxyEndpoints.delete,
+      this.originValidator.cors,
+      this.originValidator.checkReferer(redirectProxyEndpoints.delete),
+      this.originValidator.checkReturnUrl(redirectProxyEndpoints.delete),
+      this.startSpan(redirectProxyEndpoints.delete),
+      this.redirectDelete.bind(this),
+      this.handleErrors(redirectProxyEndpoints.delete),
+      this.endSpan(redirectProxyEndpoints.delete)
+    );
+
+    // *****************************************************************************************************************
+    // ******************************************************************************************** JSON - SIGN & VERIFY
+    // *****************************************************************************************************************
+    this.app.expressApp.post(
+      jsonProxyEndpoints.verifyRead,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.verifyRead),
+      this.startSpan(jsonProxyEndpoints.verifyRead),
+      this.verifyRead.bind(this),
+      this.handleErrors(jsonProxyEndpoints.verifyRead),
+      this.endSpan(jsonProxyEndpoints.verifyRead)
+    );
+
+    this.app.expressApp.post(
+      jsonProxyEndpoints.signPrefs,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.signPrefs),
+      this.startSpan(jsonProxyEndpoints.signPrefs),
+      this.signPreferences.bind(this),
+      this.handleErrors(jsonProxyEndpoints.signPrefs),
+      this.endSpan(jsonProxyEndpoints.signPrefs)
+    );
+
+    // *****************************************************************************************************************
+    // ***************************************************************************************************** JSON - SEED
+    // *****************************************************************************************************************
+    this.app.expressApp.post(
+      jsonProxyEndpoints.createSeed,
+      this.originValidator.cors,
+      this.originValidator.checkOrigin(jsonProxyEndpoints.createSeed),
+      this.startSpan(jsonProxyEndpoints.createSeed),
+      this.createSeed.bind(this),
+      this.handleErrors(jsonProxyEndpoints.createSeed),
+      this.endSpan(jsonProxyEndpoints.createSeed)
+    );
+  }
+
+  restRead(req: Request, res: Response, next: NextFunction) {
+    try {
+      const url = this.client.getReadRestUrl(req);
+      res.send(url.toString());
+      next();
+    } catch (e) {
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
+
+  restWrite(req: Request, res: Response, next: NextFunction) {
+    try {
+      const unsignedRequest = getPayload<IdsAndPreferences>(req);
+      const signedPayload = this.postIdsPrefsRequestBuilder.buildRestRequest(
+        { origin: req.header('origin') },
+        unsignedRequest
+      );
+
+      const url = this.postIdsPrefsRequestBuilder.getRestUrl();
+      // Return both the signed payload and the url to call
+      const response: ProxyPostIdsPrefsResponse = {
+        payload: signedPayload,
+        url: url.toString(),
+      };
+      res.json(response);
+      next();
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.write, e);
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
+
+  verify3PC(req: Request, res: Response, next: NextFunction) {
+    try {
+      const url = this.get3PCRequestBuilder.getRestUrl();
+      res.send(url.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.verify3PC, e);
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
+
+  getNewId(req: Request, res: Response, next: NextFunction) {
+    try {
+      const getNewIdRequestJson = this.getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
+      const url = this.getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
+
+      res.send(url.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.newId, e);
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
+
+  restDelete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const request = this.deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
+      const url = this.deleteIdsPrefsRequestBuilder.getRestUrl(request);
+      res.send(url.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.delete, e);
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
+
+  redirectRead(req: Request, res: Response, next: NextFunction) {
+    const returnUrl = getReturnUrl(req, res);
+    try {
+      const url = this.client.getReadRedirectUrl(req, returnUrl);
+      res.send(url.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(redirectProxyEndpoints.read, e);
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
+
+  redirectWrite(req: Request, res: Response, next: NextFunction) {
+    const returnUrl = getReturnUrl(req, res);
+    const input = getMessageObject<IdsAndPreferences>(req, res);
+
+    if (input) {
       try {
-        const url = client.getReadRestUrl(req);
+        const postIdsPrefsRequestJson = this.postIdsPrefsRequestBuilder.buildRedirectRequest(
+          {
+            returnUrl: returnUrl.toString(),
+            referer: req.header('referer'),
+          },
+          input
+        );
+
+        const url = this.postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
         res.send(url.toString());
+        next();
       } catch (e) {
-        logger.Error(jsonProxyEndpoints.read, e);
+        this.logger.Error(redirectProxyEndpoints.write, e);
+        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
         const error: ClientNodeError = {
           type: ClientNodeErrorType.UNKNOWN_ERROR,
           details: '',
         };
         res.status(400);
         res.json(error);
+        next(error);
       }
-    });
+    }
+  }
 
-    app.expressApp.post(
-      jsonProxyEndpoints.write,
-      cors(corsOptions),
-      checkOrigin(jsonProxyEndpoints.write),
-      (req, res) => {
-        logger.Info(jsonProxyEndpoints.write);
-        try {
-          const unsignedRequest = getPayload<IdsAndPreferences>(req);
-          const signedPayload = postIdsPrefsRequestBuilder.buildRestRequest(
-            { origin: req.header('origin') },
-            unsignedRequest
-          );
+  redirectDelete(req: Request, res: Response, next: NextFunction) {
+    const returnUrl = getReturnUrl(req, res);
 
-          const url = postIdsPrefsRequestBuilder.getRestUrl();
-          // Return both the signed payload and the url to call
-          const response: ProxyPostIdsPrefsResponse = {
-            payload: signedPayload,
-            url: url.toString(),
-          };
-          res.json(response);
-        } catch (e) {
-          logger.Error(jsonProxyEndpoints.write, e);
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
+    try {
+      const url = this.client.getDeleteRedirectUrl(req, returnUrl);
+      res.send(url.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(redirectProxyEndpoints.delete, e);
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
 
-    app.expressApp.get(
-      jsonProxyEndpoints.verify3PC,
-      cors(corsOptions),
-      checkOrigin(jsonProxyEndpoints.verify3PC),
-      (req, res) => {
-        logger.Info(jsonProxyEndpoints.verify3PC);
+  verifyRead(req: Request, res: Response, next: NextFunction) {
+    const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
-        try {
-          const url = get3PCRequestBuilder.getRestUrl();
-          res.send(url.toString());
-        } catch (e) {
-          logger.Error(jsonProxyEndpoints.verify3PC, e);
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
+    if (!message.response) {
+      this.logger.Error(jsonProxyEndpoints.verifyRead, message.error);
+      // FIXME do something smart in case of error
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: message.error.message, // TODO should be improved
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+      return;
+    }
 
-    app.expressApp.get(
-      jsonProxyEndpoints.newId,
-      cors(corsOptions),
-      checkOrigin(jsonProxyEndpoints.newId),
-      (req, res) => {
-        logger.Info(jsonProxyEndpoints.newId);
-        try {
-          const getNewIdRequestJson = getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
-          const url = getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
-
-          res.send(url.toString());
-        } catch (e) {
-          logger.Error(jsonProxyEndpoints.newId, e);
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
-
-    app.expressApp.options(jsonProxyEndpoints.delete, cors(corsOptions)); // enable pre-flight request for DELETE request
-    app.expressApp.delete(
-      jsonProxyEndpoints.delete,
-      cors(corsOptions),
-      checkOrigin(jsonProxyEndpoints.delete),
-      (req, res) => {
-        logger.Info(jsonProxyEndpoints.delete);
-
-        try {
-          const request = deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
-          const url = deleteIdsPrefsRequestBuilder.getRestUrl(request);
-          res.send(url.toString());
-        } catch (e) {
-          logger.Error(jsonProxyEndpoints.delete, e);
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
-
-    // *****************************************************************************************************************
-    // ******************************************************************************************************* REDIRECTS
-    // *****************************************************************************************************************
-    const checkReturnUrl = (endpoint: string) => (req: Request, res: Response, next: () => unknown) => {
-      const returnUrl = getReturnUrl(req, res);
-
-      if (isValidOrigin(returnUrl.toString())) {
-        next();
-      } else {
+    try {
+      const verification = this.client.verifyReadResponse(message.response);
+      if (!verification) {
+        // TODO [errors] finer error feedback
         const error: ClientNodeError = {
-          type: ClientNodeErrorType.INVALID_RETURN_URL,
-          details: `Invalid return URL: ${returnUrl.toString()}`,
+          type: ClientNodeErrorType.VERIFICATION_FAILED,
+          details: '',
         };
-        logger.Error(endpoint, error);
+        this.logger.Error(jsonProxyEndpoints.verifyRead, error);
         res.status(400);
         res.json(error);
+        next(error);
+      } else {
+        res.json(message.response);
+        next();
       }
-    };
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.verifyRead, e);
+      // FIXME finer error return
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
 
-    app.expressApp.get(
-      redirectProxyEndpoints.read,
-      cors(corsOptions),
-      checkReferer(redirectProxyEndpoints.read),
-      checkReturnUrl(redirectProxyEndpoints.read),
-      (req, res) => {
-        logger.Info(redirectProxyEndpoints.read);
+  signPreferences(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
+      res.json(this.client.buildPreferences(identifiers, unsignedPreferences.data));
+      next();
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.signPrefs, e);
+      // FIXME finer error return
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  }
 
-        const returnUrl = getReturnUrl(req, res);
-
-        try {
-          const url = client.getReadRedirectUrl(req, returnUrl);
-          res.send(url.toString());
-        } catch (e) {
-          logger.Error(redirectProxyEndpoints.read, e);
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
-
-    app.expressApp.get(
-      redirectProxyEndpoints.write,
-      cors(corsOptions),
-      checkReferer(redirectProxyEndpoints.write),
-      checkReturnUrl(redirectProxyEndpoints.write),
-      (req, res) => {
-        logger.Info(redirectProxyEndpoints.write);
-        const returnUrl = getReturnUrl(req, res);
-        const input = getMessageObject<IdsAndPreferences>(req, res);
-
-        if (input) {
-          try {
-            const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
-              {
-                returnUrl: returnUrl.toString(),
-                referer: req.header('referer'),
-              },
-              input
-            );
-
-            const url = postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
-            res.send(url.toString());
-          } catch (e) {
-            logger.Error(redirectProxyEndpoints.write, e);
-            // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-            const error: ClientNodeError = {
-              type: ClientNodeErrorType.UNKNOWN_ERROR,
-              details: '',
-            };
-            res.status(400);
-            res.json(error);
-          }
-        }
-      }
-    );
-
-    app.expressApp.get(
-      redirectProxyEndpoints.delete,
-      cors(corsOptions),
-      checkReferer(redirectProxyEndpoints.delete),
-      checkReturnUrl(redirectProxyEndpoints.delete),
-      (req, res) => {
-        logger.Info(redirectProxyEndpoints.delete);
-
-        const returnUrl = getReturnUrl(req, res);
-
-        try {
-          const url = client.getDeleteRedirectUrl(req, returnUrl);
-          res.send(url.toString());
-        } catch (e) {
-          logger.Error(redirectProxyEndpoints.delete, e);
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
-
-    // *****************************************************************************************************************
-    // ******************************************************************************************** JSON - SIGN & VERIFY
-    // *****************************************************************************************************************
-    app.expressApp.post(
-      jsonProxyEndpoints.verifyRead,
-      cors(corsOptions),
-      checkOrigin(jsonProxyEndpoints.verifyRead),
-      (req, res) => {
-        logger.Info(jsonProxyEndpoints.verifyRead);
-        const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
-
-        if (!message.response) {
-          logger.Error(jsonProxyEndpoints.verifyRead, message.error);
-          // FIXME do something smart in case of error
-          const error: OperatorError = {
-            type: OperatorErrorType.UNKNOWN_ERROR,
-            details: message.error.message, // TODO should be improved
-          };
-          res.status(400);
-          res.json(error);
-          return;
-        }
-
-        try {
-          const verification = client.verifyReadResponse(message.response);
-          if (!verification) {
-            // TODO [errors] finer error feedback
-            const error: ClientNodeError = {
-              type: ClientNodeErrorType.VERIFICATION_FAILED,
-              details: '',
-            };
-            logger.Error(jsonProxyEndpoints.verifyRead, error);
-            res.status(400);
-            res.json(error);
-          } else {
-            res.json(message.response);
-          }
-        } catch (e) {
-          logger.Error(jsonProxyEndpoints.verifyRead, e);
-          // FIXME finer error return
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
-
-    app.expressApp.post(
-      jsonProxyEndpoints.signPrefs,
-      cors(corsOptions),
-      checkOrigin(jsonProxyEndpoints.signPrefs),
-      (req, res) => {
-        logger.Info(jsonProxyEndpoints.signPrefs);
-        try {
-          const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
-          res.json(client.buildPreferences(identifiers, unsignedPreferences.data));
-        } catch (e) {
-          logger.Error(jsonProxyEndpoints.signPrefs, e);
-          // FIXME finer error return
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
-
-    // *****************************************************************************************************************
-    // ***************************************************************************************************** JSON - SEED
-    // *****************************************************************************************************************
-
-    app.expressApp.post(
-      jsonProxyEndpoints.createSeed,
-      cors(corsOptions),
-      checkOrigin(jsonProxyEndpoints.createSeed),
-      (req, res) => {
-        logger.Info(jsonProxyEndpoints.createSeed);
-        try {
-          const request = JSON.parse(req.body as string) as PostSeedRequest;
-          const seed = client.buildSeed(request.transaction_ids, request.data);
-          const response = seed as PostSeedResponse; // For now, the response is only a Seed.
-          res.json(response);
-        } catch (e) {
-          logger.Error(jsonProxyEndpoints.createSeed, e);
-          // FIXME finer error return
-          const error: ClientNodeError = {
-            type: ClientNodeErrorType.UNKNOWN_ERROR,
-            details: '',
-          };
-          res.status(400);
-          res.json(error);
-        }
-      }
-    );
+  createSeed(req: Request, res: Response, next: NextFunction) {
+    try {
+      const request = JSON.parse(req.body as string) as PostSeedRequest;
+      const seed = this.client.buildSeed(request.transaction_ids, request.data);
+      const response = seed as PostSeedResponse; // For now, the response is only a Seed.
+      res.json(response);
+      next();
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.createSeed, e);
+      // FIXME finer error return
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
