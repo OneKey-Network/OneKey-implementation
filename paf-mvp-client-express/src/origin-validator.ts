@@ -1,13 +1,16 @@
 import cors, { CorsRequest } from 'cors';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Log } from '@core/log';
 import { escapeRegExp, getTopLevelDomain } from '@core/express';
 import { ClientNodeError, ClientNodeErrorType } from '@core/errors';
 import { proxyUriParams } from '@core/endpoints';
 
+/**
+ * Class to manipulate a allowed origins and referrers based on current hostname
+ */
 export class OriginValidator {
   private readonly allowedOrigins: RegExp[];
-  public cors: (req: CorsRequest, res: Response, next: (err?: any) => any) => void;
+  public cors: (req: CorsRequest, res: Response, next: (err?: unknown) => unknown) => void;
 
   constructor(protected hostName: string, protected logger: Log) {
     const tld = getTopLevelDomain(hostName);
@@ -33,8 +36,12 @@ export class OriginValidator {
     return this.allowedOrigins.findIndex((regexp: RegExp) => regexp.test(origin)) !== -1;
   }
 
+  /**
+   * Returns a handler that will verify the provided origin is valid
+   * @param endpoint
+   */
   checkOrigin(endpoint: string) {
-    return (req: Request, res: Response, next: () => unknown) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       const origin = req.header('origin');
 
       if (this.isValidOrigin(origin)) {
@@ -47,12 +54,17 @@ export class OriginValidator {
         this.logger.Error(endpoint, error);
         res.status(400);
         res.json(error);
+        next(error);
       }
     };
   }
 
+  /**
+   * Returns a handler that will verify that the provided referrer is valid
+   * @param endpoint
+   */
   checkReferer(endpoint: string) {
-    return (req: Request, res: Response, next: () => unknown) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       const referer = req.header('referer');
 
       if (this.isValidOrigin(referer)) {
@@ -65,12 +77,17 @@ export class OriginValidator {
         this.logger.Error(endpoint, error);
         res.status(400);
         res.json(error);
+        next(error);
       }
     };
   }
 
+  /**
+   * Returns a handler that will verify that the provided returnUrl is valid
+   * @param endpoint
+   */
   checkReturnUrl(endpoint: string) {
-    return (req: Request, res: Response, next: () => unknown) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       const returnUrl = req.query[proxyUriParams.returnUrl] as string;
 
       if (returnUrl?.length > 0 && this.isValidOrigin(returnUrl)) {
@@ -83,6 +100,7 @@ export class OriginValidator {
         this.logger.Error(endpoint, error);
         res.status(400);
         res.json(error);
+        next(error);
       }
     };
   }
