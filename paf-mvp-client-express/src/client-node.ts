@@ -1,19 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
-import {
-  DeleteIdsPrefsRequestBuilder,
-  Get3PCRequestBuilder,
-  GetNewIdRequestBuilder,
-  IdsAndPreferences,
-  PostIdsPrefsRequestBuilder,
-  PostSeedRequest,
-  PostSeedResponse,
-  PostSignPreferencesRequest,
-  ProxyPostIdsPrefsResponse,
-  RedirectGetIdsPrefsResponse,
-} from '@core/model';
+import { PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@core/model';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import { Config, getPayload, Node, parseConfig } from '@core/express';
+import { Config, Node, parseConfig } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
@@ -41,16 +30,6 @@ const getReturnUrl = (req: Request, res: Response): URL | undefined => {
 };
 
 /**
- * Get request parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-const getMessageObject = <T>(req: Request, res: Response): T => {
-  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
-  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
-};
-
-/**
  * The configuration of a OneKey client Node
  */
 export interface ClientNodeConfig extends Config {
@@ -59,10 +38,6 @@ export interface ClientNodeConfig extends Config {
 
 export class ClientNode extends Node {
   private client: OperatorClient;
-  private postIdsPrefsRequestBuilder: PostIdsPrefsRequestBuilder;
-  private get3PCRequestBuilder: Get3PCRequestBuilder;
-  private getNewIdRequestBuilder: GetNewIdRequestBuilder;
-  private deleteIdsPrefsRequestBuilder: DeleteIdsPrefsRequestBuilder;
   private originValidator: OriginValidator;
 
   /**
@@ -87,11 +62,6 @@ export class ClientNode extends Node {
     const operatorHost = config.operatorHost;
 
     this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.publicKeyProvider);
-    this.postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
-    this.get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
-    this.getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, currentPrivateKey);
-    this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
-
     this.originValidator = new OriginValidator(hostName, this.logger);
 
     // *****************************************************************************************************************
@@ -224,8 +194,8 @@ export class ClientNode extends Node {
 
   restRead(req: Request, res: Response, next: NextFunction) {
     try {
-      const url = this.client.getReadRestUrl(req);
-      res.send(url.toString());
+      const url = this.client.getReadResponse(req);
+      res.send(url);
       next();
     } catch (e) {
       const error: ClientNodeError = {
@@ -240,18 +210,7 @@ export class ClientNode extends Node {
 
   restWrite(req: Request, res: Response, next: NextFunction) {
     try {
-      const unsignedRequest = getPayload<IdsAndPreferences>(req);
-      const signedPayload = this.postIdsPrefsRequestBuilder.buildRestRequest(
-        { origin: req.header('origin') },
-        unsignedRequest
-      );
-
-      const url = this.postIdsPrefsRequestBuilder.getRestUrl();
-      // Return both the signed payload and the url to call
-      const response: ProxyPostIdsPrefsResponse = {
-        payload: signedPayload,
-        url: url.toString(),
-      };
+      const response = this.client.getWriteResponse(req);
       res.json(response);
       next();
     } catch (e) {
@@ -268,8 +227,8 @@ export class ClientNode extends Node {
 
   verify3PC(req: Request, res: Response, next: NextFunction) {
     try {
-      const url = this.get3PCRequestBuilder.getRestUrl();
-      res.send(url.toString());
+      const url = this.client.getVerify3PCResponse();
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verify3PC, e);
@@ -285,10 +244,8 @@ export class ClientNode extends Node {
 
   getNewId(req: Request, res: Response, next: NextFunction) {
     try {
-      const getNewIdRequestJson = this.getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
-      const url = this.getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
-
-      res.send(url.toString());
+      const url = this.client.getNewIdResponse(req);
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.newId, e);
@@ -304,9 +261,8 @@ export class ClientNode extends Node {
 
   restDelete(req: Request, res: Response, next: NextFunction) {
     try {
-      const request = this.deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
-      const url = this.deleteIdsPrefsRequestBuilder.getRestUrl(request);
-      res.send(url.toString());
+      const url = this.client.getDeleteResponse(req);
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.delete, e);
@@ -321,10 +277,9 @@ export class ClientNode extends Node {
   }
 
   redirectRead(req: Request, res: Response, next: NextFunction) {
-    const returnUrl = getReturnUrl(req, res);
     try {
-      const url = this.client.getReadRedirectUrl(req, returnUrl);
-      res.send(url.toString());
+      const url = this.client.getReadRedirectResponse(req);
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(redirectProxyEndpoints.read, e);
@@ -339,41 +294,26 @@ export class ClientNode extends Node {
   }
 
   redirectWrite(req: Request, res: Response, next: NextFunction) {
-    const returnUrl = getReturnUrl(req, res);
-    const input = getMessageObject<IdsAndPreferences>(req, res);
-
-    if (input) {
-      try {
-        const postIdsPrefsRequestJson = this.postIdsPrefsRequestBuilder.buildRedirectRequest(
-          {
-            returnUrl: returnUrl.toString(),
-            referer: req.header('referer'),
-          },
-          input
-        );
-
-        const url = this.postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
-        res.send(url.toString());
-        next();
-      } catch (e) {
-        this.logger.Error(redirectProxyEndpoints.write, e);
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-        next(error);
-      }
+    try {
+      const url = this.client.getWriteRedirectResponse(req);
+      res.send(url);
+      next();
+    } catch (e) {
+      this.logger.Error(redirectProxyEndpoints.write, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      const error: ClientNodeError = {
+        type: ClientNodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
     }
   }
 
   redirectDelete(req: Request, res: Response, next: NextFunction) {
-    const returnUrl = getReturnUrl(req, res);
-
     try {
-      const url = this.client.getDeleteRedirectUrl(req, returnUrl);
+      const url = this.client.getDeleteRedirectResponse(req);
       res.send(url.toString());
       next();
     } catch (e) {
@@ -435,8 +375,8 @@ export class ClientNode extends Node {
 
   signPreferences(req: Request, res: Response, next: NextFunction) {
     try {
-      const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
-      res.json(this.client.buildPreferences(identifiers, unsignedPreferences.data));
+      const preferences = this.client.getSignPreferencesResponse(req);
+      res.json(preferences);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.signPrefs, e);
