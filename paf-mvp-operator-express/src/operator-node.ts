@@ -31,6 +31,7 @@ import {
   DeleteIdsPrefsResponseBuilder,
   Get3PCResponseBuilder,
   GetIdsPrefsRequest,
+  GetIdsPrefsResponse,
   GetIdsPrefsResponseBuilder,
   GetNewIdRequest,
   GetNewIdResponseBuilder,
@@ -242,7 +243,10 @@ export class OperatorNode extends Node {
     return { request, context };
   };
 
-  private async getReadResponse(topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) {
+  private async getReadResponse(
+    topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
+    req: Request
+  ): Promise<GetIdsPrefsResponse> {
     const { request, context } = this.extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
       topLevelRequest,
       req
