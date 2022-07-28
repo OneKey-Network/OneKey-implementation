@@ -7,6 +7,10 @@ import { OneKeyLib } from '@frontend/lib/paf-lib';
 import { CurrentScript } from '@frontend/utils/current-script';
 import { auditLogStorageService } from '@frontend/services/audit-log-storage.service';
 import { seedStorageService } from '@frontend/services/seed-storage.service';
+import { Log, LogLevel } from '@core/log';
+
+// Debug level while playing with MVP
+Log.level = LogLevel.Debug;
 
 // Get properties from HTML
 const pafLibScript = new CurrentScript<{ clientHostname: string; upFrontRedirect?: string }>();

@@ -10,12 +10,12 @@ class MonitoredElement extends HTMLDivElement {
 
 document.querySelectorAll('[auditLog]').forEach((e) => {
   if (e instanceof HTMLDivElement) {
-    log.Message('register', e.id);
+    log.Info('register', e.id);
     const content = e.innerHTML;
     (<MonitoredElement>e).timer = setInterval(() => {
-      log.Message('check', e.id);
+      log.Info('check', e.id);
       if (content !== e.innerHTML) {
-        log.Message('adding', e.id);
+        log.Info('adding', e.id);
         clearInterval((<MonitoredElement>e).timer);
         new Controller(new Locale(window.navigator.languages), e, log);
       }
