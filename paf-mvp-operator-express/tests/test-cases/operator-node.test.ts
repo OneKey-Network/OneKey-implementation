@@ -4,6 +4,8 @@ import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { Response } from 'Express';
 import { OperatorClient } from '@client/operator-client';
 import { GetIdsPrefsResponse, Signature, Timestamp } from '@core/model';
+import { id, preferences } from '../fixtures/operator-fixtures';
+import { OperatorError, OperatorErrorType } from '@core/errors';
 
 describe('Operator Node', () => {
   let operatorNode: OperatorNode;
@@ -17,7 +19,7 @@ jmcW7W3x9wvlX4YXqJUQKR2c0lveqVDj4hwO0kTZDuNRUhgxk4irwV3fzw==
   const publicKeyProviderAlwaysSucceeds = () => Promise.resolve({ verify: () => true });
   const client = new OperatorClient(
     operatorHost,
-    'paf.example-websiteA.com',
+    'paf.read-write.com',
     `-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
 cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
@@ -25,6 +27,19 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
     publicKeyProviderAlwaysSucceeds
   );
+  const existingPafCookies = {
+    paf_identifiers: JSON.stringify([id]),
+    paf_preferences: JSON.stringify(preferences),
+  };
+
+  /**
+   * Request used by the operator client, to build operator requests
+   */
+  const clientRequest = createRequest({
+    headers: {
+      origin: 'www.read-write.com',
+    },
+  });
 
   /**
    * Do basic assertions on a source
@@ -64,29 +79,22 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
 -----END PRIVATE KEY-----`,
       // List of OneKey client node host names and their corresponding permissions
       {
-        'paf.example-websiteA.com': [Permission.READ, Permission.WRITE],
-        'paf.example-websiteB.com': [Permission.READ, Permission.WRITE],
-        'paf.example-websiteC.com': [Permission.READ, Permission.WRITE],
+        'paf.read-write.com': [Permission.READ, Permission.WRITE],
+        'paf.read-only.com': [Permission.READ],
+        'paf.write-only.com': [Permission.WRITE],
       },
       () => Promise.resolve({ verify: () => true })
     );
-
     response = createResponse();
   });
-
   describe('restRead', () => {
-    test('no cookie', async () => {
-      const clientRequest = createRequest({
-        headers: {
-          origin: 'www.example-websiteA.com',
-        },
-      });
-      const url = client.getReadResponse(clientRequest);
+    const url = client.getReadResponse(clientRequest);
 
+    test('should return new ID for unknown user', async () => {
       const request = createRequest({
         method: 'GET',
         headers: {
-          origin: 'www.example-websiteA.com',
+          origin: 'www.read-write.com',
         },
         url,
       });
@@ -104,6 +112,115 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
       basicAssertSignature(identifier.source);
       expect(identifier.source.domain).toEqual(operatorHost);
       expect(identifier.persisted).toEqual(false);
+
+      // 3PC test cookie
+      expect(response.cookies['paf_test_3pc'].value).not.toBe('');
+    });
+    test('should return existing cookies for known user', async () => {
+      const request = createRequest({
+        method: 'GET',
+        headers: {
+          origin: 'www.read-write.com',
+        },
+        cookies: existingPafCookies,
+        url,
+      });
+
+      await operatorNode.restRead(request, response, nextMock);
+
+      expect(response._getStatusCode()).toEqual(200);
+      expect(nextMock).toHaveBeenCalledWith();
+      // Check data
+      const data = response._getJSONData() as GetIdsPrefsResponse;
+      basicAssertSignature(data);
+      expect(data.body.preferences).toEqual(preferences);
+      expect(data.body.identifiers).toEqual([id]);
+
+      // 3PC test cookie
+      expect(response.cookies['paf_test_3pc'].value).not.toBe('');
+    });
+  });
+
+  describe('permissions', () => {
+    const unauthorizedClient = new OperatorClient(
+      operatorHost,
+      'paf.unauthorized.com',
+      `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
+cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
+j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
+-----END PRIVATE KEY-----`,
+      publicKeyProviderAlwaysSucceeds
+    );
+    const readOnlyClient = new OperatorClient(
+      operatorHost,
+      'paf.read-only.com',
+      `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
+cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
+j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
+-----END PRIVATE KEY-----`,
+      publicKeyProviderAlwaysSucceeds
+    );
+    const writeOnlyClient = new OperatorClient(
+      operatorHost,
+      'paf.write-only.com',
+      `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
+cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
+j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
+-----END PRIVATE KEY-----`,
+      publicKeyProviderAlwaysSucceeds
+    );
+    const cases = [
+      {
+        client: unauthorizedClient,
+        name: 'unauthorized',
+        authorized: false,
+      },
+      {
+        client: readOnlyClient,
+        name: 'read-only',
+        authorized: true,
+      },
+      {
+        client: writeOnlyClient,
+        name: 'write-only',
+        authorized: false,
+      },
+    ];
+
+    test.each(cases)('$name client should be allowed to read: $authorized', async ({ client, authorized }) => {
+      const url = client.getReadResponse(clientRequest);
+      const request = createRequest({
+        method: 'GET',
+        headers: {
+          origin: `www.${name}.com`, // Doesn't really matter
+        },
+        cookies: existingPafCookies,
+        url,
+      });
+
+      await operatorNode.restRead(request, response, nextMock);
+
+      // TODO later these errors will be more specific
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+
+      if (authorized) {
+        expect(response._getStatusCode()).toEqual(200);
+        expect(nextMock).toHaveBeenCalledWith();
+        const data = response._getJSONData() as GetIdsPrefsResponse;
+        expect(data.body.identifiers).toHaveLength(1);
+      } else {
+        expect(response._getStatusCode()).toEqual(400);
+        expect(nextMock).toHaveBeenCalledWith(error);
+
+        const data = response._getJSONData() as OperatorError;
+        expect(data).toEqual(error);
+      }
     });
   });
 
