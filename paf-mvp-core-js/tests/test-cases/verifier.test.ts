@@ -1,6 +1,7 @@
 import { PublicKey } from '@core/crypto/keys';
 import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
-import { PublicKeyProvider, Verifier } from '@core/crypto/verifier';
+import { Verifier } from '@core/crypto/verifier';
+import { PublicKeyProvider } from '@core/crypto';
 import SpyInstance = jest.SpyInstance;
 
 describe('Verifier', () => {

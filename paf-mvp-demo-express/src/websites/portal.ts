@@ -52,7 +52,7 @@ export const portalWebSiteApp = new VHostApp(name, host);
     'configs/portal-client/config.json'
   )) as ClientNodeConfig;
 
-  const client = new OperatorClient(operatorHost, host, currentPrivateKey, keyStore);
+  const client = new OperatorClient(operatorHost, host, currentPrivateKey, keyStore.provider);
 
   const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
     'crto-poc-1.onekey.network',

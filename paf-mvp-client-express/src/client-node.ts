@@ -18,6 +18,7 @@ import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
 import { OriginValidator } from '@client/origin-validator';
+import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
 
 // TODO remove this automatic status return and do it explicitely outside of this method
 const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
@@ -69,23 +70,23 @@ export class ClientNode extends Node {
    * @param config
    *   hostName: the OneKey client host name
    *   privateKey: the OneKey client private key string
-   * @param s2sOptions?? [optional] server to server configuration for local dev
+   * @param publicKeyProvider a function that gives the public key of a domain
    */
-  constructor(config: ClientNodeConfig, s2sOptions?: AxiosRequestConfig) {
+  constructor(config: ClientNodeConfig, publicKeyProvider: PublicKeyProvider) {
     super(
       config.host,
       {
         ...config.identity,
         type: 'vendor',
       },
-      s2sOptions
+      publicKeyProvider
     );
 
     const { currentPrivateKey } = config;
     const hostName = config.host;
     const operatorHost = config.operatorHost;
 
-    this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.keyStore);
+    this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.publicKeyProvider);
     this.postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
     this.get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
     this.getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, currentPrivateKey);
@@ -473,6 +474,6 @@ export class ClientNode extends Node {
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
     const config = (await parseConfig(configPath)) as ClientNodeConfig;
 
-    return new ClientNode(config, s2sOptions);
+    return new ClientNode(config, new PublicKeyStore(s2sOptions).provider);
   }
 }

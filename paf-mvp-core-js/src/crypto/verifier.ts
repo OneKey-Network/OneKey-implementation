@@ -1,4 +1,3 @@
-import { PublicKey } from '@core/crypto/keys';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
@@ -10,10 +9,7 @@ import { Identifier, IdsAndPreferences, MessageBase } from '@core/model/generate
 import { getTimeStampInSec } from '@core/timestamp';
 import { Unsigned } from '@core/model/model';
 import { Log } from '@core/log';
-
-export interface PublicKeyProvider {
-  (domain: string): Promise<PublicKey>;
-}
+import { PublicKeyProvider } from '@core/crypto/key-store';
 
 /**
  * Verifier class

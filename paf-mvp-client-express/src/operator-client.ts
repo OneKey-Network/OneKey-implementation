@@ -9,7 +9,7 @@ import {
 } from '@core/model/generated-model';
 import { CurrentModelVersion, UnsignedSource } from '@core/model/model';
 import { privateKeyFromString } from '@core/crypto/keys';
-import { PublicKeyStore } from '@core/crypto/key-store';
+import { PublicKeyProvider } from '@core/crypto/key-store';
 import { DeleteIdsPrefsRequestBuilder, GetIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
 import { Signer } from '@core/crypto/signer';
 import {
@@ -34,8 +34,8 @@ export class OperatorClient {
     protected operatorHost: string,
     private clientHost: string,
     privateKey: string,
-    private readonly keyStore: PublicKeyStore,
-    private readonly readVerifier = new ResponseVerifier(keyStore.provider, new ResponseDefinition())
+    private readonly publicKeyProvider: PublicKeyProvider,
+    private readonly readVerifier = new ResponseVerifier(publicKeyProvider, new ResponseDefinition())
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
