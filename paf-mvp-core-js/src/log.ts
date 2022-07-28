@@ -4,6 +4,7 @@ export enum LogLevel {
   Warn,
   Info,
   Debug,
+  All,
 }
 
 // Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
