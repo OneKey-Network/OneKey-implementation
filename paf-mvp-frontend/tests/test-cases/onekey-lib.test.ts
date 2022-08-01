@@ -15,6 +15,7 @@ import { MockedFunction } from 'ts-jest';
 import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@frontend/lib/paf-lib';
 import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
 import { ISeedStorageService } from '@frontend/services/seed-storage.service';
+import { DEFAULT_TTL_IN_SECONDS, MAXIMUM_TTL_IN_SECONDS } from '@frontend/utils/cookie';
 
 jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
@@ -541,5 +542,42 @@ describe('Function handleAfterBoomerangRedirect', () => {
     await lib.handleAfterBoomerangRedirect();
 
     expect(notificationHandler).toBeCalledWith('PERSONALIZED');
+  });
+});
+describe('Cookie TTL setting', () => {
+  const lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
+  test('should use the default value when no value was specified', () => {
+    const ttlInSeconds = lib.parseCookieTTL(undefined);
+    expect(ttlInSeconds).toEqual(DEFAULT_TTL_IN_SECONDS);
+  });
+  test('should use the default value when the specified one is mal formatted', () => {
+    const ttlInSeconds = lib.parseCookieTTL('SOME_RANDOM_STRING');
+    expect(ttlInSeconds).toEqual(DEFAULT_TTL_IN_SECONDS);
+  });
+  test('should use the maximum allowed value when the specified one is too big', () => {
+    const ttlInSeconds = lib.parseCookieTTL('P1M'); // one month
+    expect(ttlInSeconds).toEqual(MAXIMUM_TTL_IN_SECONDS);
+  });
+  const cases = [
+    {
+      input: 'PT1M', // one minute
+      expectedOutput: 60,
+    },
+    {
+      input: 'PT15M51S', // 15 minutes and 51 seconds
+      expectedOutput: 951,
+    },
+    {
+      input: 'PT2H30M', // Two and a half hours
+      expectedOutput: 9000,
+    },
+    {
+      input: 'P3DT4H59M', // Three days, four hours and 59 minutes
+      expectedOutput: 277140,
+    },
+  ];
+  test.each(cases)('should use specified value when it is correct ($input)', (data) => {
+    const ttlInSeconds = lib.parseCookieTTL(data.input);
+    expect(ttlInSeconds).toEqual(data.expectedOutput);
   });
 });
