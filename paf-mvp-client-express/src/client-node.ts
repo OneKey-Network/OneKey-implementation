@@ -101,7 +101,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.read),
-      this.restGetIdsAndPrefs,
+      this.restBuildUrlToGetIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.read),
       this.endSpan(jsonProxyEndpoints.read)
     );
@@ -111,7 +111,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.write),
-      this.restWriteIdsAndPrefs,
+      this.restBuildUrlToWriteIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.write),
       this.endSpan(jsonProxyEndpoints.write)
     );
@@ -121,7 +121,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.verify3PC),
-      this.verify3PC,
+      this.buildUrlToVerify3PC,
       this.handleErrors(jsonProxyEndpoints.verify3PC),
       this.endSpan(jsonProxyEndpoints.verify3PC)
     );
@@ -131,7 +131,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.newId),
-      this.getNewId,
+      this.buildUrlToGetNewId,
       this.handleErrors(jsonProxyEndpoints.newId),
       this.endSpan(jsonProxyEndpoints.newId)
     );
@@ -143,7 +143,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.delete),
-      this.restDeleteIdsAndPrefs,
+      this.restBuildUrlToDeleteIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.delete),
       this.endSpan(jsonProxyEndpoints.delete)
     );
@@ -157,7 +157,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.read),
-      this.redirectReadIdsAndPrefs,
+      this.redirectBuildUrlToReadIdsAndPreferences,
       this.handleErrors(redirectProxyEndpoints.read),
       this.endSpan(redirectProxyEndpoints.read)
     );
@@ -168,7 +168,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.write),
-      this.redirectWriteIdsAndPrefs,
+      this.redirectBuildUrlToWriteIdsAndPreferences,
       this.handleErrors(redirectProxyEndpoints.write),
       this.endSpan(redirectProxyEndpoints.write)
     );
@@ -179,7 +179,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.delete),
-      this.redirectDeleteIdsAndPrefs,
+      this.redirectBuildUrlToDeleteIdsAndPreferences,
       this.handleErrors(redirectProxyEndpoints.delete),
       this.endSpan(redirectProxyEndpoints.delete)
     );
@@ -221,7 +221,7 @@ export class ClientNode extends Node {
     );
   }
 
-  restGetIdsAndPrefs = (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToGetIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getReadRestUrl(req);
       res.send(url.toString());
@@ -237,7 +237,7 @@ export class ClientNode extends Node {
     }
   };
 
-  restWriteIdsAndPrefs = (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const unsignedRequest = getPayload<IdsAndPreferences>(req);
       const signedPayload = this.postIdsPrefsRequestBuilder.buildRestRequest(
@@ -265,7 +265,7 @@ export class ClientNode extends Node {
     }
   };
 
-  verify3PC = (req: Request, res: Response, next: NextFunction) => {
+  buildUrlToVerify3PC = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.get3PCRequestBuilder.getRestUrl();
       res.send(url.toString());
@@ -282,7 +282,7 @@ export class ClientNode extends Node {
     }
   };
 
-  getNewId = (req: Request, res: Response, next: NextFunction) => {
+  buildUrlToGetNewId = (req: Request, res: Response, next: NextFunction) => {
     try {
       const getNewIdRequestJson = this.getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
       const url = this.getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
@@ -301,7 +301,7 @@ export class ClientNode extends Node {
     }
   };
 
-  restDeleteIdsAndPrefs = (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const request = this.deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
       const url = this.deleteIdsPrefsRequestBuilder.getRestUrl(request);
@@ -319,7 +319,7 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectReadIdsAndPrefs = (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToReadIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     const returnUrl = getReturnUrl(req, res);
     try {
       const url = this.client.getReadRedirectUrl(req, returnUrl);
@@ -337,7 +337,7 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectWriteIdsAndPrefs = (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     const returnUrl = getReturnUrl(req, res);
     const input = getMessageObject<IdsAndPreferences>(req, res);
 
@@ -368,7 +368,7 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectDeleteIdsAndPrefs = (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     const returnUrl = getReturnUrl(req, res);
 
     try {
