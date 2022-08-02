@@ -1,24 +1,14 @@
 import { Locale } from './locale';
 import { Controller } from './controller';
 import { Log } from '@core/log';
+import { Window } from '@frontend/global';
 
 const log = new Log('audit', '#18a9e1');
 
-class MonitoredElement extends HTMLDivElement {
-  public timer: NodeJS.Timer;
-}
-
-document.querySelectorAll('[auditLog]').forEach((e) => {
-  if (e instanceof HTMLDivElement) {
-    log.Message('register', e.id);
-    const content = e.innerHTML;
-    (<MonitoredElement>e).timer = setInterval(() => {
-      log.Message('check', e.id);
-      if (content !== e.innerHTML) {
-        log.Message('adding', e.id);
-        clearInterval((<MonitoredElement>e).timer);
-        new Controller(new Locale(window.navigator.languages), e, log);
-      }
-    }, 1000);
-  }
-});
+const auditLogHandler = (element: HTMLElement) =>
+  new Promise<void>((resolve) => {
+    log.Message('register', element.id);
+    new Controller(new Locale(window.navigator.languages), element, log);
+    resolve();
+  });
+(<Window>window).OneKey.setAuditLogHandler(auditLogHandler);

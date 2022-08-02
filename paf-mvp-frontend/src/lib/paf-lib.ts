@@ -50,6 +50,7 @@ export class OneKeyLib implements IOneKeyLib {
   private thirdPartyCookiesSupported: boolean | undefined;
   private auditLogStorageService: IAuditLogStorageService;
   private seedStorageService: ISeedStorageService;
+  private auditLogManager = new EventHandler<HTMLElement, void>();
 
   unpersistedIds?: Identifier[];
 
@@ -750,8 +751,15 @@ export class OneKeyLib implements IOneKeyLib {
     if (auditHandler) {
       auditHandler.bind(divContainer);
     }
+    this.sendAuditLogNotification(divContainer);
     return auditLog;
   };
+
+  private sendAuditLogNotification(element: HTMLElement) {
+    this.auditLogManager.fireEvent(element).then(() => {
+      this.log.Info(`Emitting event: AuditLog available for ${element.id}`);
+    });
+  }
 
   /**
    * @param divId The id of the tag (<div id="something">) that contains the addressable content..
@@ -760,6 +768,10 @@ export class OneKeyLib implements IOneKeyLib {
   getAuditLogByDivId = (divId: DivId): AuditLog | undefined => {
     return this.auditLogStorageService.getAuditLogByDivId(divId);
   };
+
+  setAuditLogHandler(handler: (element: HTMLElement) => Promise<void>) {
+    this.auditLogManager.handler = handler;
+  }
 
   /**
    * Delete the identifiers and preferences of the current website (locally and from the operator)
@@ -902,6 +914,7 @@ export interface IOneKeyLib {
     identifiers: Identifier[]
   ) => Promise<IdsAndOptionalPreferences | undefined>;
   removeCookie: (cookieName: string) => void;
+  setAuditLogHandler: (handler: (element: HTMLElement) => Promise<void>) => void;
 }
 
 // TODO ------------------------------------------------------ move to i-one-key-lib.ts END
