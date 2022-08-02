@@ -89,7 +89,7 @@ export class WebsiteIdentityValidator {
   checkReturnUrl(req: Request, res: Response, next: NextFunction) {
     const returnUrl = req.query[proxyUriParams.returnUrl] as string;
 
-    if (returnUrl?.length > 0 && this.isValidWebsiteUrl(returnUrl)) {
+    if (this.isValidWebsiteUrl(returnUrl)) {
       next();
     } else {
       const error: ClientNodeError = {

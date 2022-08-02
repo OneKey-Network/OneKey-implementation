@@ -390,7 +390,9 @@ export class ClientNode extends Node {
   verifyOperatorReadResponse = (req: Request, res: Response, next: NextFunction) => {
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
-    if (!message.response) {
+    const hasResponse = message.response !== undefined;
+
+    if (!hasResponse) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, message.error);
       // FIXME do something smart in case of error
       const error: OperatorError = {
@@ -404,8 +406,8 @@ export class ClientNode extends Node {
     }
 
     try {
-      const verification = this.client.verifyReadResponse(message.response);
-      if (!verification) {
+      const isResponseValid = this.client.verifyReadResponse(message.response);
+      if (!isResponseValid) {
         // TODO [errors] finer error feedback
         const error: ClientNodeError = {
           type: ClientNodeErrorType.VERIFICATION_FAILED,

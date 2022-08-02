@@ -223,10 +223,11 @@ export class OperatorNode extends Node {
     // Extract request from Redirect request, if needed
     let request: TopLevelRequestType;
     let context: RestContext | RedirectContext;
-    if (
+    const isRedirectRequest =
       (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
-      (topLevelRequest as TopLevelRequestRedirectType).request
-    ) {
+      (topLevelRequest as TopLevelRequestRedirectType).request;
+
+    if (isRedirectRequest) {
       request = (topLevelRequest as TopLevelRequestRedirectType).request;
       context = {
         returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
@@ -247,18 +248,19 @@ export class OperatorNode extends Node {
     );
 
     const sender = request.sender;
+    const isAllowedToRead = this.allowedHosts[sender]?.includes(Permission.READ);
 
-    if (!this.allowedHosts[sender]?.includes(Permission.READ)) {
+    if (!isAllowedToRead) {
       throw `Domain not allowed to read data: ${sender}`;
     }
 
-    if (
-      !(await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
-        { request, context },
-        sender, // sender will always be ok
-        this.host // but operator needs to be verified
-      ))
-    ) {
+    const isValidSignature = !(await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    ));
+
+    if (!isValidSignature) {
       // TODO [errors] finer error feedback
       throw 'Read request verification failed';
     }
@@ -266,7 +268,9 @@ export class OperatorNode extends Node {
     const identifiers = typedCookie<Identifiers>(req.cookies[Cookies.identifiers]) ?? [];
     const preferences = typedCookie<Preferences>(req.cookies[Cookies.preferences]);
 
-    if (!identifiers.some((i: Identifier) => i.type === 'paf_browser_id')) {
+    const hasPAFId = identifiers.some((i: Identifier) => i.type === 'paf_browser_id');
+
+    if (!hasPAFId) {
       // No existing id, let's generate one, unpersisted
       identifiers.push(this.idBuilder.generateNewId());
     }
@@ -285,18 +289,20 @@ export class OperatorNode extends Node {
     >(topLevelRequest, req);
     const sender = request.sender;
 
-    if (!this.allowedHosts[sender]?.includes(Permission.WRITE)) {
+    const isAllowedToWrite = this.allowedHosts[sender]?.includes(Permission.WRITE);
+
+    if (!isAllowedToWrite) {
       throw `Domain not allowed to write data: ${sender}`;
     }
 
     // Verify message
-    if (
-      !(await this.postIdsPrefsRequestVerifier.verifySignatureAndContent(
-        { request, context },
-        sender, // sender will always be ok
-        this.host // but operator needs to be verified
-      ))
-    ) {
+    const isValidSignature = await this.postIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+
+    if (!isValidSignature) {
       // TODO [errors] finer error feedback
       throw 'Write request verification failed';
     }
@@ -308,13 +314,15 @@ export class OperatorNode extends Node {
 
     // Verify ids
     for (const id of identifiers) {
-      if (!(await this.idVerifier.verifySignature(id))) {
+      const isValidIdSignature = await this.idVerifier.verifySignature(id);
+      if (!isValidIdSignature) {
         throw `Identifier verification failed for ${id.value}`;
       }
     }
 
     // Verify preferences FIXME optimization here: PAF_ID has already been verified in previous step
-    if (!(await this.prefsVerifier.verifySignature(request.body))) {
+    const isValidPreferencesSignature = await this.prefsVerifier.verifySignature(request.body);
+    if (!isValidPreferencesSignature) {
       throw 'Preferences verification failed';
     }
 
@@ -334,18 +342,20 @@ export class OperatorNode extends Node {
     >(input, req);
     const sender = request.sender;
 
-    if (!this.allowedHosts[sender]?.includes(Permission.WRITE)) {
+    const isAllowedToWrite = this.allowedHosts[sender]?.includes(Permission.WRITE);
+
+    if (!isAllowedToWrite) {
       throw `Domain not allowed to write data: ${sender}`;
     }
 
     // Verify message
-    if (
-      !(await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
-        { request, context },
-        sender, // sender will always be ok
-        this.host // but operator needs to be verified
-      ))
-    ) {
+    const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+
+    if (!isValidSignature) {
       // TODO [errors] finer error feedback
       throw 'Delete request verification failed';
     }
@@ -461,19 +471,21 @@ export class OperatorNode extends Node {
 
     const sender = request.sender;
 
-    if (!this.allowedHosts[sender]?.includes(Permission.READ)) {
+    const isAllowedToRead = this.allowedHosts[sender]?.includes(Permission.READ);
+
+    if (!isAllowedToRead) {
       throw `Domain not allowed to read data: ${sender}`;
       // TODO [errors] be handled in middleware + better handling of this error
     }
 
     try {
-      if (
-        !(await this.getNewIdRequestVerifier.verifySignatureAndContent(
-          { request, context },
-          sender, // sender will always be ok
-          this.host // but operator needs to be verified
-        ))
-      ) {
+      const isValidSignature = await this.getNewIdRequestVerifier.verifySignatureAndContent(
+        { request, context },
+        sender, // sender will always be ok
+        this.host // but operator needs to be verified
+      );
+
+      if (!isValidSignature) {
         // TODO [errors] finer error feedback
         throw 'New Id request verification failed';
       }
@@ -497,7 +509,9 @@ export class OperatorNode extends Node {
   redirectReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
 
-    if (!request?.returnUrl) {
+    const hasReturnUrl = request?.returnUrl !== undefined;
+
+    if (!hasReturnUrl) {
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       const error: OperatorError = {
         type: OperatorErrorType.INVALID_RETURN_URL,
@@ -534,7 +548,9 @@ export class OperatorNode extends Node {
   redirectWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
 
-    if (!request?.returnUrl) {
+    const hasReturnUrl = request?.returnUrl !== undefined;
+
+    if (!hasReturnUrl) {
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       const error: OperatorError = {
         type: OperatorErrorType.INVALID_RETURN_URL,
@@ -571,7 +587,10 @@ export class OperatorNode extends Node {
   redirectDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     this.logger.Info(redirectEndpoints.delete);
     const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
-    if (!request?.returnUrl) {
+
+    const hasReturnUrl = request?.returnUrl !== undefined;
+
+    if (!hasReturnUrl) {
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       const error: OperatorError = {
         type: OperatorErrorType.INVALID_RETURN_URL,
