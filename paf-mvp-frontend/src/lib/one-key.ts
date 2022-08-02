@@ -9,7 +9,7 @@ import { auditLogStorageService } from '@frontend/services/audit-log-storage.ser
 import { seedStorageService } from '@frontend/services/seed-storage.service';
 
 // Get properties from HTML
-const pafLibScript = new CurrentScript<{ clientHostname: string; upFrontRedirect?: string }>();
+const pafLibScript = new CurrentScript<{ clientHostname: string; upFrontRedirect?: string; cookieTtl?: string }>();
 pafLibScript.setScript(document.currentScript);
 
 const triggerRedirectIfNeeded =
@@ -18,7 +18,8 @@ export const oneKeyLib = new OneKeyLib(
   pafLibScript.getData()?.clientHostname,
   triggerRedirectIfNeeded,
   auditLogStorageService,
-  seedStorageService
+  seedStorageService,
+  pafLibScript.getData()?.cookieTtl
 );
 
 const queue = (<Window>window).OneKey?.queue ?? [];

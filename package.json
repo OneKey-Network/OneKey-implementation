@@ -62,6 +62,7 @@
     "ua-parser-js": "^1.0.2",
     "uuid": "^8.3.2",
     "vhost": "^3.0.2",
+    "tinyduration": "^3.2.2",
     "winston": "^3.4.0"
   },
   "devDependencies": {
