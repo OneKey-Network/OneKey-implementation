@@ -49,6 +49,8 @@ import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@core/endpoints';
 import { OperatorError, OperatorErrorType } from '@core/errors';
+import { SignatureVerifier } from '@core/crypto/verify';
+import { RestGetIdsPrefsRequest } from '@core/model/requests';
 
 /**
  * Expiration: now + 3 months
@@ -79,12 +81,18 @@ export class OperatorNode extends Node {
   postIdsPrefsResponseBuilder: PostIdsPrefsResponseBuilder;
   getNewIdResponseBuilder: GetNewIdResponseBuilder;
   deleteIdsPrefsResponseBuilder: DeleteIdsPrefsResponseBuilder;
+
+  // TO REMOVE
+  //
   idVerifier: Verifier<Identifier>;
   prefsVerifier: Verifier<IdsAndPreferences>;
   topLevelDomain: string;
   postIdsPrefsRequestVerifier: RequestVerifier<PostIdsPrefsRequest>;
   getIdsPrefsRequestVerifier: RequestVerifier<GetIdsPrefsRequest>;
   getNewIdRequestVerifier: RequestVerifier<GetNewIdRequest>;
+  //
+  signatureVerifier: SignatureVerifier;
+
   idBuilder: IdBuilder;
 
   constructor(
@@ -118,6 +126,7 @@ export class OperatorNode extends Node {
     this.getIdsPrefsRequestVerifier = new RequestVerifier(this.keyStore.provider, new RequestWithoutBodyDefinition());
     this.getNewIdRequestVerifier = new RequestVerifier(this.keyStore.provider, new RequestWithoutBodyDefinition());
     this.idBuilder = new IdBuilder(host, privateKey);
+    this.signatureVerifier = new SignatureVerifier(this.keyStore.provider);
 
     // Note that CORS is "disabled" here because the check is done via signature
     // So accept whatever the referer is
@@ -240,7 +249,11 @@ export class OperatorNode extends Node {
     return { request, context };
   };
 
-  private async getReadResponse(topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) {
+  private async getReadResponse(
+    topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
+    req: Request,
+    res: Response
+  ) {
     const { request, context } = this.extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
       topLevelRequest,
       req
@@ -250,6 +263,19 @@ export class OperatorNode extends Node {
 
     if (!this.allowedHosts[sender]?.includes(Permission.READ)) {
       throw `Domain not allowed to read data: ${sender}`;
+    }
+
+    if (topLevelRequest instanceof RestGetIdsPrefsRequest) {
+      const isSignatureValid = this.signatureVerifier.verifySignature(topLevelRequest);
+      if (!isSignatureValid) {
+        const err: OperatorError = {
+          type: OperatorErrorType.INVALID_SIGNATURE,
+          details: '',
+        };
+        res.status(403);
+        res.json(err);
+        return;
+      }
     }
 
     if (
@@ -371,10 +397,23 @@ export class OperatorNode extends Node {
     // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
     this.setTest3pcCookie(res);
 
-    const request = getPafDataFromQueryString<GetIdsPrefsRequest>(req);
+    const { isValid, value, error } = deserializeRestGetIdsPrefsRequest(req);
+    if (!isValid) {
+      const err: OperatorError = {
+        type: OperatorErrorType.MISSING_PAF_PARAM,
+        details: error,
+      };
+      res.status(400);
+      res.json(err);
+      return;
+    }
 
     try {
-      const response = await this.getReadResponse(request, req);
+      const response = await this.getReadResponse(value, req, res);
+      if (res.statusCode == 403) {
+        return;
+      }
+
       res.json(response);
       next();
     } catch (e) {
@@ -510,7 +549,7 @@ export class OperatorNode extends Node {
     }
 
     try {
-      const response = await this.getReadResponse(request, req);
+      const response = await this.getReadResponse(request, req, res);
 
       const redirectResponse = this.getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
       const redirectUrl = this.getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
@@ -610,4 +649,15 @@ export class OperatorNode extends Node {
 
     return new OperatorNode(identity, host, currentPrivateKey, allowedHosts, s2sOptions);
   }
+}
+function deserializeRestGetIdsPrefsRequest(
+  req: Request<
+    import('express-serve-static-core').ParamsDictionary,
+    any,
+    any,
+    import('qs').ParsedQs,
+    Record<string, any>
+  >
+): { isValid: any; value: any; error: any } {
+  throw new Error('Function not implemented.');
 }

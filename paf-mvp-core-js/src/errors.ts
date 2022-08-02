@@ -17,6 +17,7 @@ export enum OperatorErrorType {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   INVALID_ORIGIN = 'INVALID_ORIGIN',
   INVALID_REFERER = 'INVALID_REFERER',
+  INVALID_SIGNATURE = 'INVALID_SIGNATURE',
 }
 
 export interface OperatorError {
