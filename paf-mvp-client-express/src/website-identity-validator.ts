@@ -67,7 +67,7 @@ export class WebsiteIdentityValidator {
   /**
    * Returns a handler that will verify that the provided referrer is valid
    */
-  checkReferer(req: Request, res: Response, next: NextFunction) {
+  checkReferer = (req: Request, res: Response, next: NextFunction) => {
     const referer = req.header('referer');
 
     if (this.isValidWebsiteUrl(referer)) {
@@ -81,12 +81,12 @@ export class WebsiteIdentityValidator {
       res.json(error);
       next(error);
     }
-  }
+  };
 
   /**
    * Returns a handler that will verify that the provided returnUrl is valid
    */
-  checkReturnUrl(req: Request, res: Response, next: NextFunction) {
+  checkReturnUrl = (req: Request, res: Response, next: NextFunction) => {
     const returnUrl = req.query[proxyUriParams.returnUrl] as string;
 
     if (this.isValidWebsiteUrl(returnUrl)) {
@@ -100,5 +100,5 @@ export class WebsiteIdentityValidator {
       res.json(error);
       next(error);
     }
-  }
+  };
 }
