@@ -254,11 +254,11 @@ export class OperatorNode extends Node {
       throw `Domain not allowed to read data: ${sender}`;
     }
 
-    const isValidSignature = !(await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+    const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
       { request, context },
       sender, // sender will always be ok
       this.host // but operator needs to be verified
-    ));
+    );
 
     if (!isValidSignature) {
       // TODO [errors] finer error feedback
