@@ -1,6 +1,6 @@
 import { Config } from './config';
 import { Controller } from './controller';
-import { Log } from '@core/log';
+import { Log, LogLevel } from '@core/log';
 import { NotificationEnum } from '@frontend/enums/notification.enum';
 import { Window } from '@frontend/global';
 
@@ -15,15 +15,18 @@ const locale = <ILocale>__Locale__;
 // ../rollup.config.js for details.
 const tcfCoreTemplate = '__TcfCoreTemplate__';
 
+// Debug level while playing with MVP
+Log.level = LogLevel.Debug;
+
 const log = new Log('ok-ui', '#18a9e1');
 let controller: Controller = null;
 
 // TODO: See later comment on how to align the UI and data layer.
 const promptConsent = () =>
   new Promise<boolean | undefined>((resolve) => {
-    log.Message('promptConsent');
+    log.Info('promptConsent');
     if (controller !== null) {
-      log.Message('show settings');
+      log.Info('show settings');
       controller.display('settings');
     }
     resolve(undefined); // FIXME should return values!
