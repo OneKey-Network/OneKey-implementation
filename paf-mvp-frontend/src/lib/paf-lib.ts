@@ -581,7 +581,7 @@ export class OneKeyLib implements IOneKeyLib {
    * @param input the identifiers and preferences to write
    * @return the written identifiers and preferences
    */
-  writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptionalPreferences | undefined> => {
+  private writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptionalPreferences | undefined> => {
     const processWriteIdsAndPref = async (): Promise<IdsAndOptionalPreferences | undefined> => {
       this.log.Info('Attempt to write:', input.identifiers, input.preferences);
 
@@ -912,7 +912,6 @@ export interface IOneKeyLib {
   unpersistedIds?: Identifier[];
   triggerNotification: (initialData: CookieData, newConsent: boolean) => Promise<void>;
   refreshIdsAndPreferences: (showPrompt?: ShowPromptOption) => Promise<RefreshResult>;
-  writeIdsAndPref: (input: IdsAndPreferences) => Promise<IdsAndOptionalPreferences | undefined>;
   signPreferences: (input: PostSignPreferencesRequest) => Promise<Preferences>;
   getNewId: () => Promise<Identifier>;
   getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined>;
