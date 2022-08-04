@@ -10,7 +10,8 @@ import { Log, LogLevel } from '@core/log';
 const relative = (dir: string) => join(__dirname, dir);
 
 (async () => {
-  Log.level = isRunningOnDeveloperPC ? LogLevel.Debug : LogLevel.Info;
+  // For the MVP, leave the highest log level
+  Log.level = LogLevel.Debug; //isRunningOnDeveloperPC ? LogLevel.Debug : LogLevel.Info;
 
   const { websites, clientNodes, operators, cdns } = await getAppsAndNodes();
 
