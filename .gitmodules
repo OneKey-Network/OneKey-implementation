@@ -1,0 +1,3 @@
+[submodule "addressability-framework"]
+	path = addressability-framework
+	url = https://github.com/prebid/addressability-framework.git
