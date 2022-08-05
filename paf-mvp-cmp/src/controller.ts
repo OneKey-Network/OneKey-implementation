@@ -234,8 +234,8 @@ export class Controller {
       const r = await this.getIdsPreferencesAndUnPersisted();
       const { data, status } = r;
 
-      this.log.Message('global data', data);
-      this.log.Message('status', status);
+      this.log.Info('global data', data);
+      this.log.Info('status', status);
 
       if (data) {
         this.setPersistedFlag(data.identifiers);
@@ -271,7 +271,7 @@ export class Controller {
       // Try and get the OneKey data from local cookies.
       const data = (await this.getIdsPreferencesAndUnPersisted()).data;
       if (data !== undefined) {
-        this.log.Message('local OneKey data', data);
+        this.log.Info('local OneKey data', data);
         this.model.status = PafStatus.PARTICIPATING;
         this.setPersistedFlag(data.identifiers);
         this.model.setFromIdsAndPreferences(data);

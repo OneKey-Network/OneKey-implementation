@@ -73,10 +73,8 @@ export class Node implements INode {
    */
   protected handleErrors(endPointName: string): ErrorRequestHandler {
     return (err: ClientNodeError, req: Request, res: Response, next: NextFunction) => {
-      if (err) {
-        // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
-        this.logger.Error(endPointName, err);
-      }
+      // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
+      this.logger.Error(endPointName, err);
     };
   }
 }

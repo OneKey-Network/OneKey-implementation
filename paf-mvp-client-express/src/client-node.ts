@@ -1,33 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
 import { PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@core/model';
-import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
+import { jsonProxyEndpoints, redirectProxyEndpoints } from '@core/endpoints';
 import { Config, Node, parseConfig } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
-import { OriginValidator } from '@client/origin-validator';
 import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
-
-// TODO remove this automatic status return and do it explicitely outside of this method
-const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
-  const stringValue = req.query[paramName] as string;
-  if (stringValue === undefined) {
-    res.sendStatus(400); // TODO add message
-    return undefined;
-  }
-  return stringValue;
-};
-
-/**
- * Get return URL parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-const getReturnUrl = (req: Request, res: Response): URL | undefined => {
-  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
-  return redirectStr ? new URL(redirectStr) : undefined;
-};
+import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**
  * The configuration of a OneKey client Node
@@ -38,7 +18,7 @@ export interface ClientNodeConfig extends Config {
 
 export class ClientNode extends Node {
   private client: OperatorClient;
-  private originValidator: OriginValidator;
+  private websiteIdentityValidator: WebsiteIdentityValidator;
 
   /**
    * Add OneKey client node endpoints to an Express app
@@ -62,59 +42,59 @@ export class ClientNode extends Node {
     const operatorHost = config.operatorHost;
 
     this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.publicKeyProvider);
-    this.originValidator = new OriginValidator(hostName, this.logger);
+    this.websiteIdentityValidator = new WebsiteIdentityValidator(hostName);
 
     // *****************************************************************************************************************
     // ************************************************************************************************************ REST
     // *****************************************************************************************************************
     this.app.expressApp.get(
       jsonProxyEndpoints.read,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.read),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.read),
-      this.restRead.bind(this),
+      this.restBuildUrlToGetIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.read),
       this.endSpan(jsonProxyEndpoints.read)
     );
 
     this.app.expressApp.post(
       jsonProxyEndpoints.write,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.write),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.write),
-      this.restWrite.bind(this),
+      this.restBuildUrlToWriteIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.write),
       this.endSpan(jsonProxyEndpoints.write)
     );
 
     this.app.expressApp.get(
       jsonProxyEndpoints.verify3PC,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.verify3PC),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.verify3PC),
-      this.verify3PC.bind(this),
+      this.buildUrlToVerify3PC,
       this.handleErrors(jsonProxyEndpoints.verify3PC),
       this.endSpan(jsonProxyEndpoints.verify3PC)
     );
 
     this.app.expressApp.get(
       jsonProxyEndpoints.newId,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.newId),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.newId),
-      this.getNewId.bind(this),
+      this.buildUrlToGetNewId,
       this.handleErrors(jsonProxyEndpoints.newId),
       this.endSpan(jsonProxyEndpoints.newId)
     );
 
     // enable pre-flight request for DELETE request
-    this.app.expressApp.options(jsonProxyEndpoints.delete, this.originValidator.cors);
+    this.app.expressApp.options(jsonProxyEndpoints.delete, this.websiteIdentityValidator.cors);
     this.app.expressApp.delete(
       jsonProxyEndpoints.delete,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.delete),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.delete),
-      this.restDelete.bind(this),
+      this.restBuildUrlToDeleteIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.delete),
       this.endSpan(jsonProxyEndpoints.delete)
     );
@@ -124,33 +104,33 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.get(
       redirectProxyEndpoints.read,
-      this.originValidator.cors,
-      this.originValidator.checkReferer(redirectProxyEndpoints.read),
-      this.originValidator.checkReturnUrl(redirectProxyEndpoints.read),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkReferer,
+      this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.read),
-      this.redirectRead.bind(this),
+      this.redirectBuildUrlToReadIdsAndPreferences,
       this.handleErrors(redirectProxyEndpoints.read),
       this.endSpan(redirectProxyEndpoints.read)
     );
 
     this.app.expressApp.get(
       redirectProxyEndpoints.write,
-      this.originValidator.cors,
-      this.originValidator.checkReferer(redirectProxyEndpoints.write),
-      this.originValidator.checkReturnUrl(redirectProxyEndpoints.write),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkReferer,
+      this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.write),
-      this.redirectWrite.bind(this),
+      this.redirectBuildUrlToWriteIdsAndPreferences,
       this.handleErrors(redirectProxyEndpoints.write),
       this.endSpan(redirectProxyEndpoints.write)
     );
 
     this.app.expressApp.get(
       redirectProxyEndpoints.delete,
-      this.originValidator.cors,
-      this.originValidator.checkReferer(redirectProxyEndpoints.delete),
-      this.originValidator.checkReturnUrl(redirectProxyEndpoints.delete),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkReferer,
+      this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.delete),
-      this.redirectDelete.bind(this),
+      this.redirectBuildUrlToDeleteIdsAndPreferences,
       this.handleErrors(redirectProxyEndpoints.delete),
       this.endSpan(redirectProxyEndpoints.delete)
     );
@@ -160,20 +140,20 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.post(
       jsonProxyEndpoints.verifyRead,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.verifyRead),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.verifyRead),
-      this.verifyRead.bind(this),
+      this.verifyOperatorReadResponse,
       this.handleErrors(jsonProxyEndpoints.verifyRead),
       this.endSpan(jsonProxyEndpoints.verifyRead)
     );
 
     this.app.expressApp.post(
       jsonProxyEndpoints.signPrefs,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.signPrefs),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.signPrefs),
-      this.signPreferences.bind(this),
+      this.signPreferences,
       this.handleErrors(jsonProxyEndpoints.signPrefs),
       this.endSpan(jsonProxyEndpoints.signPrefs)
     );
@@ -183,16 +163,16 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.post(
       jsonProxyEndpoints.createSeed,
-      this.originValidator.cors,
-      this.originValidator.checkOrigin(jsonProxyEndpoints.createSeed),
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.createSeed),
-      this.createSeed.bind(this),
+      this.createSeed,
       this.handleErrors(jsonProxyEndpoints.createSeed),
       this.endSpan(jsonProxyEndpoints.createSeed)
     );
   }
 
-  restRead(req: Request, res: Response, next: NextFunction) {
+  restBuildUrlToGetIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getReadResponse(req);
       res.send(url);
@@ -206,9 +186,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  restWrite(req: Request, res: Response, next: NextFunction) {
+  restBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const response = this.client.getWriteResponse(req);
       res.json(response);
@@ -223,9 +203,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  verify3PC(req: Request, res: Response, next: NextFunction) {
+  buildUrlToVerify3PC = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getVerify3PCResponse();
       res.send(url);
@@ -240,9 +220,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  getNewId(req: Request, res: Response, next: NextFunction) {
+  buildUrlToGetNewId = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getNewIdResponse(req);
       res.send(url);
@@ -257,9 +237,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  restDelete(req: Request, res: Response, next: NextFunction) {
+  restBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getDeleteResponse(req);
       res.send(url);
@@ -274,9 +254,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  redirectRead(req: Request, res: Response, next: NextFunction) {
+  redirectBuildUrlToReadIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getReadRedirectResponse(req);
       res.send(url);
@@ -291,9 +271,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  redirectWrite(req: Request, res: Response, next: NextFunction) {
+  redirectBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getWriteRedirectResponse(req);
       res.send(url);
@@ -309,9 +289,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  redirectDelete(req: Request, res: Response, next: NextFunction) {
+  redirectBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getDeleteRedirectResponse(req);
       res.send(url.toString());
@@ -326,12 +306,14 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  verifyRead(req: Request, res: Response, next: NextFunction) {
+  verifyOperatorReadResponse = (req: Request, res: Response, next: NextFunction) => {
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
-    if (!message.response) {
+    const hasResponse = message.response !== undefined;
+
+    if (!hasResponse) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, message.error);
       // FIXME do something smart in case of error
       const error: OperatorError = {
@@ -345,8 +327,8 @@ export class ClientNode extends Node {
     }
 
     try {
-      const verification = this.client.verifyReadResponse(message.response);
-      if (!verification) {
+      const isResponseValid = this.client.verifyReadResponse(message.response);
+      if (!isResponseValid) {
         // TODO [errors] finer error feedback
         const error: ClientNodeError = {
           type: ClientNodeErrorType.VERIFICATION_FAILED,
@@ -371,9 +353,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  signPreferences(req: Request, res: Response, next: NextFunction) {
+  signPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
       const preferences = this.client.getSignPreferencesResponse(req);
       res.json(preferences);
@@ -389,9 +371,9 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
-  createSeed(req: Request, res: Response, next: NextFunction) {
+  createSeed = (req: Request, res: Response, next: NextFunction) => {
     try {
       const request = JSON.parse(req.body as string) as PostSeedRequest;
       const seed = this.client.buildSeed(request.transaction_ids, request.data);
@@ -409,7 +391,7 @@ export class ClientNode extends Node {
       res.json(error);
       next(error);
     }
-  }
+  };
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
     const config = (await parseConfig(configPath)) as ClientNodeConfig;

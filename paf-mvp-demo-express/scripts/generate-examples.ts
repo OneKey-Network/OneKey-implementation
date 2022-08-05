@@ -1,4 +1,6 @@
 import {
+  DeleteIdsPrefsRequest,
+  DeleteIdsPrefsResponse,
   Error,
   Get3PcResponse,
   GetIdentityResponse,
@@ -13,6 +15,8 @@ import {
   PostSignPreferencesRequest,
   Preferences,
   ProxyPostIdsPrefsResponse,
+  RedirectDeleteIdsPrefsRequest,
+  RedirectDeleteIdsPrefsResponse,
   RedirectGetIdsPrefsRequest,
   RedirectGetIdsPrefsResponse,
   RedirectPostIdsPrefsRequest,
@@ -24,12 +28,14 @@ import { getTimeStampInSec } from '@core/timestamp';
 import path from 'path';
 import { OperatorClient } from '@client/operator-client';
 import {
+  DeleteIdsPrefsRequestBuilder,
   Get3PCRequestBuilder,
   GetIdsPrefsRequestBuilder,
   GetNewIdRequestBuilder,
   PostIdsPrefsRequestBuilder,
 } from '@core/model/operator-request-builders';
 import {
+  DeleteIdsPrefsResponseBuilder,
   Get3PCResponseBuilder,
   GetIdsPrefsResponseBuilder,
   GetNewIdResponseBuilder,
@@ -50,10 +56,11 @@ import { parseConfig } from '@core/express/config';
 import { IdBuilder } from '@core/model/id-builder';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
-const getUrl = (method: 'POST' | 'GET', url: URL): string =>
+const getUrl = (method: 'POST' | 'GET' | 'DELETE', url: URL): string =>
   `${method} ${url.pathname}${url.search}\nHost: ${url.host}`;
 const getGETUrl = (url: URL): string => getUrl('GET', url);
 const getPOSTUrl = (url: URL): string => getUrl('POST', url);
+const getDELETEUrl = (url: URL): string => getUrl('DELETE', url);
 const getRedirect = (url: URL): string => `303 ${url}`;
 
 const fileExists = async (path: string) => {
@@ -138,6 +145,18 @@ class Examples {
   redirectPostIdsPrefsRequestHttp: string;
   redirectPostIdsPrefsResponseJson: RedirectPostIdsPrefsResponse = undefined;
   redirectPostIdsPrefsResponseTxt: string;
+
+  // **************************** Read
+  deleteIdsPrefsRequestJson: DeleteIdsPrefsRequest = undefined;
+  deleteIdsPrefsRequestHttp: string;
+
+  deleteIdsPrefsResponseJson: DeleteIdsPrefsResponse = undefined;
+
+  redirectDeleteIdsPrefsRequestJson: RedirectDeleteIdsPrefsRequest = undefined;
+  redirectDeleteIdsPrefsRequestHttp: string;
+
+  redirectDeleteIdsPrefsResponseJson: RedirectDeleteIdsPrefsResponse = undefined;
+  redirectDeleteIdsPrefsResponseTxt: string;
 
   // **************************** Get new ID
   getNewIdRequestJson: GetNewIdRequest = undefined;
@@ -337,6 +356,52 @@ class Examples {
     );
     this.redirectPostIdsPrefsResponseTxt = getRedirect(
       postIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectPostIdsPrefsResponseJson)
+    );
+
+    // **************************** Delete
+    const deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(
+      crtoOneOperatorConfig.host,
+      publisherHost,
+      clientNodePrivateKey
+    );
+    const deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(
+      crtoOneOperatorConfig.host,
+      clientNodePrivateKey
+    );
+    this.setRestMessage(
+      'deleteIdsPrefsRequestJson',
+      deleteIdsPrefsRequestBuilder.buildRestRequest(
+        { origin: originalAdvertiserUrl.toString() },
+        undefined,
+        getTimestamp('2022/01/24 17:19')
+      )
+    );
+    this.deleteIdsPrefsRequestHttp = getDELETEUrl(
+      deleteIdsPrefsRequestBuilder.getRestUrl(this.deleteIdsPrefsRequestJson)
+    );
+    this.setRestMessage(
+      'deleteIdsPrefsResponseJson',
+      deleteIdsPrefsResponseBuilder.buildResponse(advertiserHost, getTimestamp('2022/01/24 17:19:10'))
+    );
+
+    this.setRedirectRequest(
+      'redirectDeleteIdsPrefsRequestJson',
+      deleteIdsPrefsRequestBuilder.buildRedirectRequest(
+        { referer: originalAdvertiserUrl.toString(), returnUrl: originalAdvertiserUrl.toString() },
+        undefined,
+        getTimestamp('2022/01/24 17:19')
+      )
+    );
+    this.redirectDeleteIdsPrefsRequestHttp = getDELETEUrl(
+      deleteIdsPrefsRequestBuilder.getRedirectUrl(this.redirectDeleteIdsPrefsRequestJson)
+    );
+
+    this.redirectDeleteIdsPrefsResponseJson = deleteIdsPrefsResponseBuilder.toRedirectResponse(
+      this.deleteIdsPrefsResponseJson,
+      200
+    );
+    this.redirectDeleteIdsPrefsResponseTxt = getRedirect(
+      deleteIdsPrefsResponseBuilder.getRedirectUrl(originalAdvertiserUrl, this.redirectDeleteIdsPrefsResponseJson)
     );
 
     // **************************** Get new ID

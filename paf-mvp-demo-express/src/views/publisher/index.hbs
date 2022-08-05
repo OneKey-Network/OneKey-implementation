@@ -148,7 +148,7 @@
                 OneKey.queue.push(() => {
                     OneKey.registerTransmissionResponse({
                         divIdOrAdUnitCode: bid.adUnitCode,
-                        contentId: pafObj.contentId
+                        contentId: pafObj.content_id
                     }, pafObj.transmission);
                 });
             });
@@ -204,7 +204,7 @@
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
-<script src="https://{{cdnHost}}/assets/paf-lib.js" data-client-hostname="{{pafNodeHost}}"></script>
+<script src="https://{{cdnHost}}/assets/paf-lib.js" data-client-hostname="{{pafNodeHost}}" data-cookie-ttl="PT30S"></script>
 <script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js"
     data-display-intro="false"
     data-snackbar-timeout-ms="5000"

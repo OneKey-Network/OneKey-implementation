@@ -177,6 +177,36 @@ export abstract class RequestDefinition<T extends MessageBase>
   }
 
   abstract getInputString(request: UnsignedRequestWithContext<T>): string;
+
+  /**
+   * Add context (either origin in case of REST request, or referer and return URLs in case of redirect)
+   * to the input string
+   * @param requestAndContext
+   * @param inputData
+   * @protected
+   */
+  protected pushContext(
+    requestAndContext: UnsignedRequestWithContext<GetIdsPrefsRequest>,
+    inputData: (string | number)[]
+  ) {
+    const context = requestAndContext.context;
+
+    const restContext = context as RestContext;
+    const hasOrigin = restContext.origin?.length > 0;
+
+    const redirectContext = context as RedirectContext;
+    const hasReferer = redirectContext.referer?.length > 0;
+    const hasReturnUrl = redirectContext.returnUrl?.length > 0;
+
+    if (hasOrigin) {
+      inputData.push(restContext.origin);
+    } else if (hasReferer && hasReturnUrl) {
+      inputData.push(redirectContext.referer);
+      inputData.push(redirectContext.returnUrl);
+    } else {
+      throw `Missing origin or referer in ${JSON.stringify(requestAndContext)}`;
+    }
+  }
 }
 
 /**
@@ -187,22 +217,10 @@ export class RequestWithoutBodyDefinition extends RequestDefinition<
   GetIdsPrefsRequest | GetNewIdRequest | DeleteIdsPrefsRequest
 > {
   getInputString(requestAndContext: UnsignedRequestWithContext<GetIdsPrefsRequest>): string {
-    const context = requestAndContext.context;
     const request = requestAndContext.request;
-
-    const restContext = context as RestContext;
-    const redirectContext = context as RedirectContext;
-
     const inputData = [request.sender, request.receiver, request.timestamp];
 
-    if (restContext.origin?.length > 0) {
-      inputData.push(restContext.origin);
-    } else if (redirectContext.referer?.length > 0 && redirectContext.returnUrl?.length > 0) {
-      inputData.push(redirectContext.referer);
-      inputData.push(redirectContext.returnUrl);
-    } else {
-      throw `Missing origin or referer in ${JSON.stringify(requestAndContext)}`;
-    }
+    this.pushContext(requestAndContext, inputData);
 
     return inputData.join(SIGN_SEP);
   }
@@ -214,32 +232,18 @@ export class RequestWithoutBodyDefinition extends RequestDefinition<
  */
 export class RequestWithBodyDefinition extends RequestDefinition<PostIdsPrefsRequest> {
   getInputString(requestAndContext: UnsignedRequestWithContext<PostIdsPrefsRequest>): string {
-    const context = requestAndContext.context;
     const request = requestAndContext.request;
-
-    const restContext = context as RestContext;
-    const redirectContext = context as RedirectContext;
-
     const inputData = [request.sender, request.receiver];
 
     if (request.body.preferences) {
       inputData.push(request.body.preferences.source.signature);
     }
-
     for (const id of request.body.identifiers ?? []) {
       inputData.push(id.source.signature);
     }
-
     inputData.push(request.timestamp.toString());
 
-    if (restContext.origin) {
-      inputData.push(restContext.origin);
-    } else if (redirectContext.referer && redirectContext.returnUrl) {
-      inputData.push(redirectContext.referer);
-      inputData.push(redirectContext.returnUrl);
-    } else {
-      throw `Missing origin or referer in ${JSON.stringify(requestAndContext)}`;
-    }
+    this.pushContext(requestAndContext, inputData);
 
     return inputData.join(SIGN_SEP);
   }

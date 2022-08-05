@@ -28,6 +28,7 @@
   "dependencies": {
     "preact": "^10.5.15",
     "rollup-plugin-sourcemaps": "^0.6.3",
+    "tinyduration": "^3.2.2",
     "ua-parser-js": "^1.0.2"
   },
   "devDependencies": {

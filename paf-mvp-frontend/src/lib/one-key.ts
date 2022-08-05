@@ -7,9 +7,13 @@ import { OneKeyLib } from '@frontend/lib/paf-lib';
 import { CurrentScript } from '@frontend/utils/current-script';
 import { auditLogStorageService } from '@frontend/services/audit-log-storage.service';
 import { seedStorageService } from '@frontend/services/seed-storage.service';
+import { Log, LogLevel } from '@core/log';
+
+// Debug level while playing with MVP
+Log.level = LogLevel.Debug;
 
 // Get properties from HTML
-const pafLibScript = new CurrentScript<{ clientHostname: string; upFrontRedirect?: string }>();
+const pafLibScript = new CurrentScript<{ clientHostname: string; upFrontRedirect?: string; cookieTtl?: string }>();
 pafLibScript.setScript(document.currentScript);
 
 const triggerRedirectIfNeeded =
@@ -18,7 +22,8 @@ export const oneKeyLib = new OneKeyLib(
   pafLibScript.getData()?.clientHostname,
   triggerRedirectIfNeeded,
   auditLogStorageService,
-  seedStorageService
+  seedStorageService,
+  pafLibScript.getData()?.cookieTtl
 );
 
 const queue = (<Window>window).OneKey?.queue ?? [];
