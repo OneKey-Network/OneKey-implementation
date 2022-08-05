@@ -25,8 +25,8 @@ import {
 import { NotificationEnum } from '@frontend/enums/notification.enum';
 import { Log } from '@core/log';
 import { EventHandler } from '@frontend/utils/event-handler';
-import { Cookies, getPafRefreshExpiration, getPrebidDataCacheExpiration, typedCookie } from '@core/cookies';
-import { getCookieValue } from '@frontend/utils/cookie';
+import { Cookies, getPrebidDataCacheExpiration, typedCookie } from '@core/cookies';
+import { DEFAULT_TTL_IN_SECONDS, getCookieValue, MAXIMUM_TTL_IN_SECONDS } from '@frontend/utils/cookie';
 import { QSParam } from '@core/query-string';
 import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
@@ -35,6 +35,7 @@ import { mapAdUnitCodeToDivId } from '@frontend/utils/ad-unit-code';
 import { buildAuditLog, findTransactionPath } from '@core/model/audit-log';
 import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
 import { ISeedStorageService } from '@frontend/services/seed-storage.service';
+import { parseDuration } from '@frontend/utils/date-utils';
 
 // TODO ------------------------------------------------------ move to one-key-lib.ts START
 export class OneKeyLib implements IOneKeyLib {
@@ -50,6 +51,8 @@ export class OneKeyLib implements IOneKeyLib {
   private thirdPartyCookiesSupported: boolean | undefined;
   private auditLogStorageService: IAuditLogStorageService;
   private seedStorageService: ISeedStorageService;
+  // cookie ttl in seconds
+  private readonly cookieTTL: number;
 
   unpersistedIds?: Identifier[];
 
@@ -57,12 +60,14 @@ export class OneKeyLib implements IOneKeyLib {
     clientHostname: string,
     triggerRedirectIfNeeded = true,
     auditLogStorageService: IAuditLogStorageService,
-    seedStorageService: ISeedStorageService
+    seedStorageService: ISeedStorageService,
+    cookieTTL?: string
   ) {
     this.clientHostname = clientHostname;
     this.triggerRedirectIfNeeded = triggerRedirectIfNeeded;
     this.auditLogStorageService = auditLogStorageService;
     this.seedStorageService = seedStorageService;
+    this.cookieTTL = this.parseCookieTTL(cookieTTL);
   }
 
   private redirect(url: string): void {
@@ -73,6 +78,28 @@ export class OneKeyLib implements IOneKeyLib {
       this.redirecting = true;
       location.replace(url);
     }
+  }
+
+  parseCookieTTL(duration: string): number {
+    if (duration === undefined) {
+      this.log.Info(`No cookie ttl was specified! Using default value: ${DEFAULT_TTL_IN_SECONDS} seconds`);
+      return DEFAULT_TTL_IN_SECONDS;
+    }
+    const durationInSeconds = parseDuration(duration);
+    if (durationInSeconds === null) {
+      this.log.Warn(
+        `The provided cookie ttl "${duration}" is not a valid ISO 8601 string! Using default value: ${DEFAULT_TTL_IN_SECONDS} seconds`
+      );
+      return DEFAULT_TTL_IN_SECONDS;
+    }
+    if (durationInSeconds > MAXIMUM_TTL_IN_SECONDS) {
+      this.log.Warn(
+        `The provided cookie ttl "${duration}" is too big! using maximum allowed value: ${MAXIMUM_TTL_IN_SECONDS} seconds`
+      );
+      return MAXIMUM_TTL_IN_SECONDS;
+    }
+    this.log.Info(`Cookie ttl is set to ${durationInSeconds} seconds`);
+    return durationInSeconds;
   }
 
   // Note: we don't use Content-type JSON to avoid having to trigger OPTIONS pre-flight.
@@ -167,10 +194,14 @@ export class OneKeyLib implements IOneKeyLib {
 
     // TODO use different expiration if "not participating"
     this.setCookie(cookieName, valueToStore, getPrebidDataCacheExpiration());
-    this.setCookie(Cookies.lastRefresh, new Date().toISOString(), getPafRefreshExpiration());
+    this.setCookie(Cookies.lastRefresh, new Date().toISOString(), this.getPafRefreshExpiration());
 
     return valueToStore;
   }
+
+  private getPafRefreshExpiration = () => {
+    return new Date(Date.now() + 1000 * this.cookieTTL);
+  };
 
   /**
    * Sign new optin value and send it with ids to the operator for writing
@@ -550,7 +581,7 @@ export class OneKeyLib implements IOneKeyLib {
    * @param input the identifiers and preferences to write
    * @return the written identifiers and preferences
    */
-  writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptionalPreferences | undefined> => {
+  private writeIdsAndPref = async (input: IdsAndPreferences): Promise<IdsAndOptionalPreferences | undefined> => {
     const processWriteIdsAndPref = async (): Promise<IdsAndOptionalPreferences | undefined> => {
       this.log.Info('Attempt to write:', input.identifiers, input.preferences);
 
@@ -881,7 +912,6 @@ export interface IOneKeyLib {
   unpersistedIds?: Identifier[];
   triggerNotification: (initialData: CookieData, newConsent: boolean) => Promise<void>;
   refreshIdsAndPreferences: (showPrompt?: ShowPromptOption) => Promise<RefreshResult>;
-  writeIdsAndPref: (input: IdsAndPreferences) => Promise<IdsAndOptionalPreferences | undefined>;
   signPreferences: (input: PostSignPreferencesRequest) => Promise<Preferences>;
   getNewId: () => Promise<Identifier>;
   getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined>;

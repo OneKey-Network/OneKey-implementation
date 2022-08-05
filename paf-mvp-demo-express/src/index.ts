@@ -5,10 +5,14 @@ import { isRunningOnDeveloperPC, sslOptions } from './demo-utils';
 import { create } from 'express-handlebars';
 import { MainApp, VHostApp } from '@core/express/express-apps';
 import { getAppsAndNodes } from './apps';
+import { Log, LogLevel } from '@core/log';
 
 const relative = (dir: string) => join(__dirname, dir);
 
 (async () => {
+  // For the MVP, leave the highest log level
+  Log.level = LogLevel.Debug; //isRunningOnDeveloperPC ? LogLevel.Debug : LogLevel.Info;
+
   const { websites, clientNodes, operators, cdns } = await getAppsAndNodes();
 
   const mainApp = new MainApp();
