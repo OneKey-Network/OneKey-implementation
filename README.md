@@ -51,6 +51,12 @@ Clone the repository with its submodules:
 git clone --recurse-submodules https://github.com/prebid/paf-mvp-implementation.git
 ````
 
+Memo: if you forget the submodules option:
+
+```
+git submodule update --init --recursive
+```
+
 ## Directories
 
 | Sub-project                                            | Description                                                                                                                                         |
