@@ -19,16 +19,19 @@ const seedStorageService: ISeedStorageService = {
 const pafClientNodeHost = 'http://localhost';
 let lib: OneKeyLib;
 let notificationHandler: jest.Mock<Promise<void>, []>;
+let auditLogHandler: jest.Mock<any, [HTMLElement]>;
 
 const resetLib = () => {
   lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
   notificationHandler = jest.fn(() => Promise.resolve());
+  auditLogHandler = jest.fn((element: HTMLElement) => Promise.resolve());
   lib.setNotificationHandler(notificationHandler);
+  lib.setAuditLogHandler(auditLogHandler);
 };
 describe('Function registerTransmissionResponse', () => {
   const seedStorageServiceSpy = jest.spyOn(seedStorageService, 'getSeed');
   const audiLogStorageServiceSpy = jest.spyOn(auditLogStorageService, 'saveAuditLog');
-  document.body.innerHTML = '<div id="div1"></div>';
+  document.body.innerHTML = '<div id="div1"/>';
   const auditHandler: AuditHandler = {
     bind: jest.fn((element: HTMLElement) => {
       return;
@@ -102,5 +105,9 @@ describe('Function registerTransmissionResponse', () => {
       contentId
     );
     expect(audiLogStorageServiceSpy).toBeCalledWith(divId, expectedAuditLog);
+  });
+  test('should fire an event when audit log is saved', () => {
+    lib.registerTransmissionResponse({ divIdOrAdUnitCode: divId, contentId, auditHandler }, transmissionResponse);
+    expect(auditLogHandler).toBeCalledWith(document.getElementById(divId));
   });
 });
