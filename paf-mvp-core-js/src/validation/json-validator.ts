@@ -1,5 +1,5 @@
 import { Log } from '@core/log';
-import Ajv, { ErrorObject } from 'ajv';
+import { default as AjvClass, ErrorObject } from 'ajv';
 import fs from 'fs';
 import path from 'path';
 
@@ -70,7 +70,7 @@ export class NoJsonError extends Error {}
 
 export class JsonValidator implements IJsonValidator {
   private schemaRepository: IJsonSchemaRepository;
-  private ajv: Ajv | undefined;
+  private ajv: AjvClass | undefined;
 
   public static default() {
     return new JsonValidator(JsonSchemaRepository.default());
@@ -119,10 +119,10 @@ export class JsonValidator implements IJsonValidator {
 
   async start() {
     const schemas = await this.schemaRepository.all();
-    this.ajv = new Ajv({ strict: false, schemas });
+    this.ajv = new AjvClass({ strict: false, schemas });
   }
 
-  private buildError(err: ErrorObject<string, Record<string, any>, unknown>): Error {
+  private buildError(err: ErrorObject): Error {
     const pathStr = err.instancePath === '' ? 'in root object' : `at path: ${err.instancePath}`;
     const msg = `${err.message} (${pathStr}).`;
     return new JsonSchemaError(msg);
