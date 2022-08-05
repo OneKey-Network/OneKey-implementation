@@ -1,4 +1,4 @@
-import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../helpers/cookies';
+import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '@test-helpers/cookies';
 import { Cookies } from '@core/cookies';
 import { PafStatus } from '../../src/enums/status.enum';
 import {

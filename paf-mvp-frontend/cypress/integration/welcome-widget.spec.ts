@@ -1,6 +1,6 @@
 import { WidgetPage } from '../pages/widget.page';
 import { Cookies } from '@core/cookies';
-import { getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '../../tests/helpers/cookies';
+import { getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '@test-helpers/cookies';
 import { GetIdsPrefsResponse, Identifiers } from '@core/model/generated-model';
 
 describe('Welcome widget view', () => {
