@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "types": ["@testing-library/cypress", "cypress"],
+    "paths": {
+      "@core/*": ["../../paf-mvp-core-js/src/*"],
+      "@test-helpers/*": ["../../test-helpers/*"],
+      "@frontend/*": ["../../paf-mvp-frontend/src/*"]
+    }
+  },
+  "include": ["./"]
+}

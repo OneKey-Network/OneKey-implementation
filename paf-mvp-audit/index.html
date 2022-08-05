@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    /* This styles are added to remind you to clear all cascade styles in your component */
+    body {
+      text-align: right;
+      font-style: italic;
+      font-size: 8px;
+      color: red;
+    }
+
+    body {
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(
+        135deg,
+        #daf5ff 21px,
+        #ffffff 22px,
+        #ffffff 24px,
+        transparent 24px,
+        transparent 67px,
+        #ffffff 67px,
+        #ffffff 69px,
+        transparent 69px
+      ),
+      linear-gradient(
+        225deg,
+        #daf5ff 21px,
+        #ffffff 22px,
+        #ffffff 24px,
+        transparent 24px,
+        transparent 67px,
+        #ffffff 67px,
+        #ffffff 69px,
+        transparent 69px
+      )
+      0 64px;
+      background-color: #daf5ff;
+      background-size: 64px 128px;
+    }
+  </style>
+</head>
+<body>
+<script src="./dist/paf-lib.js" data-client-hostname='cypress.client' data-cookie-ttl="PT30S"></script>
+<script src="./dist/ok-audit.js"></script>
+<div id='ad1'>
+  THIS IS THE AD 1
+</div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import { Cookies } from '@core/cookies';
 import { Identifier, Identifiers, IdsAndPreferences, Preferences } from '@core/model/generated-model';
 
-const timestamp = Date.now();
+export const timestamp = Date.now();
 
 export const getFakePreferences = (consent = true): Preferences => ({
   version: '0.1',
