@@ -5,6 +5,7 @@
   "main": "paf-mvp-demo-express/src/index.ts",
   "scripts": {
     "test": "jest --passWithNoTests",
+    "test:front": "npm run test --prefix paf-mvp-frontend",
     "build-front": "npm run build --prefix paf-mvp-frontend && npm run build:tcf --prefix paf-mvp-cmp && npm run build --prefix paf-mvp-audit",
     "build-back": "npm run build --prefix paf-mvp-operator-express && npm run build --prefix paf-mvp-client-express",
     "start:watch": "nodemon --debug .",
