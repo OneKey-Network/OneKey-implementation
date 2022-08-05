@@ -13,7 +13,8 @@ module.exports = {
     },
   },
   testPathIgnorePatterns: [
-    "/paf-mvp-frontend/"
+    "/paf-mvp-frontend/",
+    "/paf-mvp-audit/cypress"
   ],
   'automock': false,
   'resetMocks': false,

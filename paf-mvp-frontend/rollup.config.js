@@ -24,7 +24,6 @@ const IS_DEV = IS_PROJECT_DEV || IS_DEMO_DEV;
 const DIST = 'dist';
 
 const relative = path => join(__dirname, path);
-const getDestFolder = (path) => (IS_PROJECT_DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
 
 // To facilitate debug, generate map files in two situations:
 // - local debug in this directory (DEV), where files will be generated locally in dist
@@ -36,7 +35,7 @@ export default [
   defineConfig({
     input: relative('src/lib/one-key.ts'),
     output: {
-      file: getDestFolder(`/paf-lib.js`),
+      file: `${DIST}/paf-lib.js`,
       format: 'umd',
       name: 'OneKey',
       sourcemap: generateSourceMap
@@ -65,7 +64,7 @@ export default [
   defineConfig({
     input: relative('src/main.ts'), // entry file
     output: {
-      file: getDestFolder(`/app.bundle.js`),
+      file: `${DIST}/app.bundle.js`,
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
       sourcemap: generateSourceMap
@@ -112,7 +111,7 @@ export default [
             copy({ // copy files
               targets: [
                 {
-                  src: './assets/*',
+                  src: DIST,
                   dest: '../paf-mvp-demo-express/public/assets',
                 },
               ],

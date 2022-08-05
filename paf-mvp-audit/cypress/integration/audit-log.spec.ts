@@ -1,6 +1,6 @@
 import { AuditLogPage } from '../pages/audit-log.page';
 import { Seed, Source, TransactionId, TransmissionResponse } from '@core/model';
-import { getFakeIdentifiers, getFakePreferences } from '@test-helpers/cookies';
+import { getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
 import { Cookies } from '@core/cookies';
 import { TransmissionRegistryContext } from '@frontend/lib/paf-lib';
 
