@@ -1,7 +1,7 @@
 import { OperatorNode, Permission } from '@operator/operator-node';
 import { getTimeStampInSec } from '@core/timestamp';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
-import { Response } from 'Express';
+import { Response } from 'express';
 import { OperatorClient } from '@client/operator-client';
 import { GetIdsPrefsResponse, Signature, Timestamp } from '@core/model';
 import { id, preferences } from '../fixtures/operator-fixtures';
