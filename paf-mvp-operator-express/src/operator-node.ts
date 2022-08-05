@@ -52,6 +52,7 @@ import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@core/endpoints';
 import { OperatorError, OperatorErrorType } from '@core/errors';
+import { IJsonValidator, JsonValidator } from '@core/validation/json-validator';
 
 /**
  * Expiration: now + 3 months
@@ -95,6 +96,7 @@ export class OperatorNode extends Node {
     private host: string,
     privateKey: string,
     private allowedHosts: AllowedHosts,
+    jsonValidator: IJsonValidator,
     publicKeyProvider: PublicKeyProvider
   ) {
     super(
@@ -103,7 +105,8 @@ export class OperatorNode extends Node {
         ...identity,
         type: 'operator',
       },
-      publicKeyProvider
+      jsonValidator,
+      publicKeyProvider,
     );
 
     this.topLevelDomain = getTopLevelDomain(host);
@@ -632,7 +635,6 @@ export class OperatorNode extends Node {
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
     const { host, identity, currentPrivateKey, allowedHosts } = (await parseConfig(configPath)) as OperatorNodeConfig;
-
-    return new OperatorNode(identity, host, currentPrivateKey, allowedHosts, new PublicKeyStore(s2sOptions).provider);
+    return new OperatorNode(identity, host, currentPrivateKey, allowedHosts, JsonValidator.default(), new PublicKeyStore(s2sOptions).provider);
   }
 }

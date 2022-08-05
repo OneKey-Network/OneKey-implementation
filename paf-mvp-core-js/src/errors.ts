@@ -4,6 +4,7 @@ export enum ClientNodeErrorType {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   INVALID_ORIGIN = 'INVALID_ORIGIN',
   INVALID_REFERER = 'INVALID_REFERER',
+  INVALID_JSON_BODY = 'INVALID_JSON_BODY',
 }
 
 export interface ClientNodeError {

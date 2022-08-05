@@ -33,6 +33,7 @@
   },
   "exclude": [
     "paf-mvp-frontend/cypress",
+    "addressability-framework",
     "**/tests"
   ]
 }

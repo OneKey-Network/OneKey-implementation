@@ -6,11 +6,16 @@ import { participantEndpoints } from '@core/endpoints';
 import cors from 'cors';
 import { corsOptionsAcceptAll } from '@core/express/utils';
 import { IdentityConfig } from '@core/express/config';
-import { ClientNodeError } from '@core/errors';
+import { ClientNodeError, ClientNodeErrorType } from '@core/errors';
 import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
+import { IJsonValidator } from '@core/validation/json-validator';
 
 export interface INode {
   app: VHostApp;
+  /**
+   * Start the server by loading resources.
+   */
+  start(): Promise<void>;
 }
 
 /**
@@ -19,10 +24,17 @@ export interface INode {
 export class Node implements INode {
   public app: VHostApp;
   protected logger: Log;
+  protected jsonValidator: IJsonValidator;
 
-  constructor(hostName: string, identity: IdentityConfig, protected publicKeyProvider: PublicKeyProvider) {
+  constructor(
+    hostName: string,
+    identity: IdentityConfig,
+    jsonValidator: IJsonValidator,
+    protected publicKeyProvider: PublicKeyProvider,
+  ) {
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
     this.app = new VHostApp(identity.name, hostName);
+    this.jsonValidator = jsonValidator;
 
     // All nodes must implement the identity endpoint
     const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = identity;
@@ -41,6 +53,10 @@ export class Node implements INode {
       this.handleErrors(participantEndpoints.identity),
       this.endSpan(participantEndpoints.identity)
     );
+  }
+
+  async start(): Promise<void> {
+    await this.jsonValidator.start();
   }
 
   /**
@@ -75,6 +91,29 @@ export class Node implements INode {
     return (err: ClientNodeError, req: Request, res: Response, next: NextFunction) => {
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
+    };
+  }
+
+  /**
+   * Build an handler that validate the body of the Request
+   * against a JSON schema.
+   * @returns the built hander
+   */
+  protected buildJsonBodyValidatorHandler(jsonSchema: string): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction) => {
+      const validation = this.jsonValidator.validate(jsonSchema, req.body as string);
+      if (!validation.isValid) {
+        const details = validation.errors.map((e) => e.message).join(' - ');
+        const error: ClientNodeError = {
+          type: ClientNodeErrorType.INVALID_JSON_BODY,
+          details: details,
+        };
+        res.status(400);
+        res.json(error);
+        next(error);
+      } else {
+        next();
+      }
     };
   }
 }
