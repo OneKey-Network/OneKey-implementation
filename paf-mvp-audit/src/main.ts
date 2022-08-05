@@ -1,6 +1,5 @@
 import { Locale } from './locale';
 import { Controller } from './controller';
-import { Log } from '@core/log';
 import { Window } from '@frontend/global';
 import { Log, LogLevel } from '@core/log';
 
