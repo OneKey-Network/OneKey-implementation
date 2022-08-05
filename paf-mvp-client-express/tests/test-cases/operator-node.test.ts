@@ -4,7 +4,7 @@ import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { Response } from 'Express';
 import { OperatorClient } from '@client/operator-client';
 import { GetIdsPrefsResponse, Signature, Timestamp } from '@core/model';
-import { id, preferences } from '../fixtures/operator-fixtures';
+import { id, preferences } from '../fixtures/client-fixtures';
 import { OperatorError, OperatorErrorType } from '@core/errors';
 
 describe('Operator Node', () => {
