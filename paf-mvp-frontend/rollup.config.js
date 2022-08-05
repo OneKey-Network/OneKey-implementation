@@ -13,7 +13,7 @@ import styles from 'rollup-plugin-styles';
 import { terser } from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 
-// When developing the "frontend" project independently of the other projects
+// When developing this project independently of the other projects in the repo
 const IS_PROJECT_DEV = process.env.ROLLUP_WATCH !== undefined;
 
 // When developing the demo project, that depends on the frontend project
@@ -111,7 +111,7 @@ export default [
             copy({ // copy files
               targets: [
                 {
-                  src: DIST,
+                  src: `${DIST}/*`,
                   dest: '../paf-mvp-demo-express/public/assets',
                 },
               ],

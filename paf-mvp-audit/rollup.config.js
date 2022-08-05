@@ -18,7 +18,7 @@ import livereload from 'rollup-plugin-livereload';
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
 
-// When developing the "frontend" project independently of the other projects
+// When developing this project independently of the other projects in the repo
 const IS_PROJECT_DEV = process.env.ROLLUP_WATCH !== undefined;
 
 const DIST = 'dist';
