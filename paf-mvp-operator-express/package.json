@@ -1,6 +1,6 @@
 {
   "name": "@onekey/operator-node",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "OneKey Operator node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
