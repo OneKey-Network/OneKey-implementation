@@ -70,7 +70,7 @@ export class NoJsonError extends Error {}
 
 export class JsonValidator implements IJsonValidator {
   private schemaRepository: IJsonSchemaRepository;
-  private ajv: AjvClass | undefined;
+  private ajv?: AjvClass;
 
   public static default() {
     return new JsonValidator(JsonSchemaRepository.default());

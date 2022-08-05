@@ -48,7 +48,7 @@ flowchart TB
 Clone the repository with its submodules: 
 
 ````
-git clone  --recurse-submodules https://github.com/prebid/paf-mvp-implementation.git
+git clone --recurse-submodules https://github.com/prebid/paf-mvp-implementation.git
 ````
 
 ## Directories
