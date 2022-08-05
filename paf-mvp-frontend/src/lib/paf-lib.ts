@@ -708,7 +708,7 @@ export class OneKeyLib implements IOneKeyLib {
     return values as IdsAndPreferences;
   };
 
-  createSeed = async (transactionIds: TransactionId[]): Promise<SeedEntry | undefined> => {
+  private createSeed = async (transactionIds: TransactionId[]): Promise<SeedEntry | undefined> => {
     if (transactionIds.length == 0) {
       return undefined;
     }
@@ -915,7 +915,6 @@ export interface IOneKeyLib {
   signPreferences: (input: PostSignPreferencesRequest) => Promise<Preferences>;
   getNewId: () => Promise<Identifier>;
   getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined>;
-  createSeed: (transactionIds: TransactionId[]) => Promise<SeedEntry | undefined>;
   generateSeed: (pafTransactionIds: TransactionId[]) => Promise<Seed | undefined>;
   registerTransmissionResponse: (
     { divIdOrAdUnitCode, contentId, auditHandler }: TransmissionRegistryContext,

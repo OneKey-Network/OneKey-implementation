@@ -392,7 +392,7 @@ describe('Function signPreferences', () => {
   });
 });
 
-describe('Function createSeed', () => {
+describe('Function generateSeed', () => {
   const transmission_ids = ['1234', '5678'];
   const idsAndPreferences: IdsAndPreferences = {
     preferences: getFakePreferences(true),
@@ -422,16 +422,13 @@ describe('Function createSeed', () => {
   });
 
   test('with empty transmission_ids', async () => {
-    const seed = await lib.createSeed([]);
+    const seed = await lib.generateSeed([]);
     expect(seed).toBeUndefined();
   });
 
   test('nominal path', async () => {
-    const entry = await lib.createSeed(transmission_ids);
-    expect(entry).toEqual({
-      seed: response,
-      idsAndPreferences,
-    });
+    const seed = await lib.generateSeed(transmission_ids);
+    expect(seed).toEqual(response);
   });
 });
 describe('Function handleAfterBoomerangRedirect', () => {

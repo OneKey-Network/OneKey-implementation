@@ -63,7 +63,7 @@ describe('Audit log', () => {
         const oneKey = (<Window>win).OneKey;
 
         // PrebidJS would call this on bid request
-        const seed = await oneKey.createSeed(transactions);
+        const seed = await oneKey.generateSeed(transactions);
 
         cy.log('received seed', seed);
 
