@@ -26,8 +26,11 @@ jobs:
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
-      - name: Cypress run
+      - name: Cypress frontend
         run: npm run cypress:wait-and-run --prefix paf-mvp-frontend
+
+      - name: Cypress audit log
+        run: npm run cypress:wait-and-run --prefix paf-mvp-audit
 
       - name: Unit tests
         run: |
