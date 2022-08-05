@@ -1,25 +1,22 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import { AxiosRequestConfig } from 'axios';
 import {
-  addIdentityEndpoint,
   Config,
   corsOptionsAcceptAll,
   getPafDataFromQueryString,
   getPayload,
   getTopLevelDomain,
   httpRedirect,
-  Identity,
+  IdentityConfig,
   Node,
   parseConfig,
   removeCookie,
   setCookie,
-  VHostApp,
 } from '@core/express';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
-  PublicKeyStore,
   RedirectContext,
   RequestVerifier,
   RequestWithBodyDefinition,
@@ -27,7 +24,6 @@ import {
   RestContext,
   Verifier,
 } from '@core/crypto';
-import { Log } from '@core/log';
 import {
   DeleteIdsPrefsRequest,
   DeleteIdsPrefsResponseBuilder,
@@ -39,6 +35,7 @@ import {
   IdBuilder,
   Identifier,
   Identifiers,
+  IdsAndPreferences,
   PostIdsPrefsRequest,
   PostIdsPrefsResponseBuilder,
   Preferences,
@@ -50,7 +47,7 @@ import {
 } from '@core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
-import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
+import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@core/endpoints';
 import { OperatorError, OperatorErrorType } from '@core/errors';
 
 /**
@@ -76,444 +73,556 @@ export interface OperatorNodeConfig extends Config {
   allowedHosts: AllowedHosts;
 }
 
-export class OperatorNode implements Node {
+export class OperatorNode extends Node {
+  getIdsPrefsResponseBuilder: GetIdsPrefsResponseBuilder;
+  get3PCResponseBuilder: Get3PCResponseBuilder;
+  postIdsPrefsResponseBuilder: PostIdsPrefsResponseBuilder;
+  getNewIdResponseBuilder: GetNewIdResponseBuilder;
+  deleteIdsPrefsResponseBuilder: DeleteIdsPrefsResponseBuilder;
+  idVerifier: Verifier<Identifier>;
+  prefsVerifier: Verifier<IdsAndPreferences>;
+  topLevelDomain: string;
+  postIdsPrefsRequestVerifier: RequestVerifier<PostIdsPrefsRequest>;
+  getIdsPrefsRequestVerifier: RequestVerifier<GetIdsPrefsRequest>;
+  getNewIdRequestVerifier: RequestVerifier<GetNewIdRequest>;
+  idBuilder: IdBuilder;
+
   constructor(
-    identity: Omit<Identity, 'type'>,
-    operatorHost: string,
+    identity: Omit<IdentityConfig, 'type'>,
+    private host: string,
     privateKey: string,
-    allowedHosts: AllowedHosts,
-    s2sOptions?: AxiosRequestConfig,
-    public app: VHostApp = new VHostApp(identity.name, operatorHost)
+    private allowedHosts: AllowedHosts,
+    s2sOptions?: AxiosRequestConfig
   ) {
-    // Note that CORS is "disabled" here because the check is done via signature
-    // So accept whatever the referer is
+    super(
+      host,
+      {
+        ...identity,
+        type: 'operator',
+      },
+      s2sOptions
+    );
 
-    const keyStore = new PublicKeyStore(s2sOptions);
-    const logger = new Log('Operator', 'black');
-
-    // Start by adding identity endpoint FIXME there should be inheritance with IdentityNode
-    addIdentityEndpoint(app.expressApp, {
-      ...identity,
-      type: 'operator',
-    });
-
-    const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(operatorHost, privateKey);
-    const get3PCResponseBuilder = new Get3PCResponseBuilder();
-    const postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(operatorHost, privateKey);
-    const getNewIdResponseBuilder = new GetNewIdResponseBuilder(operatorHost, privateKey);
-    const deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(operatorHost, privateKey);
-    const idVerifier = new Verifier(keyStore.provider, new IdentifierDefinition());
-    const prefsVerifier = new Verifier(keyStore.provider, new IdsAndPreferencesDefinition());
-
-    const tld = getTopLevelDomain(operatorHost);
-
-    const writeAsCookies = (input: PostIdsPrefsRequest, res: Response) => {
-      if (input.body.identifiers !== undefined) {
-        setCookie(res, Cookies.identifiers, JSON.stringify(input.body.identifiers), getOperatorExpiration(), {
-          domain: tld,
-        });
-      }
-      if (input.body.preferences !== undefined) {
-        setCookie(res, Cookies.preferences, JSON.stringify(input.body.preferences), getOperatorExpiration(), {
-          domain: tld,
-        });
-      }
-    };
-
-    const postIdsPrefsRequestVerifier = new RequestVerifier<PostIdsPrefsRequest>(
-      keyStore.provider,
+    this.topLevelDomain = getTopLevelDomain(host);
+    this.getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(host, privateKey);
+    this.get3PCResponseBuilder = new Get3PCResponseBuilder();
+    this.postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(host, privateKey);
+    this.getNewIdResponseBuilder = new GetNewIdResponseBuilder(host, privateKey);
+    this.deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(host, privateKey);
+    this.idVerifier = new Verifier(this.keyStore.provider, new IdentifierDefinition());
+    this.prefsVerifier = new Verifier(this.keyStore.provider, new IdsAndPreferencesDefinition());
+    this.postIdsPrefsRequestVerifier = new RequestVerifier(
+      this.keyStore.provider,
       new RequestWithBodyDefinition() // POST ids and prefs has body property
     );
-    const getIdsPrefsRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
-    const getNewIdRequestVerifier = new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition());
-    const idBuilder = new IdBuilder(operatorHost, privateKey);
+    this.getIdsPrefsRequestVerifier = new RequestVerifier(this.keyStore.provider, new RequestWithoutBodyDefinition());
+    this.getNewIdRequestVerifier = new RequestVerifier(this.keyStore.provider, new RequestWithoutBodyDefinition());
+    this.idBuilder = new IdBuilder(host, privateKey);
 
-    const extractRequestAndContextFromHttp = <
-      TopLevelRequestType,
-      TopLevelRequestRedirectType extends { returnUrl: ReturnUrl; request: TopLevelRequestType }
-    >(
-      topLevelRequest: TopLevelRequestType | TopLevelRequestRedirectType,
-      req: Request
-    ) => {
-      // Extract request from Redirect request, if needed
-      let request: TopLevelRequestType;
-      let context: RestContext | RedirectContext;
-      if (
-        (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
-        (topLevelRequest as TopLevelRequestRedirectType).request
-      ) {
-        request = (topLevelRequest as TopLevelRequestRedirectType).request;
-        context = {
-          returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
-          referer: req.header('referer'),
-        };
-      } else {
-        request = topLevelRequest as TopLevelRequestType;
-        context = { origin: req.header('origin') };
-      }
-
-      return { request, context };
-    };
-
-    const getReadResponse = async (topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) => {
-      const { request, context } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
-        topLevelRequest,
-        req
-      );
-
-      const sender = request.sender;
-
-      if (!allowedHosts[sender]?.includes(Permission.READ)) {
-        throw `Domain not allowed to read data: ${sender}`;
-      }
-
-      if (
-        !(await getIdsPrefsRequestVerifier.verifySignatureAndContent(
-          { request, context },
-          sender, // sender will always be ok
-          operatorHost // but operator needs to be verified
-        ))
-      ) {
-        // TODO [errors] finer error feedback
-        throw 'Read request verification failed';
-      }
-
-      const identifiers = typedCookie<Identifiers>(req.cookies[Cookies.identifiers]) ?? [];
-      const preferences = typedCookie<Preferences>(req.cookies[Cookies.preferences]);
-
-      if (!identifiers.some((i: Identifier) => i.type === 'paf_browser_id')) {
-        // No existing id, let's generate one, unpersisted
-        identifiers.push(idBuilder.generateNewId());
-      }
-
-      return getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
-    };
-
-    const getWriteResponse = async (
-      topLevelRequest: PostIdsPrefsRequest | RedirectPostIdsPrefsRequest,
-      req: Request,
-      res: Response
-    ) => {
-      const { request, context } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
-        topLevelRequest,
-        req
-      );
-      const sender = request.sender;
-
-      if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
-        throw `Domain not allowed to write data: ${sender}`;
-      }
-
-      // Verify message
-      if (
-        !(await postIdsPrefsRequestVerifier.verifySignatureAndContent(
-          { request, context },
-          sender, // sender will always be ok
-          operatorHost // but operator needs to be verified
-        ))
-      ) {
-        // TODO [errors] finer error feedback
-        throw 'Write request verification failed';
-      }
-
-      const { identifiers, preferences } = request.body;
-
-      // because default value is true, we just remove it to save space
-      identifiers[0].persisted = undefined;
-
-      // Verify ids
-      for (const id of identifiers) {
-        if (!(await idVerifier.verifySignature(id))) {
-          throw `Identifier verification failed for ${id.value}`;
-        }
-      }
-
-      // Verify preferences FIXME optimization here: PAF_ID has already been verified in previous step
-      if (!(await prefsVerifier.verifySignature(request.body))) {
-        throw 'Preferences verification failed';
-      }
-
-      writeAsCookies(request, res);
-
-      return postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
-    };
-
-    const getDeleteResponse = async (
-      input: DeleteIdsPrefsRequest | RedirectDeleteIdsPrefsRequest,
-      req: Request,
-      res: Response
-    ) => {
-      const { request, context } = extractRequestAndContextFromHttp<
-        DeleteIdsPrefsRequest,
-        RedirectDeleteIdsPrefsRequest
-      >(input, req);
-      const sender = request.sender;
-
-      if (!allowedHosts[sender]?.includes(Permission.WRITE)) {
-        throw `Domain not allowed to write data: ${sender}`;
-      }
-
-      // Verify message
-      if (
-        !(await getIdsPrefsRequestVerifier.verifySignatureAndContent(
-          { request, context },
-          sender, // sender will always be ok
-          operatorHost // but operator needs to be verified
-        ))
-      ) {
-        // TODO [errors] finer error feedback
-        throw 'Delete request verification failed';
-      }
-
-      removeCookie(null, res, Cookies.identifiers, { domain: tld });
-      removeCookie(null, res, Cookies.preferences, { domain: tld });
-
-      res.status(204);
-      return deleteIdsPrefsResponseBuilder.buildResponse(sender);
-    };
+    // Note that CORS is "disabled" here because the check is done via signature
+    // So accept whatever the referer is
 
     // *****************************************************************************************************************
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
-    const setTest3pcCookie = (res: Response) => {
-      const now = new Date();
-      const expirationDate = new Date(now);
-      expirationDate.setTime(now.getTime() + 1000 * 60); // Lifespan: 1 minute
-      const test3pc: Test3Pc = {
-        timestamp: getTimeStampInSec(now),
-      };
-      setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: tld });
-    };
+    this.app.expressApp.get(
+      jsonOperatorEndpoints.read,
+      cors(corsOptionsAcceptAll),
+      this.startSpan(jsonProxyEndpoints.read),
+      this.restReadIdsAndPreferences,
+      this.handleErrors(jsonProxyEndpoints.read),
+      this.endSpan(jsonProxyEndpoints.read)
+    );
 
-    app.expressApp.get(jsonOperatorEndpoints.read, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(jsonOperatorEndpoints.read);
+    this.app.expressApp.get(
+      jsonOperatorEndpoints.verify3PC,
+      cors(corsOptionsAcceptAll),
+      this.startSpan(jsonProxyEndpoints.verify3PC),
+      this.verify3PC,
+      this.handleErrors(jsonProxyEndpoints.verify3PC),
+      this.endSpan(jsonProxyEndpoints.verify3PC)
+    );
 
-      // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
-      setTest3pcCookie(res);
+    this.app.expressApp.post(
+      jsonOperatorEndpoints.write,
+      cors(corsOptionsAcceptAll),
+      this.startSpan(jsonProxyEndpoints.write),
+      this.restWriteIdsAndPreferences,
+      this.handleErrors(jsonProxyEndpoints.write),
+      this.endSpan(jsonProxyEndpoints.write)
+    );
 
-      const request = getPafDataFromQueryString<GetIdsPrefsRequest>(req);
+    // enable pre-flight request for DELETE request
+    this.app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll));
+    this.app.expressApp.delete(
+      jsonOperatorEndpoints.delete,
+      cors(corsOptionsAcceptAll),
+      this.startSpan(jsonProxyEndpoints.delete),
+      this.restDeleteIdsAndPreferences,
+      this.handleErrors(jsonProxyEndpoints.delete),
+      this.endSpan(jsonProxyEndpoints.delete)
+    );
 
-      try {
-        const response = await getReadResponse(request, req);
-        res.json(response);
-      } catch (e) {
-        logger.Error(jsonOperatorEndpoints.read, e);
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
-
-    app.expressApp.get(jsonOperatorEndpoints.verify3PC, cors(corsOptionsAcceptAll), (req, res) => {
-      logger.Info(jsonOperatorEndpoints.verify3PC);
-      // Note: no signature verification here
-
-      try {
-        const cookies = req.cookies;
-        const testCookieValue = typedCookie<Test3Pc>(cookies[Cookies.test_3pc]);
-
-        // Clean up
-        removeCookie(req, res, Cookies.test_3pc, { domain: tld });
-
-        const response = get3PCResponseBuilder.buildResponse(testCookieValue);
-        res.json(response);
-      } catch (e) {
-        logger.Error(jsonOperatorEndpoints.verify3PC, e);
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
-
-    app.expressApp.post(jsonOperatorEndpoints.write, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(jsonOperatorEndpoints.write);
-      const input = getPayload<PostIdsPrefsRequest>(req);
-
-      try {
-        const signedData = await getWriteResponse(input, req, res);
-        res.json(signedData);
-      } catch (e) {
-        logger.Error(jsonOperatorEndpoints.write, e);
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
-
-    app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll)); // enable pre-flight request for DELETE request
-    app.expressApp.delete(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(jsonOperatorEndpoints.delete);
-      const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
-
-      try {
-        const response = await getDeleteResponse(input, req, res);
-        res.json(response);
-      } catch (e) {
-        logger.Error(jsonOperatorEndpoints.delete, e);
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
-
-    app.expressApp.get(jsonOperatorEndpoints.newId, cors(corsOptionsAcceptAll), async (req, res) => {
-      logger.Info(jsonOperatorEndpoints.newId);
-      const request = getPafDataFromQueryString<GetNewIdRequest>(req);
-      const context = { origin: req.header('origin') };
-
-      const sender = request.sender;
-
-      if (!allowedHosts[sender]?.includes(Permission.READ)) {
-        throw `Domain not allowed to read data: ${sender}`;
-      }
-
-      try {
-        if (
-          !(await getNewIdRequestVerifier.verifySignatureAndContent(
-            { request, context },
-            sender, // sender will always be ok
-            operatorHost // but operator needs to be verified
-          ))
-        ) {
-          // TODO [errors] finer error feedback
-          throw 'New Id request verification failed';
-        }
-
-        const response = getNewIdResponseBuilder.buildResponse(request.receiver, idBuilder.generateNewId());
-        res.json(response);
-      } catch (e) {
-        logger.Error(jsonOperatorEndpoints.newId, e);
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
+    this.app.expressApp.get(
+      jsonOperatorEndpoints.newId,
+      cors(corsOptionsAcceptAll),
+      this.startSpan(jsonProxyEndpoints.newId),
+      this.getNewId,
+      this.handleErrors(jsonProxyEndpoints.newId),
+      this.endSpan(jsonProxyEndpoints.newId)
+    );
 
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
+    this.app.expressApp.get(
+      redirectEndpoints.read,
+      this.startSpan(redirectEndpoints.read),
+      this.redirectReadIdsAndPreferences,
+      this.handleErrors(redirectEndpoints.read),
+      this.endSpan(redirectEndpoints.read)
+    );
 
-    app.expressApp.get(redirectEndpoints.read, async (req, res) => {
-      logger.Info(redirectEndpoints.read);
-      const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
+    this.app.expressApp.get(
+      redirectEndpoints.write,
+      this.startSpan(redirectEndpoints.write),
+      this.redirectWriteIdsAndPreferences,
+      this.handleErrors(redirectEndpoints.write),
+      this.endSpan(redirectEndpoints.write)
+    );
 
-      if (!request?.returnUrl) {
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        const error: OperatorError = {
-          type: OperatorErrorType.INVALID_RETURN_URL,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-        return;
-      }
-
-      try {
-        const response = await getReadResponse(request, req);
-
-        const redirectResponse = getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-        const redirectUrl = getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
-
-        httpRedirect(res, redirectUrl.toString());
-      } catch (e) {
-        logger.Error(redirectEndpoints.read, e);
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
-
-    app.expressApp.get(redirectEndpoints.write, async (req, res) => {
-      logger.Info(redirectEndpoints.write);
-      const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
-
-      if (!request?.returnUrl) {
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        const error: OperatorError = {
-          type: OperatorErrorType.INVALID_RETURN_URL,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-        return;
-      }
-
-      try {
-        const response = await getWriteResponse(request, req, res);
-
-        const redirectResponse = postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-        const redirectUrl = postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
-
-        httpRedirect(res, redirectUrl.toString());
-      } catch (e) {
-        logger.Error(redirectEndpoints.write, e);
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
-
-    app.expressApp.get(redirectEndpoints.delete, async (req, res) => {
-      logger.Info(redirectEndpoints.delete);
-      const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
-      if (!request?.returnUrl) {
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        const error: OperatorError = {
-          type: OperatorErrorType.INVALID_RETURN_URL,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-        return;
-      }
-      try {
-        const response = await getDeleteResponse(request, req, res);
-        const redirectResponse = deleteIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
-        const redirectUrl = deleteIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
-        httpRedirect(res, redirectUrl.toString());
-      } catch (e) {
-        logger.Error(redirectEndpoints.delete, e);
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        // FIXME finer error return
-        const error: OperatorError = {
-          type: OperatorErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-      }
-    });
+    this.app.expressApp.get(
+      redirectEndpoints.delete,
+      this.startSpan(redirectEndpoints.delete),
+      this.redirectDeleteIdsAndPreferences,
+      this.handleErrors(redirectEndpoints.delete),
+      this.endSpan(redirectEndpoints.delete)
+    );
   }
+
+  private writeAsCookies(input: PostIdsPrefsRequest, res: Response) {
+    if (input.body.identifiers !== undefined) {
+      setCookie(res, Cookies.identifiers, JSON.stringify(input.body.identifiers), getOperatorExpiration(), {
+        domain: this.topLevelDomain,
+      });
+    }
+    if (input.body.preferences !== undefined) {
+      setCookie(res, Cookies.preferences, JSON.stringify(input.body.preferences), getOperatorExpiration(), {
+        domain: this.topLevelDomain,
+      });
+    }
+  }
+
+  private extractRequestAndContextFromHttp = <
+    TopLevelRequestType,
+    TopLevelRequestRedirectType extends { returnUrl: ReturnUrl; request: TopLevelRequestType }
+  >(
+    topLevelRequest: TopLevelRequestType | TopLevelRequestRedirectType,
+    req: Request
+  ) => {
+    // Extract request from Redirect request, if needed
+    let request: TopLevelRequestType;
+    let context: RestContext | RedirectContext;
+    const isRedirectRequest =
+      (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
+      (topLevelRequest as TopLevelRequestRedirectType).request;
+
+    if (isRedirectRequest) {
+      request = (topLevelRequest as TopLevelRequestRedirectType).request;
+      context = {
+        returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
+        referer: req.header('referer'),
+      };
+    } else {
+      request = topLevelRequest as TopLevelRequestType;
+      context = { origin: req.header('origin') };
+    }
+
+    return { request, context };
+  };
+
+  private async getReadResponse(topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) {
+    const { request, context } = this.extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+      topLevelRequest,
+      req
+    );
+
+    const sender = request.sender;
+    const isAllowedToRead = this.allowedHosts[sender]?.includes(Permission.READ);
+
+    if (!isAllowedToRead) {
+      throw `Domain not allowed to read data: ${sender}`;
+    }
+
+    const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+
+    if (!isValidSignature) {
+      // TODO [errors] finer error feedback
+      throw 'Read request verification failed';
+    }
+
+    const identifiers = typedCookie<Identifiers>(req.cookies[Cookies.identifiers]) ?? [];
+    const preferences = typedCookie<Preferences>(req.cookies[Cookies.preferences]);
+
+    const hasPAFId = identifiers.some((i: Identifier) => i.type === 'paf_browser_id');
+
+    if (!hasPAFId) {
+      // No existing id, let's generate one, unpersisted
+      identifiers.push(this.idBuilder.generateNewId());
+    }
+
+    return this.getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
+  }
+
+  private async getWriteResponse(
+    topLevelRequest: PostIdsPrefsRequest | RedirectPostIdsPrefsRequest,
+    req: Request,
+    res: Response
+  ) {
+    const { request, context } = this.extractRequestAndContextFromHttp<
+      PostIdsPrefsRequest,
+      RedirectPostIdsPrefsRequest
+    >(topLevelRequest, req);
+    const sender = request.sender;
+
+    const isAllowedToWrite = this.allowedHosts[sender]?.includes(Permission.WRITE);
+
+    if (!isAllowedToWrite) {
+      throw `Domain not allowed to write data: ${sender}`;
+    }
+
+    // Verify message
+    const isValidSignature = await this.postIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+
+    if (!isValidSignature) {
+      // TODO [errors] finer error feedback
+      throw 'Write request verification failed';
+    }
+
+    const { identifiers, preferences } = request.body;
+
+    // because default value is true, we just remove it to save space
+    identifiers[0].persisted = undefined;
+
+    // Verify ids
+    for (const id of identifiers) {
+      const isValidIdSignature = await this.idVerifier.verifySignature(id);
+      if (!isValidIdSignature) {
+        throw `Identifier verification failed for ${id.value}`;
+      }
+    }
+
+    // Verify preferences FIXME optimization here: PAF_ID has already been verified in previous step
+    const isValidPreferencesSignature = await this.prefsVerifier.verifySignature(request.body);
+    if (!isValidPreferencesSignature) {
+      throw 'Preferences verification failed';
+    }
+
+    this.writeAsCookies(request, res);
+
+    return this.postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
+  }
+
+  private async getDeleteResponse(
+    input: DeleteIdsPrefsRequest | RedirectDeleteIdsPrefsRequest,
+    req: Request,
+    res: Response
+  ) {
+    const { request, context } = this.extractRequestAndContextFromHttp<
+      DeleteIdsPrefsRequest,
+      RedirectDeleteIdsPrefsRequest
+    >(input, req);
+    const sender = request.sender;
+
+    const isAllowedToWrite = this.allowedHosts[sender]?.includes(Permission.WRITE);
+
+    if (!isAllowedToWrite) {
+      throw `Domain not allowed to write data: ${sender}`;
+    }
+
+    // Verify message
+    const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+
+    if (!isValidSignature) {
+      // TODO [errors] finer error feedback
+      throw 'Delete request verification failed';
+    }
+
+    removeCookie(null, res, Cookies.identifiers, { domain: this.topLevelDomain });
+    removeCookie(null, res, Cookies.preferences, { domain: this.topLevelDomain });
+
+    res.status(204);
+    return this.deleteIdsPrefsResponseBuilder.buildResponse(sender);
+  }
+
+  private setTest3pcCookie(res: Response) {
+    const now = new Date();
+    const expirationDate = new Date(now);
+    expirationDate.setTime(now.getTime() + 1000 * 60); // Lifespan: 1 minute
+    const test3pc: Test3Pc = {
+      timestamp: getTimeStampInSec(now),
+    };
+    setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: this.topLevelDomain });
+  }
+
+  restReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+    // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
+    this.setTest3pcCookie(res);
+
+    const request = getPafDataFromQueryString<GetIdsPrefsRequest>(req);
+
+    try {
+      const response = await this.getReadResponse(request, req);
+      res.json(response);
+      next();
+    } catch (e) {
+      this.logger.Error(jsonOperatorEndpoints.read, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  verify3PC = (req: Request, res: Response, next: NextFunction) => {
+    // Note: no signature verification here
+    try {
+      const cookies = req.cookies;
+      const testCookieValue = typedCookie<Test3Pc>(cookies[Cookies.test_3pc]);
+
+      // Clean up
+      removeCookie(req, res, Cookies.test_3pc, { domain: this.topLevelDomain });
+
+      const response = this.get3PCResponseBuilder.buildResponse(testCookieValue);
+      res.json(response);
+      next();
+    } catch (e) {
+      this.logger.Error(jsonOperatorEndpoints.verify3PC, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  restWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+    const input = getPayload<PostIdsPrefsRequest>(req);
+
+    try {
+      const signedData = await this.getWriteResponse(input, req, res);
+      res.json(signedData);
+      next();
+    } catch (e) {
+      this.logger.Error(jsonOperatorEndpoints.write, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  restDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+    const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+
+    try {
+      const response = await this.getDeleteResponse(input, req, res);
+      res.json(response);
+      next();
+    } catch (e) {
+      this.logger.Error(jsonOperatorEndpoints.delete, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  getNewId = async (req: Request, res: Response, next: NextFunction) => {
+    const request = getPafDataFromQueryString<GetNewIdRequest>(req);
+    const context = { origin: req.header('origin') };
+
+    const sender = request.sender;
+
+    const isAllowedToRead = this.allowedHosts[sender]?.includes(Permission.READ);
+
+    if (!isAllowedToRead) {
+      throw `Domain not allowed to read data: ${sender}`;
+      // TODO [errors] be handled in middleware + better handling of this error
+    }
+
+    try {
+      const isValidSignature = await this.getNewIdRequestVerifier.verifySignatureAndContent(
+        { request, context },
+        sender, // sender will always be ok
+        this.host // but operator needs to be verified
+      );
+
+      if (!isValidSignature) {
+        // TODO [errors] finer error feedback
+        throw 'New Id request verification failed';
+      }
+
+      const response = this.getNewIdResponseBuilder.buildResponse(request.receiver, this.idBuilder.generateNewId());
+      res.json(response);
+      next();
+    } catch (e) {
+      this.logger.Error(jsonOperatorEndpoints.newId, e);
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  redirectReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+    const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
+
+    const hasReturnUrl = request?.returnUrl !== undefined;
+
+    if (!hasReturnUrl) {
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      const error: OperatorError = {
+        type: OperatorErrorType.INVALID_RETURN_URL,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+      return;
+    }
+
+    try {
+      const response = await this.getReadResponse(request, req);
+
+      const redirectResponse = this.getIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+      const redirectUrl = this.getIdsPrefsResponseBuilder.getRedirectUrl(new URL(request?.returnUrl), redirectResponse);
+
+      httpRedirect(res, redirectUrl.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(redirectEndpoints.read, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  redirectWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+    const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
+
+    const hasReturnUrl = request?.returnUrl !== undefined;
+
+    if (!hasReturnUrl) {
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      const error: OperatorError = {
+        type: OperatorErrorType.INVALID_RETURN_URL,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+      return;
+    }
+
+    try {
+      const response = await this.getWriteResponse(request, req, res);
+
+      const redirectResponse = this.postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+      const redirectUrl = this.postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
+
+      httpRedirect(res, redirectUrl.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(redirectEndpoints.write, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  redirectDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+    this.logger.Info(redirectEndpoints.delete);
+    const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
+
+    const hasReturnUrl = request?.returnUrl !== undefined;
+
+    if (!hasReturnUrl) {
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      const error: OperatorError = {
+        type: OperatorErrorType.INVALID_RETURN_URL,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+      return;
+    }
+    try {
+      const response = await this.getDeleteResponse(request, req, res);
+      const redirectResponse = this.deleteIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
+      const redirectUrl = this.deleteIdsPrefsResponseBuilder.getRedirectUrl(
+        new URL(request.returnUrl),
+        redirectResponse
+      );
+      httpRedirect(res, redirectUrl.toString());
+      next();
+    } catch (e) {
+      this.logger.Error(redirectEndpoints.delete, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      // FIXME finer error return
+      const error: OperatorError = {
+        type: OperatorErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
     const { host, identity, currentPrivateKey, allowedHosts } = (await parseConfig(configPath)) as OperatorNodeConfig;

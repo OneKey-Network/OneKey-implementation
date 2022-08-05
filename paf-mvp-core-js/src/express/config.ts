@@ -2,7 +2,6 @@ import path, { join } from 'path';
 import fs from 'fs';
 import { getTimeStampInSec } from '@core/timestamp';
 import { isValidKey } from '@core/crypto/keys';
-import { Identity } from '@core/express/identity-endpoint';
 import { PublicKeyInfo } from '@core/crypto/identity';
 
 /**
@@ -43,11 +42,19 @@ export interface JSONConfig {
   host: string;
 }
 
+export interface IdentityConfig {
+  name: string;
+  publicKeys: PublicKeyInfo[];
+  type: 'vendor' | 'operator';
+  dpoEmailAddress: string;
+  privacyPolicyUrl: URL;
+}
+
 /**
  * The parsed configuration of a OneKey node
  */
 export interface Config {
-  identity: Omit<Identity, 'type'>;
+  identity: Omit<IdentityConfig, 'type'>;
   host: string;
   currentPrivateKey: string;
 }
@@ -75,7 +82,7 @@ export const parseConfig = async (configPath: string): Promise<Config> => {
     );
   }
 
-  const parsedIdentity: Omit<Identity, 'type'> = {
+  const parsedIdentity: Omit<IdentityConfig, 'type'> = {
     name: identity.name,
     dpoEmailAddress: identity.dpoEmailAddress,
     privacyPolicyUrl: new URL(identity.privacyPolicyUrl),
