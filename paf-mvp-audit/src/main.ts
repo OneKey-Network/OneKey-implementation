@@ -1,27 +1,17 @@
 import { Locale } from './locale';
 import { Controller } from './controller';
+import { Log } from '@core/log';
+import { Window } from '@frontend/global';
 import { Log, LogLevel } from '@core/log';
 
 // Debug level while playing with MVP
 Log.level = LogLevel.Debug;
 
 const log = new Log('audit', '#18a9e1');
-
-class MonitoredElement extends HTMLDivElement {
-  public timer: NodeJS.Timer;
-}
-
-document.querySelectorAll('[auditLog]').forEach((e) => {
-  if (e instanceof HTMLDivElement) {
-    log.Info('register', e.id);
-    const content = e.innerHTML;
-    (<MonitoredElement>e).timer = setInterval(() => {
-      log.Info('check', e.id);
-      if (content !== e.innerHTML) {
-        log.Info('adding', e.id);
-        clearInterval((<MonitoredElement>e).timer);
-        new Controller(new Locale(window.navigator.languages), e, log);
-      }
-    }, 1000);
-  }
-});
+const auditLogHandler = (element: HTMLElement) =>
+  new Promise<void>((resolve) => {
+    log.Info('register', element.id);
+    new Controller(new Locale(window.navigator.languages), element, log);
+    resolve();
+  });
+(<Window>window).OneKey.setAuditLogHandler(auditLogHandler);
