@@ -124,7 +124,7 @@ export default [
               targets: [
                 {
                   src: './assets/*',
-                  dest: 'dist',
+                  dest: DIST,
                 },
               ],
             }),
