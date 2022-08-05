@@ -118,7 +118,7 @@ export class View implements IView {
     this.auditContainer.classList.add('ok-ui');
 
     // If the pop up is valid then append the container and store a reference to the pop up element.
-    this.root = this.outerContainer.attachShadow({ mode: 'closed' });
+    this.root = this.outerContainer.attachShadow({ mode: 'open' });
     this.root.appendChild(style);
     this.root.appendChild(this.auditContainer);
   }

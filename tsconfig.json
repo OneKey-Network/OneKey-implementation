@@ -34,6 +34,7 @@
   },
   "exclude": [
     "paf-mvp-frontend/cypress",
+    "paf-mvp-audit/cypress",
     "**/tests"
   ]
 }

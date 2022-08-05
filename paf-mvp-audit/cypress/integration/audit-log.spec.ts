@@ -68,14 +68,19 @@ describe('Audit log', () => {
         cy.log('received seed', seed);
 
         // PrebidJS would call this on bid response
-        const auditLog = oneKey.registerTransmissionResponse(context, transmissionResponse);
-
-        cy.log('received audit log', auditLog);
+        oneKey.registerTransmissionResponse(context, transmissionResponse);
       });
     });
 
     it('should be visible', () => {
-      page.auditLogBtn.should('be.visible');
+      page.getAdAuditLogBtnContainerDiv(divId).should('not.exist');
+
+      // Simulate the loading of an ad
+      page.getAdDiv(divId).invoke('prop', 'innerHTML', 'BUY BUY BUY BUY');
+
+      page.getAdAuditLogBtnContainerDiv(divId).should('exist');
+
+      page.getAuditLogBtn(divId).should('be.visible');
     });
   });
 });
