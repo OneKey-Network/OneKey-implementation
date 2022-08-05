@@ -190,7 +190,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
       },
     ];
 
-    test.each(cases)('$name client should be allowed to read: $authorized', async ({ client, authorized }) => {
+    test.each(cases)('$name client should be allowed to read: $authorized', async ({ client, authorized, name }) => {
       const url = client.getReadResponse(clientRequest);
       const request = createRequest({
         method: 'GET',
