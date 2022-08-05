@@ -83,11 +83,11 @@ export class Controller {
    * @returns the card to display, or null if no card should be displayed
    */
   private getCard(): string | null {
-    if (this.model.status === PafStatus.NOT_PARTICIPATING) {
+    if (
+      this.model.status === PafStatus.NOT_PARTICIPATING ||
+      (this.model.allPersisted && this.model.status === PafStatus.PARTICIPATING)
+    ) {
       return null;
-    }
-    if (this.model.allPersisted && this.model.status === PafStatus.PARTICIPATING) {
-      return 'snackbar';
     }
     if (
       this.model.allPersisted === false &&
@@ -430,9 +430,7 @@ export class Controller {
       await this.actionSaveGlobal();
     }
 
-    // Close the pop up as everything has been confirmed to be okay.
-    this.stopSnackbarHide();
-    this.view.hidePopup();
+    // No need to close the popup as a notification will be displayed
   }
 
   /**
@@ -466,13 +464,18 @@ export class Controller {
     this.model.rid.value = rid;
 
     // Sign the preferences if they have not been signed already.
-    const p = await this.signIfNeeded();
-    this.model.pref.persistedSignedValue = p;
+    const preferences = await this.signIfNeeded();
+    this.model.pref.persistedSignedValue = preferences;
+    const identifiers = [this.model.rid.value];
+    this.setPersistedFlag(identifiers);
+    // Update model before saving changes on the onekey-lib, to avoid binding issues:
+    // when data is saved, it will display a notification.
+    // This notification will be modified by the update of the model,
+    // so if this update is done AFTER saving, all bindings will be lost and the 'settings' link will not be clickable.
+    this.model.setFromIdsAndPreferences({ identifiers, preferences });
 
     // Write the Ids and preferences to storage.
-    const w = await this.writeIdsAndPrefGlobal();
-    this.setPersistedFlag(w?.identifiers);
-    this.model.setFromIdsAndPreferences(w);
+    await this.writeIdsAndPrefGlobal();
 
     // Ensure the "this site only" data is removed.
     if (this.config.siteOnlyEnabled) {
