@@ -17,6 +17,8 @@ import {
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
+  PublicKeyProvider,
+  PublicKeyStore,
   RedirectContext,
   RequestVerifier,
   RequestWithBodyDefinition,
@@ -29,6 +31,7 @@ import {
   DeleteIdsPrefsResponseBuilder,
   Get3PCResponseBuilder,
   GetIdsPrefsRequest,
+  GetIdsPrefsResponse,
   GetIdsPrefsResponseBuilder,
   GetNewIdRequest,
   GetNewIdResponseBuilder,
@@ -92,7 +95,7 @@ export class OperatorNode extends Node {
     private host: string,
     privateKey: string,
     private allowedHosts: AllowedHosts,
-    s2sOptions?: AxiosRequestConfig
+    publicKeyProvider: PublicKeyProvider
   ) {
     super(
       host,
@@ -100,7 +103,7 @@ export class OperatorNode extends Node {
         ...identity,
         type: 'operator',
       },
-      s2sOptions
+      publicKeyProvider
     );
 
     this.topLevelDomain = getTopLevelDomain(host);
@@ -109,14 +112,14 @@ export class OperatorNode extends Node {
     this.postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(host, privateKey);
     this.getNewIdResponseBuilder = new GetNewIdResponseBuilder(host, privateKey);
     this.deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(host, privateKey);
-    this.idVerifier = new Verifier(this.keyStore.provider, new IdentifierDefinition());
-    this.prefsVerifier = new Verifier(this.keyStore.provider, new IdsAndPreferencesDefinition());
+    this.idVerifier = new Verifier(this.publicKeyProvider, new IdentifierDefinition());
+    this.prefsVerifier = new Verifier(this.publicKeyProvider, new IdsAndPreferencesDefinition());
     this.postIdsPrefsRequestVerifier = new RequestVerifier(
-      this.keyStore.provider,
+      this.publicKeyProvider,
       new RequestWithBodyDefinition() // POST ids and prefs has body property
     );
-    this.getIdsPrefsRequestVerifier = new RequestVerifier(this.keyStore.provider, new RequestWithoutBodyDefinition());
-    this.getNewIdRequestVerifier = new RequestVerifier(this.keyStore.provider, new RequestWithoutBodyDefinition());
+    this.getIdsPrefsRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
+    this.getNewIdRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
     this.idBuilder = new IdBuilder(host, privateKey);
 
     // Note that CORS is "disabled" here because the check is done via signature
@@ -241,7 +244,10 @@ export class OperatorNode extends Node {
     return { request, context };
   };
 
-  private async getReadResponse(topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest, req: Request) {
+  private async getReadResponse(
+    topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
+    req: Request
+  ): Promise<GetIdsPrefsResponse> {
     const { request, context } = this.extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
       topLevelRequest,
       req
@@ -627,6 +633,6 @@ export class OperatorNode extends Node {
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
     const { host, identity, currentPrivateKey, allowedHosts } = (await parseConfig(configPath)) as OperatorNodeConfig;
 
-    return new OperatorNode(identity, host, currentPrivateKey, allowedHosts, s2sOptions);
+    return new OperatorNode(identity, host, currentPrivateKey, allowedHosts, new PublicKeyStore(s2sOptions).provider);
   }
 }

@@ -7,6 +7,13 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export type PublicKeyWithObject = PublicKeyInfo & { publicKeyObj: PublicKey };
 
+/**
+ * A function that provides a public key from a domain name
+ */
+export interface PublicKeyProvider {
+  (domain: string): Promise<PublicKey>;
+}
+
 export class PublicKeyStore {
   protected cache: { [domain: string]: PublicKeyWithObject } = {};
 

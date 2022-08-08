@@ -1,6 +1,5 @@
 import { Log } from '@core/log';
-import { PublicKeyStore } from '@core/crypto';
-import { AxiosRequestConfig } from 'axios';
+import { PublicKeyProvider } from '@core/crypto';
 import { VHostApp } from '@core/express/express-apps';
 import { GetIdentityResponseBuilder } from '@core/model';
 import { participantEndpoints } from '@core/endpoints';
@@ -20,12 +19,10 @@ export interface INode {
 export class Node implements INode {
   public app: VHostApp;
   protected logger: Log;
-  protected keyStore: PublicKeyStore;
 
-  constructor(hostName: string, identity: IdentityConfig, s2sOptions?: AxiosRequestConfig) {
+  constructor(hostName: string, identity: IdentityConfig, protected publicKeyProvider: PublicKeyProvider) {
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
     this.app = new VHostApp(identity.name, hostName);
-    this.keyStore = new PublicKeyStore(s2sOptions);
 
     // All nodes must implement the identity endpoint
     const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = identity;

@@ -1,5 +1,6 @@
 import { getTimeStampInSec } from '@core/timestamp';
 import { OperatorNode, Permission } from '@operator/operator-node';
+import { PublicKeyStore } from '@core/crypto';
 
 // This is just an example of a basic operator node configuration
 export const operator = new OperatorNode(
@@ -37,5 +38,6 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
     'paf.example-websiteA.com': [Permission.READ, Permission.WRITE],
     'paf.example-websiteB.com': [Permission.READ, Permission.WRITE],
     'paf.example-websiteC.com': [Permission.READ, Permission.WRITE],
-  }
+  },
+  new PublicKeyStore().provider
 );
