@@ -30,7 +30,7 @@ export class Node implements INode {
     hostName: string,
     identity: IdentityConfig,
     jsonValidator: IJsonValidator,
-    protected publicKeyProvider: PublicKeyProvider,
+    protected publicKeyProvider: PublicKeyProvider
   ) {
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
     this.app = new VHostApp(identity.name, hostName);

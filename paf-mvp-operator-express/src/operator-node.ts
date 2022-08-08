@@ -106,7 +106,7 @@ export class OperatorNode extends Node {
         type: 'operator',
       },
       jsonValidator,
-      publicKeyProvider,
+      publicKeyProvider
     );
 
     this.topLevelDomain = getTopLevelDomain(host);
@@ -635,6 +635,13 @@ export class OperatorNode extends Node {
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
     const { host, identity, currentPrivateKey, allowedHosts } = (await parseConfig(configPath)) as OperatorNodeConfig;
-    return new OperatorNode(identity, host, currentPrivateKey, allowedHosts, JsonValidator.default(), new PublicKeyStore(s2sOptions).provider);
+    return new OperatorNode(
+      identity,
+      host,
+      currentPrivateKey,
+      allowedHosts,
+      JsonValidator.default(),
+      new PublicKeyStore(s2sOptions).provider
+    );
   }
 }

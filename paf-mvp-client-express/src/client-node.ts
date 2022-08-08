@@ -8,7 +8,7 @@ import { AxiosRequestConfig } from 'axios';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
 
 import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
-import { IJsonValidator, JsonSchemaTypes } from '@core/validation/json-validator';
+import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**
@@ -30,12 +30,7 @@ export class ClientNode extends Node {
    * @param jsonValidator Service for validating JSON in Request
    * @param publicKeyProvider a function that gives the public key of a domain
    */
-  constructor(
-    config: ClientNodeConfig,
-    jsonValidator: IJsonValidator,
-    publicKeyProvider: PublicKeyProvider,
-    ) {
-
+  constructor(config: ClientNodeConfig, jsonValidator: IJsonValidator, publicKeyProvider: PublicKeyProvider) {
     super(
       config.host,
       {
