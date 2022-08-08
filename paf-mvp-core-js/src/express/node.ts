@@ -106,7 +106,7 @@ export class Node implements INode {
         const details = validation.errors.map((e) => e.message).join(' - ');
         const error: ClientNodeError = {
           type: ClientNodeErrorType.INVALID_JSON_BODY,
-          details: details,
+          details,
         };
         res.status(400);
         res.json(error);
