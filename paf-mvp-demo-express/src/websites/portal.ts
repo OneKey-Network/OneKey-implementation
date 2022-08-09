@@ -106,8 +106,6 @@ export const portalWebSiteApp = new VHostApp(name, host);
   });
 
   portalWebSiteApp.expressApp.get(generateNewId, (req, res) => {
-    const returnUrl = getRequestUrl(req, writeNewId);
-
     // First go to "read or init id" on operator, and then redirects to the local write endpoint, that itself calls the operator again
     httpRedirect(res, client.getReadRedirectResponse(req).toString());
   });

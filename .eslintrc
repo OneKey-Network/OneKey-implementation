@@ -26,6 +26,7 @@
     "*/dist/*",
     "**/jest.config.js",
     "paf-mvp-frontend/*",
-    "paf-mvp-demo-express/public/assets/*"
+    "paf-mvp-demo-express/public/assets/*",
+    "addressability-framework"
   ]
 }

@@ -89,7 +89,9 @@ export class Node implements INode {
    * @param endPointName
    */
   handleErrors(endPointName: string): ErrorRequestHandler {
+    /* eslint-disable */
     return (err: NodeError, req: Request, res: Response, next: NextFunction) => {
+      /* eslint-enable */
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
       // For redirect endpoints, if the provided redirect url is invalid, try to redirect back to referer
