@@ -22,16 +22,17 @@ Verify that:
 - The (new or changed) production code has its test counterpart. Use the test pyramid as a guideline [3]:
     - **Unit-tests and Integration Tests via `Jest`**: The targeted code coverage is 80% on new or changed code. To estimate this coverage at *change level*, you can run `npm run coverage` *which measures the coverage at file level*.
     - **UI Tests via `Cypress`**: A large feature that includes UI should have *few* UI tests for covering the nominal cases. Estimate if those tests can be flaky (e.g network is not mocked, wait and timers API in test, bypass Cypress API, production code with a not testable design). If so, you must ask for change.
-- The Pull Request doesn't add warning or error from the linter.
-- The Pull Request respects existing dependencies between components unless it is clearly stated in the description of the Pull Request with an acceptable rational.
-- The Pull Request doesn't add unecessary external dependencies.
-
+- Mo warning or error appear from the linter.
+- The code respects existing dependencies between sub-projects unless it is clearly stated in the description of the Pull Request with an acceptable rational.
+- No unecessary external dependencies are added.
+- The documentation in the repository is up-to-date with the code changes. 
+- The code hasn't an accidental complexity or bad practices.
 
 ### Type of comments
 
 - Don't use prefix on you comment, if you expect a discussion or a change in this Pull Request.
 - Prefix a comment with `FAR` (For Another Review) when the comment isn't blocker for merging the change but that you expect a new Pull Request for this.
-- Prefix a comment with `NIT` (Nitpick) when the comment is for polishing but if the submitter can choose to ignore.
+- Prefix a comment with `NIT` (NITpicking) when the comment is for polishing but if the submitter can choose to ignore.
 
 ### References
 
