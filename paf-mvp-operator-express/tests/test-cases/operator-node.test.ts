@@ -1,31 +1,18 @@
-import { OperatorNode, Permission } from '@operator/operator-node';
-import { getTimeStampInSec } from '@core/timestamp';
+import { OperatorNode } from '@operator/operator-node';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { Response } from 'express';
 import { OperatorClient } from '@client/operator-client';
 import { GetIdsPrefsResponse, Signature, Timestamp } from '@core/model';
 import { id, preferences } from '../fixtures/operator-fixtures';
-import { OperatorError, OperatorErrorType } from '@core/errors';
-import { IJsonValidator, JsonSchemaType, JsonValidation } from '@core/validation/json-validator';
+import { NodeError, NodeErrorType } from '@core/errors';
+import { OperatorUtils } from '../utils/operator-utils';
 
 describe('Operator Node', () => {
   let operatorNode: OperatorNode;
   let response: MockResponse<Response>;
   const nextMock = jest.fn();
   const operatorHost = 'example.onekey.network';
-  const operatorPublicKey = `-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
-jmcW7W3x9wvlX4YXqJUQKR2c0lveqVDj4hwO0kTZDuNRUhgxk4irwV3fzw==
------END PUBLIC KEY-----`;
   const publicKeyProviderAlwaysSucceeds = () => Promise.resolve({ verify: () => true });
-  const jsonValidationOk: JsonValidation = {
-    isValid: true,
-    value: {},
-  };
-  const jsonValidator: IJsonValidator = {
-    start: jest.fn(),
-    validate: jest.fn((schema: JsonSchemaType, jsonStr: string) => jsonValidationOk),
-  };
   const client = new OperatorClient(
     operatorHost,
     'paf.read-write.com',
@@ -60,40 +47,8 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
   };
 
   beforeEach(() => {
-    operatorNode = new OperatorNode(
-      {
-        // Name of the OneKey participant
-        name: 'Example operator',
-        // Current public key
-        publicKeys: [
-          {
-            // Timestamps are expressed in seconds
-            startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T10:50:00.000Z')),
-            endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
-            publicKey: operatorPublicKey,
-          },
-        ],
-        // Email address of DPO
-        dpoEmailAddress: 'contact@example.onekey.network',
-        // URL of a privacy page
-        privacyPolicyUrl: new URL('https://example.onekey.network/privacy'),
-      },
-      // The operator host name to receive requests
-      operatorHost,
-      // Current private key
-      `-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxK7RQm5KP1g62SQn
-oyeE+rrDPJzpZxIyCCTHDvd1TRShRANCAAQSJkhGEbE118biXou5jZB+PJ/rRHSO
-ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
------END PRIVATE KEY-----`,
-      // List of OneKey client node host names and their corresponding permissions
-      {
-        'paf.read-write.com': [Permission.READ, Permission.WRITE],
-        'paf.read-only.com': [Permission.READ],
-        'paf.write-only.com': [Permission.WRITE],
-      },
-      jsonValidator,
-      () => Promise.resolve({ verify: () => true })
+    operatorNode = OperatorUtils.buildOperator(OperatorUtils.getSuccessfulJsonValidatorMock(), () =>
+      Promise.resolve({ verify: () => true })
     );
     response = createResponse();
   });
@@ -214,8 +169,8 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
       await operatorNode.restReadIdsAndPreferences(request, response, nextMock);
 
       // TODO later these errors will be more specific
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
 
@@ -228,12 +183,11 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
         expect(response._getStatusCode()).toEqual(400);
         expect(nextMock).toHaveBeenCalledWith(error);
 
-        const data = response._getJSONData() as OperatorError;
+        const data = response._getJSONData() as NodeError;
         expect(data).toEqual(error);
       }
     });
   });
-
   afterEach(() => {
     nextMock.mockClear();
   });

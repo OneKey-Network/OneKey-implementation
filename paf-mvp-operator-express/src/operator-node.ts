@@ -1,9 +1,10 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 import cors from 'cors';
 import { AxiosRequestConfig } from 'axios';
 import {
   Config,
   corsOptionsAcceptAll,
+  extractRequestAndContextFromHttp,
   getPafDataFromQueryString,
   getPayload,
   getTopLevelDomain,
@@ -19,16 +20,15 @@ import {
   IdsAndPreferencesDefinition,
   PublicKeyProvider,
   PublicKeyStore,
-  RedirectContext,
   RequestVerifier,
   RequestWithBodyDefinition,
   RequestWithoutBodyDefinition,
-  RestContext,
   Verifier,
 } from '@core/crypto';
 import {
   DeleteIdsPrefsRequest,
   DeleteIdsPrefsResponseBuilder,
+  Domain,
   Get3PCResponseBuilder,
   GetIdsPrefsRequest,
   GetIdsPrefsResponse,
@@ -45,14 +45,13 @@ import {
   RedirectDeleteIdsPrefsRequest,
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
-  ReturnUrl,
   Test3Pc,
 } from '@core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@core/endpoints';
-import { OperatorError, OperatorErrorType } from '@core/errors';
-import { IJsonValidator, JsonValidator } from '@core/validation/json-validator';
+import { NodeError, NodeErrorType } from '@core/errors';
+import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
 
 /**
  * Expiration: now + 3 months
@@ -140,6 +139,17 @@ export class OperatorNode extends Node {
       this.endSpan(jsonProxyEndpoints.read)
     );
 
+    this.app.expressApp.post(
+      jsonOperatorEndpoints.write,
+      cors(corsOptionsAcceptAll),
+      this.buildJsonBodyValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRestRequest),
+      this.buildWritePermissionHandler(false),
+      this.startSpan(jsonProxyEndpoints.write),
+      this.restWriteIdsAndPreferences,
+      this.handleErrors(jsonProxyEndpoints.write),
+      this.endSpan(jsonProxyEndpoints.write)
+    );
+
     this.app.expressApp.get(
       jsonOperatorEndpoints.verify3PC,
       cors(corsOptionsAcceptAll),
@@ -147,15 +157,6 @@ export class OperatorNode extends Node {
       this.verify3PC,
       this.handleErrors(jsonProxyEndpoints.verify3PC),
       this.endSpan(jsonProxyEndpoints.verify3PC)
-    );
-
-    this.app.expressApp.post(
-      jsonOperatorEndpoints.write,
-      cors(corsOptionsAcceptAll),
-      this.startSpan(jsonProxyEndpoints.write),
-      this.restWriteIdsAndPreferences,
-      this.handleErrors(jsonProxyEndpoints.write),
-      this.endSpan(jsonProxyEndpoints.write)
     );
 
     // enable pre-flight request for DELETE request
@@ -191,6 +192,9 @@ export class OperatorNode extends Node {
 
     this.app.expressApp.get(
       redirectEndpoints.write,
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest),
+      this.returnUrlValidationHandler<PostIdsPrefsRequest>(),
+      this.buildWritePermissionHandler(true),
       this.startSpan(redirectEndpoints.write),
       this.redirectWriteIdsAndPreferences,
       this.handleErrors(redirectEndpoints.write),
@@ -218,40 +222,11 @@ export class OperatorNode extends Node {
       });
     }
   }
-
-  private extractRequestAndContextFromHttp = <
-    TopLevelRequestType,
-    TopLevelRequestRedirectType extends { returnUrl: ReturnUrl; request: TopLevelRequestType }
-  >(
-    topLevelRequest: TopLevelRequestType | TopLevelRequestRedirectType,
-    req: Request
-  ) => {
-    // Extract request from Redirect request, if needed
-    let request: TopLevelRequestType;
-    let context: RestContext | RedirectContext;
-    const isRedirectRequest =
-      (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
-      (topLevelRequest as TopLevelRequestRedirectType).request;
-
-    if (isRedirectRequest) {
-      request = (topLevelRequest as TopLevelRequestRedirectType).request;
-      context = {
-        returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
-        referer: req.header('referer'),
-      };
-    } else {
-      request = topLevelRequest as TopLevelRequestType;
-      context = { origin: req.header('origin') };
-    }
-
-    return { request, context };
-  };
-
   private async getReadResponse(
     topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
     req: Request
   ): Promise<GetIdsPrefsResponse> {
-    const { request, context } = this.extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+    const { request, context } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
       topLevelRequest,
       req
     );
@@ -292,18 +267,11 @@ export class OperatorNode extends Node {
     req: Request,
     res: Response
   ) {
-    const { request, context } = this.extractRequestAndContextFromHttp<
-      PostIdsPrefsRequest,
-      RedirectPostIdsPrefsRequest
-    >(topLevelRequest, req);
+    const { request, context } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+      topLevelRequest,
+      req
+    );
     const sender = request.sender;
-
-    const isAllowedToWrite = this.allowedHosts[sender]?.includes(Permission.WRITE);
-
-    if (!isAllowedToWrite) {
-      throw `Domain not allowed to write data: ${sender}`;
-    }
-
     // Verify message
     const isValidSignature = await this.postIdsPrefsRequestVerifier.verifySignatureAndContent(
       { request, context },
@@ -345,10 +313,10 @@ export class OperatorNode extends Node {
     req: Request,
     res: Response
   ) {
-    const { request, context } = this.extractRequestAndContextFromHttp<
-      DeleteIdsPrefsRequest,
-      RedirectDeleteIdsPrefsRequest
-    >(input, req);
+    const { request, context } = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
+      input,
+      req
+    );
     const sender = request.sender;
 
     const isAllowedToWrite = this.allowedHosts[sender]?.includes(Permission.WRITE);
@@ -399,8 +367,8 @@ export class OperatorNode extends Node {
     } catch (e) {
       this.logger.Error(jsonOperatorEndpoints.read, e);
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -424,8 +392,8 @@ export class OperatorNode extends Node {
     } catch (e) {
       this.logger.Error(jsonOperatorEndpoints.verify3PC, e);
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -436,7 +404,6 @@ export class OperatorNode extends Node {
 
   restWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const input = getPayload<PostIdsPrefsRequest>(req);
-
     try {
       const signedData = await this.getWriteResponse(input, req, res);
       res.json(signedData);
@@ -444,8 +411,8 @@ export class OperatorNode extends Node {
     } catch (e) {
       this.logger.Error(jsonOperatorEndpoints.write, e);
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -453,10 +420,34 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
-
+  private checkPermission(domain: Domain, permission: Permission) {
+    return this.allowedHosts[domain]?.includes(permission);
+  }
+  buildWritePermissionHandler(isRedirect: boolean): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction) => {
+      const input = isRedirect
+        ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
+        : getPayload<PostIdsPrefsRequest>(req);
+      const { request } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+        input,
+        req
+      );
+      const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
+      if (!haveWritePermission) {
+        const error: NodeError = {
+          type: NodeErrorType.UNAUTHORIZED_OPERATION,
+          details: `Domain not allowed to write data: ${request.sender}`,
+        };
+        res.status(400);
+        res.json(error);
+        next(error);
+      } else {
+        next();
+      }
+    };
+  }
   restDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
-
     try {
       const response = await this.getDeleteResponse(input, req, res);
       res.json(response);
@@ -464,8 +455,8 @@ export class OperatorNode extends Node {
     } catch (e) {
       this.logger.Error(jsonOperatorEndpoints.delete, e);
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -505,8 +496,8 @@ export class OperatorNode extends Node {
     } catch (e) {
       this.logger.Error(jsonOperatorEndpoints.newId, e);
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -522,8 +513,8 @@ export class OperatorNode extends Node {
 
     if (!hasReturnUrl) {
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: OperatorError = {
-        type: OperatorErrorType.INVALID_RETURN_URL,
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_RETURN_URL,
         details: '',
       };
       res.status(400);
@@ -544,8 +535,8 @@ export class OperatorNode extends Node {
       this.logger.Error(redirectEndpoints.read, e);
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -553,27 +544,10 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
-
   redirectWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
-
-    const hasReturnUrl = request?.returnUrl !== undefined;
-
-    if (!hasReturnUrl) {
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: OperatorError = {
-        type: OperatorErrorType.INVALID_RETURN_URL,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
-      return;
-    }
-
     try {
       const response = await this.getWriteResponse(request, req, res);
-
       const redirectResponse = this.postIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
       const redirectUrl = this.postIdsPrefsResponseBuilder.getRedirectUrl(new URL(request.returnUrl), redirectResponse);
 
@@ -583,8 +557,8 @@ export class OperatorNode extends Node {
       this.logger.Error(redirectEndpoints.write, e);
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -592,7 +566,6 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
-
   redirectDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     this.logger.Info(redirectEndpoints.delete);
     const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
@@ -601,8 +574,8 @@ export class OperatorNode extends Node {
 
     if (!hasReturnUrl) {
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: OperatorError = {
-        type: OperatorErrorType.INVALID_RETURN_URL,
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_RETURN_URL,
         details: '',
       };
       res.status(400);
@@ -623,8 +596,8 @@ export class OperatorNode extends Node {
       this.logger.Error(redirectEndpoints.delete, e);
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       // FIXME finer error return
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -632,7 +605,6 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
-
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
     const { host, identity, currentPrivateKey, allowedHosts } = (await parseConfig(configPath)) as OperatorNodeConfig;
     return new OperatorNode(

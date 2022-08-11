@@ -11,6 +11,8 @@ export type JsonSchemaType = string;
  */
 export abstract class JsonSchemaTypes {
   static createSeedRequest: JsonSchemaType = 'post-seed-request.json';
+  static writeIdAndPreferencesRestRequest: JsonSchemaType = 'post-ids-prefs-request.json';
+  static writeIdAndPreferencesRedirectRequest: JsonSchemaType = 'redirect-post-ids-prefs-request.json';
 }
 
 /**

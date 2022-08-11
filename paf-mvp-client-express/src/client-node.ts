@@ -5,7 +5,7 @@ import { jsonProxyEndpoints, redirectProxyEndpoints } from '@core/endpoints';
 import { Config, Node, parseConfig } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
+import { NodeError, NodeErrorType } from '@core/errors';
 
 import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
 import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
@@ -183,8 +183,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -200,8 +200,8 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.write, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -217,8 +217,8 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verify3PC, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -234,8 +234,8 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.newId, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -251,8 +251,8 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.delete, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -268,8 +268,8 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(redirectProxyEndpoints.read, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -286,8 +286,8 @@ export class ClientNode extends Node {
     } catch (e) {
       this.logger.Error(redirectProxyEndpoints.write, e);
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -303,8 +303,8 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(redirectProxyEndpoints.delete, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -321,8 +321,8 @@ export class ClientNode extends Node {
     if (!hasResponse) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, message.error);
       // FIXME do something smart in case of error
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: message.error.message, // TODO should be improved
       };
       res.status(400);
@@ -335,8 +335,8 @@ export class ClientNode extends Node {
       const isResponseValid = this.client.verifyReadResponse(message.response);
       if (!isResponseValid) {
         // TODO [errors] finer error feedback
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.VERIFICATION_FAILED,
+        const error: NodeError = {
+          type: NodeErrorType.VERIFICATION_FAILED,
           details: '',
         };
         this.logger.Error(jsonProxyEndpoints.verifyRead, error);
@@ -350,8 +350,8 @@ export class ClientNode extends Node {
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, e);
       // FIXME finer error return
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -368,8 +368,8 @@ export class ClientNode extends Node {
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.signPrefs, e);
       // FIXME finer error return
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -388,8 +388,8 @@ export class ClientNode extends Node {
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.createSeed, e);
       // FIXME finer error return
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
