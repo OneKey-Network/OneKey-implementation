@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest",
     "coverage": "jest --coverage",
+    "coverage-change": "jest --coverage --changedSince=add-test-coverage",
     "build-front": "npm run build --prefix paf-mvp-frontend && npm run build:tcf --prefix paf-mvp-cmp && npm run build --prefix paf-mvp-audit",
     "build-back": "npm run build --prefix paf-mvp-operator-express && npm run build --prefix paf-mvp-client-express",
     "start:watch": "nodemon --debug .",
