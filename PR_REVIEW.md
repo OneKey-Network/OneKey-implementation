@@ -20,17 +20,18 @@ Verify that:
 - The Pull Request is dedicated to one small concern. The concern must be explicit in the title and the description of the Pull Request.
 - The Pull Request is small. There is no hard limit but a Pull Request should not exceed 500 lines of code (excluding configurations and generated code).[2] As a reviewer, you must ask submitter to break out the PR if the amount of code coupled with its complexity is an impediment to achieving the purposes of a review.
 - The (new or changed) production code has its test counterpart. Use the test pyramid as a guideline [3]:
-    - **Unit-tests and Integration Tests via `Jest`**: The targeted code coverage is 80% on new or changed code. To estimate this coverage at *change level*, you can run `npm run coverage` *which measures the coverage at file level*.
-    - **UI Tests via `Cypress`**: A large feature that includes UI should have *few* UI tests for covering the nominal cases. Estimate if those tests can be flaky (e.g network is not mocked, wait and timers API in test, bypass Cypress API, production code with a not testable design). If so, you must ask for change.
-- Mo warning or error appear from the linter.
+    - **Unit-tests and Integration Tests via `Jest`**: The targeted code coverage is 80% on new or changed code. To estimate this coverage at *change level*, you can run `npm run coverage-change` *which measures the coverage at file level*.
+    - **UI Tests via `Cypress`**: A large feature that includes UI should have *few* UI tests for covering the nominal cases. Estimate if those tests can be flaky (e.g network is not mocked, wait and timers API in tests, bypass Cypress API, production code with a not testable design). If so, you must ask for change.
+- No warning or error appear from the linter.
 - The code respects existing dependencies between sub-projects unless it is clearly stated in the description of the Pull Request with an acceptable rational.
 - No unecessary external dependencies are added.
-- The documentation in the repository is up-to-date with the code changes. 
-- The code hasn't an accidental complexity or bad practices.
+- The documentation in the repository is up-to-date with the code changes.
+- The code is in Typescript. If there is new files with Javascript code, an acceptable rational must appear in the description of the Pull Request.
+- The code hasn't an accidental complexity or bad practices. Use your jugement here.
 
 ### Type of comments
 
-- Don't use prefix on you comment, if you expect a discussion or a change in this Pull Request.
+- Don't use prefix on you comment if you expect a discussion or a change in this Pull Request.
 - Prefix a comment with `FAR` (For Another Review) when the comment isn't blocker for merging the change but that you expect a new Pull Request for this.
 - Prefix a comment with `NIT` (NITpicking) when the comment is for polishing but if the submitter can choose to ignore.
 
