@@ -6,7 +6,9 @@ import { Config, Node, parseConfig } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
+
 import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
+import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**
@@ -25,15 +27,17 @@ export class ClientNode extends Node {
    * @param config
    *   hostName: the OneKey client host name
    *   privateKey: the OneKey client private key string
+   * @param jsonValidator Service for validating JSON in Request
    * @param publicKeyProvider a function that gives the public key of a domain
    */
-  constructor(config: ClientNodeConfig, publicKeyProvider: PublicKeyProvider) {
+  constructor(config: ClientNodeConfig, jsonValidator: IJsonValidator, publicKeyProvider: PublicKeyProvider) {
     super(
       config.host,
       {
         ...config.identity,
         type: 'vendor',
       },
+      jsonValidator,
       publicKeyProvider
     );
 
@@ -165,6 +169,7 @@ export class ClientNode extends Node {
       jsonProxyEndpoints.createSeed,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
+      this.buildJsonBodyValidatorHandler(JsonSchemaTypes.createSeedRequest),
       this.startSpan(jsonProxyEndpoints.createSeed),
       this.createSeed,
       this.handleErrors(jsonProxyEndpoints.createSeed),
@@ -395,7 +400,6 @@ export class ClientNode extends Node {
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
     const config = (await parseConfig(configPath)) as ClientNodeConfig;
-
-    return new ClientNode(config, new PublicKeyStore(s2sOptions).provider);
+    return new ClientNode(config, JsonValidator.default(), new PublicKeyStore(s2sOptions).provider);
   }
 }

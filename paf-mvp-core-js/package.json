@@ -30,6 +30,7 @@
     "@types/ua-parser-js": "^0.7.36",
     "@types/uuid": "^8.3.4",
     "@types/vhost": "^3.0.4",
+    "ajv": "^8.11.0",
     "atob": "^2.1.2",
     "axios": "^0.26.1",
     "btoa": "^1.2.1",

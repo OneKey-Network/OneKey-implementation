@@ -1,5 +1,7 @@
 # OneKey implementation
 
+
+## Overview
 Implementation repository for OneKey.
 
 Reference implementation of the Minimum Viable Product (MVP) defined [here](https://github.com/criteo/addressable-network-proposals/tree/main/mvp-spec).
@@ -41,6 +43,21 @@ flowchart TB
 
 ```
 
+## Getting started
+
+Clone the repository with its submodules: 
+
+````
+git clone --recurse-submodules https://github.com/prebid/paf-mvp-implementation.git
+````
+
+Memo: if you forget the submodules option:
+
+```
+git submodule update --init --recursive
+```
+
+## Directories
 
 | Sub-project                                            | Description                                                                                                                                         |
 |--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|

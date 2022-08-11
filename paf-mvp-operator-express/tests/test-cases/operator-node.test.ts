@@ -6,6 +6,7 @@ import { OperatorClient } from '@client/operator-client';
 import { GetIdsPrefsResponse, Signature, Timestamp } from '@core/model';
 import { id, preferences } from '../fixtures/operator-fixtures';
 import { OperatorError, OperatorErrorType } from '@core/errors';
+import { IJsonValidator, JsonSchemaType, JsonValidation } from '@core/validation/json-validator';
 
 describe('Operator Node', () => {
   let operatorNode: OperatorNode;
@@ -17,6 +18,14 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEiZIRhGxNdfG4l6LuY2Qfjyf60R0
 jmcW7W3x9wvlX4YXqJUQKR2c0lveqVDj4hwO0kTZDuNRUhgxk4irwV3fzw==
 -----END PUBLIC KEY-----`;
   const publicKeyProviderAlwaysSucceeds = () => Promise.resolve({ verify: () => true });
+  const jsonValidationOk: JsonValidation = {
+    isValid: true,
+    value: {},
+  };
+  const jsonValidator: IJsonValidator = {
+    start: jest.fn(),
+    validate: jest.fn((schema: JsonSchemaType, jsonStr: string) => jsonValidationOk),
+  };
   const client = new OperatorClient(
     operatorHost,
     'paf.read-write.com',
@@ -83,6 +92,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
         'paf.read-only.com': [Permission.READ],
         'paf.write-only.com': [Permission.WRITE],
       },
+      jsonValidator,
       () => Promise.resolve({ verify: () => true })
     );
     response = createResponse();

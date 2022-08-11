@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Test 2",
+    "description": "Test 2",
+    "$id": "json-schema-2",
+    "type": "object",
+    "properties": {
+        "text": {
+            "type": "string",
+            "description": "This is a text"
+        }
+    },
+    "required": [
+        "text"
+    ]
+}

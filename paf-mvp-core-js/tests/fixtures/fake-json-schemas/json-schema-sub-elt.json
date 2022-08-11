@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Sub Test ",
+    "description": "Sub Test",
+    "$id": "json-schema-sub-elt",
+    "type": "object",
+    "properties": {
+        "text_sub": {
+            "type": "string",
+            "description": "This is a text"
+        }
+    },
+    "required": [
+        "text_sub"
+    ]
+}

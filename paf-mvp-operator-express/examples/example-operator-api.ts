@@ -1,4 +1,5 @@
 import { getTimeStampInSec } from '@core/timestamp';
+import { JsonValidator } from '@core/validation/json-validator';
 import { OperatorNode, Permission } from '@operator/operator-node';
 import { PublicKeyStore } from '@core/crypto';
 
@@ -39,5 +40,8 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
     'paf.example-websiteB.com': [Permission.READ, Permission.WRITE],
     'paf.example-websiteC.com': [Permission.READ, Permission.WRITE],
   },
+  JsonValidator.default(),
   new PublicKeyStore().provider
 );
+
+/* await */ operator.start();
