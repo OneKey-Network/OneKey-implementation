@@ -2,7 +2,7 @@ import { IJsonValidator, JsonValidation } from '@core/validation/json-validator'
 import { PublicKeyProvider } from '@core/crypto';
 import { OperatorNode, Permission } from '@operator/operator-node';
 import { getTimeStampInSec } from '@core/timestamp';
-import { Domain, PostIdsPrefsRequest } from '@core/model';
+import { Domain, GetIdsPrefsRequest, PostIdsPrefsRequest } from '@core/model';
 import { createRequest } from 'node-mocks-http';
 import { encodeBase64, QSParam } from '@core/query-string';
 
@@ -81,7 +81,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
   static getUnsuccessfulJsonValidatorMock = (): IJsonValidator => this.buildStaticJsonValidator(false);
 
   /**
-   * @returns a mock postIdsPrefRequest or redirectIdsPrefRequest with the specified sender domain
+   * @returns a mock postIdsPrefRequest or redirectPostIdsPrefRequest with the specified sender domain
    */
   static generateMockPostIdsPrefRequest(domain: Domain, isRedirect: boolean) {
     const postIdsPrefRequest: PostIdsPrefsRequest = {
@@ -109,5 +109,33 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
       postRequest.body = payload;
       return postRequest;
     }
+  }
+
+  /**
+   * @returns a mock getIdsPrefRequest or redirectGetIdsPrefRequest with the specified sender domain
+   */
+  static generateMockGetIdsPrefRequest(domain: Domain, isRedirect: boolean) {
+    const getIdsPrefRequest: GetIdsPrefsRequest = {
+      sender: domain,
+      receiver: undefined,
+      timestamp: undefined,
+      signature: undefined,
+    };
+    const targetUrl = new URL('https://somedomain.com');
+    const queryString = encodeBase64(
+      JSON.stringify(
+        isRedirect
+          ? {
+              returnUrl: 'https://someurl.com',
+              request: getIdsPrefRequest,
+            }
+          : getIdsPrefRequest
+      )
+    );
+    targetUrl.searchParams.set(QSParam.paf, queryString);
+    return createRequest({
+      method: 'GET',
+      url: targetUrl.toString(),
+    });
   }
 }
