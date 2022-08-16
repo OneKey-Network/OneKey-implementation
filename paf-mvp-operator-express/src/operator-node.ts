@@ -133,6 +133,8 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       jsonOperatorEndpoints.read,
       cors(corsOptionsAcceptAll),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRestRequest),
+      this.buildReadPermissionHandler(false),
       this.startSpan(jsonProxyEndpoints.read),
       this.restReadIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.read),
@@ -184,6 +186,9 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.get(
       redirectEndpoints.read,
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRedirectRequest),
+      this.returnUrlValidationHandler<GetIdsPrefsRequest>(),
+      this.buildReadPermissionHandler(true),
       this.startSpan(redirectEndpoints.read),
       this.redirectReadIdsAndPreferences,
       this.handleErrors(redirectEndpoints.read),
@@ -615,5 +620,25 @@ export class OperatorNode extends Node {
       JsonValidator.default(),
       new PublicKeyStore(s2sOptions).provider
     );
+  }
+  buildReadPermissionHandler(isRedirect: boolean): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction) => {
+      const input = isRedirect
+        ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
+        : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
+      const { request } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(input, req);
+      const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
+      if (!haveReadPermission) {
+        const error: NodeError = {
+          type: NodeErrorType.UNAUTHORIZED_OPERATION,
+          details: `Domain not allowed to read data: ${request.sender}`,
+        };
+        res.status(400);
+        res.json(error);
+        next(error);
+      } else {
+        next();
+      }
+    };
   }
 }
