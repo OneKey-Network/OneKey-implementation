@@ -15,6 +15,9 @@ export abstract class JsonSchemaTypes {
   static writeIdAndPreferencesRedirectRequest: JsonSchemaType = 'redirect-post-ids-prefs-request.json';
   static readIdAndPreferencesRestRequest: JsonSchemaType = 'get-ids-prefs-request.json';
   static readIdAndPreferencesRedirectRequest: JsonSchemaType = 'redirect-get-ids-prefs-request.json';
+  static deleteIdAndPreferencesRequest: JsonSchemaType = 'delete-ids-prefs-request.json';
+  static deleteIdAndPreferencesRedirectRequest: JsonSchemaType = 'redirect-delete-ids-prefs-request.json';
+  static getNewIdRequest: JsonSchemaType = 'get-new-id-request.json';
 }
 
 /**

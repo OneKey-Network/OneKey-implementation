@@ -166,6 +166,8 @@ export class OperatorNode extends Node {
     this.app.expressApp.delete(
       jsonOperatorEndpoints.delete,
       cors(corsOptionsAcceptAll),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRequest),
+      this.buildDeletePermissionHandler(false),
       this.startSpan(jsonProxyEndpoints.delete),
       this.restDeleteIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.delete),
@@ -175,6 +177,8 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       jsonOperatorEndpoints.newId,
       cors(corsOptionsAcceptAll),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.getNewIdRequest),
+      this.getNewIdPermissionHandler,
       this.startSpan(jsonProxyEndpoints.newId),
       this.getNewId,
       this.handleErrors(jsonProxyEndpoints.newId),
@@ -208,6 +212,9 @@ export class OperatorNode extends Node {
 
     this.app.expressApp.get(
       redirectEndpoints.delete,
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest),
+      this.returnUrlValidationHandler<DeleteIdsPrefsRequest>(),
+      this.buildDeletePermissionHandler(true),
       this.startSpan(redirectEndpoints.delete),
       this.redirectDeleteIdsAndPreferences,
       this.handleErrors(redirectEndpoints.delete),
@@ -235,14 +242,7 @@ export class OperatorNode extends Node {
       topLevelRequest,
       req
     );
-
     const sender = request.sender;
-    const isAllowedToRead = this.allowedHosts[sender]?.includes(Permission.READ);
-
-    if (!isAllowedToRead) {
-      throw `Domain not allowed to read data: ${sender}`;
-    }
-
     const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
       { request, context },
       sender, // sender will always be ok
@@ -323,13 +323,6 @@ export class OperatorNode extends Node {
       req
     );
     const sender = request.sender;
-
-    const isAllowedToWrite = this.allowedHosts[sender]?.includes(Permission.WRITE);
-
-    if (!isAllowedToWrite) {
-      throw `Domain not allowed to write data: ${sender}`;
-    }
-
     // Verify message
     const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
       { request, context },
@@ -451,6 +444,31 @@ export class OperatorNode extends Node {
       }
     };
   }
+
+  buildDeletePermissionHandler(isRedirect: boolean): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction) => {
+      const input = isRedirect
+        ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
+        : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+      const { request } = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
+        input,
+        req
+      );
+      const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
+      if (!haveWritePermission) {
+        const error: NodeError = {
+          type: NodeErrorType.UNAUTHORIZED_OPERATION,
+          details: `Domain not allowed to delete data: ${request.sender}`,
+        };
+        res.status(400);
+        res.json(error);
+        next(error);
+      } else {
+        next();
+      }
+    };
+  }
+
   restDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
     try {
@@ -475,14 +493,6 @@ export class OperatorNode extends Node {
     const context = { origin: req.header('origin') };
 
     const sender = request.sender;
-
-    const isAllowedToRead = this.allowedHosts[sender]?.includes(Permission.READ);
-
-    if (!isAllowedToRead) {
-      throw `Domain not allowed to read data: ${sender}`;
-      // TODO [errors] be handled in middleware + better handling of this error
-    }
-
     try {
       const isValidSignature = await this.getNewIdRequestVerifier.verifySignatureAndContent(
         { request, context },
@@ -513,21 +523,6 @@ export class OperatorNode extends Node {
 
   redirectReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req);
-
-    const hasReturnUrl = request?.returnUrl !== undefined;
-
-    if (!hasReturnUrl) {
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: NodeError = {
-        type: NodeErrorType.INVALID_RETURN_URL,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
-      return;
-    }
-
     try {
       const response = await this.getReadResponse(request, req);
 
@@ -574,20 +569,6 @@ export class OperatorNode extends Node {
   redirectDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     this.logger.Info(redirectEndpoints.delete);
     const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
-
-    const hasReturnUrl = request?.returnUrl !== undefined;
-
-    if (!hasReturnUrl) {
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: NodeError = {
-        type: NodeErrorType.INVALID_RETURN_URL,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
-      return;
-    }
     try {
       const response = await this.getDeleteResponse(request, req, res);
       const redirectResponse = this.deleteIdsPrefsResponseBuilder.toRedirectResponse(response, 200);
@@ -641,4 +622,19 @@ export class OperatorNode extends Node {
       }
     };
   }
+  getNewIdPermissionHandler = (req: Request, res: Response, next: NextFunction) => {
+    const request = getPafDataFromQueryString<GetNewIdRequest>(req);
+    const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
+    if (!haveReadPermission) {
+      const error: NodeError = {
+        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        details: `Domain not allowed to read data: ${request.sender}`,
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    } else {
+      next();
+    }
+  };
 }

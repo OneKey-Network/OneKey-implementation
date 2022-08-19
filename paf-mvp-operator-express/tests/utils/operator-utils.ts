@@ -112,10 +112,10 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
   }
 
   /**
-   * @returns a mock getIdsPrefRequest or redirectGetIdsPrefRequest with the specified sender domain
+   * @returns a mock GetRequest with the specified sender domain
    */
-  static generateMockGetIdsPrefRequest(domain: Domain, isRedirect: boolean) {
-    const getIdsPrefRequest: GetIdsPrefsRequest = {
+  static generateMockGetRequest(domain: Domain, isRedirect: boolean) {
+    const getRequest = {
       sender: domain,
       receiver: undefined,
       timestamp: undefined,
@@ -127,9 +127,9 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
         isRedirect
           ? {
               returnUrl: 'https://someurl.com',
-              request: getIdsPrefRequest,
+              request: getRequest,
             }
-          : getIdsPrefRequest
+          : getRequest
       )
     );
     targetUrl.searchParams.set(QSParam.paf, queryString);
