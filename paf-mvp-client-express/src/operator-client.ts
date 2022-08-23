@@ -27,7 +27,7 @@ import {
   SeedSignatureBuilder,
   SeedSignatureContainer,
 } from '@core/crypto/signing-definition';
-import { ResponseVerifier } from '@core/crypto/verifier';
+import { MessageVerificationResult, ResponseVerifier } from '@core/crypto/verifier';
 import { getTimeStampInSec } from '@core/timestamp';
 import { Request } from 'express';
 import { getPayload } from '@core/express';
@@ -59,7 +59,7 @@ export class OperatorClient {
     this.getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, clientHost, privateKey);
   }
 
-  async verifyReadResponse(request: GetIdsPrefsResponse): Promise<boolean> {
+  async verifyReadResponse(request: GetIdsPrefsResponse): Promise<MessageVerificationResult> {
     // Signature + timestamp + sender + receiver are valid
     return this.readVerifier.verifySignatureAndContent(request, this.operatorHost, this.clientHost);
   }

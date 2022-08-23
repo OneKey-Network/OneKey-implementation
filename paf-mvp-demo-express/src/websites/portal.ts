@@ -31,7 +31,13 @@ import {
   ResponseDefinition,
   ResponseType,
 } from '@core/crypto/signing-definition';
-import { IdsAndPreferencesVerifier, RequestVerifier, ResponseVerifier, Verifier } from '@core/crypto/verifier';
+import {
+  IdsAndPreferencesVerifier,
+  MessageVerificationResult,
+  RequestVerifier,
+  ResponseVerifier,
+  Verifier,
+} from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { VHostApp } from '@core/express/express-apps';
 import { parseConfig } from '@core/express/config';
@@ -159,7 +165,7 @@ export const portalWebSiteApp = new VHostApp(name, host);
   const responseVerifier = (response: ResponseType) =>
     new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature(response);
 
-  const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<boolean> } = {
+  const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<MessageVerificationResult> } = {
     identifier: (id: Identifier) => new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature(id),
     'ids-and-preferences': (idAndPrefs: IdsAndPreferences) =>
       new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()).verifySignature(idAndPrefs),
@@ -206,14 +212,12 @@ export const portalWebSiteApp = new VHostApp(name, host);
     await (async () => {
       try {
         const verifier = verifiers[request.type];
-
         if (!verifier) {
           response.result = false;
           response.details = `Unsupported data type: "${request.type}"`;
           return;
         }
-
-        response.result = await verifier(request.payload);
+        response.result = (await verifier(request.payload)).isValid;
         response.details = response.result ? 'Valid signature' : 'Invalid signature';
       } catch (e) {
         response.details = `Error verifying signature: ${e.message}`;

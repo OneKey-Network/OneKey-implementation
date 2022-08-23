@@ -3,6 +3,7 @@ import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
 import { Verifier } from '@core/crypto/verifier';
 import { PublicKeyProvider } from '@core/crypto';
 import SpyInstance = jest.SpyInstance;
+import { UnableToIdentifySignerError } from '@core/express/errors';
 
 describe('Verifier', () => {
   const publicKeyA: PublicKey = {
@@ -18,7 +19,7 @@ describe('Verifier', () => {
     } else if (domain === 'domainB.com') {
       return Promise.resolve(publicKeyB);
     }
-    throw new Error(`Certificate not found for ${domain}`);
+    throw new UnableToIdentifySignerError(`No valid key found for ${domain}`);
   };
 
   const mockData: FooType = {
@@ -68,8 +69,7 @@ describe('Verifier', () => {
   ];
 
   test.each(cases)('should verify "$data" as $expectedVerification', async ({ data, expectedVerification }) => {
-    expect(await verifier.verifySignature(data)).toEqual(expectedVerification);
-
+    expect((await verifier.verifySignature(data)).isValid).toEqual(expectedVerification);
     verifyCalls({
       getSignerDomain: 1,
       getInputString: 1,
@@ -83,9 +83,10 @@ describe('Verifier', () => {
     },
   ];
 
-  test.each(exceptionCases)('should throw exception for domain "$data.domain"', async ({ data }) => {
-    await expect(verifier.verifySignature(data)).rejects.toThrow();
-
+  test.each(exceptionCases)('should return UnableToIdentifySignerError for domain "$data.domain"', async ({ data }) => {
+    const validationResult = await verifier.verifySignature(data);
+    expect(validationResult.isValid).toEqual(false);
+    expect(validationResult.errors[0]).toBeInstanceOf(UnableToIdentifySignerError);
     verifyCalls({
       getSignerDomain: 1,
       // Notice only first method is called
