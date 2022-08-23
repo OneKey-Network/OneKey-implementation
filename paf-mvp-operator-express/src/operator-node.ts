@@ -18,6 +18,7 @@ import {
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
+  MessageVerificationResult,
   PublicKeyProvider,
   PublicKeyStore,
   RequestVerifier,
@@ -52,6 +53,7 @@ import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@core/endpoints';
 import { NodeError, NodeErrorType } from '@core/errors';
 import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
+import { UnableToIdentifySignerError } from '@core/express/errors';
 
 /**
  * Expiration: now + 3 months
@@ -135,6 +137,7 @@ export class OperatorNode extends Node {
       cors(corsOptionsAcceptAll),
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRestRequest),
       this.buildReadPermissionHandler(false),
+      this.buildReadIdsAndPreferencesSignatureHandler(false),
       this.startSpan(jsonProxyEndpoints.read),
       this.restReadIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.read),
@@ -146,6 +149,7 @@ export class OperatorNode extends Node {
       cors(corsOptionsAcceptAll),
       this.buildJsonBodyValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRestRequest),
       this.buildWritePermissionHandler(false),
+      this.buildWriteIdsAndPreferencesSignatureHandler(false),
       this.startSpan(jsonProxyEndpoints.write),
       this.restWriteIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.write),
@@ -168,6 +172,7 @@ export class OperatorNode extends Node {
       cors(corsOptionsAcceptAll),
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRequest),
       this.buildDeletePermissionHandler(false),
+      this.buildDeleteIdsAndPreferencesSignatureHandler(false),
       this.startSpan(jsonProxyEndpoints.delete),
       this.restDeleteIdsAndPreferences,
       this.handleErrors(jsonProxyEndpoints.delete),
@@ -179,6 +184,7 @@ export class OperatorNode extends Node {
       cors(corsOptionsAcceptAll),
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.getNewIdRequest),
       this.getNewIdPermissionHandler,
+      this.getNewIdSignatureHandler,
       this.startSpan(jsonProxyEndpoints.newId),
       this.getNewId,
       this.handleErrors(jsonProxyEndpoints.newId),
@@ -193,6 +199,7 @@ export class OperatorNode extends Node {
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRedirectRequest),
       this.returnUrlValidationHandler<GetIdsPrefsRequest>(),
       this.buildReadPermissionHandler(true),
+      this.buildReadIdsAndPreferencesSignatureHandler(true),
       this.startSpan(redirectEndpoints.read),
       this.redirectReadIdsAndPreferences,
       this.handleErrors(redirectEndpoints.read),
@@ -204,6 +211,7 @@ export class OperatorNode extends Node {
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest),
       this.returnUrlValidationHandler<PostIdsPrefsRequest>(),
       this.buildWritePermissionHandler(true),
+      this.buildWriteIdsAndPreferencesSignatureHandler(true),
       this.startSpan(redirectEndpoints.write),
       this.redirectWriteIdsAndPreferences,
       this.handleErrors(redirectEndpoints.write),
@@ -215,6 +223,7 @@ export class OperatorNode extends Node {
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest),
       this.returnUrlValidationHandler<DeleteIdsPrefsRequest>(),
       this.buildDeletePermissionHandler(true),
+      this.buildDeleteIdsAndPreferencesSignatureHandler(true),
       this.startSpan(redirectEndpoints.delete),
       this.redirectDeleteIdsAndPreferences,
       this.handleErrors(redirectEndpoints.delete),
@@ -234,44 +243,11 @@ export class OperatorNode extends Node {
       });
     }
   }
-  private async getReadResponse(
-    topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
-    req: Request
-  ): Promise<GetIdsPrefsResponse> {
-    const { request, context } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
-      topLevelRequest,
-      req
-    );
-    const sender = request.sender;
-    const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
-      { request, context },
-      sender, // sender will always be ok
-      this.host // but operator needs to be verified
-    );
 
-    if (!isValidSignature) {
-      // TODO [errors] finer error feedback
-      throw 'Read request verification failed';
-    }
-
-    const identifiers = typedCookie<Identifiers>(req.cookies[Cookies.identifiers]) ?? [];
-    const preferences = typedCookie<Preferences>(req.cookies[Cookies.preferences]);
-
-    const hasPAFId = identifiers.some((i: Identifier) => i.type === 'paf_browser_id');
-
-    if (!hasPAFId) {
-      // No existing id, let's generate one, unpersisted
-      identifiers.push(this.idBuilder.generateNewId());
-    }
-
-    return this.getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
-  }
-
-  private async getWriteResponse(
+  private async validateWriteRequest(
     topLevelRequest: PostIdsPrefsRequest | RedirectPostIdsPrefsRequest,
-    req: Request,
-    res: Response
-  ) {
+    req: Request
+  ): Promise<MessageVerificationResult> {
     const { request, context } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
       topLevelRequest,
       req
@@ -284,12 +260,11 @@ export class OperatorNode extends Node {
       this.host // but operator needs to be verified
     );
 
-    if (!isValidSignature) {
-      // TODO [errors] finer error feedback
-      throw 'Write request verification failed';
+    if (!isValidSignature.isValid) {
+      return isValidSignature;
     }
 
-    const { identifiers, preferences } = request.body;
+    const identifiers = request.body.identifiers;
 
     // because default value is true, we just remove it to save space
     identifiers[0].persisted = undefined;
@@ -297,19 +272,77 @@ export class OperatorNode extends Node {
     // Verify ids
     for (const id of identifiers) {
       const isValidIdSignature = await this.idVerifier.verifySignature(id);
-      if (!isValidIdSignature) {
-        throw `Identifier verification failed for ${id.value}`;
+      if (!isValidIdSignature.isValid) {
+        return isValidSignature;
       }
     }
-
     // Verify preferences FIXME optimization here: PAF_ID has already been verified in previous step
-    const isValidPreferencesSignature = await this.prefsVerifier.verifySignature(request.body);
-    if (!isValidPreferencesSignature) {
-      throw 'Preferences verification failed';
+    return await this.prefsVerifier.verifySignature(request.body);
+  }
+
+  private async validateDeleteRequest(
+    topLevelRequest: DeleteIdsPrefsRequest | RedirectDeleteIdsPrefsRequest,
+    req: Request
+  ): Promise<MessageVerificationResult> {
+    const { request, context } = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
+      topLevelRequest,
+      req
+    );
+    const sender = request.sender;
+    // Verify message
+    return await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+  }
+
+  private async validateReadRequest(
+    topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
+    req: Request
+  ): Promise<MessageVerificationResult> {
+    const { request, context } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+      topLevelRequest,
+      req
+    );
+    const sender = request.sender;
+    return await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+  }
+  private async getReadResponse(
+    topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
+    req: Request
+  ): Promise<GetIdsPrefsResponse> {
+    const request = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+      topLevelRequest,
+      req
+    ).request;
+    const sender = request.sender;
+    const identifiers = typedCookie<Identifiers>(req.cookies[Cookies.identifiers]) ?? [];
+    const preferences = typedCookie<Preferences>(req.cookies[Cookies.preferences]);
+    const hasPAFId = identifiers.some((i: Identifier) => i.type === 'paf_browser_id');
+    if (!hasPAFId) {
+      // No existing id, let's generate one, unpersisted
+      identifiers.push(this.idBuilder.generateNewId());
     }
+    return this.getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
+  }
 
+  private async getWriteResponse(
+    topLevelRequest: PostIdsPrefsRequest | RedirectPostIdsPrefsRequest,
+    req: Request,
+    res: Response
+  ) {
+    const request = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+      topLevelRequest,
+      req
+    ).request;
+    const sender = request.sender;
+    const { identifiers, preferences } = request.body;
     this.writeAsCookies(request, res);
-
     return this.postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
   }
 
@@ -318,26 +351,13 @@ export class OperatorNode extends Node {
     req: Request,
     res: Response
   ) {
-    const { request, context } = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
+    const request = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
       input,
       req
-    );
+    ).request;
     const sender = request.sender;
-    // Verify message
-    const isValidSignature = await this.getIdsPrefsRequestVerifier.verifySignatureAndContent(
-      { request, context },
-      sender, // sender will always be ok
-      this.host // but operator needs to be verified
-    );
-
-    if (!isValidSignature) {
-      // TODO [errors] finer error feedback
-      throw 'Delete request verification failed';
-    }
-
     removeCookie(null, res, Cookies.identifiers, { domain: this.topLevelDomain });
     removeCookie(null, res, Cookies.preferences, { domain: this.topLevelDomain });
-
     res.status(204);
     return this.deleteIdsPrefsResponseBuilder.buildResponse(sender);
   }
@@ -350,6 +370,75 @@ export class OperatorNode extends Node {
       timestamp: getTimeStampInSec(now),
     };
     setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: this.topLevelDomain });
+  }
+
+  buildWriteIdsAndPreferencesSignatureHandler(isRedirect: boolean): RequestHandler {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const request = isRedirect
+        ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
+        : getPayload<PostIdsPrefsRequest>(req);
+      const validationResult = await this.validateWriteRequest(request, req);
+      if (validationResult.isValid) {
+        next();
+      } else {
+        const error: NodeError = {
+          type:
+            validationResult.errors[0] instanceof UnableToIdentifySignerError
+              ? NodeErrorType.UNKNOWN_SIGNER
+              : NodeErrorType.VERIFICATION_FAILED,
+          details: validationResult.errors[0].message,
+        };
+        res.status(400);
+        res.json(error);
+        next(error);
+      }
+    };
+  }
+
+  buildDeleteIdsAndPreferencesSignatureHandler(isRedirect: boolean): RequestHandler {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const request = isRedirect
+        ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
+        : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+      const requestValidationResult = await this.validateDeleteRequest(request, req);
+      if (requestValidationResult.isValid) {
+        next();
+      } else {
+        const error: NodeError = {
+          type:
+            requestValidationResult.errors[0] instanceof UnableToIdentifySignerError
+              ? NodeErrorType.UNKNOWN_SIGNER
+              : NodeErrorType.VERIFICATION_FAILED,
+          details: requestValidationResult.errors[0].message,
+        };
+        res.status(400);
+        res.json(error);
+        next(error);
+      }
+    };
+  }
+
+  buildReadIdsAndPreferencesSignatureHandler(isRedirect: boolean): RequestHandler {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const request = isRedirect
+        ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
+        : getPafDataFromQueryString<PostIdsPrefsRequest>(req);
+      const signatureValidationResult = await this.validateReadRequest(request, req);
+      if (signatureValidationResult.isValid) {
+        next();
+      } else {
+        const error: NodeError = {
+          type:
+            signatureValidationResult.errors[0] instanceof UnableToIdentifySignerError
+              ? NodeErrorType.UNKNOWN_SIGNER
+              : NodeErrorType.VERIFICATION_FAILED,
+          details: signatureValidationResult.errors[0].message,
+        };
+        res.status(400);
+        res.json(error);
+        next(error);
+      }
+    };
   }
 
   restReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
@@ -418,9 +507,11 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
+
   private checkPermission(domain: Domain, permission: Permission) {
     return this.allowedHosts[domain]?.includes(permission);
   }
+
   buildWritePermissionHandler(isRedirect: boolean): RequestHandler {
     return (req: Request, res: Response, next: NextFunction) => {
       const input = isRedirect
@@ -490,21 +581,7 @@ export class OperatorNode extends Node {
 
   getNewId = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<GetNewIdRequest>(req);
-    const context = { origin: req.header('origin') };
-
-    const sender = request.sender;
     try {
-      const isValidSignature = await this.getNewIdRequestVerifier.verifySignatureAndContent(
-        { request, context },
-        sender, // sender will always be ok
-        this.host // but operator needs to be verified
-      );
-
-      if (!isValidSignature) {
-        // TODO [errors] finer error feedback
-        throw 'New Id request verification failed';
-      }
-
       const response = this.getNewIdResponseBuilder.buildResponse(request.receiver, this.idBuilder.generateNewId());
       res.json(response);
       next();
@@ -629,6 +706,31 @@ export class OperatorNode extends Node {
       const error: NodeError = {
         type: NodeErrorType.UNAUTHORIZED_OPERATION,
         details: `Domain not allowed to read data: ${request.sender}`,
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    } else {
+      next();
+    }
+  };
+
+  getNewIdSignatureHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const request = getPafDataFromQueryString<GetNewIdRequest>(req);
+    const context = { origin: req.header('origin') };
+    const sender = request.sender;
+    const signatureValidationResult = await this.getNewIdRequestVerifier.verifySignatureAndContent(
+      { request, context },
+      sender, // sender will always be ok
+      this.host // but operator needs to be verified
+    );
+    if (!signatureValidationResult.isValid) {
+      const error: NodeError = {
+        type:
+          signatureValidationResult.errors[0] instanceof UnableToIdentifySignerError
+            ? NodeErrorType.UNKNOWN_SIGNER
+            : NodeErrorType.VERIFICATION_FAILED,
+        details: signatureValidationResult.errors[0].message,
       };
       res.status(400);
       res.json(error);
