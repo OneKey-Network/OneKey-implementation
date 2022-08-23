@@ -140,53 +140,55 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
     const cases = [
       {
         client: unauthorizedClient,
+        hostName: 'paf.unauthorized.com',
         name: 'unauthorized',
         authorized: false,
       },
       {
         client: readOnlyClient,
+        hostName: 'paf.read-only.com',
         name: 'read-only',
         authorized: true,
       },
       {
         client: writeOnlyClient,
+        hostName: 'paf.write-only.com',
         name: 'write-only',
         authorized: false,
       },
     ];
 
-    test.each(cases)('$name client should be allowed to read: $authorized', async ({ client, authorized, name }) => {
-      const url = client.getReadResponse(clientRequest);
-      const request = createRequest({
-        method: 'GET',
-        headers: {
-          origin: `www.${name}.com`, // Doesn't really matter
-        },
-        cookies: existingPafCookies,
-        url,
-      });
+    test.each(cases)(
+      '$name client should be allowed to read: $authorized',
+      async ({ client, authorized, name, hostName }) => {
+        const url = client.getReadResponse(clientRequest);
+        const request = createRequest({
+          method: 'GET',
+          headers: {
+            origin: `www.${name}.com`, // Doesn't really matter
+          },
+          cookies: existingPafCookies,
+          url,
+        });
 
-      await operatorNode.restReadIdsAndPreferences(request, response, nextMock);
+        await operatorNode.buildReadPermissionHandler(false)(request, response, nextMock);
 
-      // TODO later these errors will be more specific
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
+        const error: NodeError = {
+          type: NodeErrorType.UNAUTHORIZED_OPERATION,
+          details: `Domain not allowed to read data: ${hostName}`,
+        };
 
-      if (authorized) {
-        expect(response._getStatusCode()).toEqual(200);
-        expect(nextMock).toHaveBeenCalledWith();
-        const data = response._getJSONData() as GetIdsPrefsResponse;
-        expect(data.body.identifiers).toHaveLength(1);
-      } else {
-        expect(response._getStatusCode()).toEqual(400);
-        expect(nextMock).toHaveBeenCalledWith(error);
-
-        const data = response._getJSONData() as NodeError;
-        expect(data).toEqual(error);
+        if (authorized) {
+          expect(response._getStatusCode()).toEqual(200);
+          expect(nextMock).toHaveBeenCalledWith();
+        } else {
+          expect(response._getStatusCode()).toEqual(400);
+          expect(nextMock).toHaveBeenCalledWith(error);
+          const data = response._getJSONData() as NodeError;
+          expect(data).toEqual(error);
+        }
       }
-    });
+    );
   });
   afterEach(() => {
     nextMock.mockClear();
