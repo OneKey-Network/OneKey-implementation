@@ -2,7 +2,7 @@ import { IJsonValidator, JsonValidation } from '@core/validation/json-validator'
 import { PublicKeyProvider } from '@core/crypto';
 import { OperatorNode, Permission } from '@operator/operator-node';
 import { getTimeStampInSec } from '@core/timestamp';
-import { Domain, GetIdsPrefsRequest, PostIdsPrefsRequest } from '@core/model';
+import { Domain, PostIdsPrefsRequest } from '@core/model';
 import { createRequest } from 'node-mocks-http';
 import { encodeBase64, QSParam } from '@core/query-string';
 
