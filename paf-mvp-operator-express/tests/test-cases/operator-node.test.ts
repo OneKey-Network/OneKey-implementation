@@ -182,7 +182,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
           expect(response._getStatusCode()).toEqual(200);
           expect(nextMock).toHaveBeenCalledWith();
         } else {
-          expect(response._getStatusCode()).toEqual(400);
+          expect(response._getStatusCode()).toEqual(403);
           expect(nextMock).toHaveBeenCalledWith(error);
           const data = response._getJSONData() as NodeError;
           expect(data).toEqual(error);
