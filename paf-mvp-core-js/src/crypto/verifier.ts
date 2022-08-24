@@ -10,7 +10,6 @@ import { getTimeStampInSec } from '@core/timestamp';
 import { Unsigned } from '@core/model/model';
 import { Log } from '@core/log';
 import { PublicKeyProvider } from '@core/crypto/key-store';
-import { UnableToIdentifySignerError } from '@core/express/errors';
 
 /**
  * Verifier class

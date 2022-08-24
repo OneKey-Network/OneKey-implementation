@@ -1,4 +1,4 @@
-import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
 import cors from 'cors';
 import { AxiosRequestConfig } from 'axios';
 import {
@@ -135,7 +135,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       jsonOperatorEndpoints.read,
       cors(corsOptionsAcceptAll),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRestRequest),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRestRequest, false),
       this.buildReadPermissionHandler(false),
       this.buildReadIdsAndPreferencesSignatureHandler(false),
       this.startSpan(jsonProxyEndpoints.read),
@@ -170,7 +170,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.delete(
       jsonOperatorEndpoints.delete,
       cors(corsOptionsAcceptAll),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRequest),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRequest, false),
       this.buildDeletePermissionHandler(false),
       this.buildDeleteIdsAndPreferencesSignatureHandler(false),
       this.startSpan(jsonProxyEndpoints.delete),
@@ -182,7 +182,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       jsonOperatorEndpoints.newId,
       cors(corsOptionsAcceptAll),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.getNewIdRequest),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.getNewIdRequest, false),
       this.getNewIdPermissionHandler,
       this.getNewIdSignatureHandler,
       this.startSpan(jsonProxyEndpoints.newId),
@@ -196,37 +196,37 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.get(
       redirectEndpoints.read,
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRedirectRequest),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRedirectRequest, true),
       this.returnUrlValidationHandler<GetIdsPrefsRequest>(),
       this.buildReadPermissionHandler(true),
       this.buildReadIdsAndPreferencesSignatureHandler(true),
       this.startSpan(redirectEndpoints.read),
       this.redirectReadIdsAndPreferences,
-      this.handleErrors(redirectEndpoints.read),
+      this.handleErrorsWithRedirectToReferer(redirectEndpoints.read),
       this.endSpan(redirectEndpoints.read)
     );
 
     this.app.expressApp.get(
       redirectEndpoints.write,
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest, true),
       this.returnUrlValidationHandler<PostIdsPrefsRequest>(),
       this.buildWritePermissionHandler(true),
       this.buildWriteIdsAndPreferencesSignatureHandler(true),
       this.startSpan(redirectEndpoints.write),
       this.redirectWriteIdsAndPreferences,
-      this.handleErrors(redirectEndpoints.write),
+      this.handleErrorsWithRedirectToReferer(redirectEndpoints.write),
       this.endSpan(redirectEndpoints.write)
     );
 
     this.app.expressApp.get(
       redirectEndpoints.delete,
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest),
+      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest, true),
       this.returnUrlValidationHandler<DeleteIdsPrefsRequest>(),
       this.buildDeletePermissionHandler(true),
       this.buildDeleteIdsAndPreferencesSignatureHandler(true),
       this.startSpan(redirectEndpoints.delete),
       this.redirectDeleteIdsAndPreferences,
-      this.handleErrors(redirectEndpoints.delete),
+      this.handleErrorsWithRedirectToReferer(redirectEndpoints.delete),
       this.endSpan(redirectEndpoints.delete)
     );
   }
@@ -388,8 +388,12 @@ export class OperatorNode extends Node {
               : NodeErrorType.VERIFICATION_FAILED,
           details: validationResult.errors[0].message,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          this.redirectWithError(res, (request as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
+        } else {
+          res.status(403);
+          res.json(error);
+        }
         next(error);
       }
     };
@@ -411,8 +415,12 @@ export class OperatorNode extends Node {
               : NodeErrorType.VERIFICATION_FAILED,
           details: requestValidationResult.errors[0].message,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          this.redirectWithError(res, (request as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
+        } else {
+          res.status(403);
+          res.json(error);
+        }
         next(error);
       }
     };
@@ -434,8 +442,12 @@ export class OperatorNode extends Node {
               : NodeErrorType.VERIFICATION_FAILED,
           details: signatureValidationResult.errors[0].message,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          this.redirectWithError(res, (request as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
+        } else {
+          res.status(403);
+          res.json(error);
+        }
         next(error);
       }
     };
@@ -517,18 +529,22 @@ export class OperatorNode extends Node {
       const input = isRedirect
         ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
         : getPayload<PostIdsPrefsRequest>(req);
-      const { request } = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+      const request = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
         input,
         req
-      );
+      ).request;
       const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
       if (!haveWritePermission) {
         const error: NodeError = {
           type: NodeErrorType.UNAUTHORIZED_OPERATION,
           details: `Domain not allowed to write data: ${request.sender}`,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          this.redirectWithError(res, (input as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
+        } else {
+          res.status(403);
+          res.json(error);
+        }
         next(error);
       } else {
         next();
@@ -541,18 +557,22 @@ export class OperatorNode extends Node {
       const input = isRedirect
         ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
         : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
-      const { request } = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
+      const request = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
         input,
         req
-      );
+      ).request;
       const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
       if (!haveWritePermission) {
         const error: NodeError = {
           type: NodeErrorType.UNAUTHORIZED_OPERATION,
           details: `Domain not allowed to delete data: ${request.sender}`,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          this.redirectWithError(res, (input as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
+        } else {
+          res.status(403);
+          res.json(error);
+        }
         next(error);
       } else {
         next();
@@ -679,20 +699,38 @@ export class OperatorNode extends Node {
       new PublicKeyStore(s2sOptions).provider
     );
   }
+
+  handleErrorsWithRedirectToReferer(endPointName: string): ErrorRequestHandler {
+    return (error: Error, req: Request, res: Response, next: NextFunction) => {
+      this.logger.Error(endPointName, error);
+      const nodeError: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      this.redirectWithError(res, req.header('referer'), 500, nodeError);
+    };
+  }
   buildReadPermissionHandler(isRedirect: boolean): RequestHandler {
     return (req: Request, res: Response, next: NextFunction) => {
       const input = isRedirect
         ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
         : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
-      const { request } = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(input, req);
+      const request = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+        input,
+        req
+      ).request;
       const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
       if (!haveReadPermission) {
         const error: NodeError = {
           type: NodeErrorType.UNAUTHORIZED_OPERATION,
           details: `Domain not allowed to read data: ${request.sender}`,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          this.redirectWithError(res, (input as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
+        } else {
+          res.status(403);
+          res.json(error);
+        }
         next(error);
       } else {
         next();
@@ -707,7 +745,7 @@ export class OperatorNode extends Node {
         type: NodeErrorType.UNAUTHORIZED_OPERATION,
         details: `Domain not allowed to read data: ${request.sender}`,
       };
-      res.status(400);
+      res.status(403);
       res.json(error);
       next(error);
     } else {

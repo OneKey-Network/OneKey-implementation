@@ -40,7 +40,8 @@ export class PublicKeyStore {
     try {
       response = await this.s2sClient.get(url.toString());
     } catch (e) {
-      throw new UnableToIdentifySignerError(`Error calling Identity endpoint on ${domain}: ${e?.message}`);
+      console.error(`Error calling Identity endpoint on ${domain}: ${e?.message}`);
+      throw new UnableToIdentifySignerError(`Error calling Identity endpoint on ${domain}`);
     }
 
     const responseData = response.data as GetIdentityResponse;
@@ -50,9 +51,8 @@ export class PublicKeyStore {
     const currentKey = sorted[0]; // take the first one (the one that ends as far as possible from now)
 
     if (currentKey === undefined) {
-      throw new UnableToIdentifySignerError(
-        `No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`
-      );
+      console.error(`No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`);
+      throw new UnableToIdentifySignerError(`No valid key found for ${domain}`);
     }
 
     // Update cache

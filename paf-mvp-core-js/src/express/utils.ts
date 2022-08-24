@@ -5,6 +5,7 @@ import { CorsOptions } from 'cors';
 import domainParser from 'tld-extract';
 import { ReturnUrl } from '@core/model';
 import { RedirectContext, RestContext } from '@core/crypto';
+import { NodeError } from '@core/errors';
 
 export const setCookie = (
   res: Response,
@@ -31,12 +32,6 @@ export const httpRedirect = (res: Response, redirectUrl: string, httpCode = 303)
   res.redirect(httpCode, redirectUrl);
 };
 
-export const metaRedirect = (res: Response, redirectUrl: string, view: string) => {
-  res.render(view, {
-    metaRedirect: redirectUrl,
-  });
-};
-
 /**
  * Extract OneKey data from query string if the "paf" query string parameter is set.
  * @param req
@@ -56,7 +51,11 @@ export const setInQueryString = <T>(url: URL, requestOrResponse: T): URL => {
   return url;
 };
 
-export const getCookies = (req: Request) => req.cookies ?? {};
+export const buildErrorRedirectUrl = (url: URL, httpCode: number, error: NodeError): URL => {
+  const errorResponse = { code: httpCode, error: error };
+  url.searchParams.set(QSParam.paf, encodeBase64(JSON.stringify(errorResponse)));
+  return url;
+};
 
 export const isValidHttpUrl = (urlString: string) => {
   try {
