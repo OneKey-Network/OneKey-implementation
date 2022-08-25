@@ -13,20 +13,20 @@ flowchart TB
 
     Demo("Demo Project")
     style Demo fill:#f5f5f5,stroke:#d2d2d2,stroke-width:2px
-    click Demo "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-demo-express" "paf-mvp-demo-express"
+    click Demo "https://github.com/OneKey-Network/paf-mvp-implementation/tree/main/paf-mvp-demo-express" "paf-mvp-demo-express"
     
     Core("Core Javascript")
-    click Core "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-core-js" "paf-mvp-core-js"
+    click Core "https://github.com/OneKey-Network/paf-mvp-implementation/tree/main/paf-mvp-core-js" "paf-mvp-core-js"
     
     Frontend("Frontend library & widget<br>(you are here)")
     style Frontend fill:#ff9a36,stroke:#333,stroke-width:2px
-    click Frontend "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-frontend" "paf-mvp-frontend"
+    click Frontend "https://github.com/OneKey-Network/paf-mvp-implementation/tree/main/paf-mvp-frontend" "paf-mvp-frontend"
     
     Operator("Operator API")
-    click Operator "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
+    click Operator "https://github.com/OneKey-Network/paf-mvp-implementation/tree/main/paf-mvp-operator-express" "paf-mvp-operator-express"
     
     Client("Operator client")
-    click Client "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express" "paf-mvp-client-express"
+    click Client "https://github.com/OneKey-Network/paf-mvp-implementation/tree/main/paf-mvp-client-express" "paf-mvp-client-express"
     
     Demo --> Frontend
     linkStyle 0 stroke:#d2d2d2,stroke-width:1px
@@ -43,7 +43,7 @@ flowchart TB
 
 ```
 
-See [addressable-network-proposals](https://github.com/prebid/addressability-framework/blob/main/mvp-spec/paf-client-node.md)
+See [addressable-network-proposals](https://github.com/OneKey-Network/addressability-framework/blob/main/mvp-spec/paf-client-node.md)
 for more context on the operator **frontend** and **backend** clients and the operator **proxy**
 
 ## Identification library integration

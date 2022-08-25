@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
+    "url": "git+https://github.com/OneKey-Network/paf-mvp-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
+    "url": "https://github.com/OneKey-Network/paf-mvp-implementation/issues"
   },
-  "homepage": "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express#readme",
+  "homepage": "https://github.com/OneKey-Network/paf-mvp-implementation/tree/main/paf-mvp-client-express#readme",
   "dependencies": {
     "axios": "^0.26.1",
     "cors": "^2.8.5",
