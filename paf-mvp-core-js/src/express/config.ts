@@ -40,6 +40,7 @@ export interface IdentityJSONConfig {
 export interface JSONConfig {
   identity: IdentityJSONConfig;
   host: string;
+  redirectResponseTimeoutInMs: number;
 }
 
 export interface IdentityConfig {

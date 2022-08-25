@@ -54,6 +54,7 @@ import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@c
 import { NodeError, NodeErrorType } from '@core/errors';
 import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
 import { UnableToIdentifySignerError } from '@core/express/errors';
+import timeout from 'connect-timeout';
 
 /**
  * Expiration: now + 3 months
@@ -76,6 +77,7 @@ export type AllowedHosts = { [host: string]: Permission[] };
  */
 export interface OperatorNodeConfig extends Config {
   allowedHosts: AllowedHosts;
+  redirectResponseTimeoutInMs: number;
 }
 
 export class OperatorNode extends Node {
@@ -91,6 +93,7 @@ export class OperatorNode extends Node {
   getIdsPrefsRequestVerifier: RequestVerifier<GetIdsPrefsRequest>;
   getNewIdRequestVerifier: RequestVerifier<GetNewIdRequest>;
   idBuilder: IdBuilder;
+  redirectResponseTimeoutInMs: number;
 
   constructor(
     identity: Omit<IdentityConfig, 'type'>,
@@ -98,7 +101,8 @@ export class OperatorNode extends Node {
     privateKey: string,
     private allowedHosts: AllowedHosts,
     jsonValidator: IJsonValidator,
-    publicKeyProvider: PublicKeyProvider
+    publicKeyProvider: PublicKeyProvider,
+    redirectResponseTimeout: number
   ) {
     super(
       host,
@@ -125,6 +129,7 @@ export class OperatorNode extends Node {
     this.getIdsPrefsRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
     this.getNewIdRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
     this.idBuilder = new IdBuilder(host, privateKey);
+    this.redirectResponseTimeoutInMs = redirectResponseTimeout;
 
     // Note that CORS is "disabled" here because the check is done via signature
     // So accept whatever the referer is
@@ -190,12 +195,12 @@ export class OperatorNode extends Node {
       this.handleErrors(jsonProxyEndpoints.newId),
       this.endSpan(jsonProxyEndpoints.newId)
     );
-
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
     this.app.expressApp.get(
       redirectEndpoints.read,
+      timeout(this.redirectResponseTimeoutInMs),
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRedirectRequest, true),
       this.returnUrlValidationHandler<GetIdsPrefsRequest>(),
       this.buildReadPermissionHandler(true),
@@ -205,9 +210,9 @@ export class OperatorNode extends Node {
       this.handleErrorsWithRedirectToReferer(redirectEndpoints.read),
       this.endSpan(redirectEndpoints.read)
     );
-
     this.app.expressApp.get(
       redirectEndpoints.write,
+      timeout(this.redirectResponseTimeoutInMs),
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest, true),
       this.returnUrlValidationHandler<PostIdsPrefsRequest>(),
       this.buildWritePermissionHandler(true),
@@ -220,6 +225,7 @@ export class OperatorNode extends Node {
 
     this.app.expressApp.get(
       redirectEndpoints.delete,
+      timeout(this.redirectResponseTimeoutInMs),
       this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest, true),
       this.returnUrlValidationHandler<DeleteIdsPrefsRequest>(),
       this.buildDeletePermissionHandler(true),
@@ -689,14 +695,17 @@ export class OperatorNode extends Node {
     }
   };
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
-    const { host, identity, currentPrivateKey, allowedHosts } = (await parseConfig(configPath)) as OperatorNodeConfig;
+    const { host, identity, currentPrivateKey, allowedHosts, redirectResponseTimeoutInMs } = (await parseConfig(
+      configPath
+    )) as OperatorNodeConfig;
     return new OperatorNode(
       identity,
       host,
       currentPrivateKey,
       allowedHosts,
       JsonValidator.default(),
-      new PublicKeyStore(s2sOptions).provider
+      new PublicKeyStore(s2sOptions).provider,
+      redirectResponseTimeoutInMs || 2000
     );
   }
 

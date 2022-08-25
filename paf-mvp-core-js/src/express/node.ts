@@ -95,11 +95,18 @@ export class Node implements INode {
    * @param endPointName
    */
   handleErrors(endPointName: string): ErrorRequestHandler {
-    /* eslint-disable */
-    return (err: NodeError, req: Request, res: Response, next: NextFunction) => {
-      /* eslint-enable */
+    return (err: any, req: Request, res: Response, next: NextFunction) => {
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
+
+      // In case of timeout redirect to referer ...
+      if (err.message === 'Response timeout') {
+        const error: NodeError = {
+          type: NodeErrorType.RESPONSE_TIMEOUT,
+          details: err.message,
+        };
+        this.redirectWithError(res, req.header('referer'), 504, error);
+      }
     };
   }
 
