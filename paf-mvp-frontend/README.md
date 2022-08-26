@@ -52,7 +52,7 @@ To integrate the identification library into a website, website owners should in
 
 ```html
 <script
-  src="https://my-cdn.domain/assets/paf-lib.js"
+  src="https://my-cdn.domain/assets/onekey.js"
 ></script>
 ```
 
@@ -67,7 +67,7 @@ Once the script is available, a couple of methods can be called to manipulate On
 Example usage:
 ```html
 <script
-  src="https://my-cdn.domain/assets/paf-lib.js"
+  src="https://my-cdn.domain/assets/onekey.js"
   onload="OneKey.refreshIdsAndPreferences();"
 ></script>
 ```

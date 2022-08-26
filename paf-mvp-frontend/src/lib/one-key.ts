@@ -1,5 +1,5 @@
 /**
- * Entry point to OneKey library, built as paf-lib.js (TODO rename js file)
+ * Entry point to OneKey library, built as onekey.js (TODO rename js file)
  */
 import { Window } from '@frontend/global';
 import { setUpImmediateProcessingQueue } from '@frontend/utils/queue';

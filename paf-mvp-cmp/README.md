@@ -206,7 +206,7 @@ classes support the model.
 ## Controller
 
 `./src/controller` implements the controller for the UI, references the other
-classes, and the dependent project paf-lib. The primary logic relates to loading
+classes, and the dependent project one-key. The primary logic relates to loading
 the UI and fetching the current data state from the paf-lib in the constructor.
 It also handles actions and changes to the current displayed card.
 

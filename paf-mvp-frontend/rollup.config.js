@@ -36,7 +36,7 @@ export default [
   defineConfig({
     input: relative('src/lib/one-key.ts'),
     output: {
-      file: getDestFolder(`/paf-lib.js`),
+      file: getDestFolder(`/onekey.js`),
       format: 'umd',
       name: 'OneKey',
       sourcemap: generateSourceMap
