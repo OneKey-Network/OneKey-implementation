@@ -289,7 +289,7 @@ pressing raised as GitHub issues.
     contains a single method to update data and retrieve the current state.
     Shift more of the logic into the CMP and Operator out of the client. This
     might also impact the completion of step 3 in the publisher quick start
-    guide. [\#141](https://github.com/OneKey-Network/paf-mvp-implementation/issues/141)
+    guide. [\#141](https://github.com/OneKey-Network/OneKey-implementation/issues/141)
 -   Include the publisher segments of the TCF string as options in the
     configuration if the CMP module will be responsible for all the data
     assembly before passing to downstream components such as the Prebid adapter.
@@ -303,4 +303,4 @@ pressing raised as GitHub issues.
 -   Remove `detect-browser` from the overall project saving \~9kb on the bundle
     size. Use an interface to enable the developer to pass in their preference
     for checking third-party cookie support.
-    [\#141](https://github.com/OneKey-Network/paf-mvp-implementation/issues/140)
+    [\#141](https://github.com/OneKey-Network/OneKey-implementation/issues/140)

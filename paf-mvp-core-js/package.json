@@ -17,14 +17,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OneKey-Network/paf-mvp-implementation.git"
+    "url": "git+https://github.com/OneKey-Network/OneKey-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/OneKey-Network/paf-mvp-implementation/issues"
+    "url": "https://github.com/OneKey-Network/OneKey-implementation/issues"
   },
-  "homepage": "https://github.com/OneKey-Network/paf-mvp-implementation/tree/main/paf-mvp-core-js#readme",
+  "homepage": "https://github.com/OneKey-Network/OneKey-implementation/tree/main/paf-mvp-core-js#readme",
   "dependencies": {
     "@types/cors": "^2.8.12",
     "@types/ua-parser-js": "^0.7.36",
