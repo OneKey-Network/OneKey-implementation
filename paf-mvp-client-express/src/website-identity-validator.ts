@@ -46,7 +46,7 @@ export class WebsiteIdentityValidator {
    * These S2S calls would "pass" with cors middleware (they would simply ignore the response header),
    * but we want the call to fail.
    * This is the kind of cases this handler would handle.
-   * (see https://github.com/prebid/addressability-framework/blob/main/mvp-spec/security-signatures.md)
+   * (see https://github.com/OneKey-Network/addressability-framework/blob/main/mvp-spec/security-signatures.md)
    */
   checkOrigin = (req: Request, res: Response, next: NextFunction) => {
     const origin = req.header('origin');

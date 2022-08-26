@@ -6,7 +6,7 @@
 
 **Step 1.** Register your domain with the CMP provider and request the
 proxy-host-name domain. A list of CMP providers is available in the
-[main OneKey documentation](https://github.com/prebid/addressability-framework/blob/main/README.md).
+[main OneKey documentation](https://github.com/OneKey-Network/addressability-framework/blob/main/README.md).
 
 **Step 2.** Add the following snippet after the `<body>` element of the web
 page.
@@ -25,7 +25,7 @@ those associated with your brand.
 
 Tip: Verify that your privacy URL includes references to the Model Terms
 referenced in the
-[main OneKey documentation](https://github.com/prebid/addressability-framework/blob/main/README.md).
+[main OneKey documentation](https://github.com/OneKey-Network/addressability-framework/blob/main/README.md).
 
 **Step 3.** Add the following snippet to the footer of the web page where
 `preferences` is the id of the element that when clicked will display the CMP.
@@ -289,7 +289,7 @@ pressing raised as GitHub issues.
     contains a single method to update data and retrieve the current state.
     Shift more of the logic into the CMP and Operator out of the client. This
     might also impact the completion of step 3 in the publisher quick start
-    guide. [\#141](https://github.com/prebid/paf-mvp-implementation/issues/141)
+    guide. [\#141](https://github.com/OneKey-Network/OneKey-implementation/issues/141)
 -   Include the publisher segments of the TCF string as options in the
     configuration if the CMP module will be responsible for all the data
     assembly before passing to downstream components such as the Prebid adapter.
@@ -303,4 +303,4 @@ pressing raised as GitHub issues.
 -   Remove `detect-browser` from the overall project saving \~9kb on the bundle
     size. Use an interface to enable the developer to pass in their preference
     for checking third-party cookie support.
-    [\#141](https://github.com/prebid/paf-mvp-implementation/issues/140)
+    [\#141](https://github.com/OneKey-Network/OneKey-implementation/issues/140)
