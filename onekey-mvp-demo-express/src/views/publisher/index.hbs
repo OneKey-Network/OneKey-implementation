@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="html">
+<head>
+
+  {{#if useCmpUI}}
+
+    <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
+    <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
+    <link rel="preload" href="https://{{cdnHost}}/assets/onekey.js" as="script" />
+
+  {{else}}
+
+    <!-- OneKey integration -->
+    <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
+
+  {{/if}}
+
+  <!-- Prebid.js -->
+  <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
+  <script async src="/assets/publisher/prebid/prebid.js"></script>
+
+  <script>
+
+    var div_1_sizes = [
+      [728, 90],
+      [970, 250]
+    ];
+    var div_2_sizes = [
+      [300, 250],
+      [300, 600]
+    ];
+
+    var PREBID_TIMEOUT = 3000;
+    var FAILSAFE_TIMEOUT = 3000;
+
+    var adUnits = [
+      {
+        code: 'div-1',
+        mediaTypes: {
+          banner: {
+            sizes: div_1_sizes
+          }
+        },
+        bids: [{
+          bidder: 'openx',
+          params: {
+            delDomain: 'sademo-d.openx.net',
+            unit: '540096529',
+            test: true,
+            customFloor: 0.01
+          }
+        },
+          {
+            bidder: 'criteo',
+            params: {
+              zoneId: 1661193
+            }
+          }]
+      },
+      {
+        code: 'div-2',
+        mediaTypes: {
+          banner: {
+            sizes: div_2_sizes
+          }
+        },
+        bids: [{
+          bidder: 'openx',
+          params: {
+            delDomain: 'sademo-d.openx.net',
+            unit: '540096529',
+            test: true
+          }
+        },
+          {
+            bidder: 'criteo',
+            params: {
+              zoneId: 1661192
+            }
+          }]
+      }
+    ];
+
+
+    var googletag = googletag || {};
+    googletag.cmd = googletag.cmd || [];
+    googletag.cmd.push(function() {
+        googletag.pubads().disableInitialLoad();
+    });
+
+    var pbjs = pbjs || {};
+    pbjs.que = pbjs.que || [];
+
+    var OneKey = OneKey || {};
+    OneKey.queue = OneKey.queue || [];
+
+    pbjs.que.push(function() {
+      pbjs.bidderSettings = {
+          criteo: {
+            storageAllowed: true
+          },
+      };
+      pbjs.addAdUnits(adUnits);
+      pbjs.setConfig({
+        consentManagement: {
+          cmpApi: 'static',
+          consentData: {
+            getTCData: {
+              tcString: 'CO-HDlqO-HDlqAKAXCENBDCsAP_AAH_AACiQHKNd_X_fb39j-_59_9t0eY1f9_7_v20zjgeds-8Nyd_X_L8X42M7vF36pq4KuR4Eu3LBIQFlHOHcTUmw6IkVqTPsak2Mr7NKJ7PEinMbe2dYGHtfn9VTuZKYr97s___z__-__v__75f_r-3_3_vp9V---_fA5QAkw1L4CLMSxwJJo0qhRAhCuJDoAQAUUIwtE1hASuCnZXAR-ggYAIDUBGBECDEFGLIIAAAAAkoiAkAPBAIgCIBAACAFSAhAARoAgsAJAwCAAUA0LACKAIQJCDI4KjlMCAiRaKCeSMASi72MMIQyigBoFH4AAAAA.cAAAAAAAAAAA',
+              cmpId: 10,
+              cmpVersion: 23,
+              tcfPolicyVersion: 2,
+              gdprApplies: false,
+              cmpStatus: 'loaded',
+              eventStatus: 'tcloaded'
+            }
+          }
+        },
+        priceGranularity: 'high',
+        debug: true,
+        realTimeData: {
+          auctionDelay: 1000,
+          dataProviders: [
+            {
+              name: 'oneKey',
+              waitForIt: true
+            }
+          ]
+        },
+        userSync: {
+          userIds: [{
+            name: 'oneKeyData',
+            params: {}
+          }],
+          auctionDelay: 1000,
+          syncDelay: 3000
+        }
+      });
+
+            // Generate and store the OneKey Audit Log
+            // once the winner is elected.
+            pbjs.onEvent("bidWon", bid => {
+                let pafObj = bid.meta.paf;
+                if (pafObj === undefined) {
+                    return;
+                }
+                OneKey.queue.push(() => {
+                    OneKey.registerTransmissionResponse({
+                        divIdOrAdUnitCode: bid.adUnitCode,
+                        contentId: pafObj.content_id
+                    }, pafObj.transmission);
+                });
+            });
+            OneKey.queue.push(() => {
+                // PrebidJS calls internally OneKey without the queue
+                pbjs.requestBids({
+                    bidsBackHandler: initAdserver,
+                    timeout: PREBID_TIMEOUT
+                });
+            });
+        });
+
+        function initAdserver() {
+            if (pbjs.initAdserverSet) return;
+            pbjs.initAdserverSet = true;
+            googletag.cmd.push(function() {
+                pbjs.que.push(function() {
+                    pbjs.setTargetingForGPTAsync();
+                    googletag.pubads().refresh();
+                });
+            });
+        }
+        // in case PBJS doesn't load
+        setTimeout(function() {
+            initAdserver();
+        }, FAILSAFE_TIMEOUT);
+
+        googletag.cmd.push(function() {
+            googletag.defineSlot('/90577858/prebid_auid', div_1_sizes, 'div-1').addService(googletag.pubads());
+            googletag.pubads().enableSingleRequest();
+            googletag.enableServices();
+        });
+        googletag.cmd.push(function() {
+            googletag.defineSlot('/90577858/prebid_auid', div_2_sizes, 'div-2').addService(googletag.pubads());
+            googletag.pubads().enableSingleRequest();
+            googletag.enableServices();
+        });
+
+    </script>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
+    <meta name="viewport" content="width=device-width"/>
+    <title>
+        {{title}}
+    </title>
+    {{#if metaRedirect}}
+        <meta http-equiv="refresh" content="0;url={{metaRedirect}}">
+    {{/if}}
+</head>
+<body>
+
+{{#if useCmpUI}}
+
+<!-- CMP -->
+<!-- See onekey-mvp-cmp/README.md for details -->
+<script src="https://{{cdnHost}}/assets/onekey.js" data-client-hostname="{{pafNodeHost}}" data-cookie-ttl="PT30S"></script>
+<script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js"
+    data-display-intro="false"
+    data-snackbar-timeout-ms="5000"
+    data-brand-name="Demo Publisher"
+    data-site-only-cookie-tcf-core="tcf-core"
+    data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
+    data-brand-privacy-url="https://github.com/OneKey-Network/OneKey-implementation"></script>
+
+{{else}}
+  <script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}"></script>
+
+{{/if}}
+
+
+<div>
+    <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/publisher/css/style.min.css" type="text/css">
+
+</div>
+<header id="header">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="d-flex justify-content-between align-items-center navbar-top">
+                <ul class="navbar-left">
+                    <li>{{ date }}</li>
+                    <li>25°C, Paris</li>
+                </ul>
+                <div>
+                    <router-link class="navbar-brand" :to="{ name: 'PublisherIndex' }">
+                        <h1>{{title}}</h1>
+                    </router-link>
+                </div>
+                <div class="d-flex">
+                    <ul class="navbar-right">
+                        <li>
+                            <a href="#">ENGLISH</a>
+                        </li>
+                        <li>
+                            <a href="#">FRANÇAIS</a>
+                        </li>
+                    </ul>
+                    <ul class="social-media">
+                        <li>
+                            <a href="#">
+                                <i class="mdi mdi-instagram"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="mdi mdi-facebook"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="mdi mdi-youtube"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="mdi mdi-linkedin"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="mdi mdi-twitter"></i>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-right mx-3">
+                        <li>
+                            <router-link :to="{ name: 'PublisherProfile' }">
+                                <i class="mdi mdi-account"></i> {{ loginLabel }}
+                            </router-link>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="navbar-bottom-menu">
+                <button
+                        class="navbar-toggler"
+                        type="button"
+                        data-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div
+                        class="navbar-collapse justify-content-center collapse"
+                        id="navbarSupportedContent"
+                >
+                    <ul
+                            class="navbar-nav d-lg-flex justify-content-between align-items-center"
+                    >
+                        <li>
+                            <button class="navbar-close">
+                                <i class="mdi mdi-close"></i>
+                            </button>
+                        </li>
+                        <li class="nav-item active">
+                            <router-link class="nav-link active" :to="{name: 'PublisherIndex'}">Home</router-link>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">World</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Magazine</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Blog</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Business</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Sports</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Art</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Politics</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Real estate</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Travel</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="mdi mdi-magnify"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<div>
+    <div class="container">
+        <div class="banner-top-thumb-wrap">
+            <div class="d-lg-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between  mb-3 mb-lg-0">
+                    <div>
+                        <img src="/assets/publisher/images/dashboard/star-magazine-1.webp"
+                             alt="thumb"
+                             class="banner-top-thumb"/>
+                    </div>
+                    <h5 class="m-0 font-weight-bold">
+                        The morning after: What people
+                    </h5>
+                </div>
+                <div class="d-flex justify-content-between mb-3 mb-lg-0">
+                    <div>
+                        <img src="/assets/publisher/images/dashboard/star-magazine-2.webp"
+                             alt="thumb"
+                             class="banner-top-thumb"/>
+                    </div>
+                    <h5 class="m-0 font-weight-bold">How Hungary produced the</h5>
+                </div>
+                <div class="d-flex justify-content-between mb-3 mb-lg-0">
+                    <div>
+                        <img src="/assets/publisher/images/dashboard/star-magazine-3.webp"
+                             alt="thumb"
+                             class="banner-top-thumb"/>
+                    </div>
+                    <h5 class="m-0 font-weight-bold">
+                        A sleepy island paradise's most
+                    </h5>
+                </div>
+                <div class="d-flex justify-content-between mb-3 mb-lg-0">
+                    <div>
+                        <img src="/assets/publisher/images/dashboard/star-magazine-4.webp"
+                             alt="thumb"
+                             class="banner-top-thumb"/>
+                    </div>
+                    <h5 class="m-0 font-weight-bold">
+                        America's most popular national
+                    </h5>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="owl-carousel owl-theme" id="main-banner-carousel">
+                    <div class="item">
+                        <div class="carousel-content-wrapper mb-2">
+                            <div class="carousel-content">
+                                <h1 class="font-weight-bold">
+                                    If you wanted to get rich, how would you do it?
+                                </h1>
+                                <h5 class="font-weight-normal  m-0">
+                                    Working hard.
+                                </h5>
+                                <p class="text-color m-0 pt-2 d-flex align-items-center">
+                                    <span class="fs-10 mr-1">2 hours ago</span>
+                                    <i class="mdi mdi-bookmark-outline mr-3"></i>
+                                    <span class="fs-10 mr-1">126</span>
+                                    <i class="mdi mdi-comment-outline"></i>
+                                </p>
+                            </div>
+                            <div class="carousel-image">
+                                <img src="/assets/publisher/images/dashboard/banner.webp" alt=""/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="py-3 border-bottom">
+                            <div class="d-flex align-items-center pb-2">
+                                <img src="/assets/publisher/images/dashboard/Profile_1.webp"
+                                     class="img-xs img-rounded mr-2"
+                                     alt="thumb"/>
+                                <span class="fs-12 text-muted">Henry Itondo</span>
+                            </div>
+                            <p class="fs-14 m-0 font-weight-medium line-height-sm">
+                                The Most And Least Visited Countries In The World
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="py-3 border-bottom">
+                            <div class="d-flex align-items-center pb-2">
+                                <img src="/assets/publisher/images/dashboard/Profile_2.webp"
+                                     class="img-xs img-rounded mr-2"
+                                     alt="thumb"/>
+                                <span class="fs-12 text-muted">Oka Tomoaki</span>
+                            </div>
+                            <p class="fs-14 m-0 font-weight-medium line-height-sm">
+                                The Best Places to Travel in month August
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="pt-4 pb-4 border-bottom">
+                            <div class="d-flex align-items-center pb-2">
+                                <img src="/assets/publisher/images/dashboard/Profile_2.webp"
+                                     class="img-xs img-rounded mr-2"
+                                     alt="thumb"/>
+                                <span class="fs-12 text-muted">Joana Leite</span>
+                            </div>
+                            <p class="fs-14 m-0 font-weight-medium line-height-sm">
+                                Focus On Fun And Challenging Lifetime Activities
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="pt-3 pb-4 border-bottom">
+                            <div class="d-flex align-items-center pb-2">
+                                <img src="/assets/publisher/images/dashboard/Profile_4.webp"
+                                     class="img-xs img-rounded mr-2"
+                                     alt="thumb"/>
+                                <span class="fs-12 text-muted">Rita Leite</span>
+                            </div>
+                            <p class="fs-14 m-0 font-weight-medium line-height-sm">
+                                Bread Is The Most Widely Consumed Food In The World
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="pt-4 pb-4">
+                            <div class="d-flex align-items-center pb-2">
+                                <img src="/assets/publisher/images/dashboard/Profile_5.webp"
+                                     class="img-xs img-rounded mr-2"
+                                     alt="thumb"/>
+                                <span class="fs-12 text-muted">Jurrien Oldhof</span>
+                            </div>
+                            <p class="fs-14 m-0 font-weight-medium line-height-sm">
+                                What Is Music, And What Does It Mean To Us
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="pt-3 pb-4">
+                            <div class="d-flex align-items-center pb-2">
+                                <img src="/assets/publisher/images/dashboard/Profile_6.webp"
+                                     class="img-xs img-rounded mr-2"
+                                     alt="thumb"/>
+                                <span class="fs-12 text-muted">Yamaha Toshinobu</span>
+                            </div>
+                            <p class="fs-14 m-0 font-weight-medium line-height-sm">
+                                Is Breakfast The Most Important Meal Of The Day
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="div-1" style="border:1px solid black;">
+            <script type='text/javascript'>
+                googletag.cmd.push(function() {
+                    googletag.display('div-1');
+                });
+
+            </script>
+        </div>
+        <div class="world-news">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="d-flex position-relative  float-left">
+                        <h3 class="section-title">World News</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-sm-6 grid-margin mb-5 mb-sm-2">
+                    <div class="position-relative image-hover">
+                        <img src="/assets/publisher/images/dashboard/travel.webp"
+                             class="img-fluid"
+                             alt="world-news"/>
+                        <span class="thumb-title">TRAVEL</span>
+                    </div>
+                    <h5 class="font-weight-bold mt-3">
+                        Refugees flood Turkey's border with Greece
+                    </h5>
+                    <p class="fs-15 font-weight-normal">
+                        Greece stands firm on migrants, as Turkey opens floodgates to Europe.
+                    </p>
+                    <a href="#" class="font-weight-bold text-dark pt-2">Read Article</a>
+                </div>
+                <div class="col-lg-4 col-sm-6 mb-5 mb-sm-2">
+                    <div class="position-relative image-hover">
+                        <img src="/assets/publisher/images/dashboard/news.webp"
+                             class="img-fluid"
+                             alt="world-news"/>
+                        <span class="thumb-title">NEWS</span>
+                    </div>
+                    <h5 class="font-weight-bold mt-3">
+                        US Congress report blasts Boeing and FAA over 737 Max failures
+                    </h5>
+                    <p class="fs-15 font-weight-normal">
+                        Report cites 'horrific culmination' of failed oversight, design flaws and lack of action.
+                    </p>
+                    <a href="#" class="font-weight-bold text-dark pt-2">Read Article</a>
+                </div>
+                <div class="col-lg-4 col-sm-6 mb-5 mb-sm-2" id="div-2" style="border:1px solid black;">
+                    <script type='text/javascript'>
+                        googletag.cmd.push(function() {
+                            googletag.display('div-1');
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+        <div class="editors-news">
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="d-flex position-relative float-left">
+                        <h3 class="section-title">Popular News</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6  mb-5 mb-sm-2">
+                    <div class="position-relative image-hover">
+                        <img src="/assets/publisher/images/dashboard/glob.webp"
+                             class="img-fluid"
+                             alt="world-news"/>
+                        <span class="thumb-title">NEWS</span>
+                    </div>
+                    <h1 class="font-weight-600 mt-3">
+                        Melania Trump speaks about courage at State Department
+                    </h1>
+                    <p class="fs-15 font-weight-normal">
+                        For the fourth consecutive year, first lady Melania Trump on Wednesday attended the
+                        International Women of Courage Awards at the State Department.
+                    </p>
+                </div>
+                <div class="col-lg-6  mb-5 mb-sm-2">
+                    <div class="row">
+                        <div class="col-sm-6  mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-5.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">POLITICS</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                2020 California fires are the worst ever. Again.
+                            </h5>
+                            <p class="fs-15 font-weight-normal">
+                                Record-breaking wildfires are occurring more often.
+                            </p>
+                        </div>
+                        <div class="col-sm-6  mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-6.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">TRAVEL</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                Thomas Cook is resurrected in a pandemic to be an online travel player
+                            </h5>
+                            <p class="fs-15 font-weight-normal">
+                                It's proposing to sell customers thousands of hotels and flight routes.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-sm-6  mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-7.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">POLITICS</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                Yoshihide Suga officially named as Japan's new Prime Minister
+                            </h5>
+                            <p class="fs-15 font-weight-normal">
+                                Yoshihide Suga replaces outgoing leader Shinzo Abe.
+                            </p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-8.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">TRAVEL</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                Apple unveils all-new iPad Air with A14 Bionic
+                            </h5>
+                            <p class="fs-15 font-weight-normal">
+                                A14 Bionic is Apple’s most advanced chip and will be included in all iPad Air.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="popular-news">
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="d-flex position-relative float-left">
+                        <h3 class="section-title">Editor choice</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-9">
+                    <div class="row">
+                        <div class="col-sm-4  mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-9.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">LIFESTYLE</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                The island country that gave Mayor Pete his name
+                            </h5>
+                        </div>
+                        <div class="col-sm-4 mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-10.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">SPORTS</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                Disney parks expand (good) vegan food options
+                            </h5>
+                        </div>
+                        <div class="col-sm-4 mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-11.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">INTERNET</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                A hot springs where clothing is optional after dark
+                            </h5>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-sm-4 mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-12.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">NEWS</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                Japanese chef carves food into incredible pieces of art
+                            </h5>
+                        </div>
+                        <div class="col-sm-4 mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-13.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">NEWS</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                The Misanthrope Society: A Taipei bar for people who
+                            </h5>
+                        </div>
+                        <div class="col-sm-4 mb-5 mb-sm-2">
+                            <div class="position-relative image-hover">
+                                <img src="/assets/publisher/images/dashboard/star-magazine-14.webp"
+                                     class="img-fluid"
+                                     alt="world-news"/>
+                                <span class="thumb-title">TOURISM</span>
+                            </div>
+                            <h5 class="font-weight-600 mt-3">
+                                From Pakistan to the Caribbean: Curry's journey
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="position-relative mb-3">
+                        <img src="/assets/publisher/images/dashboard/star-magazine-15.webp"
+                             class="img-fluid"
+                             alt="world-news"/>
+                        <div class="video-thumb text-muted">
+                            <span><i class="mdi mdi-menu-right"></i></span>LIVE
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="d-flex position-relative float-left">
+                                <h3 class="section-title">Latest News</h3>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="border-bottom pb-3">
+                                <h5 class="font-weight-600 mt-0 mb-0">
+                                    South Korea’s Moon Jae-in sworn in vowing address
+                                </h5>
+                                <p class="text-color m-0 d-flex align-items-center">
+                                    <span class="fs-10 mr-1">2 hours ago</span>
+                                    <i class="mdi mdi-bookmark-outline mr-3"></i>
+                                    <span class="fs-10 mr-1">126</span>
+                                    <i class="mdi mdi-comment-outline"></i>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="border-bottom pt-4 pb-3">
+                                <h5 class="font-weight-600 mt-0 mb-0">
+                                    South Korea’s Moon Jae-in sworn in vowing address
+                                </h5>
+                                <p class="text-color m-0 d-flex align-items-center">
+                                    <span class="fs-10 mr-1">2 hours ago</span>
+                                    <i class="mdi mdi-bookmark-outline mr-3"></i>
+                                    <span class="fs-10 mr-1">126</span>
+                                    <i class="mdi mdi-comment-outline"></i>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="border-bottom pt-4 pb-3">
+                                <h5 class="font-weight-600 mt-0 mb-0">
+                                    South Korea’s Moon Jae-in sworn in vowing address
+                                </h5>
+                                <p class="text-color m-0 d-flex align-items-center">
+                                    <span class="fs-10 mr-1">2 hours ago</span>
+                                    <i class="mdi mdi-bookmark-outline mr-3"></i>
+                                    <span class="fs-10 mr-1">126</span>
+                                    <i class="mdi mdi-comment-outline"></i>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="pt-4">
+                                <h5 class="font-weight-600 mt-0 mb-0">
+                                    South Korea’s Moon Jae-in sworn in vowing address
+                                </h5>
+                                <p class="text-color m-0 d-flex align-items-center">
+                                    <span class="fs-10 mr-1">2 hours ago</span>
+                                    <i class="mdi mdi-bookmark-outline mr-3"></i>
+                                    <span class="fs-10 mr-1">126</span>
+                                    <i class="mdi mdi-comment-outline"></i>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="border-top"></div>
+                </div>
+                <div class="col-sm-3 col-lg-3">
+                    <ul class="footer-vertical-nav">
+                        <li class="menu-title"><a href="#">News</a></li>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">World</a></li>
+                        <li><a href="#">Magazine</a></li>
+                        <li><a href="#">Business</a></li>
+                        <li><a href="#">Politics</a></li>
+                    </ul>
+                </div>
+                <div class="col-sm-3 col-lg-3">
+                    <ul class="footer-vertical-nav">
+                        <li class="menu-title"><a href="#">World</a></li>
+                        <li><a href="#">Sports</a></li>
+                        <li><a href="#">Art</a></li>
+                        <li><a href="#">Magazine</a></li>
+                        <li><a href="#">Real estate</a></li>
+                        <li><a href="#">Travel</a></li>
+                        <li><a href="#">Author</a></li>
+                    </ul>
+                </div>
+                <div class="col-sm-3 col-lg-3">
+                    <ul class="footer-vertical-nav">
+                        <li class="menu-title"><a href="#">Features</a></li>
+                        <li><a href="#">Photography</a></li>
+                        <li><a href="#">Video</a></li>
+                        <li><a href="#">Newsletters</a></li>
+                        <li><a href="#">Live Events</a></li>
+                        <li><a href="#">Stores</a></li>
+                        <li><a href="#">Jobs</a></li>
+                    </ul>
+                </div>
+                <div class="col-sm-3 col-lg-3">
+                    <ul class="footer-vertical-nav">
+                        <li class="menu-title"><a href="#">More</a></li>
+                        <li><a href="#">RSS</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">User Agreement</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">About us</a></li>
+                        <li><a href="#" id="preferences" class="d-flex align-items-center">
+                          <div class="mr-2">
+                            <img src="/assets/publisher/images/Union.svg" alt="">
+                          </div>
+                          <div>
+                            Marketing preferences
+                          </div>
+                        </a></li>
+                    </ul>
+                  <script>
+                    document.querySelector('#preferences')
+                      .addEventListener('click', (e) => {
+                        e.preventDefault();
+                        OneKey.refreshIdsAndPreferences('doPrompt');
+                      });
+                  </script>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="d-flex justify-content-between">
+                        <h1>My news</h1>
+                        <div class="d-flex justify-content-end footer-social">
+                            <h5 class="m-0 font-weight-600 mr-3 d-none d-lg-flex">Follow on</h5>
+                            <ul class="social-media">
+                                <li>
+                                    <a href="#">
+                                        <i class="mdi mdi-instagram"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="mdi mdi-facebook"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="mdi mdi-youtube"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="mdi mdi-linkedin"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="mdi mdi-twitter"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div
+                            class="d-lg-flex justify-content-between align-items-center border-top mt-5 footer-bottom"
+                    >
+                        <ul class="footer-horizontal-menu">
+                            <li><a href="#">Terms of Use.</a></li>
+                            <li><a href="#">Privacy Policy.</a></li>
+                            <li><a href="#">Accessibility & CC.</a></li>
+                            <li><a href="#">AdChoices.</a></li>
+                            <li><a href="#">Advertise with us Transcripts.</a></li>
+                            <li><a href="#">License.</a></li>
+                            <li><a href="#">Sitemap</a></li>
+                        </ul>
+                        <p class="font-weight-medium">
+                            © 2020 <a href="https://www.bootstrapdash.com/" target="_blank" class="text-dark">@
+                            BootstrapDash</a>, Inc.All Rights Reserved.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+    /**
+     * Fake audit log used for initial development of the Audit UI.
+     */
+    const fakeAuditLogString = `{"version":"0.1","data":{"identifiers":[{"version":"0.1","type":"paf_browser_id","value":"7435313e-caee-4889-8ad7-0acd0114ae3c","source":{"domain":"operator0.com","timestamp":1639580000,"signature":"868e7a6c27b7b7fe5fed219503894bf263f31bb6d8fd48336d283e77b512cda7"}}],"preferences":{"version":"0.1","data":{"use_browsing_for_personalization":true},"source":{"domain":"cmp1.com","timestamp":1639581000,"signature":"65acdcfdbdba8b17936f25a32b33b000393c866588d146cb62ec51ab8890c54f"}}},"seed":{"version":"0.1","transaction_ids":["4640dc9f-385f-4e02-a0e5-abbf241af94d"],"publisher":"publisher.com","source":{"domain":"publisher.com","timestamp":1639582000,"signature":"f1f4871d48b825931c5016a433cb3b6388f989fac363af09b9ee3cd400d86b74"}},"transaction_id":"4640dc9f-385f-4e02-a0e5-abbf241af94d","transmissions":[{"version":"0.1","receiver":"ssp1","contents":[],"status":"success","details":"","source":{"domain":"ssp1","timestamp":3911,"signature":"signature_ssp1_signature"}},{"version":"0.1","receiver":"ssp2","contents":[],"status":"success","details":"","source":{"domain":"ssp2","timestamp":3921,"signature":"signature_ssp2_signature"}},{"version":"0.1","receiver":"dsp1","contents":[{"content_id":"dsp1 -  content-id - 0","transaction_id":"dsp1 -  transaction-id - 0"},{"content_id":"dsp1 -  content-id - 1","transaction_id":"dsp1 -  transaction-id - 1"},{"content_id":"90141190-26fe-497c-acee-4d2b649c2112","transaction_id":"4640dc9f-385f-4e02-a0e5-abbf241af94d"}],"status":"success","details":"","source":{"domain":"dsp1","timestamp":3761,"signature":"signature_dsp1_signature"}}]}`;
+    document.getElementById('div-1').setAttribute('auditLog', fakeAuditLogString);
+    document.getElementById('div-2').setAttribute('auditLog', fakeAuditLogString);
+</script>
+<script src="https://{{cdnHost}}/assets/ok-audit.min.js" defer></script>
+
+</body>
+</html>

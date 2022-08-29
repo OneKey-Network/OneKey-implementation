@@ -20,14 +20,14 @@
     "rootDir": ".",
     "baseUrl": ".",
     "typeRoots": [
-      "paf-mvp-core-js/@types",
+      "onekey-mvp-core-js/@types",
       "paf-mvp-demo-express/@types",
       "node_modules/@types"
     ],
     "paths": {
-      "@core/*": ["./paf-mvp-core-js/src/*"],
+      "@core/*": ["./onekey-mvp-core-js/src/*"],
       "@operator/*": ["./paf-mvp-operator-express/src/*"],
-      "@client/*": ["./paf-mvp-client-express/src/*"],
+      "@client/*": ["./onekey-mvp-client-express/src/*"],
       "@frontend/*": ["./paf-mvp-frontend/src/*"]
     }
   },

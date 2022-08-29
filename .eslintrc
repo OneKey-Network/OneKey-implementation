@@ -20,13 +20,13 @@
     "semi": "warn",
     "quotes": ["warn", "single", {"avoidEscape": true}],
     "eqeqeq": "warn",
-    "no-restricted-imports": ["error", { "patterns": ["paf-mvp-demo-express"] }]
+    "no-restricted-imports": ["error", { "patterns": ["onekey-mvp-demo-express"] }]
   },
   "ignorePatterns": [
     "*/dist/*",
     "**/jest.config.js",
-    "paf-mvp-frontend/*",
-    "paf-mvp-demo-express/public/assets/*",
+    "onekey-mvp-frontend/*",
+    "onekey-mvp-demo-express/public/assets/*",
     "addressability-framework"
   ]
 }

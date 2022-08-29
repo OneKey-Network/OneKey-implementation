@@ -2,24 +2,24 @@
   "name": "paf-mvp-implementation",
   "version": "1.0.0",
   "description": "",
-  "main": "paf-mvp-demo-express/src/index.ts",
+  "main": "onekey-mvp-demo-express/src/index.ts",
   "scripts": {
     "test": "jest --passWithNoTests",
-    "build-front": "npm run build --prefix paf-mvp-frontend && npm run build:tcf --prefix paf-mvp-cmp && npm run build --prefix paf-mvp-audit",
-    "build-back": "npm run build --prefix paf-mvp-operator-express && npm run build --prefix paf-mvp-client-express",
+    "build-front": "npm run build --prefix onekey-mvp-frontend && npm run build:tcf --prefix onekey-mvp-cmp && npm run build --prefix onekey-mvp-audit",
+    "build-back": "npm run build --prefix onekey-mvp-operator-express && npm run build --prefix onekey-mvp-client-express",
     "start:watch": "nodemon --debug .",
     "lint": "eslint .",
     "lint:all": "npm run lint && npm run lint:frontend",
     "lint:staged": "lint-staged",
     "lint:fix": "eslint . --fix",
-    "lint:frontend": "npm run lint --prefix paf-mvp-frontend && npm run lint --prefix paf-mvp-cmp && npm run lint --prefix paf-mvp-audit",
-    "lint:all:fix": "npm run lint:fix && npm run lint:fix --prefix paf-mvp-frontend && npm run lint:fix --prefix paf-mvp-cmp && npm run lint:fix --prefix paf-mvp-audit",
+    "lint:frontend": "npm run lint --prefix onekey-mvp-frontend && npm run lint --prefix onekey-mvp-cmp && npm run lint --prefix onekey-mvp-audit",
+    "lint:all:fix": "npm run lint:fix && npm run lint:fix --prefix onekey-mvp-frontend && npm run lint:fix --prefix onekey-mvp-cmp && npm run lint:fix --prefix onekey-mvp-audit",
     "lint:prettier": "prettier --list-different \"./paf-*/**/*.{tsx,ts}\"",
     "prettier:fix": "prettier --write \"./paf-*/**/*.{tsx,ts}\" --loglevel silent",
     "prepare": "husky install",
     "###########": "FYI: Google cloud console automatically runs these scripts after deploy:",
     "gcp-build": "npm run build-front",
-    "start": "npm run start --prefix paf-mvp-demo-express"
+    "start": "npm run start --prefix onekey-mvp-demo-express"
   },
   "repository": {
     "type": "git",
@@ -141,10 +141,10 @@
     "webpack-cli": "^4.9.1"
   },
   "_moduleAliases": {
-    "@core": "paf-mvp-core-js/src",
-    "@operator": "paf-mvp-operator-express/src",
-    "@client": "paf-mvp-client-express/src",
-    "@frontend": "paf-mvp-frontend/src"
+    "@core": "onekey-mvp-core-js/src",
+    "@operator": "onekey-mvp-operator-express/src",
+    "@client": "onekey-mvp-client-express/src",
+    "@frontend": "onekey-mvp-frontend/src"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

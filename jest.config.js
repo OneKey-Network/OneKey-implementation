@@ -13,7 +13,7 @@ module.exports = {
     },
   },
   testPathIgnorePatterns: [
-    "/paf-mvp-frontend/"
+    "/onekey-mvp-frontend/"
   ],
   'automock': false,
   'resetMocks': false,

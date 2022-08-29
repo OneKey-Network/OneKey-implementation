@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="html">
+<head>
+
+{{#if useCmpUI}}
+
+    <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
+    <link rel="preload" href="https://{{cdnHost}}/assets/onekey.js" as="script" />
+    <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
+
+{{else}}
+
+    <!-- OneKey integration -->
+    <link rel="preload" href="https://{{cdnHost}}/assets/app.bundle.js" as="script" />
+
+{{/if}}
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
+    <meta name="viewport" content="width=device-width"/>
+    <title>
+      {{title}}
+    </title>
+    {{#if metaRedirect}}
+        <meta http-equiv="refresh" content="0;url={{metaRedirect}}">
+    {{/if}}
+</head>
+<body>
+
+{{#if useCmpUI}}
+
+<!-- CMP -->
+<!-- See onekey-mvp-cmp/README.md for details -->
+<script src="https://{{cdnHost}}/assets/onekey.js" data-client-hostname="{{pafNodeHost}}" data-cookie-ttl="PT30S"></script>
+<script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js"
+    data-display-intro="false"
+    data-snackbar-timeout-ms="5000"
+    data-brand-name="Demo Advertiser"
+    data-site-only-cookie-tcf-core="core-tcf"
+    data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
+    data-brand-privacy-url="https://github.com/OneKey-Network/OneKey-implementation"></script>
+
+{{else}}
+  <script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}"></script>
+
+{{/if}}
+
+<script>
+  const redirectIfNeeded = async () => await OneKey.refreshIdsAndPreferences();
+</script>
+<div>
+    <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/advertiser/css/style.min.css" type="text/css">
+
+</div>
+<header class="header-section">
+    <div class="header-top">
+        <div class="container">
+            <div class="ht-left">
+                <div class="mail-service">
+                    {{title}}
+                </div>
+                <div class="phone-service">
+                    <i class=" fa fa-phone"></i>
+                    +33 71.188.888
+                </div>
+            </div>
+            <div class="ht-right">
+                <router-link class="login-panel" :to="{ name: 'AdvertiserProfile' }"><i
+                        class="fa fa-user"></i>{{ loginLabel }}</router-link>
+                <!-- <div class="lan-selector">
+                    <select class="language_drop" name="countries" id="countries" style="width:300px;">
+                        <option value='yt' data-image="/assets/advertiser/img/flag-1.jpg" data-imagecss="flag yt"
+                                data-title="English">
+                            English
+                        </option>
+                        <option value='yu' data-image="/assets/advertiser/img/flag-2.jpg" data-imagecss="flag yu"
+                                data-title="Bangladesh">
+                            German
+                        </option>
+                    </select>
+                </div> -->
+                <div class="top-social">
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-facebook"></i></a>
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-twitter-alt"></i></a>
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-linkedin"></i></a>
+                    <a href="#" onclick="redirectIfNeeded()"><i class="ti-pinterest"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="inner-header">
+            <div class="row">
+                <div class="col-lg-2 col-md-2">
+                    <div class="logo">
+                        <router-link :to="{name: 'AdvertiserIndex'}">
+                            <img src="/assets/advertiser/img/logo.png" alt="">
+                        </router-link>
+                    </div>
+                </div>
+                <div class="col-lg-7 col-md-7">
+                    <div class="advanced-search">
+                        <button type="button" class="category-btn">All Categories</button>
+                        <div class="input-group">
+                            <input type="text" placeholder="What do you need?">
+                            <button type="button"><i class="ti-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 text-right col-md-3">
+                    <ul class="nav-right">
+                        <li class="heart-icon">
+                            <a href="#" onclick="redirectIfNeeded()">
+                                <i class="icon_heart_alt"></i>
+                                <span>1</span>
+                            </a>
+                        </li>
+                        <li class="cart-icon">
+                            <a href="#" onclick="redirectIfNeeded()">
+                                <i class="icon_bag_alt"></i>
+                                <span>3</span>
+                            </a>
+                            <div class="cart-hover">
+                                <div class="select-items">
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td class="si-pic"><img src="/assets/advertiser/img/select-product-1.jpg"
+                                                                    alt=""></td>
+                                            <td class="si-text">
+                                                <div class="product-selected">
+                                                    <p>$60.00 x 1</p>
+                                                    <h6>Kabino Bedside Table</h6>
+                                                </div>
+                                            </td>
+                                            <td class="si-close">
+                                                <i class="ti-close"></i>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="si-pic"><img src="/assets/advertiser/img/select-product-2.jpg"
+                                                                    alt=""></td>
+                                            <td class="si-text">
+                                                <div class="product-selected">
+                                                    <p>$60.00 x 1</p>
+                                                    <h6>Kabino Bedside Table</h6>
+                                                </div>
+                                            </td>
+                                            <td class="si-close">
+                                                <i class="ti-close"></i>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="select-total">
+                                    <span>total:</span>
+                                    <h5>$120.00</h5>
+                                </div>
+                                <div class="select-button">
+                                    <a href="#" class="primary-btn view-card">VIEW CARD</a>
+                                    <a href="#" class="primary-btn checkout-btn">CHECK OUT</a>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="cart-price">$150.00</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="nav-item">
+        <div class="container">
+            <div class="nav-depart">
+                <div class="depart-btn">
+                    <i class="ti-menu"></i>
+                    <span>All departments</span>
+                    <ul class="depart-hover">
+                        <li class="active"><a href="#" onclick="redirectIfNeeded()">Women’s Clothing</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Men’s Clothing</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Underwear</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Kid's Clothing</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Brand Fashion</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Accessories/Shoes</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Luxury Brands</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Brand Outdoor Apparel</a></li>
+                    </ul>
+                </div>
+            </div>
+            <nav class="nav-menu mobile-menu">
+                <ul>
+                    <li class="active"><a href="./index.html" onclick="redirectIfNeeded()">Home</a></li>
+                    <li><a href="#" onclick="redirectIfNeeded()">Shop</a></li>
+                    <li>
+                        <a href="#" onclick="redirectIfNeeded()">Collection</a>
+                        <ul class="dropdown">
+                            <li><a href="#" onclick="redirectIfNeeded()">Men's</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Women's</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Kid's</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#" onclick="redirectIfNeeded()">Blog</a></li>
+                    <li><a href="#" onclick="redirectIfNeeded()">Contact</a></li>
+                    <li>
+                        <a href="#" onclick="redirectIfNeeded()">Pages</a>
+                        <ul class="dropdown">
+                            <li><a href="#" onclick="redirectIfNeeded()">Blog Details</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Shopping Cart</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Checkout</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Faq</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Register</a></li>
+                            <li><a href="#" onclick="redirectIfNeeded()">Login</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+            <div id="mobile-menu-wrap"></div>
+        </div>
+    </div>
+</header>
+<div>
+    <!-- Hero Section Begin -->
+    <section class="hero-section">
+        <div class="hero-items owl-carousel">
+            <div class="single-hero-items set-bg" data-setbg="/assets/advertiser/img/hero-1.jpg">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-5">
+                            <span>Bag,kids</span>
+                            <h1>Black friday</h1>
+                            <p>
+                                With Black Friday around the corner, you can reserve your favorite items today.
+                                Don't miss out on this opportunity
+                            </p>
+                            <a href="#" class="primary-btn" onclick="redirectIfNeeded()">Shop Now</a>
+                        </div>
+                    </div>
+                    <div class="off-card">
+                        <h2>Sale <span>50%</span></h2>
+                    </div>
+                </div>
+            </div>
+            <div class="single-hero-items set-bg" data-setbg="/assets/advertiser/img/hero-2.jpg">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-5">
+                            <span>Bag,kids</span>
+                            <h1>Black friday</h1>
+                            <p>
+                                With Black Friday around the corner, you can reserve your favorite items today.
+                                Don't miss out on this opportunity
+                            </p>
+                            <a href="#" class="primary-btn" onclick="redirectIfNeeded()">Shop Now</a>
+                        </div>
+                    </div>
+                    <div class="off-card">
+                        <h2>Sale <span>50%</span></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Hero Section End -->
+    <!-- Banner Section Begin -->
+    <div class="banner-section spad">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="single-banner">
+                        <img src="/assets/advertiser/img/banner-1.jpg" alt="">
+                        <div class="inner-text">
+                            <h4>Men’s</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="single-banner">
+                        <img src="/assets/advertiser/img/banner-2.jpg" alt="">
+                        <div class="inner-text">
+                            <h4>Women’s</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="single-banner">
+                        <img src="/assets/advertiser/img/banner-3.jpg" alt="">
+                        <div class="inner-text">
+                            <h4>Kid’s</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Banner Section End -->
+    <!-- Women Banner Section Begin -->
+    <section class="women-banner spad">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="product-large set-bg" data-setbg="/assets/advertiser/img/products/women-large.jpg">
+                        <h2>Women’s</h2>
+                        <a href="#" onclick="redirectIfNeeded()">Discover More</a>
+                    </div>
+                </div>
+                <div class="col-lg-8 offset-lg-1">
+                    <div class="filter-control">
+                        <ul>
+                            <li class="active">Clothings</li>
+                            <li>HandBag</li>
+                            <li>Shoes</li>
+                            <li>Accessories</li>
+                        </ul>
+                    </div>
+                    <div class="product-slider owl-carousel">
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/women-1.jpg" alt="">
+                                <div class="sale">Sale</div>
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Coat</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Pure Pineapple</h5>
+                                </a>
+                                <div class="product-price">
+                                    $14.00
+                                    <span>$35.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/women-2.jpg" alt="">
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Shoes</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Guangzhou sweater</h5>
+                                </a>
+                                <div class="product-price">
+                                    $13.00
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/women-3.jpg" alt="">
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Towel</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Pure Pineapple</h5>
+                                </a>
+                                <div class="product-price">
+                                    $34.00
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/women-4.jpg" alt="">
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Towel</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Converse Shoes</h5>
+                                </a>
+                                <div class="product-price">
+                                    $34.00
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Women Banner Section End -->
+    <!-- Deal Of The Week Section Begin-->
+    <section class="deal-of-week set-bg spad" data-setbg="/assets/advertiser/img/time-bg.jpg">
+        <div class="container">
+            <div class="col-lg-6 text-center">
+                <div class="section-title">
+                    <h2>Deal Of The Week</h2>
+                    <p>
+                        Benefit from our amazing prices and free shipping on our deals<br/> this amazing deal
+                        will soon expire, don't miss out
+                    </p>
+                    <div class="product-price">
+                        $35.00
+                        <span>/ HanBag</span>
+                    </div>
+                </div>
+                <div class="countdown-timer" id="countdown">
+                    <div class="cd-item">
+                        <span>56</span>
+                        <p>Days</p>
+                    </div>
+                    <div class="cd-item">
+                        <span>12</span>
+                        <p>Hrs</p>
+                    </div>
+                    <div class="cd-item">
+                        <span>40</span>
+                        <p>Mins</p>
+                    </div>
+                    <div class="cd-item">
+                        <span>52</span>
+                        <p>Secs</p>
+                    </div>
+                </div>
+                <a href="#" class="primary-btn" onclick="redirectIfNeeded()">Shop Now</a>
+            </div>
+        </div>
+    </section>
+    <!-- Deal Of The Week Section End -->
+    <!-- Man Banner Section Begin -->
+    <section class="man-banner spad">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="filter-control">
+                        <ul>
+                            <li class="active">Clothings</li>
+                            <li>HandBag</li>
+                            <li>Shoes</li>
+                            <li>Accessories</li>
+                        </ul>
+                    </div>
+                    <div class="product-slider owl-carousel">
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/man-1.jpg" alt="">
+                                <div class="sale">Sale</div>
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Coat</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Pure Pineapple</h5>
+                                </a>
+                                <div class="product-price">
+                                    $14.00
+                                    <span>$35.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/man-2.jpg" alt="">
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Shoes</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Guangzhou sweater</h5>
+                                </a>
+                                <div class="product-price">
+                                    $13.00
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/man-3.jpg" alt="">
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Towel</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Pure Pineapple</h5>
+                                </a>
+                                <div class="product-price">
+                                    $34.00
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-item">
+                            <div class="pi-pic">
+                                <img src="/assets/advertiser/img/products/man-4.jpg" alt="">
+                                <div class="icon">
+                                    <i class="icon_heart_alt"></i>
+                                </div>
+                                <ul>
+                                    <li class="w-icon active"><a href="#" onclick="redirectIfNeeded()"><i class="icon_bag_alt"></i></a></li>
+                                    <li class="quick-view"><a href="#" onclick="redirectIfNeeded()">+ Quick View</a></li>
+                                    <li class="w-icon"><a href="#" onclick="redirectIfNeeded()"><i class="fa fa-random"></i></a></li>
+                                </ul>
+                            </div>
+                            <div class="pi-text">
+                                <div class="catagory-name">Towel</div>
+                                <a href="#" onclick="redirectIfNeeded()">
+                                    <h5>Converse Shoes</h5>
+                                </a>
+                                <div class="product-price">
+                                    $34.00
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 offset-lg-1">
+                    <div class="product-large set-bg m-large"
+                         data-setbg="/assets/advertiser/img/products/man-large.jpg">
+                        <h2>Men’s</h2>
+                        <a href="#" onclick="redirectIfNeeded()">Discover More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Man Banner Section End -->
+    <!-- Instagram Section Begin -->
+    <div class="instagram-photo">
+        <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-1.jpg">
+            <div class="inside-text">
+                <i class="ti-instagram"></i>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
+            </div>
+        </div>
+        <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-2.jpg">
+            <div class="inside-text">
+                <i class="ti-instagram"></i>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
+            </div>
+        </div>
+        <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-3.jpg">
+            <div class="inside-text">
+                <i class="ti-instagram"></i>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
+            </div>
+        </div>
+        <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-4.jpg">
+            <div class="inside-text">
+                <i class="ti-instagram"></i>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
+            </div>
+        </div>
+        <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-5.jpg">
+            <div class="inside-text">
+                <i class="ti-instagram"></i>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
+            </div>
+        </div>
+        <div class="insta-item set-bg" data-setbg="/assets/advertiser/img/insta-6.jpg">
+            <div class="inside-text">
+                <i class="ti-instagram"></i>
+                <h5><a href="#" onclick="redirectIfNeeded()">colorlib_Collection</a></h5>
+            </div>
+        </div>
+    </div>
+    <!-- Instagram Section End -->
+    <!-- Latest Blog Section Begin -->
+    <section class="latest-blog spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="section-title">
+                        <h2>From The Blog</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="single-latest-blog">
+                        <img src="/assets/advertiser/img/latest-1.jpg" alt="">
+                        <div class="latest-text">
+                            <div class="tag-list">
+                                <div class="tag-item">
+                                    <i class="fa fa-calendar-o"></i>
+                                    May 4,2019
+                                </div>
+                                <div class="tag-item">
+                                    <i class="fa fa-comment-o"></i>
+                                    5
+                                </div>
+                            </div>
+                            <a href="#" onclick="redirectIfNeeded()">
+                                <h4>The Best Street Style From London Fashion Week</h4>
+                            </a>
+                            <p>Street style is our speciality, give yourself a big-up and purchase mind-blowing
+                                items </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="single-latest-blog">
+                        <img src="/assets/advertiser/img/latest-2.jpg" alt="">
+                        <div class="latest-text">
+                            <div class="tag-list">
+                                <div class="tag-item">
+                                    <i class="fa fa-calendar-o"></i>
+                                    May 4,2019
+                                </div>
+                                <div class="tag-item">
+                                    <i class="fa fa-comment-o"></i>
+                                    5
+                                </div>
+                            </div>
+                            <a href="#" onclick="redirectIfNeeded()">
+                                <h4>Vogue's Ultimate Guide To Autumn/Winter 2019 Shoes</h4>
+                            </a>
+                            <p>Winter is around the corner, get ready for the snow with our collection of coats </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="single-latest-blog">
+                        <img src="/assets/advertiser/img/latest-3.jpg" alt="">
+                        <div class="latest-text">
+                            <div class="tag-list">
+                                <div class="tag-item">
+                                    <i class="fa fa-calendar-o"></i>
+                                    May 4,2019
+                                </div>
+                                <div class="tag-item">
+                                    <i class="fa fa-comment-o"></i>
+                                    5
+                                </div>
+                            </div>
+                            <a href="#" onclick="redirectIfNeeded()">
+                                <h4>How To Brighten Your Wardrobe With A Dash Of Lime</h4>
+                            </a>
+                            <p>Lime is a must-have this year. Purchase limy items and you will be cool and in</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="benefit-items">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="single-benefit">
+                            <div class="sb-icon">
+                                <img src="/assets/advertiser/img/icon-1.png" alt="">
+                            </div>
+                            <div class="sb-text">
+                                <h6>Free Shipping</h6>
+                                <p>For all order over 99$</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="single-benefit">
+                            <div class="sb-icon">
+                                <img src="/assets/advertiser/img/icon-2.png" alt="">
+                            </div>
+                            <div class="sb-text">
+                                <h6>Delivery On Time</h6>
+                                <p>If good have prolems</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="single-benefit">
+                            <div class="sb-icon">
+                                <img src="/assets/advertiser/img/icon-1.png" alt="">
+                            </div>
+                            <div class="sb-text">
+                                <h6>Secure Payment</h6>
+                                <p>100% secure payment</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Latest Blog Section End -->
+    <!-- Partner Logo Section Begin -->
+    <div class="partner-logo">
+        <div class="container">
+            <div class="logo-carousel owl-carousel">
+                <div class="logo-item">
+                    <div class="tablecell-inner">
+                        <img src="/assets/advertiser/img/logo-carousel/logo-1.png" alt="">
+                    </div>
+                </div>
+                <div class="logo-item">
+                    <div class="tablecell-inner">
+                        <img src="/assets/advertiser/img/logo-carousel/logo-2.png" alt="">
+                    </div>
+                </div>
+                <div class="logo-item">
+                    <div class="tablecell-inner">
+                        <img src="/assets/advertiser/img/logo-carousel/logo-3.png" alt="">
+                    </div>
+                </div>
+                <div class="logo-item">
+                    <div class="tablecell-inner">
+                        <img src="/assets/advertiser/img/logo-carousel/logo-4.png" alt="">
+                    </div>
+                </div>
+                <div class="logo-item">
+                    <div class="tablecell-inner">
+                        <img src="/assets/advertiser/img/logo-carousel/logo-5.png" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="footer-left">
+                    <div class="footer-logo">
+                        <a href="#" onclick="redirectIfNeeded()"><img src="/assets/advertiser/img/footer-logo.png" alt=""></a>
+                    </div>
+                    <ul>
+                        <li>Address: 32 Rue Lafayette Paris</li>
+                        <li>Phone: +33 11.188.888</li>
+                        <li>Email: info.advertiser@mail.com</li>
+                    </ul>
+                    <div class="footer-social">
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-facebook"></i></a>
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-instagram"></i></a>
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-twitter"></i></a>
+                        <a href="#" onclick="redirectIfNeeded()"><i class="fa fa-pinterest"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 offset-lg-1">
+                <div class="footer-widget">
+                    <h5>Information</h5>
+                    <ul>
+                        <li><a href="#" onclick="redirectIfNeeded()">About Us</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Checkout</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Contact</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Serivius</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="footer-widget">
+                    <h5>My Account</h5>
+                    <ul>
+                        <li><a href="#" onclick="redirectIfNeeded()">My Account</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Contact</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Shopping Cart</a></li>
+                        <li><a href="#" onclick="redirectIfNeeded()">Shop</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="newslatter-item">
+                    <h5>Join Our Newsletter Now</h5>
+                    <p>Get E-mail updates about our latest shop and special offers.</p>
+                    <form action="#" class="subscribe-form">
+                        <input type="text" placeholder="Enter Your Mail">
+                        <button type="button">Subscribe</button>
+                    </form>
+                </div>
+              <div class="my-2">
+                <a href="#" id="preferences" class="primary-btn w-100">
+                  <span class="mr-2">
+                    <img src="/assets/publisher/images/Union.svg" alt="">
+                  </span>
+                  <span>
+                    Marketing preferences
+                  </span>
+                </a>
+                <script>
+                  document.querySelector('#preferences')
+                    .addEventListener('click', async (e) => {
+                      e.preventDefault();
+                      await OneKey.refreshIdsAndPreferences('doPrompt');
+                    });
+                </script>
+              </div>
+            </div>
+        </div>
+    </div>
+    <div class="copyright-reserved">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="copyright-text">
+                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                        Copyright &copy;
+                        {{currentYear}} All rights reserved | This template is made with <i class="fa fa-heart-o"
+                                                                                            aria-hidden="true"></i> by
+                        <a href="https://colorlib.com" target="_blank">Colorlib</a>
+                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                    </div>
+                    <div class="payment-pic">
+                        <img src="/assets/advertiser/img/payment-method.png" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

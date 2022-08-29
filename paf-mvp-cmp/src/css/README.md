@@ -1,1 +1,0 @@
-See ./paf-mvp-pattern-library for details of CSS creation.
