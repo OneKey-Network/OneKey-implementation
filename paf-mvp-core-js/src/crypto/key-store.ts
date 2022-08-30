@@ -4,17 +4,18 @@ import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder'
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { UnableToIdentifySignerError } from '@core/express/errors';
 
 export type PublicKeyWithObject = PublicKeyInfo & { publicKeyObj: PublicKey };
 
+/**
+ * A function that provides a public key from a domain name
+ */
+export interface PublicKeyProvider {
+  (domain: string): Promise<PublicKey>;
+}
 export class PublicKeyStore {
   protected cache: { [domain: string]: PublicKeyWithObject } = {};
-
-  constructor(
-    s2sOptions?: AxiosRequestConfig,
-    protected s2sClient = axios.create(s2sOptions),
-    protected timestampProvider: () => Timestamp = getTimeStampInSec
-  ) {}
 
   async getPublicKey(domain: string): Promise<PublicKeyWithObject> {
     const nowTimestampSeconds = this.timestampProvider();
@@ -39,7 +40,7 @@ export class PublicKeyStore {
     try {
       response = await this.s2sClient.get(url.toString());
     } catch (e) {
-      throw new Error(`Error calling Identity endpoint on ${domain}: ${e?.message}`);
+      throw new UnableToIdentifySignerError(`Error calling Identity endpoint on ${domain}: ${e?.message}`);
     }
 
     const responseData = response.data as GetIdentityResponse;
@@ -49,7 +50,9 @@ export class PublicKeyStore {
     const currentKey = sorted[0]; // take the first one (the one that ends as far as possible from now)
 
     if (currentKey === undefined) {
-      throw new Error(`No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`);
+      throw new UnableToIdentifySignerError(
+        `No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`
+      );
     }
 
     // Update cache
@@ -62,6 +65,12 @@ export class PublicKeyStore {
 
     return keyInfo;
   }
+
+  constructor(
+    s2sOptions?: AxiosRequestConfig,
+    protected s2sClient = axios.create(s2sOptions),
+    protected timestampProvider: () => Timestamp = getTimeStampInSec
+  ) {}
 
   /**
    * Helper method to get a simple "provider" (domain) => public Key

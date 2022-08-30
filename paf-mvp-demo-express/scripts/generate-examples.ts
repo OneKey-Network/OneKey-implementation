@@ -212,7 +212,12 @@ class Examples {
       idBuilder.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
     );
 
-    const cmpClient = new OperatorClient(crtoOneOperatorConfig.host, publisherHost, clientNodePrivateKey, keyStore);
+    const cmpClient = new OperatorClient(
+      crtoOneOperatorConfig.host,
+      publisherHost,
+      clientNodePrivateKey,
+      keyStore.provider
+    );
     this.setObject(
       'preferencesJson',
       cmpClient.buildPreferences(

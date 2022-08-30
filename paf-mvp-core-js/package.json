@@ -1,31 +1,36 @@
 {
   "name": "@onekey/core",
-  "version": "1.0.2",
+  "version": "1.0.9",
   "description": "OneKey core JS library",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "prebuild": "npm install",
     "build": "rollup -c",
     "generate-model": "ts-node scripts/generate-model-from-schemas.ts",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
+    "url": "git+https://github.com/OneKey-Network/OneKey-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
+    "url": "https://github.com/OneKey-Network/OneKey-implementation/issues"
   },
-  "homepage": "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-core-js#readme",
+  "homepage": "https://github.com/OneKey-Network/OneKey-implementation/tree/main/paf-mvp-core-js#readme",
   "dependencies": {
     "@types/cors": "^2.8.12",
     "@types/ua-parser-js": "^0.7.36",
     "@types/uuid": "^8.3.4",
     "@types/vhost": "^3.0.4",
+    "ajv": "^8.11.0",
     "atob": "^2.1.2",
     "axios": "^0.26.1",
     "btoa": "^1.2.1",

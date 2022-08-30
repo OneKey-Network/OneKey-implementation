@@ -1,53 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
-import {
-  DeleteIdsPrefsRequestBuilder,
-  Get3PCRequestBuilder,
-  GetNewIdRequestBuilder,
-  IdsAndPreferences,
-  PostIdsPrefsRequestBuilder,
-  PostSeedRequest,
-  PostSeedResponse,
-  PostSignPreferencesRequest,
-  ProxyPostIdsPrefsResponse,
-  RedirectGetIdsPrefsResponse,
-} from '@core/model';
-import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import { Config, getPayload, Node, parseConfig } from '@core/express';
+import { PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@core/model';
+import { jsonProxyEndpoints, redirectProxyEndpoints } from '@core/endpoints';
+import { Config, Node, parseConfig } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { ClientNodeError, ClientNodeErrorType, OperatorError, OperatorErrorType } from '@core/errors';
-import { WebsiteIdentityValidator } from '@client/website-identity-validator';
+import { NodeError, NodeErrorType } from '@core/errors';
 
-// TODO remove this automatic status return and do it explicitely outside of this method
-const getMandatoryQueryStringParam = (req: Request, res: Response, paramName: string): string | undefined => {
-  const stringValue = req.query[paramName] as string;
-  if (stringValue === undefined) {
-    res.sendStatus(400); // TODO add message
-    return undefined;
-  }
-  return stringValue;
-};
-
-/**
- * Get return URL parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-const getReturnUrl = (req: Request, res: Response): URL | undefined => {
-  const redirectStr = getMandatoryQueryStringParam(req, res, proxyUriParams.returnUrl);
-  return redirectStr ? new URL(redirectStr) : undefined;
-};
-
-/**
- * Get request parameter, otherwise set response code 400
- * @param req
- * @param res
- */
-const getMessageObject = <T>(req: Request, res: Response): T => {
-  const requestStr = getMandatoryQueryStringParam(req, res, proxyUriParams.message);
-  return requestStr ? (JSON.parse(requestStr) as T) : undefined;
-};
+import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
+import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
+import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**
  * The configuration of a OneKey client Node
@@ -58,10 +20,6 @@ export interface ClientNodeConfig extends Config {
 
 export class ClientNode extends Node {
   private client: OperatorClient;
-  private postIdsPrefsRequestBuilder: PostIdsPrefsRequestBuilder;
-  private get3PCRequestBuilder: Get3PCRequestBuilder;
-  private getNewIdRequestBuilder: GetNewIdRequestBuilder;
-  private deleteIdsPrefsRequestBuilder: DeleteIdsPrefsRequestBuilder;
   private websiteIdentityValidator: WebsiteIdentityValidator;
 
   /**
@@ -69,28 +27,25 @@ export class ClientNode extends Node {
    * @param config
    *   hostName: the OneKey client host name
    *   privateKey: the OneKey client private key string
-   * @param s2sOptions?? [optional] server to server configuration for local dev
+   * @param jsonValidator Service for validating JSON in Request
+   * @param publicKeyProvider a function that gives the public key of a domain
    */
-  constructor(config: ClientNodeConfig, s2sOptions?: AxiosRequestConfig) {
+  constructor(config: ClientNodeConfig, jsonValidator: IJsonValidator, publicKeyProvider: PublicKeyProvider) {
     super(
       config.host,
       {
         ...config.identity,
         type: 'vendor',
       },
-      s2sOptions
+      jsonValidator,
+      publicKeyProvider
     );
 
     const { currentPrivateKey } = config;
     const hostName = config.host;
     const operatorHost = config.operatorHost;
 
-    this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.keyStore);
-    this.postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
-    this.get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
-    this.getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, hostName, currentPrivateKey);
-    this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, hostName, currentPrivateKey);
-
+    this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.publicKeyProvider);
     this.websiteIdentityValidator = new WebsiteIdentityValidator(hostName);
 
     // *****************************************************************************************************************
@@ -214,6 +169,7 @@ export class ClientNode extends Node {
       jsonProxyEndpoints.createSeed,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
+      this.buildJsonBodyValidatorHandler(JsonSchemaTypes.createSeedRequest),
       this.startSpan(jsonProxyEndpoints.createSeed),
       this.createSeed,
       this.handleErrors(jsonProxyEndpoints.createSeed),
@@ -223,12 +179,12 @@ export class ClientNode extends Node {
 
   restBuildUrlToGetIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.client.getReadRestUrl(req);
-      res.send(url.toString());
+      const url = this.client.getReadResponse(req);
+      res.send(url);
       next();
     } catch (e) {
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -239,24 +195,13 @@ export class ClientNode extends Node {
 
   restBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
-      const unsignedRequest = getPayload<IdsAndPreferences>(req);
-      const signedPayload = this.postIdsPrefsRequestBuilder.buildRestRequest(
-        { origin: req.header('origin') },
-        unsignedRequest
-      );
-
-      const url = this.postIdsPrefsRequestBuilder.getRestUrl();
-      // Return both the signed payload and the url to call
-      const response: ProxyPostIdsPrefsResponse = {
-        payload: signedPayload,
-        url: url.toString(),
-      };
+      const response = this.client.getWriteResponse(req);
       res.json(response);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.write, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -267,13 +212,13 @@ export class ClientNode extends Node {
 
   buildUrlToVerify3PC = (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.get3PCRequestBuilder.getRestUrl();
-      res.send(url.toString());
+      const url = this.client.getVerify3PCResponse();
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verify3PC, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -284,15 +229,13 @@ export class ClientNode extends Node {
 
   buildUrlToGetNewId = (req: Request, res: Response, next: NextFunction) => {
     try {
-      const getNewIdRequestJson = this.getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
-      const url = this.getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson);
-
-      res.send(url.toString());
+      const url = this.client.getNewIdResponse(req);
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.newId, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -303,14 +246,13 @@ export class ClientNode extends Node {
 
   restBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
-      const request = this.deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
-      const url = this.deleteIdsPrefsRequestBuilder.getRestUrl(request);
-      res.send(url.toString());
+      const url = this.client.getDeleteResponse(req);
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.delete, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -320,15 +262,14 @@ export class ClientNode extends Node {
   };
 
   redirectBuildUrlToReadIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
-    const returnUrl = getReturnUrl(req, res);
     try {
-      const url = this.client.getReadRedirectUrl(req, returnUrl);
-      res.send(url.toString());
+      const url = this.client.getReadRedirectResponse(req);
+      res.send(url);
       next();
     } catch (e) {
       this.logger.Error(redirectProxyEndpoints.read, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -338,47 +279,32 @@ export class ClientNode extends Node {
   };
 
   redirectBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
-    const returnUrl = getReturnUrl(req, res);
-    const input = getMessageObject<IdsAndPreferences>(req, res);
-
-    if (input) {
-      try {
-        const postIdsPrefsRequestJson = this.postIdsPrefsRequestBuilder.buildRedirectRequest(
-          {
-            returnUrl: returnUrl.toString(),
-            referer: req.header('referer'),
-          },
-          input
-        );
-
-        const url = this.postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
-        res.send(url.toString());
-        next();
-      } catch (e) {
-        this.logger.Error(redirectProxyEndpoints.write, e);
-        // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        res.status(400);
-        res.json(error);
-        next(error);
-      }
+    try {
+      const url = this.client.getWriteRedirectResponse(req);
+      res.send(url);
+      next();
+    } catch (e) {
+      this.logger.Error(redirectProxyEndpoints.write, e);
+      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
     }
   };
 
   redirectBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
-    const returnUrl = getReturnUrl(req, res);
-
     try {
-      const url = this.client.getDeleteRedirectUrl(req, returnUrl);
+      const url = this.client.getDeleteRedirectResponse(req);
       res.send(url.toString());
       next();
     } catch (e) {
       this.logger.Error(redirectProxyEndpoints.delete, e);
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -395,8 +321,8 @@ export class ClientNode extends Node {
     if (!hasResponse) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, message.error);
       // FIXME do something smart in case of error
-      const error: OperatorError = {
-        type: OperatorErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: message.error.message, // TODO should be improved
       };
       res.status(400);
@@ -409,8 +335,8 @@ export class ClientNode extends Node {
       const isResponseValid = this.client.verifyReadResponse(message.response);
       if (!isResponseValid) {
         // TODO [errors] finer error feedback
-        const error: ClientNodeError = {
-          type: ClientNodeErrorType.VERIFICATION_FAILED,
+        const error: NodeError = {
+          type: NodeErrorType.VERIFICATION_FAILED,
           details: '',
         };
         this.logger.Error(jsonProxyEndpoints.verifyRead, error);
@@ -424,8 +350,8 @@ export class ClientNode extends Node {
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, e);
       // FIXME finer error return
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -436,14 +362,14 @@ export class ClientNode extends Node {
 
   signPreferences = (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
-      res.json(this.client.buildPreferences(identifiers, unsignedPreferences.data));
+      const preferences = this.client.getSignPreferencesResponse(req);
+      res.json(preferences);
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.signPrefs, e);
       // FIXME finer error return
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -462,8 +388,8 @@ export class ClientNode extends Node {
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.createSeed, e);
       // FIXME finer error return
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.UNKNOWN_ERROR,
+      const error: NodeError = {
+        type: NodeErrorType.UNKNOWN_ERROR,
         details: '',
       };
       res.status(400);
@@ -474,7 +400,6 @@ export class ClientNode extends Node {
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
     const config = (await parseConfig(configPath)) as ClientNodeConfig;
-
-    return new ClientNode(config, s2sOptions);
+    return new ClientNode(config, JsonValidator.default(), new PublicKeyStore(s2sOptions).provider);
   }
 }

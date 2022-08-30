@@ -21,7 +21,8 @@
     "baseUrl": ".",
     "typeRoots": [
       "paf-mvp-core-js/@types",
-      "paf-mvp-demo-express/@types"
+      "paf-mvp-demo-express/@types",
+      "node_modules/@types"
     ],
     "paths": {
       "@core/*": ["./paf-mvp-core-js/src/*"],
@@ -35,6 +36,7 @@
   "exclude": [
     "paf-mvp-frontend/cypress",
     "paf-mvp-audit/cypress",
+    "addressability-framework",
     "**/tests"
   ]
 }

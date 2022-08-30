@@ -1,7 +1,7 @@
 import cors, { CorsOptions } from 'cors';
 import { NextFunction, Request, Response } from 'express';
 import { escapeRegExp, getTopLevelDomain } from '@core/express';
-import { ClientNodeError, ClientNodeErrorType } from '@core/errors';
+import { NodeError, NodeErrorType } from '@core/errors';
 import { proxyUriParams } from '@core/endpoints';
 
 /**
@@ -46,7 +46,7 @@ export class WebsiteIdentityValidator {
    * These S2S calls would "pass" with cors middleware (they would simply ignore the response header),
    * but we want the call to fail.
    * This is the kind of cases this handler would handle.
-   * (see https://github.com/prebid/addressability-framework/blob/main/mvp-spec/security-signatures.md)
+   * (see https://github.com/OneKey-Network/addressability-framework/blob/main/mvp-spec/security-signatures.md)
    */
   checkOrigin = (req: Request, res: Response, next: NextFunction) => {
     const origin = req.header('origin');
@@ -54,8 +54,8 @@ export class WebsiteIdentityValidator {
     if (this.isValidWebsiteUrl(origin)) {
       next();
     } else {
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.INVALID_ORIGIN,
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_ORIGIN,
         details: `Origin is not allowed: ${origin}`,
       };
       res.status(400);
@@ -73,8 +73,8 @@ export class WebsiteIdentityValidator {
     if (this.isValidWebsiteUrl(referer)) {
       next();
     } else {
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.INVALID_REFERER,
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_REFERER,
         details: `Referer is not allowed: ${referer}`,
       };
       res.status(400);
@@ -92,8 +92,8 @@ export class WebsiteIdentityValidator {
     if (this.isValidWebsiteUrl(returnUrl)) {
       next();
     } else {
-      const error: ClientNodeError = {
-        type: ClientNodeErrorType.INVALID_RETURN_URL,
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_RETURN_URL,
         details: `Invalid return URL: ${returnUrl}`,
       };
       res.status(400);

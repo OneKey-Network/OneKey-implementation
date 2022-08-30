@@ -3,6 +3,8 @@ import { CookieOptions } from 'express-serve-static-core';
 import { encodeBase64, fromDataToObject, QSParam } from '../query-string';
 import { CorsOptions } from 'cors';
 import domainParser from 'tld-extract';
+import { ReturnUrl } from '@core/model';
+import { RedirectContext, RestContext } from '@core/crypto';
 
 export const setCookie = (
   res: Response,
@@ -56,6 +58,15 @@ export const setInQueryString = <T>(url: URL, requestOrResponse: T): URL => {
 
 export const getCookies = (req: Request) => req.cookies ?? {};
 
+export const isValidHttpUrl = (urlString: string) => {
+  try {
+    const url = new URL(urlString);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+};
+
 export const getRequestUrl = (req: Request, path = req.url) => new URL(path, `${req.protocol}://${req.get('host')}`);
 
 export const corsOptionsAcceptAll = (req: Request, callback: (err: Error | null, options?: CorsOptions) => void) => {
@@ -93,3 +104,31 @@ export const escapeRegExp = (stringForRegex: string): string => stringForRegex.r
  * @param host
  */
 export const getTopLevelDomain = (host: string) => domainParser(`https://${host}`).domain;
+
+export const extractRequestAndContextFromHttp = <
+  TopLevelRequestType,
+  TopLevelRequestRedirectType extends { returnUrl: ReturnUrl; request: TopLevelRequestType }
+>(
+  topLevelRequest: TopLevelRequestType | TopLevelRequestRedirectType,
+  req: Request
+) => {
+  // Extract request from Redirect request, if needed
+  let request: TopLevelRequestType;
+  let context: RestContext | RedirectContext;
+  const isRedirectRequest =
+    (topLevelRequest as TopLevelRequestRedirectType).returnUrl &&
+    (topLevelRequest as TopLevelRequestRedirectType).request;
+
+  if (isRedirectRequest) {
+    request = (topLevelRequest as TopLevelRequestRedirectType).request;
+    context = {
+      returnUrl: (topLevelRequest as TopLevelRequestRedirectType).returnUrl,
+      referer: req.header('referer'),
+    };
+  } else {
+    request = topLevelRequest as TopLevelRequestType;
+    context = { origin: req.header('origin') };
+  }
+
+  return { request, context };
+};

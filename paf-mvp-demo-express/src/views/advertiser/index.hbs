@@ -5,7 +5,7 @@
 {{#if useCmpUI}}
 
     <!-- Preload the JavaScript needed for the CMP which is used as soon as the body element starts to render -->
-    <link rel="preload" href="https://{{cdnHost}}/assets/paf-lib.js" as="script" />
+    <link rel="preload" href="https://{{cdnHost}}/assets/onekey.js" as="script" />
     <link rel="preload" as="script" href="https://{{cdnHost}}/assets/cmp/ok-ui.min.js">
 
 {{else}}
@@ -30,14 +30,14 @@
 
 <!-- CMP -->
 <!-- See paf-mvp-cmp/README.md for details -->
-<script src="https://{{cdnHost}}/assets/paf-lib.js" data-client-hostname="{{pafNodeHost}}" data-cookie-ttl="PT30S"></script>
+<script src="https://{{cdnHost}}/assets/onekey.js" data-client-hostname="{{pafNodeHost}}" data-cookie-ttl="PT30S"></script>
 <script src="https://{{cdnHost}}/assets/cmp/ok-ui.min.js"
     data-display-intro="false"
     data-snackbar-timeout-ms="5000"
     data-brand-name="Demo Advertiser"
     data-site-only-cookie-tcf-core="core-tcf"
     data-template-tcf-core-string="CPYBSvoPYBSvoO3AAAENAwCAAAAAAAAAAAAAAAAAAAAA"
-    data-brand-privacy-url="https://github.com/prebid/paf-mvp-implementation"></script>
+    data-brand-privacy-url="https://github.com/OneKey-Network/OneKey-implementation"></script>
 
 {{else}}
   <script src="https://{{cdnHost}}/assets/app.bundle.js" data-proxy="{{pafNodeHost}}"></script>

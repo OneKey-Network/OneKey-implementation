@@ -1,4 +1,3 @@
-import { PublicKey } from '@core/crypto/keys';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
@@ -10,10 +9,8 @@ import { Identifier, IdsAndPreferences, MessageBase } from '@core/model/generate
 import { getTimeStampInSec } from '@core/timestamp';
 import { Unsigned } from '@core/model/model';
 import { Log } from '@core/log';
-
-export interface PublicKeyProvider {
-  (domain: string): Promise<PublicKey>;
-}
+import { PublicKeyProvider } from '@core/crypto/key-store';
+import { UnableToIdentifySignerError } from '@core/express/errors';
 
 /**
  * Verifier class
@@ -27,18 +24,25 @@ export class Verifier<T> {
    */
   constructor(protected publicKeyProvider: PublicKeyProvider, protected definition: SigningDefinition<T, unknown>) {}
 
-  async verifySignature(signedData: T): Promise<boolean> {
+  async verifySignature(signedData: T): Promise<MessageVerificationResult> {
     const signingDomain = this.definition.getSignerDomain(signedData);
-    const publicKey = await this.publicKeyProvider(signingDomain);
-
-    const signature = this.definition.getSignature(signedData);
-    const toVerify = this.definition.getInputString(signedData);
-
-    const result = publicKey.verify(toVerify, signature);
-
-    if (result) this.logger.Debug('Verified', signedData);
-    else this.logger.Error('Verification failed for', signedData);
-
+    const result: MessageVerificationResult = { isValid: false, errors: [] };
+    try {
+      const publicKey = await this.publicKeyProvider(signingDomain);
+      const signature = this.definition.getSignature(signedData);
+      const toVerify = this.definition.getInputString(signedData);
+      result.isValid = publicKey.verify(toVerify, signature);
+      if (result.isValid) this.logger.Debug('Verified', signedData);
+      else {
+        const message = `Verification failed for ${signedData}`;
+        this.logger.Error(message);
+        result.errors = [new Error(message)];
+      }
+    } catch (e) {
+      result.isValid = false;
+      result.errors = [e];
+      return result;
+    }
     return result;
   }
 }
@@ -52,15 +56,20 @@ export class IdsAndPreferencesVerifier extends Verifier<IdsAndPreferences> {
     super(publicKeyProvider, definition);
   }
 
-  async verifySignature(signedData: IdsAndPreferences): Promise<boolean> {
+  async verifySignature(signedData: IdsAndPreferences): Promise<MessageVerificationResult> {
     // Note: preferences are signed using the OneKey ID signature => when verifying the preferences' signature, we also first verify the OneKey ID signature!
-    return (
-      (await this.idVerifier.verifySignature(this.definition.getPafId(signedData))) &&
-      (await super.verifySignature(signedData))
-    );
+    const idVerificationResult = await this.idVerifier.verifySignature(this.definition.getPafId(signedData));
+    if (!idVerificationResult.isValid) {
+      return idVerificationResult;
+    }
+    return await super.verifySignature(signedData);
   }
 }
 
+export interface MessageVerificationResult {
+  isValid: boolean;
+  errors?: Error[];
+}
 export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned<T>> extends Verifier<R> {
   /**
    * @param publicKeyProvider
@@ -79,12 +88,18 @@ export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned
    * @param timestampInSec
    * @protected
    */
-  verifyContent(message: T, senderHost: string, receiverHost: string, timestampInSec: number): boolean {
+  verifyContent(
+    message: T,
+    senderHost: string,
+    receiverHost: string,
+    timestampInSec: number
+  ): MessageVerificationResult {
     const timeSpent = timestampInSec - message.timestamp;
-    const result =
+    const result: MessageVerificationResult = { isValid: false, errors: [] };
+    result.isValid =
       timeSpent < this.messageTTLinSec && message.sender === senderHost && message.receiver === receiverHost;
 
-    if (result)
+    if (result.isValid)
       this.logger.Debug(
         'As expected',
         'time since timestamp',
@@ -94,7 +109,8 @@ export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned
         'receiver',
         message.receiver
       );
-    else
+    else {
+      result.errors = [new Error('Invalid message content')];
       this.logger.Error(
         'Invalid message content',
         'time since timestamp',
@@ -104,7 +120,7 @@ export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned
         'receiver',
         [message.receiver, receiverHost]
       );
-
+    }
     return result;
   }
 
@@ -113,7 +129,7 @@ export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned
     senderHost: string,
     receiverHost: string,
     timestampInSec: number
-  ): Promise<boolean>;
+  ): Promise<MessageVerificationResult>;
 }
 
 export class RequestVerifier<T extends MessageBase> extends MessageVerifier<
@@ -133,12 +149,13 @@ export class RequestVerifier<T extends MessageBase> extends MessageVerifier<
     senderHost: string,
     receiverHost: string,
     timestampInSec = getTimeStampInSec()
-  ): Promise<boolean> {
+  ): Promise<MessageVerificationResult> {
     // Note: verify content first as it is less CPU-consuming
-    return (
-      this.verifyContent(request.request, senderHost, receiverHost, timestampInSec) &&
-      (await this.verifySignature(request))
-    );
+    const contentVerification = this.verifyContent(request.request, senderHost, receiverHost, timestampInSec);
+    if (!contentVerification.isValid) {
+      return contentVerification;
+    }
+    return await this.verifySignature(request);
   }
 }
 
@@ -155,10 +172,12 @@ export class ResponseVerifier<T extends MessageBase> extends MessageVerifier<T> 
     senderHost: string,
     receiverHost: string,
     timestampInSec = getTimeStampInSec()
-  ): Promise<boolean> {
+  ): Promise<MessageVerificationResult> {
     // Note: verify content first as it is less CPU-consuming
-    return (
-      this.verifyContent(request, senderHost, receiverHost, timestampInSec) && (await this.verifySignature(request))
-    );
+    const contentVerification = this.verifyContent(request, senderHost, receiverHost, timestampInSec);
+    if (!contentVerification.isValid) {
+      return contentVerification;
+    }
+    return await this.verifySignature(request);
   }
 }

@@ -24,14 +24,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
+    "url": "git+https://github.com/OneKey-Network/OneKey-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
+    "url": "https://github.com/OneKey-Network/OneKey-implementation/issues"
   },
-  "homepage": "https://github.com/prebid/paf-mvp-implementation#readme",
+  "homepage": "https://github.com/OneKey-Network/OneKey-implementation#readme",
   "dependencies": {
     "@types/body-parser": "^1.19.2",
     "@types/cookie-parser": "^1.4.2",
@@ -42,6 +42,7 @@
     "@types/uuid": "^8.3.4",
     "@types/vhost": "^3.0.4",
     "atob": "^2.1.2",
+    "ajv": "^8.11.0",
     "axios": "^0.26.1",
     "btoa": "^1.2.1",
     "cookie-parser": "^1.4.6",
@@ -112,6 +113,7 @@
     "json-schema-to-typescript": "^10.1.5",
     "jsonschema": "^1.4.0",
     "lint-staged": "^10.5.4",
+    "node-mocks-http": "^1.11.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.4.1",
     "rollup": "^2.59.0",

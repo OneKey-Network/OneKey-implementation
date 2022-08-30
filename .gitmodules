@@ -1,0 +1,3 @@
+[submodule "addressability-framework"]
+	path = addressability-framework
+	url = https://github.com/OneKey-Network/addressability-framework.git

@@ -1,25 +1,29 @@
 {
   "name": "@onekey/client-node",
-  "version": "1.0.1",
+  "version": "1.0.9",
   "description": "OneKey Client node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "prebuild": "npm install --prefix ../paf-mvp-core-js && npm install",
     "build": "rollup -c",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prebid/paf-mvp-implementation.git"
+    "url": "git+https://github.com/OneKey-Network/OneKey-implementation.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/prebid/paf-mvp-implementation/issues"
+    "url": "https://github.com/OneKey-Network/OneKey-implementation/issues"
   },
-  "homepage": "https://github.com/prebid/paf-mvp-implementation/tree/main/paf-mvp-client-express#readme",
+  "homepage": "https://github.com/OneKey-Network/OneKey-implementation/tree/main/paf-mvp-client-express#readme",
   "dependencies": {
     "axios": "^0.26.1",
     "cors": "^2.8.5",
