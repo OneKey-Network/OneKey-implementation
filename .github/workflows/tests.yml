@@ -36,6 +36,7 @@ jobs:
         with:
           project: ./paf-mvp-audit
           start: npm run start --prefix paf-mvp-audit
+          browser: chrome
           record: true
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
