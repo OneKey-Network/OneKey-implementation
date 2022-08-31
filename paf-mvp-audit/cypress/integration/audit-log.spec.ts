@@ -2,7 +2,7 @@ import { AuditLogPage } from '../pages/audit-log.page';
 import { Seed, Source, TransactionId, TransmissionResponse } from '@core/model';
 import { getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
 import { Cookies } from '@core/cookies';
-import { TransmissionRegistryContext } from '@frontend/lib/paf-lib';
+import { IOneKeyLib, TransmissionRegistryContext } from '@frontend/lib/paf-lib';
 
 describe('Audit log', () => {
   let page: AuditLogPage;
@@ -62,26 +62,23 @@ describe('Audit log', () => {
     });
 
     it('should be visible', () => {
-      cy.window().then(async (win) => {
-        page.getAdDiv(divId).should('be.visible');
+      page.getAdAuditLogBtnContainerDiv(divId).should('not.exist');
 
-        page
-          .getAdAuditLogBtnContainerDiv(divId)
-          .should('not.exist')
-          .then(async () => {
-            const oneKey = (<Window>win).OneKey;
+      cy.window()
+        .its('OneKey')
+        .then(async (oneKey: IOneKeyLib) => {
+          page.getAdDiv(divId).should('be.visible');
 
-            // PrebidJS would call this on bid request
-            await oneKey.generateSeed(transactions);
+          // PrebidJS would call this on bid request
+          await oneKey.generateSeed(transactions);
 
-            // PrebidJS would call this on bid response
-            oneKey.registerTransmissionResponse(context, transmissionResponse);
+          // PrebidJS would call this on bid response
+          oneKey.registerTransmissionResponse(context, transmissionResponse);
 
-            page.getAdAuditLogBtnContainerDiv(divId).should('exist');
+          page.getAdAuditLogBtnContainerDiv(divId).should('exist');
 
-            page.getAuditLogBtn(divId).should('be.visible');
-          });
-      });
+          page.getAuditLogBtn(divId).should('be.visible');
+        });
     });
   });
 });
