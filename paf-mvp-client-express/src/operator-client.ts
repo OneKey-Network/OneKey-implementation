@@ -24,21 +24,19 @@ import {
   IdsAndPreferencesDefinition,
   IdsAndUnsignedPreferences,
   ResponseDefinition,
-  SeedSignatureBuilder,
-  SeedSignatureContainer,
 } from '@core/crypto/signing-definition';
 import { MessageVerificationResult, ResponseVerifier } from '@core/crypto/verifier';
 import { getTimeStampInSec } from '@core/timestamp';
 import { Request } from 'express';
 import { getPayload } from '@core/express';
 import { proxyUriParams } from '@core/endpoints';
+import { IModelSignatureService } from '@core/model/model-signature.service';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
   private readonly deleteIdsPrefsRequestBuilder: DeleteIdsPrefsRequestBuilder;
   private readonly prefsSigner: Signer<IdsAndUnsignedPreferences>;
-  private readonly seedSigner: Signer<SeedSignatureContainer>;
   private readonly postIdsPrefsRequestBuilder: PostIdsPrefsRequestBuilder;
   private readonly get3PCRequestBuilder: Get3PCRequestBuilder;
   private readonly getNewIdRequestBuilder: GetNewIdRequestBuilder;
@@ -48,12 +46,12 @@ export class OperatorClient {
     private clientHost: string,
     privateKey: string,
     private readonly publicKeyProvider: PublicKeyProvider,
+    private readonly signer: IModelSignatureService,
     private readonly readVerifier = new ResponseVerifier(publicKeyProvider, new ResponseDefinition())
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
-    this.seedSigner = new Signer(privateKeyFromString(privateKey), new SeedSignatureBuilder());
     this.postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
     this.getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, clientHost, privateKey);
@@ -89,10 +87,10 @@ export class OperatorClient {
     };
   }
 
-  buildSeed(transactionIds: TransactionId[], idsAndPreferences: IdsAndPreferences): Seed {
-    const unsigned = this.createUnsignedSeed(transactionIds);
-    const signature = this.seedSigner.sign({ seed: unsigned, idsAndPreferences });
-    return this.addSignatureToSeed(unsigned, signature);
+  async buildSeed(transactionIds: TransactionId[], idsAndPreferences: IdsAndPreferences): Promise<Seed> {
+    const unsignedSeed = this.createUnsignedSeed(transactionIds);
+    const signedSeed = this.signer.signSeed(unsignedSeed, idsAndPreferences);
+    return signedSeed;
   }
 
   getReadResponse(req: Request): string {
@@ -182,16 +180,6 @@ export class OperatorClient {
       source: {
         domain: this.clientHost,
         timestamp,
-      },
-    };
-  }
-
-  private addSignatureToSeed(unsigned: UnsignedSource<Seed>, signature: Signature): Seed {
-    return {
-      ...unsigned,
-      source: {
-        ...unsigned.source,
-        signature,
       },
     };
   }

@@ -15,10 +15,13 @@ import {
   Seed,
 } from '@core/model/generated-model';
 import { Unsigned, UnsignedSource } from '@core/model/model';
+import { IDSASigner } from './digital-signature';
 import { SignatureStringBuilder } from './signer';
 
 /**
- * Definition of how to get signature, signature domain and input string to sign
+ * Definition of how to get signature, signature domain and input string to sign.
+ *
+ * Deprecated. Prefer IModelSignatureService.
  */
 export interface SigningDefinition<T, U = Partial<T>> extends SignatureStringBuilder<U> {
   /**
@@ -35,31 +38,6 @@ export interface SigningDefinition<T, U = Partial<T>> extends SignatureStringBui
 }
 
 export const SIGN_SEP = '\u2063';
-
-export interface SeedSignatureContainer {
-  seed: UnsignedSource<Seed>;
-  idsAndPreferences: IdsAndPreferences;
-}
-
-export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatureContainer> {
-  getInputString(data: SeedSignatureContainer): string {
-    // FIXME[security] add version
-    const seed = data.seed;
-    const ids = data.idsAndPreferences.identifiers;
-    const prefs = data.idsAndPreferences.preferences;
-
-    const array: string[] = [
-      seed.source.domain,
-      seed.source.timestamp.toString(),
-      ...seed.transaction_ids,
-      seed.publisher,
-      ...ids.map((i) => i.source.signature),
-      prefs.source.signature,
-    ];
-
-    return array.join(SIGN_SEP);
-  }
-}
 
 /**
  * Defines how to extract signature, signer domain and input string from an Identifier

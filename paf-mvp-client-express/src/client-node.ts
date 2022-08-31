@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
-import { PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@core/model';
+import { PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse, Seed } from '@core/model';
 import { jsonProxyEndpoints, redirectProxyEndpoints } from '@core/endpoints';
 import { Config, Node, parseConfig } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
@@ -10,6 +10,8 @@ import { NodeError, NodeErrorType } from '@core/errors';
 import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
 import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
+import { ECDSA_NIT_P256Builder } from '@core/crypto/digital-signature';
+import { ModelSignatureService } from '@core/model/model-signature.service';
 
 /**
  * The configuration of a OneKey client Node
@@ -45,7 +47,17 @@ export class ClientNode extends Node {
     const hostName = config.host;
     const operatorHost = config.operatorHost;
 
-    this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.publicKeyProvider);
+    const dsaBuilder = new ECDSA_NIT_P256Builder();
+    const signer = dsaBuilder.buildSigner(currentPrivateKey);
+    const signatureService = new ModelSignatureService(signer);
+
+    this.client = new OperatorClient(
+      operatorHost,
+      hostName,
+      currentPrivateKey,
+      this.publicKeyProvider,
+      signatureService
+    );
     this.websiteIdentityValidator = new WebsiteIdentityValidator(hostName);
 
     // *****************************************************************************************************************
@@ -378,10 +390,10 @@ export class ClientNode extends Node {
     }
   };
 
-  createSeed = (req: Request, res: Response, next: NextFunction) => {
+  createSeed = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const request = JSON.parse(req.body as string) as PostSeedRequest;
-      const seed = this.client.buildSeed(request.transaction_ids, request.data);
+      const seed: Seed = await this.client.buildSeed(request.transaction_ids, request.data);
       const response = seed as PostSeedResponse; // For now, the response is only a Seed.
       res.json(response);
       next();

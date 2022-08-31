@@ -42,6 +42,8 @@ import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { VHostApp } from '@core/express/express-apps';
 import { parseConfig } from '@core/express/config';
 import { ClientNodeConfig } from '@client/client-node';
+import { ECDSA_NIT_P256Builder } from '@core/crypto/digital-signature';
+import { ModelSignatureService } from '@core/model/model-signature.service';
 
 const { name, host }: WebSiteConfig = {
   name: 'A OneKey portal',
@@ -58,7 +60,11 @@ export const portalWebSiteApp = new VHostApp(name, host);
     'configs/portal-client/config.json'
   )) as ClientNodeConfig;
 
-  const client = new OperatorClient(operatorHost, host, currentPrivateKey, keyStore.provider);
+  const dsaBuilder = new ECDSA_NIT_P256Builder();
+  const signer = dsaBuilder.buildSigner(currentPrivateKey);
+  const signatureService = new ModelSignatureService(signer);
+
+  const client = new OperatorClient(operatorHost, host, currentPrivateKey, keyStore.provider, signatureService);
 
   const postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(
     'crto-poc-1.onekey.network',
