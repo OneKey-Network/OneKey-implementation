@@ -40,5 +40,6 @@
       "portal.onekey.network": [
         "READ", "WRITE"
       ]
-    }
+    },
+  "redirectResponseTimeoutInMs": 500
   }

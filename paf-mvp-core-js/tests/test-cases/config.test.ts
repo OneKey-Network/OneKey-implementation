@@ -18,6 +18,7 @@ describe('parseConfig', () => {
     },
     host: 'paf.pafmarket.shop',
     operatorHost: 'crto-poc-1.onekey.network',
+    redirectResponseTimeoutInMs: 500,
   };
 
   const privateKey =
@@ -65,6 +66,7 @@ describe('parseConfig', () => {
           },
         ],
       },
+      redirectResponseTimeoutInMs: 500,
     };
     expect(config).toEqual(expectedConfig);
   });

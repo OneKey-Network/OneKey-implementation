@@ -56,7 +56,8 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
         'paf.write-only.com': [Permission.WRITE],
       },
       jsonValidator,
-      publicKeyProvider
+      publicKeyProvider,
+      2000
     );
 
   private static buildStaticJsonValidator = (validationResult: boolean): IJsonValidator => {
