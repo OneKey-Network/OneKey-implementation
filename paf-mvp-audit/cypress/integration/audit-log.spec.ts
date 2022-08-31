@@ -58,27 +58,26 @@ describe('Audit log', () => {
   describe('audit log button', () => {
     beforeEach(() => {
       cy.intercept('POST', `https://${proxyHostname}/paf-proxy/v1/seed`, seed);
+    });
 
+    it('should be visible', () => {
       page.open().then(async (win) => {
         const oneKey = (<Window>win).OneKey;
 
         // PrebidJS would call this on bid request
         await oneKey.generateSeed(transactions);
-      });
-    });
 
-    it('should be visible', () => {
-      page.getAdAuditLogBtnContainerDiv(divId).should('not.exist');
+        page
+          .getAdAuditLogBtnContainerDiv(divId)
+          .should('not.exist')
+          .then(() => {
+            // PrebidJS would call this on bid response
+            oneKey.registerTransmissionResponse(context, transmissionResponse);
 
-      cy.window().then(async (win) => {
-        const oneKey = (<Window>win).OneKey;
+            page.getAdAuditLogBtnContainerDiv(divId).should('exist');
 
-        // PrebidJS would call this on bid response
-        oneKey.registerTransmissionResponse(context, transmissionResponse);
-
-        page.getAdAuditLogBtnContainerDiv(divId).should('exist');
-
-        page.getAuditLogBtn(divId).should('be.visible');
+            page.getAuditLogBtn(divId).should('be.visible');
+          });
       });
     });
   });
