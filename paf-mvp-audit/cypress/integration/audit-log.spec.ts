@@ -49,6 +49,7 @@ describe('Audit log', () => {
 
   beforeEach(() => {
     page = new AuditLogPage();
+    page.open();
 
     cy.setCookie(Cookies.identifiers, JSON.stringify(identifiers));
     cy.setCookie(Cookies.preferences, JSON.stringify(preferences));
@@ -61,16 +62,18 @@ describe('Audit log', () => {
     });
 
     it('should be visible', () => {
-      page.open().then(async (win) => {
-        const oneKey = (<Window>win).OneKey;
-
-        // PrebidJS would call this on bid request
-        await oneKey.generateSeed(transactions);
+      cy.window().then(async (win) => {
+        page.getAdDiv(divId).should('be.visible');
 
         page
           .getAdAuditLogBtnContainerDiv(divId)
           .should('not.exist')
-          .then(() => {
+          .then(async () => {
+            const oneKey = (<Window>win).OneKey;
+
+            // PrebidJS would call this on bid request
+            await oneKey.generateSeed(transactions);
+
             // PrebidJS would call this on bid response
             oneKey.registerTransmissionResponse(context, transmissionResponse);
 
