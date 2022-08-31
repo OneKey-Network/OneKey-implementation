@@ -49,7 +49,6 @@ describe('Audit log', () => {
 
   beforeEach(() => {
     page = new AuditLogPage();
-    page.open();
 
     cy.setCookie(Cookies.identifiers, JSON.stringify(identifiers));
     cy.setCookie(Cookies.preferences, JSON.stringify(preferences));
@@ -59,7 +58,8 @@ describe('Audit log', () => {
   describe('audit log button', () => {
     beforeEach(() => {
       cy.intercept('POST', `https://${proxyHostname}/paf-proxy/v1/seed`, seed);
-      cy.window().then(async (win) => {
+
+      page.open().then(async (win) => {
         const oneKey = (<Window>win).OneKey;
 
         // PrebidJS would call this on bid request
