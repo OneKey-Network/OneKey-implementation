@@ -32,7 +32,14 @@ jobs:
         run: npm run cypress:wait-and-run --prefix paf-mvp-frontend
 
       - name: Cypress audit log
-        run: npm run cypress:wait-and-run --prefix paf-mvp-audit
+        uses: cypress-io/github-action@v2
+        with:
+          project: ./paf-mvp-audit
+          start: npm run start --prefix paf-mvp-audit
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Unit tests
         run: |

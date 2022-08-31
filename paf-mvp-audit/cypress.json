@@ -3,5 +3,6 @@
   "screenshotOnRunFailure": false,
   "baseUrl": "http://localhost:3000",
   "includeShadowDom": true,
-  "pageLoadTimeout": 3000
+  "pageLoadTimeout": 3000,
+  "projectId": "gjgnhk"
 }
