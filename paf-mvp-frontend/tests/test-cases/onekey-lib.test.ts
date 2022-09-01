@@ -14,6 +14,7 @@ import { isBrowserKnownToSupport3PC } from '@core/user-agent';
 import { MockedFunction } from 'ts-jest';
 import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@frontend/lib/paf-lib';
 import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
+import { HttpService } from '@frontend/services/http.service';
 import { ISeedStorageService } from '@frontend/services/seed-storage.service';
 import { DEFAULT_TTL_IN_SECONDS, MAXIMUM_TTL_IN_SECONDS } from '@frontend/utils/cookie';
 
@@ -38,7 +39,7 @@ const seedStorageService: ISeedStorageService = {
   getSeed: jest.fn((transactionId: TransactionId) => seedEntry),
 };
 const resetLib = () => {
-  lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
+  lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService, new HttpService());
   notificationHandler = jest.fn(() => Promise.resolve());
   lib.setNotificationHandler(notificationHandler);
 };
@@ -545,7 +546,7 @@ describe('Function handleAfterBoomerangRedirect', () => {
   });
 });
 describe('Cookie TTL setting', () => {
-  const lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
+  const lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService, new HttpService());
   test('should use the default value when no value was specified', () => {
     const ttlInSeconds = lib.parseCookieTTL(undefined);
     expect(ttlInSeconds).toEqual(DEFAULT_TTL_IN_SECONDS);

@@ -8,6 +8,7 @@ import { CurrentScript } from '@frontend/utils/current-script';
 import { auditLogStorageService } from '@frontend/services/audit-log-storage.service';
 import { seedStorageService } from '@frontend/services/seed-storage.service';
 import { Log, LogLevel } from '@core/log';
+import { HttpService } from '@frontend/services/http.service';
 
 // Debug level while playing with MVP
 Log.level = LogLevel.Debug;
@@ -23,6 +24,7 @@ export const oneKeyLib = new OneKeyLib(
   triggerRedirectIfNeeded,
   auditLogStorageService,
   seedStorageService,
+  new HttpService(),
   pafLibScript.getData()?.cookieTtl
 );
 
