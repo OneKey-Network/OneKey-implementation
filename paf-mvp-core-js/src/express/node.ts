@@ -20,6 +20,7 @@ import { RedirectRequest } from '@core/model/model';
 
 export interface INode {
   app: VHostApp;
+
   /**
    * Start the server by loading resources.
    */

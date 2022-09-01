@@ -68,11 +68,11 @@ export abstract class RestAndRedirectRequestBuilder<
    * @param data
    * @param timestamp
    */
-  buildRestRequest(context: RestContext, data: D = undefined, timestamp = getTimeStampInSec()): T {
+  async buildRestRequest(context: RestContext, data: D = undefined, timestamp = getTimeStampInSec()): Promise<T> {
     const request = this.buildUnsignedRequest(data, timestamp);
     return {
       ...request,
-      signature: this.signer.sign({ request, context }),
+      signature: await this.signer.sign({ request, context }),
     } as T;
   }
 
@@ -82,17 +82,17 @@ export abstract class RestAndRedirectRequestBuilder<
    * @param data
    * @param timestamp
    */
-  buildRedirectRequest(
+  async buildRedirectRequest(
     context: RedirectContext,
     data: D = undefined,
     timestamp = getTimeStampInSec()
-  ): RedirectRequest<T> {
+  ): Promise<RedirectRequest<T>> {
     const request = this.buildUnsignedRequest(data, timestamp);
     return {
       returnUrl: context.returnUrl,
       request: {
         ...request,
-        signature: this.signer.sign({ request, context }),
+        signature: await this.signer.sign({ request, context }),
       } as T,
     };
   }

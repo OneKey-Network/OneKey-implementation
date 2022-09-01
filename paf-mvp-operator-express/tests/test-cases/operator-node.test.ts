@@ -53,7 +53,11 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
     response = createResponse();
   });
   describe('restRead', () => {
-    const url = client.getReadResponse(clientRequest);
+    let url: string;
+
+    beforeAll(async () => {
+      url = await client.getReadResponse(clientRequest);
+    });
 
     test('should return new ID for unknown user', async () => {
       const request = createRequest({
@@ -161,7 +165,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
     test.each(cases)(
       '$name client should be allowed to read: $authorized',
       async ({ client, authorized, name, hostName }) => {
-        const url = client.getReadResponse(clientRequest);
+        const url = await client.getReadResponse(clientRequest);
         const request = createRequest({
           method: 'GET',
           headers: {

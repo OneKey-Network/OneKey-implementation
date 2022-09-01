@@ -64,11 +64,11 @@ export class OperatorClient {
     return this.readVerifier.verifySignatureAndContent(request, this.operatorHost, this.clientHost);
   }
 
-  buildPreferences(
+  async buildPreferences(
     identifiers: Identifiers,
     data: { use_browsing_for_personalization: boolean },
     timestamp = getTimeStampInSec()
-  ): Preferences {
+  ): Promise<Preferences> {
     const unsignedPreferences: UnsignedSource<Preferences> = {
       version: '0.1',
       data,
@@ -84,25 +84,27 @@ export class OperatorClient {
       ...rest,
       source: {
         ...source,
-        signature: this.prefsSigner.sign({ identifiers, preferences: unsignedPreferences }),
+        signature: await this.prefsSigner.sign({ identifiers, preferences: unsignedPreferences }),
       },
     };
   }
 
-  buildSeed(transactionIds: TransactionId[], idsAndPreferences: IdsAndPreferences): Seed {
+  async buildSeed(transactionIds: TransactionId[], idsAndPreferences: IdsAndPreferences): Promise<Seed> {
     const unsigned = this.createUnsignedSeed(transactionIds);
-    const signature = this.seedSigner.sign({ seed: unsigned, idsAndPreferences });
+    const signature = await this.seedSigner.sign({ seed: unsigned, idsAndPreferences });
     return this.addSignatureToSeed(unsigned, signature);
   }
 
-  getReadResponse(req: Request): string {
-    const getIdsPrefsRequestJson = this.getIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
+  async getReadResponse(req: Request): Promise<string> {
+    const getIdsPrefsRequestJson = await this.getIdsPrefsRequestBuilder.buildRestRequest({
+      origin: req.header('origin'),
+    });
     return this.getIdsPrefsRequestBuilder.getRestUrl(getIdsPrefsRequestJson).toString();
   }
 
-  getWriteResponse(req: Request): ProxyPostIdsPrefsResponse {
+  async getWriteResponse(req: Request): Promise<ProxyPostIdsPrefsResponse> {
     const unsignedRequest = getPayload<IdsAndPreferences>(req);
-    const signedPayload = this.postIdsPrefsRequestBuilder.buildRestRequest(
+    const signedPayload = await this.postIdsPrefsRequestBuilder.buildRestRequest(
       { origin: req.header('origin') },
       unsignedRequest
     );
@@ -115,14 +117,14 @@ export class OperatorClient {
     };
   }
 
-  getWriteRedirectResponse(req: Request): string {
+  async getWriteRedirectResponse(req: Request): Promise<string> {
     // return URL has already been verified by previous handler
     const returnUrl = this.getReturnUrl(req);
 
     // TODO errors trigger error if req.query[proxyUriParams.message] undefined or empty
     const input = JSON.parse(req.query[proxyUriParams.message] as string) as IdsAndPreferences;
 
-    const postIdsPrefsRequestJson = this.postIdsPrefsRequestBuilder.buildRedirectRequest(
+    const postIdsPrefsRequestJson = await this.postIdsPrefsRequestBuilder.buildRedirectRequest(
       {
         returnUrl: returnUrl.toString(),
         referer: req.header('referer'),
@@ -137,35 +139,35 @@ export class OperatorClient {
     return this.get3PCRequestBuilder.getRestUrl().toString();
   }
 
-  getReadRedirectResponse(req: Request): string {
+  async getReadRedirectResponse(req: Request): Promise<string> {
     const returnUrl = this.getReturnUrl(req);
-    const getIdsPrefsRequestJson = this.getIdsPrefsRequestBuilder.buildRedirectRequest({
+    const getIdsPrefsRequestJson = await this.getIdsPrefsRequestBuilder.buildRedirectRequest({
       referer: req.header('referer'),
       returnUrl: returnUrl.toString(),
     });
     return this.getIdsPrefsRequestBuilder.getRedirectUrl(getIdsPrefsRequestJson).toString();
   }
 
-  getDeleteRedirectResponse(req: Request): string {
+  async getDeleteRedirectResponse(req: Request): Promise<string> {
     const returnUrl = this.getReturnUrl(req);
-    const deleteIdsPrefsRequestJson = this.deleteIdsPrefsRequestBuilder.buildRedirectRequest({
+    const deleteIdsPrefsRequestJson = await this.deleteIdsPrefsRequestBuilder.buildRedirectRequest({
       referer: req.header('referer'),
       returnUrl: returnUrl.toString(),
     });
     return this.deleteIdsPrefsRequestBuilder.getRedirectUrl(deleteIdsPrefsRequestJson).toString();
   }
 
-  getNewIdResponse(req: Request) {
-    const getNewIdRequestJson = this.getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
+  async getNewIdResponse(req: Request): Promise<string> {
+    const getNewIdRequestJson = await this.getNewIdRequestBuilder.buildRestRequest({ origin: req.header('origin') });
     return this.getNewIdRequestBuilder.getRestUrl(getNewIdRequestJson).toString();
   }
 
-  getDeleteResponse(req: Request) {
-    const request = this.deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
+  async getDeleteResponse(req: Request): Promise<string> {
+    const request = await this.deleteIdsPrefsRequestBuilder.buildRestRequest({ origin: req.header('origin') });
     return this.deleteIdsPrefsRequestBuilder.getRestUrl(request).toString();
   }
 
-  getSignPreferencesResponse(req: Request): Preferences {
+  async getSignPreferencesResponse(req: Request): Promise<Preferences> {
     const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
     return this.buildPreferences(identifiers, unsignedPreferences.data);
   }

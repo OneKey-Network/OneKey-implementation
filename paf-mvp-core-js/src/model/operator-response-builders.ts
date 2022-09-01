@@ -44,11 +44,11 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
     super(host);
   }
 
-  buildResponse(
+  async buildResponse(
     receiver: string,
     { identifiers, preferences }: IdsAndOptionalPreferences,
     timestampInSec = getTimeStampInSec()
-  ): GetIdsPrefsResponse {
+  ): Promise<GetIdsPrefsResponse> {
     const request: Unsigned<GetIdsPrefsResponse> = {
       body: {
         identifiers,
@@ -61,7 +61,7 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }
@@ -75,11 +75,11 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
     super(host);
   }
 
-  buildResponse(
+  async buildResponse(
     receiver: string,
     { identifiers, preferences }: IdsAndPreferences,
     timestampInSec = getTimeStampInSec()
-  ): PostIdsPrefsResponse {
+  ): Promise<PostIdsPrefsResponse> {
     const request: Unsigned<PostIdsPrefsResponse> = {
       body: {
         identifiers,
@@ -92,7 +92,7 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }
@@ -104,7 +104,11 @@ export class GetNewIdResponseBuilder {
     private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
   ) {}
 
-  buildResponse(receiver: string, newId: Identifier, timestampInSec = getTimeStampInSec()): GetNewIdResponse {
+  async buildResponse(
+    receiver: string,
+    newId: Identifier,
+    timestampInSec = getTimeStampInSec()
+  ): Promise<GetNewIdResponse> {
     const request: Unsigned<GetNewIdResponse> = {
       body: {
         identifiers: [newId],
@@ -116,7 +120,7 @@ export class GetNewIdResponseBuilder {
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }
@@ -136,7 +140,7 @@ export class DeleteIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<D
     super(host);
   }
 
-  buildResponse(receiver: string, timestampInSec = getTimeStampInSec()): DeleteIdsPrefsResponse {
+  async buildResponse(receiver: string, timestampInSec = getTimeStampInSec()): Promise<DeleteIdsPrefsResponse> {
     const request: Unsigned<DeleteIdsPrefsResponse> = {
       sender: this.host,
       receiver,
@@ -149,7 +153,7 @@ export class DeleteIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<D
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }

@@ -45,7 +45,7 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
     super(operatorHost, jsonOperatorEndpoints.newId);
   }
 
-  buildRestRequest(context: RestContext, timestamp = getTimeStampInSec()): GetNewIdRequest {
+  async buildRestRequest(context: RestContext, timestamp = getTimeStampInSec()): Promise<GetNewIdRequest> {
     const request: Unsigned<GetNewIdRequest> = {
       sender: this.clientHost,
       receiver: this.serverHost,
@@ -53,7 +53,7 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
     };
     return {
       ...request,
-      signature: this.signer.sign({ request, context }),
+      signature: await this.signer.sign({ request, context }),
     };
   }
 }

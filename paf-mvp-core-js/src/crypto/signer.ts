@@ -10,7 +10,7 @@ export interface SignatureStringBuilder<U> {
 }
 
 export interface ISigner<U> {
-  sign(inputData: U): string;
+  sign(inputData: U): Promise<string>;
 }
 
 /**
@@ -26,9 +26,9 @@ export class Signer<U> implements ISigner<U> {
    */
   constructor(private ecdsaPrivateKey: PrivateKey, protected definition: SignatureStringBuilder<U>) {}
 
-  sign(inputData: U): string {
+  async sign(inputData: U): Promise<string> {
     this.logger.Debug('Sign', inputData);
     const toSign = this.definition.getInputString(inputData);
-    return this.ecdsaPrivateKey.sign(toSign);
+    return Promise.resolve(this.ecdsaPrivateKey.sign(toSign));
   }
 }

@@ -16,17 +16,17 @@ export class IdBuilder {
     )
   ) {}
 
-  generateNewId(timestamp = getTimeStampInSec()): Identifier {
+  async generateNewId(timestamp = getTimeStampInSec()): Promise<Identifier> {
     // Generate new UUID value
     const pseudonymousId = uuidv4();
 
     return {
-      ...this.signId(pseudonymousId, timestamp),
+      ...(await this.signId(pseudonymousId, timestamp)),
       persisted: false,
     };
   }
 
-  signId(value: string, timestampInSec = getTimeStampInSec()): Identifier {
+  async signId(value: string, timestampInSec = getTimeStampInSec()): Promise<Identifier> {
     const unsignedId: UnsignedSource<Identifier> = {
       version: '0.1',
       type: 'paf_browser_id',
@@ -42,7 +42,7 @@ export class IdBuilder {
       ...rest,
       source: {
         ...source,
-        signature: this.idSigner.sign(unsignedId),
+        signature: await this.idSigner.sign(unsignedId),
       },
     };
   }
