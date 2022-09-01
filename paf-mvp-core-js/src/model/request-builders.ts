@@ -4,7 +4,6 @@ import { RedirectRequest, Unsigned } from '@core/model/model';
 import { RedirectContext, RequestDefinition, RestContext } from '@core/crypto/signing-definition';
 import { getTimeStampInSec } from '@core/timestamp';
 import { Signer } from '@core/crypto/signer';
-import { privateKeyFromString } from '@core/crypto/keys';
 
 export abstract class RestRequestBuilder<R extends object | undefined> {
   constructor(public serverHost: string, protected restEndpoint: string) {}
@@ -39,7 +38,7 @@ export abstract class RestAndRedirectRequestBuilder<
     protected redirectEndpoint: string,
     privateKey: string,
     definition: RequestDefinition<T>,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), definition)
+    private readonly signer = new Signer(privateKey, definition)
   ) {
     super(operatorHost, restEndpoint);
   }

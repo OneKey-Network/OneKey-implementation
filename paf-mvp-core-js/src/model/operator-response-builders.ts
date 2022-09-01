@@ -13,7 +13,6 @@ import {
 import { Unsigned } from './model';
 import { getTimeStampInSec } from '../timestamp';
 import { setInQueryString } from '../express/utils';
-import { privateKeyFromString } from '@core/crypto/keys';
 import { ResponseDefinition } from '@core/crypto/signing-definition';
 import { Signer } from '@core/crypto/signer';
 
@@ -39,7 +38,7 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {
     super(host);
   }
@@ -70,7 +69,7 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {
     super(host);
   }
@@ -101,7 +100,7 @@ export class GetNewIdResponseBuilder {
   constructor(
     protected host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {}
 
   async buildResponse(
@@ -135,7 +134,7 @@ export class DeleteIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<D
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {
     super(host);
   }

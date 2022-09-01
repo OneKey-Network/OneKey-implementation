@@ -16,7 +16,6 @@ import {
   RequestWithoutBodyDefinition,
   RestContext,
 } from '@core/crypto/signing-definition';
-import { privateKeyFromString } from '@core/crypto/keys';
 
 export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
   constructor(operatorHost: string) {
@@ -40,7 +39,7 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
     operatorHost: string,
     protected clientHost: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new RequestWithoutBodyDefinition())
+    private readonly signer = new Signer(privateKey, new RequestWithoutBodyDefinition())
   ) {
     super(operatorHost, jsonOperatorEndpoints.newId);
   }

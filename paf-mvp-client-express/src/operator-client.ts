@@ -10,7 +10,6 @@ import {
   TransactionId,
 } from '@core/model/generated-model';
 import { CurrentModelVersion, UnsignedSource } from '@core/model/model';
-import { privateKeyFromString } from '@core/crypto/keys';
 import { PublicKeyProvider } from '@core/crypto/key-store';
 import {
   DeleteIdsPrefsRequestBuilder,
@@ -52,8 +51,8 @@ export class OperatorClient {
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
-    this.prefsSigner = new Signer(privateKeyFromString(privateKey), new IdsAndPreferencesDefinition());
-    this.seedSigner = new Signer(privateKeyFromString(privateKey), new SeedSignatureBuilder());
+    this.prefsSigner = new Signer(privateKey, new IdsAndPreferencesDefinition());
+    this.seedSigner = new Signer(privateKey, new SeedSignatureBuilder());
     this.postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
     this.getNewIdRequestBuilder = new GetNewIdRequestBuilder(operatorHost, clientHost, privateKey);
