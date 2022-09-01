@@ -1,5 +1,4 @@
-import { fromIdentityResponse, PublicKeyInfo } from './identity';
-import { isValidKey } from './keys';
+import { fromIdentityResponse, isValidKey, PublicKeyInfo } from './identity';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
