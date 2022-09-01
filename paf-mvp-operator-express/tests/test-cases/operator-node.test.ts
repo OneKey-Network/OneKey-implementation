@@ -174,7 +174,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
           url,
         });
 
-        await operatorNode.buildReadPermissionHandler(false)(request, response, nextMock);
+        await operatorNode.checkReadPermission(false)(request, response, nextMock);
 
         const error: NodeError = {
           type: NodeErrorType.UNAUTHORIZED_OPERATION,

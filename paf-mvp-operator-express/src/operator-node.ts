@@ -41,6 +41,7 @@ import {
   Identifiers,
   IdsAndPreferences,
   PostIdsPrefsRequest,
+  PostIdsPrefsResponse,
   PostIdsPrefsResponseBuilder,
   Preferences,
   RedirectDeleteIdsPrefsRequest,
@@ -140,24 +141,24 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       jsonOperatorEndpoints.read,
       cors(corsOptionsAcceptAll),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRestRequest, false),
-      this.buildReadPermissionHandler(false),
-      this.buildReadIdsAndPreferencesSignatureHandler(false),
+      this.checkQueryString(JsonSchemaTypes.readIdAndPreferencesRestRequest, false),
+      this.checkReadPermission(false),
+      this.checkReadIdsAndPreferencesSignature(false),
       this.startSpan(jsonProxyEndpoints.read),
       this.restReadIdsAndPreferences,
-      this.handleErrors(jsonProxyEndpoints.read),
+      this.catchErrors(jsonProxyEndpoints.read),
       this.endSpan(jsonProxyEndpoints.read)
     );
 
     this.app.expressApp.post(
       jsonOperatorEndpoints.write,
       cors(corsOptionsAcceptAll),
-      this.buildJsonBodyValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRestRequest),
-      this.buildWritePermissionHandler(false),
-      this.buildWriteIdsAndPreferencesSignatureHandler(false),
+      this.checkJsonBody(JsonSchemaTypes.writeIdAndPreferencesRestRequest),
+      this.checkWritePermission(false),
+      this.checkWriteIdsAndPreferencesSignature(false),
       this.startSpan(jsonProxyEndpoints.write),
       this.restWriteIdsAndPreferences,
-      this.handleErrors(jsonProxyEndpoints.write),
+      this.catchErrors(jsonProxyEndpoints.write),
       this.endSpan(jsonProxyEndpoints.write)
     );
 
@@ -165,8 +166,8 @@ export class OperatorNode extends Node {
       jsonOperatorEndpoints.verify3PC,
       cors(corsOptionsAcceptAll),
       this.startSpan(jsonProxyEndpoints.verify3PC),
-      this.verify3PC,
-      this.handleErrors(jsonProxyEndpoints.verify3PC),
+      this.read3PCCookie,
+      this.catchErrors(jsonProxyEndpoints.verify3PC),
       this.endSpan(jsonProxyEndpoints.verify3PC)
     );
 
@@ -175,24 +176,24 @@ export class OperatorNode extends Node {
     this.app.expressApp.delete(
       jsonOperatorEndpoints.delete,
       cors(corsOptionsAcceptAll),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRequest, false),
-      this.buildDeletePermissionHandler(false),
-      this.buildDeleteIdsAndPreferencesSignatureHandler(false),
+      this.checkQueryString(JsonSchemaTypes.deleteIdAndPreferencesRequest, false),
+      this.checkDeletePermission(false),
+      this.checkDeleteIdsAndPreferencesSignature(false),
       this.startSpan(jsonProxyEndpoints.delete),
       this.restDeleteIdsAndPreferences,
-      this.handleErrors(jsonProxyEndpoints.delete),
+      this.catchErrors(jsonProxyEndpoints.delete),
       this.endSpan(jsonProxyEndpoints.delete)
     );
 
     this.app.expressApp.get(
       jsonOperatorEndpoints.newId,
       cors(corsOptionsAcceptAll),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.getNewIdRequest, false),
-      this.getNewIdPermissionHandler,
-      this.getNewIdSignatureHandler,
+      this.checkQueryString(JsonSchemaTypes.getNewIdRequest, false),
+      this.checkNewIdPermission,
+      this.checkNewIdSignature,
       this.startSpan(jsonProxyEndpoints.newId),
       this.getNewId,
-      this.handleErrors(jsonProxyEndpoints.newId),
+      this.catchErrors(jsonProxyEndpoints.newId),
       this.endSpan(jsonProxyEndpoints.newId)
     );
     // *****************************************************************************************************************
@@ -201,39 +202,54 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.read,
       timeout(this.redirectResponseTimeoutInMs),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.readIdAndPreferencesRedirectRequest, true),
-      this.returnUrlValidationHandler<GetIdsPrefsRequest>(),
-      this.buildReadPermissionHandler(true),
-      this.buildReadIdsAndPreferencesSignatureHandler(true),
+      this.checkQueryString(JsonSchemaTypes.readIdAndPreferencesRedirectRequest, true),
+      this.checkReturnUrl<GetIdsPrefsRequest>(),
+      this.checkReadPermission(true),
+      this.checkReadIdsAndPreferencesSignature(true),
       this.startSpan(redirectEndpoints.read),
       this.redirectReadIdsAndPreferences,
-      this.handleErrorsWithRedirectToReferer(redirectEndpoints.read),
+      this.catchErrorsWithRedirectToReferer(redirectEndpoints.read),
       this.endSpan(redirectEndpoints.read)
     );
     this.app.expressApp.get(
       redirectEndpoints.write,
       timeout(this.redirectResponseTimeoutInMs),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest, true),
-      this.returnUrlValidationHandler<PostIdsPrefsRequest>(),
-      this.buildWritePermissionHandler(true),
-      this.buildWriteIdsAndPreferencesSignatureHandler(true),
+      this.checkQueryString(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest, true),
+      this.checkReturnUrl<PostIdsPrefsRequest>(),
+      this.checkWritePermission(true),
+      this.checkWriteIdsAndPreferencesSignature(true),
       this.startSpan(redirectEndpoints.write),
       this.redirectWriteIdsAndPreferences,
-      this.handleErrorsWithRedirectToReferer(redirectEndpoints.write),
+      this.catchErrorsWithRedirectToReferer(redirectEndpoints.write),
       this.endSpan(redirectEndpoints.write)
     );
 
     this.app.expressApp.get(
       redirectEndpoints.delete,
       timeout(this.redirectResponseTimeoutInMs),
-      this.buildQueryStringValidatorHandler(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest, true),
-      this.returnUrlValidationHandler<DeleteIdsPrefsRequest>(),
-      this.buildDeletePermissionHandler(true),
-      this.buildDeleteIdsAndPreferencesSignatureHandler(true),
+      this.checkQueryString(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest, true),
+      this.checkReturnUrl<DeleteIdsPrefsRequest>(),
+      this.checkDeletePermission(true),
+      this.checkDeleteIdsAndPreferencesSignature(true),
       this.startSpan(redirectEndpoints.delete),
       this.redirectDeleteIdsAndPreferences,
-      this.handleErrorsWithRedirectToReferer(redirectEndpoints.delete),
+      this.catchErrorsWithRedirectToReferer(redirectEndpoints.delete),
       this.endSpan(redirectEndpoints.delete)
+    );
+  }
+
+  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
+    const { host, identity, currentPrivateKey, allowedHosts, redirectResponseTimeoutInMs } = (await parseConfig(
+      configPath
+    )) as OperatorNodeConfig;
+    return new OperatorNode(
+      identity,
+      host,
+      currentPrivateKey,
+      allowedHosts,
+      JsonValidator.default(),
+      new PublicKeyStore(s2sOptions).provider,
+      redirectResponseTimeoutInMs || 2000
     );
   }
 
@@ -318,6 +334,7 @@ export class OperatorNode extends Node {
       this.host // but operator needs to be verified
     );
   }
+
   private async getReadResponse(
     topLevelRequest: GetIdsPrefsRequest | RedirectGetIdsPrefsRequest,
     req: Request
@@ -341,7 +358,7 @@ export class OperatorNode extends Node {
     topLevelRequest: PostIdsPrefsRequest | RedirectPostIdsPrefsRequest,
     req: Request,
     res: Response
-  ) {
+  ): Promise<PostIdsPrefsResponse> {
     const request = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
       topLevelRequest,
       req
@@ -378,8 +395,13 @@ export class OperatorNode extends Node {
     setCookie(res, Cookies.test_3pc, toTest3pcCookie(test3pc), expirationDate, { domain: this.topLevelDomain });
   }
 
-  buildWriteIdsAndPreferencesSignatureHandler(isRedirect: boolean): RequestHandler {
-    return async (req: Request, res: Response, next: NextFunction) => {
+  private checkPermission(domain: Domain, permission: Permission) {
+    return this.allowedHosts[domain]?.includes(permission);
+  }
+
+  checkWriteIdsAndPreferencesSignature =
+    (isRedirect: boolean): RequestHandler =>
+    async (req: Request, res: Response, next: NextFunction) => {
       const request = isRedirect
         ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
         : getPayload<PostIdsPrefsRequest>(req);
@@ -403,10 +425,10 @@ export class OperatorNode extends Node {
         next(error);
       }
     };
-  }
 
-  buildDeleteIdsAndPreferencesSignatureHandler(isRedirect: boolean): RequestHandler {
-    return async (req: Request, res: Response, next: NextFunction) => {
+  checkDeleteIdsAndPreferencesSignature =
+    (isRedirect: boolean): RequestHandler =>
+    async (req: Request, res: Response, next: NextFunction) => {
       const request = isRedirect
         ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
         : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
@@ -430,14 +452,16 @@ export class OperatorNode extends Node {
         next(error);
       }
     };
-  }
 
-  buildReadIdsAndPreferencesSignatureHandler(isRedirect: boolean): RequestHandler {
-    return async (req: Request, res: Response, next: NextFunction) => {
+  checkReadIdsAndPreferencesSignature =
+    (isRedirect: boolean): RequestHandler =>
+    async (req: Request, res: Response, next: NextFunction) => {
       const request = isRedirect
         ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
         : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
+
       const signatureValidationResult = await this.validateReadRequest(request, req);
+
       if (signatureValidationResult.isValid) {
         next();
       } else {
@@ -457,7 +481,6 @@ export class OperatorNode extends Node {
         next(error);
       }
     };
-  }
 
   restReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
@@ -482,7 +505,7 @@ export class OperatorNode extends Node {
     }
   };
 
-  verify3PC = (req: Request, res: Response, next: NextFunction) => {
+  read3PCCookie = (req: Request, res: Response, next: NextFunction) => {
     // Note: no signature verification here
     try {
       const cookies = req.cookies;
@@ -526,12 +549,9 @@ export class OperatorNode extends Node {
     }
   };
 
-  private checkPermission(domain: Domain, permission: Permission) {
-    return this.allowedHosts[domain]?.includes(permission);
-  }
-
-  buildWritePermissionHandler(isRedirect: boolean): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  checkWritePermission =
+    (isRedirect: boolean): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       const input = isRedirect
         ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
         : getPayload<PostIdsPrefsRequest>(req);
@@ -556,10 +576,11 @@ export class OperatorNode extends Node {
         next();
       }
     };
-  }
 
-  buildDeletePermissionHandler(isRedirect: boolean): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  // FIXME merge with checkWritePermission
+  checkDeletePermission =
+    (isRedirect: boolean): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       const input = isRedirect
         ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
         : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
@@ -584,7 +605,6 @@ export class OperatorNode extends Node {
         next();
       }
     };
-  }
 
   restDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
@@ -650,6 +670,7 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
+
   redirectWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req);
     try {
@@ -672,6 +693,7 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
+
   redirectDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     this.logger.Info(redirectEndpoints.delete);
     const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
@@ -697,23 +719,10 @@ export class OperatorNode extends Node {
       next(error);
     }
   };
-  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
-    const { host, identity, currentPrivateKey, allowedHosts, redirectResponseTimeoutInMs } = (await parseConfig(
-      configPath
-    )) as OperatorNodeConfig;
-    return new OperatorNode(
-      identity,
-      host,
-      currentPrivateKey,
-      allowedHosts,
-      JsonValidator.default(),
-      new PublicKeyStore(s2sOptions).provider,
-      redirectResponseTimeoutInMs || 2000
-    );
-  }
 
-  handleErrorsWithRedirectToReferer(endPointName: string): ErrorRequestHandler {
-    return (error: Error, req: Request, res: Response, next: NextFunction) => {
+  catchErrorsWithRedirectToReferer =
+    (endPointName: string): ErrorRequestHandler =>
+    (error: Error, req: Request, res: Response, next: NextFunction) => {
       this.logger.Error(endPointName, error);
       const nodeError: NodeError = {
         type: NodeErrorType.UNKNOWN_ERROR,
@@ -721,9 +730,10 @@ export class OperatorNode extends Node {
       };
       this.redirectWithError(res, req.header('referer'), 500, nodeError);
     };
-  }
-  buildReadPermissionHandler(isRedirect: boolean): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+
+  checkReadPermission =
+    (isRedirect: boolean): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       const input = isRedirect
         ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
         : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
@@ -748,8 +758,9 @@ export class OperatorNode extends Node {
         next();
       }
     };
-  }
-  getNewIdPermissionHandler = (req: Request, res: Response, next: NextFunction) => {
+
+  // FIXME merge with checkReadPermission
+  checkNewIdPermission = (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<GetNewIdRequest>(req);
     const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
     if (!haveReadPermission) {
@@ -765,7 +776,7 @@ export class OperatorNode extends Node {
     }
   };
 
-  getNewIdSignatureHandler = async (req: Request, res: Response, next: NextFunction) => {
+  checkNewIdSignature = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<GetNewIdRequest>(req);
     const context = { origin: req.header('origin') };
     const sender = request.sender;
