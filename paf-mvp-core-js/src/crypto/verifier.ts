@@ -10,9 +10,7 @@ import { getTimeStampInSec } from '@core/timestamp';
 import { Unsigned } from '@core/model/model';
 import { Log } from '@core/log';
 import { PublicKeyProvider } from '@core/crypto/key-store';
-import { PublicKey } from '@core/crypto/keys';
-import ECDSA from 'ecdsa-secp256r1';
-import ECKey from 'ec-key';
+import { ECDSA_NIT_P256Builder, IDSABuilder } from '@core/crypto/digital-signature';
 
 /**
  * Verifier class
@@ -23,8 +21,13 @@ export class Verifier<T> {
   /**
    * @param publicKeyProvider method to get a public key from a domain name
    * @param definition data or message definition used to extract signature, signing domain, input string
+   * @param builder the IDSABuilder
    */
-  constructor(protected publicKeyProvider: PublicKeyProvider, protected definition: SigningDefinition<T, unknown>) {}
+  constructor(
+    protected publicKeyProvider: PublicKeyProvider,
+    protected definition: SigningDefinition<T, unknown>,
+    private builder: IDSABuilder = new ECDSA_NIT_P256Builder()
+  ) {}
 
   async verifySignature(signedData: T): Promise<MessageVerificationResult> {
     const signingDomain = this.definition.getSignerDomain(signedData);
@@ -33,7 +36,10 @@ export class Verifier<T> {
       const publicKey = await this.publicKeyProvider(signingDomain);
       const signature = this.definition.getSignature(signedData);
       const toVerify = this.definition.getInputString(signedData);
-      result.isValid = this.publicKeyFromString(publicKey).verify(toVerify, signature);
+
+      const verifier = this.builder.buildVerifier(publicKey);
+
+      result.isValid = await verifier.verify(toVerify, signature);
       if (result.isValid) this.logger.Debug('Verified', signedData);
       else {
         const message = `Verification failed for ${signedData}`;
@@ -46,10 +52,6 @@ export class Verifier<T> {
       return result;
     }
     return result;
-  }
-
-  publicKeyFromString(keyString: string): PublicKey {
-    return ECDSA.fromJWK(new ECKey(keyString));
   }
 }
 

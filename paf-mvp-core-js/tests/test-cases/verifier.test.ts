@@ -1,18 +1,15 @@
-import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
+import { FooSigningDefinition, FooType, mockBuilder } from '../helpers/crypto.helper';
 import { Verifier } from '@core/crypto/verifier';
 import { PublicKeyProvider } from '@core/crypto';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import SpyInstance = jest.SpyInstance;
 
 describe('Verifier', () => {
-  const publicKeyA = 'A';
-  const publicKeyB = 'B';
-
   const mockPublicKeyProvider: PublicKeyProvider = (domain: string) => {
     if (domain === 'domainA.com') {
-      return Promise.resolve(publicKeyA);
+      return Promise.resolve('A');
     } else if (domain === 'domainB.com') {
-      return Promise.resolve(publicKeyB);
+      return Promise.resolve('B');
     }
     throw new UnableToIdentifySignerError(`No valid key found for ${domain}`);
   };
@@ -24,11 +21,11 @@ describe('Verifier', () => {
     signature: 'SIGNEDA[foo.bar]',
   };
 
-  const verifier = new Verifier(mockPublicKeyProvider, new FooSigningDefinition());
-
-  jest.spyOn(verifier, 'publicKeyFromString').mockImplementation((key) => ({
-    verify: (toVerify: string, signature: string) => signature === `SIGNED${key}[${toVerify}]`,
+  mockBuilder.buildVerifier.mockImplementation((key) => ({
+    verify: (toVerify: string, signature: string) => Promise.resolve(signature === `SIGNED${key}[${toVerify}]`),
   }));
+
+  const verifier = new Verifier(mockPublicKeyProvider, new FooSigningDefinition(), mockBuilder);
 
   const spies: { [name in keyof FooSigningDefinition]?: SpyInstance } = {
     getSignerDomain: jest.spyOn(FooSigningDefinition.prototype, 'getSignerDomain'),
