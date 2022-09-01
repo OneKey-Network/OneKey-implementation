@@ -1,4 +1,5 @@
 import { SigningDefinition } from '@core/crypto/signing-definition';
+import { IDSABuilder } from '@core/crypto/digital-signature';
 
 export interface FooType {
   foo: string;
@@ -20,3 +21,9 @@ export class FooSigningDefinition implements SigningDefinition<FooType> {
     return data.signature;
   }
 }
+
+export const mockBuilder: jest.Mocked<IDSABuilder> = {
+  buildSigner: jest.fn(),
+  buildKeyService: jest.fn(),
+  buildVerifier: jest.fn(),
+};

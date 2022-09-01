@@ -332,7 +332,7 @@ export class OperatorNode extends Node {
     const hasPAFId = identifiers.some((i: Identifier) => i.type === 'paf_browser_id');
     if (!hasPAFId) {
       // No existing id, let's generate one, unpersisted
-      identifiers.push(this.idBuilder.generateNewId());
+      identifiers.push(await this.idBuilder.generateNewId());
     }
     return this.getIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
   }
@@ -349,7 +349,7 @@ export class OperatorNode extends Node {
     const sender = request.sender;
     const { identifiers, preferences } = request.body;
     this.writeAsCookies(request, res);
-    return this.postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
+    return await this.postIdsPrefsResponseBuilder.buildResponse(sender, { identifiers, preferences });
   }
 
   private async getDeleteResponse(
@@ -608,7 +608,10 @@ export class OperatorNode extends Node {
   getNewId = async (req: Request, res: Response, next: NextFunction) => {
     const request = getPafDataFromQueryString<GetNewIdRequest>(req);
     try {
-      const response = this.getNewIdResponseBuilder.buildResponse(request.receiver, this.idBuilder.generateNewId());
+      const response = await this.getNewIdResponseBuilder.buildResponse(
+        request.receiver,
+        await this.idBuilder.generateNewId()
+      );
       res.json(response);
       next();
     } catch (e) {

@@ -2,7 +2,7 @@
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs",
-      "types": ["node", "tld-extract", "ec-key", "ecdsa-secp256r1"]
+      "types": ["node", "tld-extract"]
     }
   },
   "compilerOptions": {

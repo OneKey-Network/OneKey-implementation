@@ -1,23 +1,15 @@
-import { PublicKey } from '@core/crypto/keys';
-import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
+import { FooSigningDefinition, FooType, mockBuilder } from '../helpers/crypto.helper';
 import { Verifier } from '@core/crypto/verifier';
 import { PublicKeyProvider } from '@core/crypto';
-import SpyInstance = jest.SpyInstance;
 import { UnableToIdentifySignerError } from '@core/express/errors';
+import SpyInstance = jest.SpyInstance;
 
 describe('Verifier', () => {
-  const publicKeyA: PublicKey = {
-    verify: (toVerify: string, signature: string) => signature === `SIGNED[${toVerify}]`,
-  };
-  const publicKeyB: PublicKey = {
-    verify: (toVerify: string, signature: string) => signature === `SIGNED_B[${toVerify}]`,
-  };
-
   const mockPublicKeyProvider: PublicKeyProvider = (domain: string) => {
     if (domain === 'domainA.com') {
-      return Promise.resolve(publicKeyA);
+      return Promise.resolve('A');
     } else if (domain === 'domainB.com') {
-      return Promise.resolve(publicKeyB);
+      return Promise.resolve('B');
     }
     throw new UnableToIdentifySignerError(`No valid key found for ${domain}`);
   };
@@ -26,10 +18,14 @@ describe('Verifier', () => {
     bar: 'bar',
     foo: 'foo',
     domain: 'domainA.com',
-    signature: 'SIGNED[foo.bar]',
+    signature: 'SIGNEDA[foo.bar]',
   };
 
-  const verifier = new Verifier(mockPublicKeyProvider, new FooSigningDefinition());
+  mockBuilder.buildVerifier.mockImplementation((key) => ({
+    verify: (toVerify: string, signature: string) => Promise.resolve(signature === `SIGNED${key}[${toVerify}]`),
+  }));
+
+  const verifier = new Verifier(mockPublicKeyProvider, new FooSigningDefinition(), mockBuilder);
 
   const spies: { [name in keyof FooSigningDefinition]?: SpyInstance } = {
     getSignerDomain: jest.spyOn(FooSigningDefinition.prototype, 'getSignerDomain'),
@@ -63,7 +59,7 @@ describe('Verifier', () => {
       expectedVerification: false,
     },
     {
-      data: { ...mockData, domain: 'domainB.com', signature: 'SIGNED_B[foo.bar]' },
+      data: { ...mockData, domain: 'domainB.com', signature: 'SIGNEDB[foo.bar]' },
       expectedVerification: true,
     },
   ];
