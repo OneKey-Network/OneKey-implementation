@@ -1,5 +1,4 @@
 import ECDSA from 'ecdsa-secp256r1';
-import ECKey from 'ec-key';
 import { Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 
@@ -15,9 +14,6 @@ export interface PublicKey {
 export interface PublicKeys {
   [host: string]: PublicKey;
 }
-
-export const publicKeyFromString = (keyString: string): PublicKey => ECDSA.fromJWK(new ECKey(keyString));
-export const privateKeyFromString = (keyString: string): PrivateKey => ECDSA.fromJWK(new ECKey(keyString));
 
 /**
  * Return true if this key is valid according to start and end dates

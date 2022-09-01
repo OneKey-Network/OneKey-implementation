@@ -1,17 +1,12 @@
-import { PublicKey } from '@core/crypto/keys';
 import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
 import { Verifier } from '@core/crypto/verifier';
 import { PublicKeyProvider } from '@core/crypto';
-import SpyInstance = jest.SpyInstance;
 import { UnableToIdentifySignerError } from '@core/express/errors';
+import SpyInstance = jest.SpyInstance;
 
 describe('Verifier', () => {
-  const publicKeyA: PublicKey = {
-    verify: (toVerify: string, signature: string) => signature === `SIGNED[${toVerify}]`,
-  };
-  const publicKeyB: PublicKey = {
-    verify: (toVerify: string, signature: string) => signature === `SIGNED_B[${toVerify}]`,
-  };
+  const publicKeyA = 'A';
+  const publicKeyB = 'B';
 
   const mockPublicKeyProvider: PublicKeyProvider = (domain: string) => {
     if (domain === 'domainA.com') {
@@ -26,10 +21,14 @@ describe('Verifier', () => {
     bar: 'bar',
     foo: 'foo',
     domain: 'domainA.com',
-    signature: 'SIGNED[foo.bar]',
+    signature: 'SIGNEDA[foo.bar]',
   };
 
   const verifier = new Verifier(mockPublicKeyProvider, new FooSigningDefinition());
+
+  jest.spyOn(verifier, 'publicKeyFromString').mockImplementation((key) => ({
+    verify: (toVerify: string, signature: string) => signature === `SIGNED${key}[${toVerify}]`,
+  }));
 
   const spies: { [name in keyof FooSigningDefinition]?: SpyInstance } = {
     getSignerDomain: jest.spyOn(FooSigningDefinition.prototype, 'getSignerDomain'),
@@ -63,7 +62,7 @@ describe('Verifier', () => {
       expectedVerification: false,
     },
     {
-      data: { ...mockData, domain: 'domainB.com', signature: 'SIGNED_B[foo.bar]' },
+      data: { ...mockData, domain: 'domainB.com', signature: 'SIGNEDB[foo.bar]' },
       expectedVerification: true,
     },
   ];

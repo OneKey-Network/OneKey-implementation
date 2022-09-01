@@ -12,7 +12,6 @@ describe('Operator Node', () => {
   let response: MockResponse<Response>;
   const nextMock = jest.fn();
   const operatorHost = 'example.onekey.network';
-  const publicKeyProviderAlwaysSucceeds = () => Promise.resolve({ verify: () => true });
   const client = new OperatorClient(
     operatorHost,
     'paf.read-write.com',
@@ -21,7 +20,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
 cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
 j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
-    publicKeyProviderAlwaysSucceeds
+    () => Promise.resolve('readKey')
   );
   const existingPafCookies = {
     paf_identifiers: JSON.stringify([id]),
@@ -48,7 +47,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 
   beforeEach(() => {
     operatorNode = OperatorUtils.buildOperator(OperatorUtils.getSuccessfulJsonValidatorMock(), () =>
-      Promise.resolve({ verify: () => true })
+      Promise.resolve('operatorKey')
     );
     response = createResponse();
   });
@@ -119,7 +118,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
 cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
 j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
-      publicKeyProviderAlwaysSucceeds
+      () => Promise.resolve('unauthorizedKey')
     );
     const readOnlyClient = new OperatorClient(
       operatorHost,
@@ -129,7 +128,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
 cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
 j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
-      publicKeyProviderAlwaysSucceeds
+      () => Promise.resolve('readKey')
     );
     const writeOnlyClient = new OperatorClient(
       operatorHost,
@@ -139,7 +138,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxrHgVC3uFlEqnqab
 cPqLNBFbMbt1tAPsvKy8DBV2m+ChRANCAARSdqvCnSBRmCNv1+xg0tw2t100pXmH
 j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
 -----END PRIVATE KEY-----`,
-      publicKeyProviderAlwaysSucceeds
+      () => Promise.resolve('writeKey')
     );
     const cases = [
       {

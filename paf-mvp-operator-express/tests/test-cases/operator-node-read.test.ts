@@ -52,7 +52,7 @@ describe('Read permission Handler', () => {
   let response: MockResponse<Response>;
   let nextFunction: NextFunction;
   const operatorNode: OperatorNode = OperatorUtils.buildOperator(OperatorUtils.getUnsuccessfulJsonValidatorMock(), () =>
-    Promise.resolve({ verify: () => true })
+    Promise.resolve('operatorKey')
   );
   beforeEach(() => {
     response = createResponse();
@@ -75,7 +75,7 @@ describe('GetNewId permission Handler', () => {
   let response: MockResponse<Response>;
   let nextFunction: NextFunction;
   const operatorNode: OperatorNode = OperatorUtils.buildOperator(OperatorUtils.getUnsuccessfulJsonValidatorMock(), () =>
-    Promise.resolve({ verify: () => true })
+    Promise.resolve('operatorKey')
   );
   beforeEach(() => {
     response = createResponse();

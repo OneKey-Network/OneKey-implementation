@@ -10,6 +10,9 @@ import { getTimeStampInSec } from '@core/timestamp';
 import { Unsigned } from '@core/model/model';
 import { Log } from '@core/log';
 import { PublicKeyProvider } from '@core/crypto/key-store';
+import { PublicKey } from '@core/crypto/keys';
+import ECDSA from 'ecdsa-secp256r1';
+import ECKey from 'ec-key';
 
 /**
  * Verifier class
@@ -30,7 +33,7 @@ export class Verifier<T> {
       const publicKey = await this.publicKeyProvider(signingDomain);
       const signature = this.definition.getSignature(signedData);
       const toVerify = this.definition.getInputString(signedData);
-      result.isValid = publicKey.verify(toVerify, signature);
+      result.isValid = this.publicKeyFromString(publicKey).verify(toVerify, signature);
       if (result.isValid) this.logger.Debug('Verified', signedData);
       else {
         const message = `Verification failed for ${signedData}`;
@@ -43,6 +46,10 @@ export class Verifier<T> {
       return result;
     }
     return result;
+  }
+
+  publicKeyFromString(keyString: string): PublicKey {
+    return ECDSA.fromJWK(new ECKey(keyString));
   }
 }
 
@@ -69,6 +76,7 @@ export interface MessageVerificationResult {
   isValid: boolean;
   errors?: Error[];
 }
+
 export abstract class MessageVerifier<T extends MessageBase, R = T, U = Unsigned<T>> extends Verifier<R> {
   /**
    * @param publicKeyProvider
