@@ -2,19 +2,6 @@ import ECDSA from 'ecdsa-secp256r1';
 import { Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 
-// Not provided by ecdsa-secp256r1 unfortunately
-export interface PrivateKey {
-  sign: (toSign: string) => string;
-}
-
-export interface PublicKey {
-  verify: (toVerify: string, signature: string) => boolean;
-}
-
-export interface PublicKeys {
-  [host: string]: PublicKey;
-}
-
 /**
  * Return true if this key is valid according to start and end dates
  * @param key
