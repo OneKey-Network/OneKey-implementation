@@ -1,5 +1,5 @@
 import { Signer } from '@core/crypto/signer';
-import { FooSigningDefinition, FooType } from '../helpers/crypto.helper';
+import { FooSigningDefinition, FooType, mockBuilder } from '../helpers/crypto.helper';
 
 describe('Signer', () => {
   test('should sign based on definition', async () => {
@@ -13,11 +13,9 @@ describe('Signer', () => {
     const getInputString = jest.spyOn(FooSigningDefinition.prototype, 'getInputString');
     const getSignature = jest.spyOn(FooSigningDefinition.prototype, 'getSignature');
 
-    jest.spyOn(Signer.prototype, 'privateKeyFromString').mockImplementation((key) => ({
-      sign: (data: string) => `SIGNED[${data}]`,
-    }));
+    mockBuilder.buildSigner.mockImplementation(() => ({ sign: (data: string) => Promise.resolve(`SIGNED[${data}]`) }));
 
-    const signer = new Signer('', new FooSigningDefinition());
+    const signer = new Signer('', new FooSigningDefinition(), mockBuilder);
 
     expect(await signer.sign(mockData)).toEqual('SIGNED[foo.bar]');
 
