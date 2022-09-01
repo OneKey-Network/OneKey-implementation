@@ -33,15 +33,11 @@ export interface IHttpService {
   deleteHttp(url: string): Promise<Response>;
 }
 
-type Fetcher = typeof fetch;
-
 export class HttpService implements IHttpService {
-  fetch: Fetcher;
   logger: Log;
   isRedirecting: boolean;
 
-  constructor(fetcher: Fetcher = fetch, logger = new Log('OneKey', '#3bb8c3')) {
-    this.fetch = fetcher;
+  constructor(logger = new Log('OneKey', '#3bb8c3')) {
     this.logger = logger;
     this.isRedirecting = false;
   }
@@ -58,7 +54,7 @@ export class HttpService implements IHttpService {
   }
 
   postJson(url: string, input: object): Promise<Response> {
-    return this.fetch(url, {
+    return fetch(url, {
       method: 'POST',
       body: JSON.stringify(input),
       credentials: 'include',
@@ -66,7 +62,7 @@ export class HttpService implements IHttpService {
   }
 
   postText(url: string, input: string): Promise<Response> {
-    return this.fetch(url, {
+    return fetch(url, {
       method: 'POST',
       body: input,
       credentials: 'include',
@@ -74,14 +70,14 @@ export class HttpService implements IHttpService {
   }
 
   get(url: string): Promise<Response> {
-    return this.fetch(url, {
+    return fetch(url, {
       method: 'GET',
       credentials: 'include',
     });
   }
 
   deleteHttp(url: string): Promise<Response> {
-    return this.fetch(url, {
+    return fetch(url, {
       method: 'DELETE',
       credentials: 'include',
     });
