@@ -19,24 +19,28 @@ export class MainApp {
  */
 export class VHostApp {
   constructor(public name: string, public hostName: string, public expressApp: Express = express()) {
-    addMiddlewares(this.expressApp);
+    this.addCookieParser();
+
+    this.addPostBodyParser();
+
+    // Systematically redirect HTTP requests to HTTPs
+    this.ensureHttps();
+  }
+
+  private ensureHttps() {
+    this.expressApp.enable('trust proxy');
+    this.expressApp.use((req, res, next) => {
+      req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
+    });
+  }
+
+  private addPostBodyParser() {
+    // POST parser TODO ideally should parse it as JSON directly (but issues with CORS)
+    this.expressApp.use(bodyParser.text());
+  }
+
+  private addCookieParser() {
+    // Cookie parser
+    this.expressApp.use(cookieParser());
   }
 }
-
-/**
- * Adds the main middlewares needed to manipulate cookies and requests
- * @param app
- */
-const addMiddlewares = (app: Express) => {
-  // Cookie parser
-  app.use(cookieParser());
-
-  // POST parser TODO ideally should parse it as JSON directly (but issues with CORS)
-  app.use(bodyParser.text());
-
-  // Systematically redirect HTTP requests to HTTPs
-  app.enable('trust proxy');
-  app.use((req, res, next) => {
-    req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
-  });
-};
