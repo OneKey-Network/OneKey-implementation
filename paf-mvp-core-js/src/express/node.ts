@@ -71,7 +71,6 @@ export class Node implements INode {
   /**
    * Returns a handler that starts a span
    * @param endPointName
-   * @protected
    */
   startSpan =
     (endPointName: string): RequestHandler =>
@@ -83,7 +82,6 @@ export class Node implements INode {
   /**
    * Returns a header that ends a span
    * @param endPointName
-   * @protected
    */
   endSpan =
     (endPointName: string): RequestHandler =>
