@@ -38,14 +38,30 @@ describe('read', () => {
 
     const server: Express = operatorNode.app.expressApp;
 
+    const startSpan = jest.spyOn(operatorNode, 'startSpan');
+    const endSpan = jest.spyOn(operatorNode, 'endSpan');
+
+    const assertSpansCalled = () => {
+      expect(startSpan).toHaveBeenCalled();
+      expect(endSpan).toHaveBeenCalled();
+    };
+
     beforeAll(async () => {
       return operatorNode.start();
     });
 
-    it('should fallback to unknown error in case forgot to start validator', async () => {
+    it('should fallback to unknown error in case of an exception', async () => {
       // Note that the operator node is not start()ed
-      const uninitializedOperatorNode = OperatorUtils.buildOperator(JsonValidator.default(), publicKeyProvider);
-      const server: Express = uninitializedOperatorNode.app.expressApp;
+      const exceptionValidator = {
+        start: jest.fn(),
+        validate: () => {
+          throw 'UnknownException';
+        },
+      };
+      const faultyOperator = OperatorUtils.buildOperator(exceptionValidator, publicKeyProvider);
+      const server: Express = faultyOperator.app.expressApp;
+
+      await faultyOperator.start();
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
 
@@ -54,12 +70,16 @@ describe('read', () => {
       const response = await supertest(server).get(url);
 
       assertError(response, 500, NodeErrorType.UNKNOWN_ERROR);
+
+      assertSpansCalled();
     });
 
     it('should check query string', async () => {
       const response = await supertest(server).get('/paf/v1/ids-prefs');
 
       assertError(response, 400, NodeErrorType.INVALID_QUERY_STRING);
+
+      assertSpansCalled();
     });
 
     it('should check permissions', async () => {
@@ -70,6 +90,8 @@ describe('read', () => {
       const response = await supertest(server).get(url);
 
       assertError(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
+
+      assertSpansCalled();
     });
 
     describe('should check message signature', () => {
@@ -90,6 +112,8 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
         const response = await supertest(server).get(url);
 
         assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
+
+        assertSpansCalled();
       });
 
       it('for unknown signer', async () => {
@@ -103,6 +127,8 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
         const response = await supertest(server).get(url);
 
         assertError(response, 403, NodeErrorType.UNKNOWN_SIGNER);
+
+        assertSpansCalled();
       });
     });
 
@@ -115,6 +141,8 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 
       // FIXME[errors] should be a specific error type
       assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
+
+      assertSpansCalled();
     });
 
     it('should handle valid request', async () => {
@@ -130,6 +158,8 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       expect(body.body.preferences).toEqual(undefined);
       expect(body.body.identifiers.length).toEqual(1);
       expect(body.body.identifiers[0].persisted).toEqual(false);
+
+      assertSpansCalled();
     });
   });
 });

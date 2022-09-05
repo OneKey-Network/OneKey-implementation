@@ -131,6 +131,10 @@ export class OperatorNode extends Node {
     this.getNewIdRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
     this.idBuilder = new IdBuilder(host, privateKey);
     this.redirectResponseTimeoutInMs = redirectResponseTimeout;
+  }
+
+  async start(): Promise<void> {
+    await super.start();
 
     // Note that CORS is "disabled" here because the check is done via signature
     // So accept whatever the referer is

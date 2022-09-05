@@ -37,16 +37,20 @@ export class Node implements INode {
 
   constructor(
     hostName: string,
-    identity: IdentityConfig,
+    protected identity: IdentityConfig,
     jsonValidator: IJsonValidator,
     protected publicKeyProvider: PublicKeyProvider
   ) {
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
     this.app = new VHostApp(identity.name, hostName);
     this.jsonValidator = jsonValidator;
+  }
+
+  async start(): Promise<void> {
+    await this.jsonValidator.start();
 
     // All nodes must implement the identity endpoint
-    const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = identity;
+    const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = this.identity;
     const response = new GetIdentityResponseBuilder(name, type, dpoEmailAddress, privacyPolicyUrl).buildResponse(
       publicKeys
     );
@@ -62,10 +66,6 @@ export class Node implements INode {
       this.catchErrors(participantEndpoints.identity),
       this.endSpan(participantEndpoints.identity)
     );
-  }
-
-  async start(): Promise<void> {
-    await this.jsonValidator.start();
   }
 
   /**
