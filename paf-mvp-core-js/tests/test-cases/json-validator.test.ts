@@ -1,4 +1,10 @@
-import { JsonSchemaError, JsonSchemaRepository, JsonValidator, NoJsonError } from '@core/validation/json-validator';
+import {
+  JsonSchemaError,
+  JsonSchemaRepository,
+  JsonSchemaType,
+  JsonValidator,
+  NoJsonError,
+} from '@core/validation/json-validator';
 import path from 'path';
 
 const fixtureDirectory = path.join(__dirname, '..', 'fixtures', 'fake-json-schemas');
@@ -40,7 +46,7 @@ describe('JsonValidator', () => {
   test('validate undefined string', async () => {
     await validator.start();
 
-    const validation = validator.validate('json-schema-1.json', undefined);
+    const validation = validator.validate(JsonSchemaType.createSeedRequest, undefined);
 
     expect(validation).toEqual({
       isValid: false,
@@ -51,7 +57,7 @@ describe('JsonValidator', () => {
   test('validate empty string', async () => {
     await validator.start();
 
-    const validation = validator.validate('json-schema-1.json', '');
+    const validation = validator.validate(JsonSchemaType.createSeedRequest, '');
 
     expect(validation).toEqual({
       isValid: false,
@@ -62,7 +68,7 @@ describe('JsonValidator', () => {
   test('validate bad string', async () => {
     await validator.start();
 
-    const validation = validator.validate('json-schema-1.json', '{ "split_json": ');
+    const validation = validator.validate(JsonSchemaType.createSeedRequest, '{ "split_json": ');
 
     expect(validation).toEqual({
       isValid: false,
@@ -74,7 +80,7 @@ describe('JsonValidator', () => {
     const json = { text_sub: 'text' };
     await validator.start();
 
-    const validation = validator.validate('json-schema-1.json', JSON.stringify(json));
+    const validation = validator.validate(JsonSchemaType.createSeedRequest, JSON.stringify(json));
 
     expect(validation).toEqual({
       isValid: false,
@@ -86,7 +92,7 @@ describe('JsonValidator', () => {
     const json = { text: 'text', child: { text: 'text' } };
     await validator.start();
 
-    const validation = validator.validate('json-schema-1.json', JSON.stringify(json));
+    const validation = validator.validate(JsonSchemaType.createSeedRequest, JSON.stringify(json));
 
     expect(validation).toEqual({
       isValid: false,
@@ -98,7 +104,7 @@ describe('JsonValidator', () => {
     const json = { text: 'text', child: { text_sub: 'text' } };
     await validator.start();
 
-    const validation = validator.validate('json-schema-1.json', JSON.stringify(json));
+    const validation = validator.validate(JsonSchemaType.createSeedRequest, JSON.stringify(json));
 
     expect(validation).toEqual({
       isValid: true,
