@@ -7,7 +7,7 @@ import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { NodeError, NodeErrorType } from '@core/errors';
 import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
-import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
+import { IJsonValidator, JsonSchemaType, JsonValidator } from '@core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**
@@ -168,7 +168,7 @@ export class ClientNode extends Node {
       jsonProxyEndpoints.createSeed,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.checkJsonBody(JsonSchemaTypes.createSeedRequest),
+      this.checkJsonBody(JsonSchemaType.createSeedRequest),
       this.startSpan(jsonProxyEndpoints.createSeed),
       this.createSeed,
       this.catchErrors(jsonProxyEndpoints.createSeed),

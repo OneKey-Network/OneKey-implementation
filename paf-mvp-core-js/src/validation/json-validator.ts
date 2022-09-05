@@ -4,20 +4,16 @@ import fs from 'fs';
 import path from 'path';
 
 export type Json = any;
-export type JsonSchemaType = string;
 
-/**
- * Specify all the json schema types.
- */
-export abstract class JsonSchemaTypes {
-  static createSeedRequest: JsonSchemaType = 'post-seed-request.json';
-  static writeIdAndPreferencesRestRequest: JsonSchemaType = 'post-ids-prefs-request.json';
-  static writeIdAndPreferencesRedirectRequest: JsonSchemaType = 'redirect-post-ids-prefs-request.json';
-  static readIdAndPreferencesRestRequest: JsonSchemaType = 'get-ids-prefs-request.json';
-  static readIdAndPreferencesRedirectRequest: JsonSchemaType = 'redirect-get-ids-prefs-request.json';
-  static deleteIdAndPreferencesRequest: JsonSchemaType = 'delete-ids-prefs-request.json';
-  static deleteIdAndPreferencesRedirectRequest: JsonSchemaType = 'redirect-delete-ids-prefs-request.json';
-  static getNewIdRequest: JsonSchemaType = 'get-new-id-request.json';
+export enum JsonSchemaType {
+  createSeedRequest = 'post-seed-request.json',
+  writeIdAndPreferencesRestRequest = 'post-ids-prefs-request.json',
+  writeIdAndPreferencesRedirectRequest = 'redirect-post-ids-prefs-request.json',
+  readIdAndPreferencesRestRequest = 'get-ids-prefs-request.json',
+  readIdAndPreferencesRedirectRequest = 'redirect-get-ids-prefs-request.json',
+  deleteIdAndPreferencesRequest = 'delete-ids-prefs-request.json',
+  deleteIdAndPreferencesRedirectRequest = 'redirect-delete-ids-prefs-request.json',
+  getNewIdRequest = 'get-new-id-request.json',
 }
 
 /**
