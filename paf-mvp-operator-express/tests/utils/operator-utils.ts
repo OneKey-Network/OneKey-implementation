@@ -36,7 +36,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
           {
             // Timestamps are expressed in seconds
             startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T10:50:00.000Z')),
-            endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
+            endTimestampInSec: getTimeStampInSec(new Date('2030-12-31T12:00:00.000Z')),
             publicKey: this.operatorPublicKey,
           },
         ],

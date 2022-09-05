@@ -183,7 +183,7 @@ export class ClientNode extends Node {
 
   restBuildUrlToGetIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = await this.client.getReadResponse(req);
+      const url = await this.client.getReadRequest(req);
       res.send(url);
       next();
     } catch (e) {

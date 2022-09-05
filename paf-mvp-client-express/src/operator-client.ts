@@ -94,7 +94,11 @@ export class OperatorClient {
     return this.addSignatureToSeed(unsigned, signature);
   }
 
-  async getReadResponse(req: Request): Promise<string> {
+  /**
+   * Build a request to READ ids and preferences from the operator
+   * @param req
+   */
+  async getReadRequest(req: Request): Promise<string> {
     const getIdsPrefsRequestJson = await this.getIdsPrefsRequestBuilder.buildRestRequest({
       origin: req.header('origin'),
     });
