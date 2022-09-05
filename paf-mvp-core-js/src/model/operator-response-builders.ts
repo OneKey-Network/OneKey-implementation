@@ -15,6 +15,7 @@ import { getTimeStampInSec } from '../timestamp';
 import { setInQueryString } from '../express/utils';
 import { ResponseDefinition } from '@core/crypto/signing-definition';
 import { Signer } from '@core/crypto/signer';
+import { IIO_DSASignService } from './io-signature.service';
 
 export abstract class ResponseBuilderWithRedirect<T> {
   protected constructor(protected host: string) {}
@@ -35,11 +36,7 @@ export abstract class ResponseBuilderWithRedirect<T> {
 }
 
 export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetIdsPrefsResponse> {
-  constructor(
-    host: string,
-    privateKey: string,
-    private readonly signer = new Signer(privateKey, new ResponseDefinition())
-  ) {
+  constructor(host: string, private readonly signer: IIO_DSASignService) {
     super(host);
   }
 
@@ -58,10 +55,7 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
       timestamp: timestampInSec,
     };
 
-    return {
-      ...request,
-      signature: await this.signer.sign(request),
-    };
+    return this.signer.signIdAndPrefsResponse(request);
   }
 }
 

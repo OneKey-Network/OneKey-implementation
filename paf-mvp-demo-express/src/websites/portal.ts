@@ -28,20 +28,16 @@ import {
   RequestWithBodyDefinition,
   RequestWithContext,
   RequestWithoutBodyDefinition,
-  ResponseDefinition,
   ResponseType,
 } from '@core/crypto/signing-definition';
-import {
-  IdsAndPreferencesVerifier,
-  MessageVerificationResult,
-  RequestVerifier,
-  ResponseVerifier,
-  Verifier,
-} from '@core/crypto/verifier';
+import { IdsAndPreferencesVerifier, MessageVerificationResult, RequestVerifier, Verifier } from '@core/crypto/verifier';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { VHostApp } from '@core/express/express-apps';
 import { parseConfig } from '@core/express/config';
 import { ClientNodeConfig } from '@client/client-node';
+import { ECDSA_NIT_P256Builder } from '@core/crypto/digital-signature';
+import { IdsPrefsResponseValidator } from '@core/validation/io.validator';
+import { IO_DSAValidator } from '@core/validation/io-signature.validator';
 
 const { name, host }: WebSiteConfig = {
   name: 'A OneKey portal',
@@ -158,12 +154,15 @@ export const portalWebSiteApp = new VHostApp(name, host);
     }
   });
 
+  const dsaBuilder = new ECDSA_NIT_P256Builder();
+  const dsaValidator = new IO_DSAValidator(dsaBuilder, keyStore.provider);
+  const validator = new IdsPrefsResponseValidator(dsaValidator);
+
   const requestWithoutBodyVerifier = (request: RequestWithContext<MessageBase>) =>
     new RequestVerifier(keyStore.provider, new RequestWithoutBodyDefinition()).verifySignature(request);
   const postIdsPrefsRequestVerifier = (request: RequestWithContext<PostIdsPrefsRequest>) =>
     new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature(request);
-  const responseVerifier = (response: ResponseType) =>
-    new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature(response);
+  const responseVerifier = (response: ResponseType) => validator.verifySignature(response);
 
   const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<MessageVerificationResult> } = {
     identifier: (id: Identifier) => new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature(id),

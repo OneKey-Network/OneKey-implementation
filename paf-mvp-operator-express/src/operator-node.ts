@@ -55,6 +55,8 @@ import { NodeError, NodeErrorType } from '@core/errors';
 import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import timeout from 'connect-timeout';
+import { IO_DSASignService } from '@core/model/io-signature.service';
+import { ECDSA_NIT_P256Builder } from '@core/crypto/digital-signature';
 
 /**
  * Expiration: now + 3 months
@@ -114,8 +116,12 @@ export class OperatorNode extends Node {
       publicKeyProvider
     );
 
+    const dsaBuilder = new ECDSA_NIT_P256Builder();
+    const dsaSigner = dsaBuilder.buildSigner(privateKey);
+    const signService = new IO_DSASignService(dsaSigner);
+
     this.topLevelDomain = getTopLevelDomain(host);
-    this.getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(host, privateKey);
+    this.getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(host, signService);
     this.get3PCResponseBuilder = new Get3PCResponseBuilder();
     this.postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(host, privateKey);
     this.getNewIdResponseBuilder = new GetNewIdResponseBuilder(host, privateKey);

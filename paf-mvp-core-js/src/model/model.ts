@@ -1,4 +1,4 @@
-import { Identifier, Source } from './generated-model';
+import { GetIdsPrefsResponse, GetNewIdResponse, Identifier, PostIdsPrefsResponse, Source } from './generated-model';
 
 export const CurrentModelVersion = '0.1';
 
@@ -20,3 +20,5 @@ export interface PAFNode {
   hostName: string;
   privateKey: string;
 }
+
+export type IdsPrefsResponse = GetIdsPrefsResponse | PostIdsPrefsResponse | GetNewIdResponse;
