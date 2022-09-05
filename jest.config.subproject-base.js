@@ -11,6 +11,9 @@ module.exports = {
       tsconfig: path.join(__dirname, 'tsconfig.test.json'),
     },
   },
+  testPathIgnorePatterns: [
+    '/cypress/'
+  ],
   'automock': false,
   'resetMocks': false,
 };

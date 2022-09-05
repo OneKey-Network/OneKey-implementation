@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
-        
+
       - name: Cypress frontend
         run: npm run cypress:wait-and-run --prefix paf-mvp-frontend
 
