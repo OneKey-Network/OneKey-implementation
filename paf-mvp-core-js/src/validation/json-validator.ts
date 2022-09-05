@@ -89,13 +89,13 @@ export class JsonValidator implements IJsonValidator {
 
   validate(schemaType: JsonSchemaType, jsonStr: string): JsonValidation {
     if (this.ajv === undefined) {
-      throw 'JsonValidator have to be start first.';
+      throw 'JsonValidator has to be started first';
     }
 
     if (jsonStr === undefined || jsonStr === '') {
       return {
         isValid: false,
-        errors: [new NoJsonError('No JSON value.')],
+        errors: [new NoJsonError('No JSON value')],
       };
     }
 
