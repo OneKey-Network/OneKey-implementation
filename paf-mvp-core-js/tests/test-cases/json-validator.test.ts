@@ -44,7 +44,7 @@ describe('JsonValidator', () => {
 
     expect(validation).toEqual({
       isValid: false,
-      errors: [new NoJsonError('No JSON value.')],
+      errors: [new NoJsonError('No JSON value')],
     });
   });
 
