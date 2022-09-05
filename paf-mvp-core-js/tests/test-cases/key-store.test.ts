@@ -1,10 +1,10 @@
-import { PublicKeyStore, PublicKeyWithObject } from '@core/crypto/key-store';
+import { PublicKeyStore } from '@core/crypto/key-store';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
-import { publicKeyFromString } from '@core/crypto/keys';
 import { getTimeStampInSec } from '@core/timestamp';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { MockTimer } from '../helpers/timestamp.helper';
+import { PublicKeyInfo } from '@core/crypto/identity';
 
 interface KeyInfo {
   key: string;
@@ -54,11 +54,10 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
 
     mock.onGet().reply(200, mockIdentity);
 
-    const expectedKey: PublicKeyWithObject = {
+    const expectedKey: PublicKeyInfo = {
       startTimestampInSec: currentKey.start,
       endTimestampInSec: currentKey.end,
       publicKey: currentKey.key,
-      publicKeyObj: publicKeyFromString(currentKey.key),
     };
 
     // Two consecutive calls
@@ -90,11 +89,10 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
 
     mock.onGet().reply(200, mockIdentity);
 
-    const expectedKey: PublicKeyWithObject = {
+    const expectedKey: PublicKeyInfo = {
       startTimestampInSec: currentKey.start,
       // No end date
       publicKey: currentKey.key,
-      publicKeyObj: publicKeyFromString(currentKey.key),
     };
 
     // Two consecutive calls
@@ -121,11 +119,10 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
 
     mock.onGet().reply(200, mockIdentity);
 
-    const expectedOldKey: PublicKeyWithObject = {
+    const expectedOldKey: PublicKeyInfo = {
       startTimestampInSec: oldKey.start,
       endTimestampInSec: oldKey.end,
       publicKey: oldKey.key,
-      publicKeyObj: publicKeyFromString(oldKey.key),
     };
 
     // First call will query it
@@ -135,11 +132,10 @@ h4/WfMRMVh3HIqojt3LIsvUQig1rm9ZkcNx+IHZVhDM+hso2sXlGjF9xOQ==
     // Second call later => key is out of date and will be refreshed
     mockTimer.timestamp = nowTimestampSeconds;
 
-    const expectedNewKey: PublicKeyWithObject = {
+    const expectedNewKey: PublicKeyInfo = {
       startTimestampInSec: currentKey.start,
       endTimestampInSec: currentKey.end,
       publicKey: currentKey.key,
-      publicKeyObj: publicKeyFromString(currentKey.key),
     };
 
     expect(await keyStore.getPublicKey('domain.com')).toEqual(expectedNewKey);

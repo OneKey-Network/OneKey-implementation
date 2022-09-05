@@ -11,13 +11,16 @@ import {
 } from '@core/model/generated-model';
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@core/user-agent';
-import { MockedFunction } from 'ts-jest';
 import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@frontend/lib/paf-lib';
 import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
+import { HttpService } from '@frontend/services/http.service';
 import { ISeedStorageService } from '@frontend/services/seed-storage.service';
 import { DEFAULT_TTL_IN_SECONDS, MAXIMUM_TTL_IN_SECONDS } from '@frontend/utils/cookie';
+import { Browser } from 'detect-browser';
 
-jest.mock('@core/user-agent', () => ({ isBrowserKnownToSupport3PC: jest.fn() }));
+jest.mock('@core/user-agent');
+const mockedIsBrowserKnownToSupport3PC = jest.mocked(isBrowserKnownToSupport3PC, true);
+
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));
 
 const pafClientNodeHost = 'http://localhost';
@@ -38,7 +41,7 @@ const seedStorageService: ISeedStorageService = {
   getSeed: jest.fn((transactionId: TransactionId) => seedEntry),
 };
 const resetLib = () => {
-  lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
+  lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService, new HttpService());
   notificationHandler = jest.fn(() => Promise.resolve());
   lib.setNotificationHandler(notificationHandler);
 };
@@ -270,9 +273,7 @@ describe('Function refreshIdsAndPreferences', () => {
 
     describe('when browser is known to support 3PC', () => {
       beforeAll(() => {
-        (isBrowserKnownToSupport3PC as MockedFunction<typeof isBrowserKnownToSupport3PC>).mockImplementation(
-          () => true
-        );
+        mockedIsBrowserKnownToSupport3PC.mockReturnValue(true);
       });
 
       test('should return data from operator', async () => {
@@ -343,9 +344,7 @@ describe('Function refreshIdsAndPreferences', () => {
       describe('when browser is known NOT to support 3PC', () => {
         const replaceMock = jest.fn();
         beforeAll(() => {
-          (isBrowserKnownToSupport3PC as MockedFunction<typeof isBrowserKnownToSupport3PC>).mockImplementation(
-            () => false
-          );
+          mockedIsBrowserKnownToSupport3PC.mockReturnValue(false);
           delete global.location;
           global.location = {
             replace: replaceMock,
@@ -542,7 +541,7 @@ describe('Function handleAfterBoomerangRedirect', () => {
   });
 });
 describe('Cookie TTL setting', () => {
-  const lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
+  const lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService, new HttpService());
   test('should use the default value when no value was specified', () => {
     const ttlInSeconds = lib.parseCookieTTL(undefined);
     expect(ttlInSeconds).toEqual(DEFAULT_TTL_IN_SECONDS);

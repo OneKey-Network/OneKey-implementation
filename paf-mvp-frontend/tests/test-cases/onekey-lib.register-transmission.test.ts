@@ -1,6 +1,7 @@
 import { AuditHandler, OneKeyLib, SeedEntry } from '@frontend/lib/paf-lib';
 import { TransactionId, TransmissionResponse } from '@core/model';
 import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
+import { HttpService } from '@frontend/services/http.service';
 import { ISeedStorageService } from '@frontend/services/seed-storage.service';
 import { buildAuditLog } from '@core/model/audit-log';
 
@@ -22,7 +23,7 @@ let notificationHandler: jest.Mock<Promise<void>, []>;
 let auditLogHandler: jest.Mock<any, [HTMLElement]>;
 
 const resetLib = () => {
-  lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService);
+  lib = new OneKeyLib(pafClientNodeHost, true, auditLogStorageService, seedStorageService, new HttpService());
   notificationHandler = jest.fn(() => Promise.resolve());
   auditLogHandler = jest.fn((element: HTMLElement) => Promise.resolve());
   lib.setNotificationHandler(notificationHandler);

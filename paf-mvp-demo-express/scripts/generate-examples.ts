@@ -205,11 +205,11 @@ class Examples {
     // **************************** Main data
     this.setObject('unpersistedIdJson', {
       persisted: false,
-      ...idBuilder.signId('2e71121a-4feb-4a34-b7d1-839587d36390', getTimestamp('2022/01/24 17:19')),
+      ...(await idBuilder.signId('2e71121a-4feb-4a34-b7d1-839587d36390', getTimestamp('2022/01/24 17:19'))),
     });
     this.setObject(
       'idJson',
-      idBuilder.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
+      await idBuilder.signId('7435313e-caee-4889-8ad7-0acd0114ae3c', getTimestamp('2022/01/18 12:13'))
     );
 
     const cmpClient = new OperatorClient(
@@ -220,7 +220,7 @@ class Examples {
     );
     this.setObject(
       'preferencesJson',
-      cmpClient.buildPreferences(
+      await cmpClient.buildPreferences(
         [this.idJson],
         { use_browsing_for_personalization: true },
         getTimestamp('2022/01/18 12:16')
@@ -248,7 +248,7 @@ class Examples {
     const getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(crtoOneOperatorConfig.host, clientNodePrivateKey);
     this.setRestMessage(
       'getIdsPrefsRequestJson',
-      getIdsPrefsRequestBuilder.buildRestRequest(
+      await getIdsPrefsRequestBuilder.buildRestRequest(
         { origin: originalAdvertiserUrl.toString() },
         undefined,
         getTimestamp('2022/01/24 17:19')
@@ -257,7 +257,7 @@ class Examples {
     this.getIdsPrefsRequestHttp = getGETUrl(getIdsPrefsRequestBuilder.getRestUrl(this.getIdsPrefsRequestJson));
     this.setRestMessage(
       'getIdsPrefsResponse_knownJson',
-      getIdsPrefsResponseBuilder.buildResponse(
+      await getIdsPrefsResponseBuilder.buildResponse(
         advertiserHost,
         {
           identifiers: [this.idJson],
@@ -268,7 +268,7 @@ class Examples {
     );
     this.setRestMessage(
       'getIdsPrefsResponse_unknownJson',
-      getIdsPrefsResponseBuilder.buildResponse(
+      await getIdsPrefsResponseBuilder.buildResponse(
         advertiserHost,
         {
           identifiers: [this.unpersistedIdJson],
@@ -279,7 +279,7 @@ class Examples {
 
     this.setRedirectRequest(
       'redirectGetIdsPrefsRequestJson',
-      getIdsPrefsRequestBuilder.buildRedirectRequest(
+      await getIdsPrefsRequestBuilder.buildRedirectRequest(
         { referer: originalAdvertiserUrl.toString(), returnUrl: originalAdvertiserUrl.toString() },
         undefined,
         getTimestamp('2022/01/24 17:19')
@@ -314,7 +314,7 @@ class Examples {
       crtoOneOperatorConfig.host,
       clientNodePrivateKey
     );
-    const postIdsPrefsRequest = postIdsPrefsRequestBuilder.buildRestRequest(
+    const postIdsPrefsRequest = await postIdsPrefsRequestBuilder.buildRestRequest(
       { origin: originalAdvertiserUrl.toString() },
       {
         identifiers: [this.idJson],
@@ -326,7 +326,7 @@ class Examples {
     this.postIdsPrefsRequestHttp = getPOSTUrl(postIdsPrefsRequestBuilder.getRestUrl()); // Notice is POST url
     this.setRestMessage(
       'postIdsPrefsResponseJson',
-      postIdsPrefsResponseBuilder.buildResponse(
+      await postIdsPrefsResponseBuilder.buildResponse(
         publisherHost,
         {
           identifiers: [this.idJson],
@@ -338,7 +338,7 @@ class Examples {
 
     this.setRedirectRequest(
       'redirectPostIdsPrefsRequestJson',
-      postIdsPrefsRequestBuilder.buildRedirectRequest(
+      await postIdsPrefsRequestBuilder.buildRedirectRequest(
         { referer: originalAdvertiserUrl.toString(), returnUrl: originalAdvertiserUrl.toString() },
         {
           identifiers: [this.idJson],
@@ -370,7 +370,7 @@ class Examples {
     );
     this.setRestMessage(
       'deleteIdsPrefsRequestJson',
-      deleteIdsPrefsRequestBuilder.buildRestRequest(
+      await deleteIdsPrefsRequestBuilder.buildRestRequest(
         { origin: originalAdvertiserUrl.toString() },
         undefined,
         getTimestamp('2022/01/24 17:19')
@@ -381,12 +381,12 @@ class Examples {
     );
     this.setRestMessage(
       'deleteIdsPrefsResponseJson',
-      deleteIdsPrefsResponseBuilder.buildResponse(advertiserHost, getTimestamp('2022/01/24 17:19:10'))
+      await deleteIdsPrefsResponseBuilder.buildResponse(advertiserHost, getTimestamp('2022/01/24 17:19:10'))
     );
 
     this.setRedirectRequest(
       'redirectDeleteIdsPrefsRequestJson',
-      deleteIdsPrefsRequestBuilder.buildRedirectRequest(
+      await deleteIdsPrefsRequestBuilder.buildRedirectRequest(
         { referer: originalAdvertiserUrl.toString(), returnUrl: originalAdvertiserUrl.toString() },
         undefined,
         getTimestamp('2022/01/24 17:19')
@@ -413,7 +413,7 @@ class Examples {
     const getNewIdResponseBuilder = new GetNewIdResponseBuilder(crtoOneOperatorConfig.host, operatorPrivateKey);
     this.setRestMessage(
       'getNewIdRequestJson',
-      getNewIdRequestBuilder.buildRestRequest(
+      await getNewIdRequestBuilder.buildRestRequest(
         { origin: originalAdvertiserUrl.toString() },
         getTimestamp('2022/03/01 19:04')
       )
@@ -422,7 +422,11 @@ class Examples {
 
     this.setRestMessage(
       'getNewIdResponseJson',
-      getNewIdResponseBuilder.buildResponse(publisherHost, this.unpersistedIdJson, getTimestamp('2022/03/01 19:04:47'))
+      await getNewIdResponseBuilder.buildResponse(
+        publisherHost,
+        this.unpersistedIdJson,
+        getTimestamp('2022/03/01 19:04:47')
+      )
     );
 
     // **************************** Verify 3PC

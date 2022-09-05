@@ -177,9 +177,9 @@ export class ClientNode extends Node {
     );
   }
 
-  restBuildUrlToGetIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToGetIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.client.getReadResponse(req);
+      const url = await this.client.getReadResponse(req);
       res.send(url);
       next();
     } catch (e) {
@@ -193,9 +193,9 @@ export class ClientNode extends Node {
     }
   };
 
-  restBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const response = this.client.getWriteResponse(req);
+      const response = await this.client.getWriteResponse(req);
       res.json(response);
       next();
     } catch (e) {
@@ -227,9 +227,9 @@ export class ClientNode extends Node {
     }
   };
 
-  buildUrlToGetNewId = (req: Request, res: Response, next: NextFunction) => {
+  buildUrlToGetNewId = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.client.getNewIdResponse(req);
+      const url = await this.client.getNewIdResponse(req);
       res.send(url);
       next();
     } catch (e) {
@@ -244,9 +244,9 @@ export class ClientNode extends Node {
     }
   };
 
-  restBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.client.getDeleteResponse(req);
+      const url = await this.client.getDeleteResponse(req);
       res.send(url);
       next();
     } catch (e) {
@@ -261,9 +261,9 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectBuildUrlToReadIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.client.getReadRedirectResponse(req);
+      const url = await this.client.getReadRedirectResponse(req);
       res.send(url);
       next();
     } catch (e) {
@@ -278,9 +278,9 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectBuildUrlToWriteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.client.getWriteRedirectResponse(req);
+      const url = await this.client.getWriteRedirectResponse(req);
       res.send(url);
       next();
     } catch (e) {
@@ -296,9 +296,9 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectBuildUrlToDeleteIdsAndPreferences = (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = this.client.getDeleteRedirectResponse(req);
+      const url = await this.client.getDeleteRedirectResponse(req);
       res.send(url.toString());
       next();
     } catch (e) {
@@ -360,9 +360,9 @@ export class ClientNode extends Node {
     }
   };
 
-  signPreferences = (req: Request, res: Response, next: NextFunction) => {
+  signPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const preferences = this.client.getSignPreferencesResponse(req);
+      const preferences = await this.client.getSignPreferencesResponse(req);
       res.json(preferences);
       next();
     } catch (e) {
@@ -378,10 +378,10 @@ export class ClientNode extends Node {
     }
   };
 
-  createSeed = (req: Request, res: Response, next: NextFunction) => {
+  createSeed = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const request = JSON.parse(req.body as string) as PostSeedRequest;
-      const seed = this.client.buildSeed(request.transaction_ids, request.data);
+      const seed = await this.client.buildSeed(request.transaction_ids, request.data);
       const response = seed as PostSeedResponse; // For now, the response is only a Seed.
       res.json(response);
       next();

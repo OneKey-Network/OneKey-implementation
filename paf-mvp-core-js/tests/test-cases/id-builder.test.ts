@@ -8,11 +8,11 @@ describe('IdBuilder', () => {
     'j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5\n' +
     '-----END PRIVATE KEY-----\n';
 
-  const mockSigner = { sign: jest.fn(() => 'signature-value') };
+  const mockSigner = { sign: jest.fn(async () => 'signature-value') };
   const idBuilder = new IdBuilder('host.com', privateKey, mockSigner);
 
-  test('Signs id', () => {
-    const id = idBuilder.signId('1fb0571c-87ec-41c3-9a91-15fd351968ba', 12345);
+  test('Signs id', async () => {
+    const id = await idBuilder.signId('1fb0571c-87ec-41c3-9a91-15fd351968ba', 12345);
 
     expect(id).toEqual({
       version: '0.1',
@@ -28,9 +28,9 @@ describe('IdBuilder', () => {
     expect(mockSigner.sign).toHaveBeenCalledTimes(1);
   });
 
-  test('Generates different ids', () => {
-    const firstId = idBuilder.generateNewId();
-    const secondId = idBuilder.generateNewId();
+  test('Generates different ids', async () => {
+    const firstId = await idBuilder.generateNewId();
+    const secondId = await idBuilder.generateNewId();
 
     expect(firstId.value).not.toEqual(secondId.value);
   });

@@ -8,7 +8,7 @@ describe('Write permission Handler', () => {
   let response: MockResponse<Response>;
   let nextFunction: NextFunction;
   const operatorNode: OperatorNode = OperatorUtils.buildOperator(OperatorUtils.getUnsuccessfulJsonValidatorMock(), () =>
-    Promise.resolve({ verify: () => true })
+    Promise.resolve('operatorKey')
   );
   beforeEach(() => {
     response = createResponse();
@@ -50,7 +50,7 @@ describe('Write permission Handler', () => {
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
     operatorNode.buildWritePermissionHandler(input.isRedirect)(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
-    expect(response._getStatusCode()).toEqual(400);
+    expect(response._getStatusCode()).toEqual(input.isRedirect ? 303 : 403);
   });
 
   const successCases = [
@@ -75,7 +75,7 @@ describe('Delete permission Handler', () => {
   let response: MockResponse<Response>;
   let nextFunction: NextFunction;
   const operatorNode: OperatorNode = OperatorUtils.buildOperator(OperatorUtils.getUnsuccessfulJsonValidatorMock(), () =>
-    Promise.resolve({ verify: () => true })
+    Promise.resolve('operatorKey')
   );
   beforeEach(() => {
     response = createResponse();
@@ -117,7 +117,7 @@ describe('Delete permission Handler', () => {
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
     operatorNode.buildDeletePermissionHandler(input.isRedirect)(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
-    expect(response._getStatusCode()).toEqual(400);
+    expect(response._getStatusCode()).toEqual(input.isRedirect ? 303 : 403);
   });
 
   const successCases = [

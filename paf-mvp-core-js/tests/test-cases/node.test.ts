@@ -1,4 +1,4 @@
-import { IJsonValidator, JsonSchemaType, JsonValidation } from '@core/validation/json-validator';
+import { IJsonValidator, JsonValidation } from '@core/validation/json-validator';
 import { IdentityConfig, Node } from '@core/express';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { NextFunction, Response } from 'express';
@@ -35,7 +35,7 @@ const identity: IdentityConfig = {
   // URL of a privacy page
   privacyPolicyUrl: new URL('https://example.onekey.network/privacy'),
 };
-const publicKeyProviderAlwaysOKMock = () => Promise.resolve({ verify: () => true });
+const publicKeyProvider = () => Promise.resolve('myKey');
 
 describe('Json body validator handler', () => {
   let response: MockResponse<Response>;
@@ -53,7 +53,7 @@ describe('Json body validator handler', () => {
   test('should pass an InvalidJsonBody error to the nextFunction if the validation of request body fails', () => {
     const mockJsonValidatorAlwaysKO = buildStaticJsonValidator(false);
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysKO, 'validate');
-    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysKO, publicKeyProviderAlwaysOKMock);
+    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysKO, publicKeyProvider);
 
     node.buildJsonBodyValidatorHandler('jsonSchema')(request, response, nextFunction);
 
@@ -70,7 +70,7 @@ describe('Json body validator handler', () => {
   test('should call the nextFunction with no error when request body validation succeeds', () => {
     const mockJsonValidatorAlwaysOK = buildStaticJsonValidator(true);
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysOK, 'validate');
-    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProviderAlwaysOKMock);
+    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProvider);
 
     node.buildJsonBodyValidatorHandler('jsonSchema')(request, response, nextFunction);
 
@@ -111,14 +111,14 @@ describe('Query string validator handler', () => {
     'should pass an invalid query string error to the nextFunction when the query string is $description',
     (input) => {
       const mockJsonValidatorAlwaysKO = buildStaticJsonValidator(false);
-      const node = new Node('MyNode', identity, mockJsonValidatorAlwaysKO, publicKeyProviderAlwaysOKMock);
+      const node = new Node('MyNode', identity, mockJsonValidatorAlwaysKO, publicKeyProvider);
       const targetUrl = new URL('https://somedomain.com');
       targetUrl.searchParams.set(QSParam.paf, input.queryString);
       const request = createRequest({
         method: 'GET',
         url: targetUrl.toString(),
       });
-      node.buildQueryStringValidatorHandler('jsonSchema')(request, response, nextFunction);
+      node.buildQueryStringValidatorHandler('jsonSchema', false)(request, response, nextFunction);
       const expectedError: NodeError = {
         type: NodeErrorType.INVALID_QUERY_STRING,
         details: input.expected_error,
@@ -130,14 +130,14 @@ describe('Query string validator handler', () => {
 
   test('should call the nextFunction with no error when query validation succeeds', () => {
     const mockJsonValidatorAlwaysOK = buildStaticJsonValidator(true);
-    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProviderAlwaysOKMock);
+    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProvider);
     const targetUrl = new URL('https://somedomain.com');
     targetUrl.searchParams.set(QSParam.paf, 'sds');
     const request = createRequest({
       method: 'GET',
       url: targetUrl.toString(),
     });
-    node.buildQueryStringValidatorHandler('jsonSchema')(request, response, nextFunction);
+    node.buildQueryStringValidatorHandler('jsonSchema', false)(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
   });
@@ -148,7 +148,7 @@ describe('Return URL validation handler', () => {
   let nextFunction: NextFunction;
   const mockJsonValidatorAlwaysOK = buildStaticJsonValidator(true);
   let targetUrl: URL;
-  const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProviderAlwaysOKMock);
+  const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProvider);
 
   beforeEach(() => {
     response = createResponse();
@@ -170,7 +170,7 @@ describe('Return URL validation handler', () => {
     },
   ];
   test.each(cases)(
-    'should pass an invalid return url error to the newtFunction when the redirectUrl is $description',
+    'should pass an invalid return url error to the nextFunction when the redirectUrl is $description',
     (input) => {
       const queryString = encodeBase64(JSON.stringify({ returnUrl: input.returnUrl, request: {} }));
       targetUrl.searchParams.set(QSParam.paf, queryString);

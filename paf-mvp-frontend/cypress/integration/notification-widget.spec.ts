@@ -32,7 +32,7 @@ describe('Notification widget', () => {
       page.open(NotificationEnum.generalContent);
     });
 
-    it('should be able to close snack-bar', () => {
+    it.skip('should be able to close snack-bar', () => {
       page.container.should('be.visible');
       page.closeBtn.click();
       page.container.should('not.be.visible');

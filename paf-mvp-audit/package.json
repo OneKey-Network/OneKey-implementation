@@ -1,6 +1,7 @@
 {
   "name": "paf-mvp-audit",
   "scripts": {
+    "test": "jest",
     "start": "rollup -c -w",
     "build": "rollup -c",
     "lint": "npx eslint ./src --c ../.eslintrc --no-eslintrc",

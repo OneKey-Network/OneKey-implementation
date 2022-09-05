@@ -4,7 +4,7 @@
  * Implement only ECDSA for now. ECDSA is a variant of DSA.
  *
  * Example:
- *  const builder: IDSABuilder = ECDSA_NIT_P256Builder();
+ *  const builder: IDSABuilder = new ECDSA_NIT_P256Builder();
  *
  *  const keyService = builder.buildKeyService();
  *  const keys = keyService.generateKeys();

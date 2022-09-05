@@ -13,7 +13,6 @@ import {
 import { Unsigned } from './model';
 import { getTimeStampInSec } from '../timestamp';
 import { setInQueryString } from '../express/utils';
-import { privateKeyFromString } from '@core/crypto/keys';
 import { ResponseDefinition } from '@core/crypto/signing-definition';
 import { Signer } from '@core/crypto/signer';
 
@@ -39,16 +38,16 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {
     super(host);
   }
 
-  buildResponse(
+  async buildResponse(
     receiver: string,
     { identifiers, preferences }: IdsAndOptionalPreferences,
     timestampInSec = getTimeStampInSec()
-  ): GetIdsPrefsResponse {
+  ): Promise<GetIdsPrefsResponse> {
     const request: Unsigned<GetIdsPrefsResponse> = {
       body: {
         identifiers,
@@ -61,7 +60,7 @@ export class GetIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<GetI
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }
@@ -70,16 +69,16 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {
     super(host);
   }
 
-  buildResponse(
+  async buildResponse(
     receiver: string,
     { identifiers, preferences }: IdsAndPreferences,
     timestampInSec = getTimeStampInSec()
-  ): PostIdsPrefsResponse {
+  ): Promise<PostIdsPrefsResponse> {
     const request: Unsigned<PostIdsPrefsResponse> = {
       body: {
         identifiers,
@@ -92,7 +91,7 @@ export class PostIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<Pos
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }
@@ -101,10 +100,14 @@ export class GetNewIdResponseBuilder {
   constructor(
     protected host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {}
 
-  buildResponse(receiver: string, newId: Identifier, timestampInSec = getTimeStampInSec()): GetNewIdResponse {
+  async buildResponse(
+    receiver: string,
+    newId: Identifier,
+    timestampInSec = getTimeStampInSec()
+  ): Promise<GetNewIdResponse> {
     const request: Unsigned<GetNewIdResponse> = {
       body: {
         identifiers: [newId],
@@ -116,7 +119,7 @@ export class GetNewIdResponseBuilder {
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }
@@ -131,12 +134,12 @@ export class DeleteIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<D
   constructor(
     host: string,
     privateKey: string,
-    private readonly signer = new Signer(privateKeyFromString(privateKey), new ResponseDefinition())
+    private readonly signer = new Signer(privateKey, new ResponseDefinition())
   ) {
     super(host);
   }
 
-  buildResponse(receiver: string, timestampInSec = getTimeStampInSec()): DeleteIdsPrefsResponse {
+  async buildResponse(receiver: string, timestampInSec = getTimeStampInSec()): Promise<DeleteIdsPrefsResponse> {
     const request: Unsigned<DeleteIdsPrefsResponse> = {
       sender: this.host,
       receiver,
@@ -149,7 +152,7 @@ export class DeleteIdsPrefsResponseBuilder extends ResponseBuilderWithRedirect<D
 
     return {
       ...request,
-      signature: this.signer.sign(request),
+      signature: await this.signer.sign(request),
     };
   }
 }

@@ -1,23 +1,22 @@
-import { fromIdentityResponse, PublicKeyInfo } from './identity';
-import { isValidKey, PublicKey, publicKeyFromString } from './keys';
+import { fromIdentityResponse, isValidKey, PublicKeyInfo } from './identity';
 import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
 import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
 import { getTimeStampInSec } from '@core/timestamp';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { UnableToIdentifySignerError } from '@core/express/errors';
-
-export type PublicKeyWithObject = PublicKeyInfo & { publicKeyObj: PublicKey };
+import { PEM } from '@core/crypto/digital-signature';
 
 /**
  * A function that provides a public key from a domain name
  */
 export interface PublicKeyProvider {
-  (domain: string): Promise<PublicKey>;
+  (domain: string): Promise<PEM>;
 }
-export class PublicKeyStore {
-  protected cache: { [domain: string]: PublicKeyWithObject } = {};
 
-  async getPublicKey(domain: string): Promise<PublicKeyWithObject> {
+export class PublicKeyStore {
+  protected cache: { [domain: string]: PublicKeyInfo } = {};
+
+  async getPublicKey(domain: string): Promise<PublicKeyInfo> {
     const nowTimestampSeconds = this.timestampProvider();
 
     const existingKey = this.cache[domain];
@@ -40,7 +39,8 @@ export class PublicKeyStore {
     try {
       response = await this.s2sClient.get(url.toString());
     } catch (e) {
-      throw new UnableToIdentifySignerError(`Error calling Identity endpoint on ${domain}: ${e?.message}`);
+      console.error(`Error calling Identity endpoint on ${domain}: ${e?.message}`);
+      throw new UnableToIdentifySignerError(`Error calling Identity endpoint on ${domain}`);
     }
 
     const responseData = response.data as GetIdentityResponse;
@@ -50,15 +50,15 @@ export class PublicKeyStore {
     const currentKey = sorted[0]; // take the first one (the one that ends as far as possible from now)
 
     if (currentKey === undefined) {
-      throw new UnableToIdentifySignerError(
-        `No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`
-      );
+      console.error(`No valid key found for ${domain} in: ${JSON.stringify(responseData.keys)}`);
+      throw new UnableToIdentifySignerError(`No valid key found for ${domain}`);
     }
 
     // Update cache
+    const matched = fromIdentityResponse(currentKey);
+
     const keyInfo = {
-      ...fromIdentityResponse(currentKey),
-      publicKeyObj: publicKeyFromString(fromIdentityResponse(currentKey).publicKey),
+      ...matched,
     };
 
     this.cache[domain] = keyInfo;
@@ -77,6 +77,6 @@ export class PublicKeyStore {
    * @param domain
    */
   provider = async (domain: string) => {
-    return (await this.getPublicKey(domain)).publicKeyObj;
+    return (await this.getPublicKey(domain)).publicKey;
   };
 }

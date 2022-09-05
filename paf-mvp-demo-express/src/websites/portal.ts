@@ -77,8 +77,8 @@ export const portalWebSiteApp = new VHostApp(name, host);
   // Portal API endpoints: REST
   const verify = '/rest/verify';
 
-  const getWritePrefsUrl = (req: Request, identifiers: Identifiers, preferences: Preferences, returnUrl: URL) => {
-    const postIdsPrefsRequestJson = postIdsPrefsRequestBuilder.buildRedirectRequest(
+  const getWritePrefsUrl = async (req: Request, identifiers: Identifiers, preferences: Preferences, returnUrl: URL) => {
+    const postIdsPrefsRequestJson = await postIdsPrefsRequestBuilder.buildRedirectRequest(
       {
         returnUrl: returnUrl.toString(),
         referer: req.header('referer'),
@@ -92,8 +92,8 @@ export const portalWebSiteApp = new VHostApp(name, host);
     return postIdsPrefsRequestBuilder.getRedirectUrl(postIdsPrefsRequestJson);
   };
 
-  const getWritePrefsUrlFromOptin = (req: Request, identifiers: Identifiers, optIn: boolean, returnUrl: URL) => {
-    const preferences = client.buildPreferences(identifiers, { use_browsing_for_personalization: optIn });
+  const getWritePrefsUrlFromOptin = async (req: Request, identifiers: Identifiers, optIn: boolean, returnUrl: URL) => {
+    const preferences = await client.buildPreferences(identifiers, { use_browsing_for_personalization: optIn });
     return getWritePrefsUrl(req, identifiers, preferences, returnUrl);
   };
 
@@ -116,7 +116,7 @@ export const portalWebSiteApp = new VHostApp(name, host);
     httpRedirect(res, client.getReadRedirectResponse(req).toString());
   });
 
-  portalWebSiteApp.expressApp.get(writeNewId, (req, res) => {
+  portalWebSiteApp.expressApp.get(writeNewId, async (req, res) => {
     const cookies = req.cookies;
 
     const redirectGetIdsPrefsResponse = getPafDataFromQueryString<RedirectGetIdsPrefsResponse>(req);
@@ -127,31 +127,31 @@ export const portalWebSiteApp = new VHostApp(name, host);
       // little trick because we know the cookie is available in the same TLD+1
       typedCookie<Preferences>(cookies[Cookies.preferences]) ??
       // Assume opt out by default if no preferences
-      client.buildPreferences(identifiers, { use_browsing_for_personalization: false });
+      (await client.buildPreferences(identifiers, { use_browsing_for_personalization: false }));
 
-    httpRedirect(res, getWritePrefsUrl(req, identifiers, preferences, homeUrl).toString());
+    httpRedirect(res, (await getWritePrefsUrl(req, identifiers, preferences, homeUrl)).toString());
   });
 
-  portalWebSiteApp.expressApp.get(optInUrl, (req, res) => {
+  portalWebSiteApp.expressApp.get(optInUrl, async (req, res) => {
     const cookies = req.cookies;
     const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
     const homeUrl = getRequestUrl(req, '/');
     if (identifiers) {
-      httpRedirect(res, getWritePrefsUrlFromOptin(req, identifiers, true, homeUrl).toString());
+      httpRedirect(res, (await getWritePrefsUrlFromOptin(req, identifiers, true, homeUrl)).toString());
     } else {
       // Shouldn't happen: redirect to home page
       httpRedirect(res, homeUrl.toString());
     }
   });
 
-  portalWebSiteApp.expressApp.get(optOutUrl, (req, res) => {
+  portalWebSiteApp.expressApp.get(optOutUrl, async (req, res) => {
     const cookies = req.cookies;
     const identifiers = typedCookie<Identifiers>(cookies[Cookies.identifiers]);
 
     const homeUrl = getRequestUrl(req, '/');
     if (identifiers) {
-      httpRedirect(res, getWritePrefsUrlFromOptin(req, identifiers, false, homeUrl).toString());
+      httpRedirect(res, (await getWritePrefsUrlFromOptin(req, identifiers, false, homeUrl)).toString());
     } else {
       // Shouldn't happen: redirect to home page
       httpRedirect(res, homeUrl.toString());

@@ -4,7 +4,13 @@ import { VHostApp } from '@core/express/express-apps';
 import { GetIdentityResponseBuilder } from '@core/model';
 import { participantEndpoints } from '@core/endpoints';
 import cors from 'cors';
-import { corsOptionsAcceptAll, getPafDataFromQueryString, httpRedirect, isValidHttpUrl } from '@core/express/utils';
+import {
+  buildErrorRedirectUrl,
+  corsOptionsAcceptAll,
+  getPafDataFromQueryString,
+  httpRedirect,
+  isValidHttpUrl,
+} from '@core/express/utils';
 import { IdentityConfig } from '@core/express/config';
 import { NodeError, NodeErrorType } from '@core/errors';
 import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
@@ -14,6 +20,7 @@ import { RedirectRequest } from '@core/model/model';
 
 export interface INode {
   app: VHostApp;
+
   /**
    * Start the server by loading resources.
    */
@@ -89,27 +96,19 @@ export class Node implements INode {
    * @param endPointName
    */
   handleErrors(endPointName: string): ErrorRequestHandler {
-    /* eslint-disable */
-    return (err: NodeError, req: Request, res: Response, next: NextFunction) => {
-      /* eslint-enable */
+    return (err: any, req: Request, res: Response, next: NextFunction) => {
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
-      // For redirect endpoints, if the provided redirect url is invalid, try to redirect back to referer
-      if (err.type === NodeErrorType.INVALID_RETURN_URL) {
-        this.redirectToReferer(req, res, endPointName);
+
+      // In case of timeout redirect to referer ...
+      if (err.message === 'Response timeout') {
+        const error: NodeError = {
+          type: NodeErrorType.RESPONSE_TIMEOUT,
+          details: err.message,
+        };
+        this.redirectWithError(res, req.header('referer'), 504, error);
       }
     };
-  }
-
-  private redirectToReferer(req: Request, res: Response, endPointName: string) {
-    const referer = req.header('referer');
-    this.logger.Warn(endPointName, `Redirecting to referer: ${referer} ...`);
-    try {
-      const redirectUrl = new URL(referer);
-      httpRedirect(res, redirectUrl.toString());
-    } catch (e) {
-      this.logger.Error(endPointName, e);
-    }
   }
 
   /**
@@ -140,7 +139,7 @@ export class Node implements INode {
    * against a JSON schema.
    * @returns the built handler
    */
-  buildQueryStringValidatorHandler(jsonSchema: string): RequestHandler {
+  buildQueryStringValidatorHandler(jsonSchema: string, isRedirect: boolean): RequestHandler {
     return (req: Request, res: Response, next: NextFunction) => {
       const data = req.query[QSParam.paf] as string | undefined;
       const decodedData = data ? decodeBase64(data) : undefined;
@@ -149,8 +148,12 @@ export class Node implements INode {
           type: NodeErrorType.INVALID_QUERY_STRING,
           details: `Received Query string: '${data}' is not a valid Base64 string`,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          this.redirectWithError(res, req.header('referer'), 400, error);
+        } else {
+          res.status(400);
+          res.json(error);
+        }
         next(error);
         return;
       }
@@ -161,8 +164,13 @@ export class Node implements INode {
           type: NodeErrorType.INVALID_QUERY_STRING,
           details,
         };
-        res.status(400);
-        res.json(error);
+        if (isRedirect) {
+          const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
+          httpRedirect(res, redirectURL.toString());
+        } else {
+          res.status(400);
+          res.json(error);
+        }
         next(error);
       } else {
         next();
@@ -183,10 +191,20 @@ export class Node implements INode {
           type: NodeErrorType.INVALID_RETURN_URL,
           details: `Specified returnUrl '${returnUrl}' is not a valid url`,
         };
+        this.redirectWithError(res, req.header('referer'), 400, error);
         next(error);
       } else {
         next();
       }
     };
   }
+  protected redirectWithError = (res: Response, url: string, httpCode: number, error: NodeError): void => {
+    try {
+      this.logger.Info(`redirecting to ${url} ...`);
+      const redirectURL = buildErrorRedirectUrl(new URL(url), httpCode, error);
+      httpRedirect(res, redirectURL.toString());
+    } catch (e) {
+      this.logger.Error(e);
+    }
+  };
 }
