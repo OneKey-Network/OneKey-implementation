@@ -31,6 +31,9 @@ import { getTimeStampInSec } from '@core/timestamp';
 import { Request } from 'express';
 import { getPayload } from '@core/express';
 import { proxyUriParams } from '@core/endpoints';
+import { ECDSA_NIT_P256Builder } from '@core/crypto/digital-signature';
+import { IO_DSAValidator } from '@core/validation/io-signature.validator';
+import { IdsPrefsResponseValidator } from '@core/validation/io.validator';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
@@ -41,6 +44,7 @@ export class OperatorClient {
   private readonly postIdsPrefsRequestBuilder: PostIdsPrefsRequestBuilder;
   private readonly get3PCRequestBuilder: Get3PCRequestBuilder;
   private readonly getNewIdRequestBuilder: GetNewIdRequestBuilder;
+  private readonly idsPrefsValidator: IdsPrefsResponseValidator;
 
   constructor(
     protected operatorHost: string,
@@ -49,6 +53,10 @@ export class OperatorClient {
     private readonly publicKeyProvider: PublicKeyProvider,
     private readonly readVerifier = new ResponseVerifier(publicKeyProvider, new ResponseDefinition())
   ) {
+    const dsaBuilder = new ECDSA_NIT_P256Builder();
+    const dsaValidator = new IO_DSAValidator(dsaBuilder, publicKeyProvider);
+    this.idsPrefsValidator = new IdsPrefsResponseValidator(dsaValidator);
+
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.prefsSigner = new Signer(privateKey, new IdsAndPreferencesDefinition());
@@ -60,7 +68,7 @@ export class OperatorClient {
 
   async verifyReadResponse(request: GetIdsPrefsResponse): Promise<MessageVerificationResult> {
     // Signature + timestamp + sender + receiver are valid
-    return this.readVerifier.verifySignatureAndContent(request, this.operatorHost, this.clientHost);
+    return this.idsPrefsValidator.verifySignatureAndContent(request, this.operatorHost, this.clientHost);
   }
 
   async buildPreferences(
