@@ -726,7 +726,8 @@ export class OperatorNode extends Node {
 
   catchErrorsWithRedirectToReferer =
     (endPointName: string): ErrorRequestHandler =>
-    (error: Error, req: Request, res: Response, next: NextFunction) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (error: unknown, req: Request, res: Response, next: NextFunction) => {
       this.logger.Error(endPointName, error);
       const nodeError: NodeError = {
         type: NodeErrorType.UNKNOWN_ERROR,

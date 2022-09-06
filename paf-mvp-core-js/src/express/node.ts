@@ -105,16 +105,17 @@ export class Node implements INode {
    */
   catchErrors =
     (endPointName: string): ErrorRequestHandler =>
-    (err: any, req: Request, res: Response, next: NextFunction) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (err: unknown, req: Request, res: Response, next: NextFunction) => {
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
 
       // In case of timeout redirect to referer ...
-      if (err.message === 'Response timeout') {
+      if ((err as Error).message === 'Response timeout') {
         // FIXME[errors] only in case of redirect
         const error: NodeError = {
           type: NodeErrorType.RESPONSE_TIMEOUT,
-          details: err.message,
+          details: (err as Error).message,
         };
         this.redirectWithError(res, req.header('referer'), 504, error);
       } else if ((err as NodeError).type) {
