@@ -144,11 +144,11 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.get(
       jsonOperatorEndpoints.read,
+      this.startSpan(jsonProxyEndpoints.read),
       cors(corsOptionsAcceptAll),
       this.checkQueryString(JsonSchemaType.readIdAndPreferencesRestRequest, false),
       this.checkReadPermission(false),
       this.checkReadIdsAndPreferencesSignature(false),
-      this.startSpan(jsonProxyEndpoints.read),
       this.restReadIdsAndPreferences,
       this.catchErrors(jsonProxyEndpoints.read),
       this.endSpan(jsonProxyEndpoints.read)
@@ -156,11 +156,11 @@ export class OperatorNode extends Node {
 
     this.app.expressApp.post(
       jsonOperatorEndpoints.write,
+      this.startSpan(jsonProxyEndpoints.write),
       cors(corsOptionsAcceptAll),
       this.checkJsonBody(JsonSchemaType.writeIdAndPreferencesRestRequest),
       this.checkWritePermission(false),
       this.checkWriteIdsAndPreferencesSignature(false),
-      this.startSpan(jsonProxyEndpoints.write),
       this.restWriteIdsAndPreferences,
       this.catchErrors(jsonProxyEndpoints.write),
       this.endSpan(jsonProxyEndpoints.write)
@@ -168,8 +168,8 @@ export class OperatorNode extends Node {
 
     this.app.expressApp.get(
       jsonOperatorEndpoints.verify3PC,
-      cors(corsOptionsAcceptAll),
       this.startSpan(jsonProxyEndpoints.verify3PC),
+      cors(corsOptionsAcceptAll),
       this.read3PCCookie,
       this.catchErrors(jsonProxyEndpoints.verify3PC),
       this.endSpan(jsonProxyEndpoints.verify3PC)
@@ -179,11 +179,11 @@ export class OperatorNode extends Node {
     this.app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll));
     this.app.expressApp.delete(
       jsonOperatorEndpoints.delete,
+      this.startSpan(jsonProxyEndpoints.delete),
       cors(corsOptionsAcceptAll),
       this.checkQueryString(JsonSchemaType.deleteIdAndPreferencesRequest, false),
       this.checkDeletePermission(false),
       this.checkDeleteIdsAndPreferencesSignature(false),
-      this.startSpan(jsonProxyEndpoints.delete),
       this.restDeleteIdsAndPreferences,
       this.catchErrors(jsonProxyEndpoints.delete),
       this.endSpan(jsonProxyEndpoints.delete)
@@ -191,11 +191,11 @@ export class OperatorNode extends Node {
 
     this.app.expressApp.get(
       jsonOperatorEndpoints.newId,
+      this.startSpan(jsonProxyEndpoints.newId),
       cors(corsOptionsAcceptAll),
       this.checkQueryString(JsonSchemaType.getNewIdRequest, false),
       this.checkNewIdPermission,
       this.checkNewIdSignature,
-      this.startSpan(jsonProxyEndpoints.newId),
       this.getNewId,
       this.catchErrors(jsonProxyEndpoints.newId),
       this.endSpan(jsonProxyEndpoints.newId)
@@ -206,11 +206,11 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.read,
       timeout(this.redirectResponseTimeoutInMs),
+      this.startSpan(redirectEndpoints.read),
       this.checkQueryString(JsonSchemaType.readIdAndPreferencesRedirectRequest, true),
       this.checkReturnUrl<GetIdsPrefsRequest>(),
       this.checkReadPermission(true),
       this.checkReadIdsAndPreferencesSignature(true),
-      this.startSpan(redirectEndpoints.read),
       this.redirectReadIdsAndPreferences,
       this.catchErrorsWithRedirectToReferer(redirectEndpoints.read),
       this.endSpan(redirectEndpoints.read)
@@ -218,11 +218,11 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.write,
       timeout(this.redirectResponseTimeoutInMs),
+      this.startSpan(redirectEndpoints.write),
       this.checkQueryString(JsonSchemaType.writeIdAndPreferencesRedirectRequest, true),
       this.checkReturnUrl<PostIdsPrefsRequest>(),
       this.checkWritePermission(true),
       this.checkWriteIdsAndPreferencesSignature(true),
-      this.startSpan(redirectEndpoints.write),
       this.redirectWriteIdsAndPreferences,
       this.catchErrorsWithRedirectToReferer(redirectEndpoints.write),
       this.endSpan(redirectEndpoints.write)
@@ -231,11 +231,11 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.delete,
       timeout(this.redirectResponseTimeoutInMs),
+      this.startSpan(redirectEndpoints.delete),
       this.checkQueryString(JsonSchemaType.deleteIdAndPreferencesRedirectRequest, true),
       this.checkReturnUrl<DeleteIdsPrefsRequest>(),
       this.checkDeletePermission(true),
       this.checkDeleteIdsAndPreferencesSignature(true),
-      this.startSpan(redirectEndpoints.delete),
       this.redirectDeleteIdsAndPreferences,
       this.catchErrorsWithRedirectToReferer(redirectEndpoints.delete),
       this.endSpan(redirectEndpoints.delete)
