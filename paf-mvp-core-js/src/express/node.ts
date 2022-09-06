@@ -27,9 +27,15 @@ export interface INode {
   setup(): Promise<void>;
 }
 
+/**
+ * Context about the current request
+ */
 export interface Context {
+  // Endpoint name currently handled
   endPointName: string;
+  // Whether this endpoint requires redirect return (303 + data in the query string) or not (default = not)
   isRedirect?: boolean;
+  // Name of the JSON schema used to validate the request
   jsonSchemaName?: JsonSchemaType;
 }
 
@@ -50,6 +56,19 @@ export class Node implements INode {
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
     this.app = new VHostApp(identity.name, hostName);
     this.jsonValidator = jsonValidator;
+  }
+
+  /**
+   * Get context from the current response. See Context
+   * @param res
+   * @protected
+   */
+  protected getContext(res: Response): Context {
+    return (
+      (res.locals.context as Context) ?? {
+        endPointName: 'UNKNOWN',
+      }
+    );
   }
 
   /**
@@ -83,6 +102,11 @@ export class Node implements INode {
     );
   }
 
+  /**
+   * Start a span, providing context that will be used by other handlers.
+   * /!\ **Must** be called as the first handler
+   * @param context
+   */
   startSpan =
     (context: Context): RequestHandler =>
     (req: Request, res: Response, next: NextFunction) => {
@@ -91,14 +115,13 @@ export class Node implements INode {
       next();
     };
 
-  getContext(res: Response): Context {
-    return (
-      (res.locals.context as Context) ?? {
-        endPointName: 'UNKNOWN',
-      }
-    );
-  }
-
+  /**
+   * End a span.
+   * Must be called last
+   * @param req
+   * @param res
+   * @param next
+   */
   endSpan = (req: Request, res: Response, next: NextFunction) => {
     const { endPointName } = this.getContext(res);
     this.logger.Info(`${endPointName} - END`);
