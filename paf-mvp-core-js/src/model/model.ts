@@ -1,4 +1,5 @@
-import { Identifier, Source } from './generated-model';
+import { Identifier, ResponseCode, Source } from './generated-model';
+import { NodeError } from '@core/errors';
 
 export const CurrentModelVersion = '0.1';
 
@@ -19,4 +20,9 @@ export interface RedirectRequest<T> {
 export interface PAFNode {
   hostName: string;
   privateKey: string;
+}
+
+export interface RedirectErrorResponse {
+  code: ResponseCode;
+  error: NodeError; // FIXME[error] should be Error. JSON schema of Error to be updated to match NodeError
 }

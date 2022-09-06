@@ -95,6 +95,7 @@ export class Node implements INode {
       const redirectURL = buildErrorRedirectUrl(new URL(url), httpCode, error);
       httpRedirect(res, redirectURL.toString());
     } catch (e) {
+      // FIXME[error] should throw this error, to avoid timeouts
       this.logger.Error(e);
     }
   };

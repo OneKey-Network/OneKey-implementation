@@ -1,5 +1,5 @@
 import '../helpers/assume-https'; // /!\ Must be imported first
-import { assertError } from '../helpers/integration.helpers';
+import { assertError, assertRedirectError } from '../helpers/integration.helpers';
 import { Express } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
@@ -13,18 +13,6 @@ import { GetIdsPrefsResponse } from '@core/model';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MockExpressRequest = require('mock-express-request');
 
-const getReadUrl = async (operatorClient: OperatorClient) => {
-  const request = new MockExpressRequest({
-    headers: {
-      origin: `https://${ClientBuilder.defaultHost}/some/page`,
-    },
-  });
-
-  // Remove hostname part
-  const fullUrl = await operatorClient.getReadRequest(request);
-  return fullUrl.replace(/^https?:\/\/[^/]+/i, '');
-};
-
 const publicKeyProvider = (host: string) => {
   if (host === ClientBuilder.defaultHost) return Promise.resolve(ClientBuilder.defaultPublicKey);
 
@@ -32,23 +20,34 @@ const publicKeyProvider = (host: string) => {
 };
 
 describe('read', () => {
+  // Note: use real JSON validator
+  const operatorNode = OperatorUtils.buildOperator(JsonValidator.default(), publicKeyProvider);
+
+  const server: Express = operatorNode.app.expressApp;
+
+  const startSpan = jest.spyOn(operatorNode, 'startSpan');
+  const endSpan = jest.spyOn(operatorNode, 'endSpan');
+
+  const assertSpansCalled = () => {
+    expect(startSpan).toHaveBeenCalled();
+    expect(endSpan).toHaveBeenCalled();
+  };
+
+  beforeAll(async () => {
+    return operatorNode.start();
+  });
   describe('rest', () => {
-    // Note: use real JSON validator
-    const operatorNode = OperatorUtils.buildOperator(JsonValidator.default(), publicKeyProvider);
+    const getReadUrl = async (operatorClient: OperatorClient) => {
+      const request = new MockExpressRequest({
+        headers: {
+          origin: `https://${ClientBuilder.defaultHost}/some/page`,
+        },
+      });
 
-    const server: Express = operatorNode.app.expressApp;
-
-    const startSpan = jest.spyOn(operatorNode, 'startSpan');
-    const endSpan = jest.spyOn(operatorNode, 'endSpan');
-
-    const assertSpansCalled = () => {
-      expect(startSpan).toHaveBeenCalled();
-      expect(endSpan).toHaveBeenCalled();
+      // Remove hostname part
+      const fullUrl = await operatorClient.getReadRequest(request);
+      return fullUrl.replace(/^https?:\/\/[^/]+/i, '');
     };
-
-    beforeAll(async () => {
-      return operatorNode.start();
-    });
 
     it('should fallback to unknown error in case of an exception', async () => {
       // Note that the operator node is not start()ed
@@ -149,6 +148,139 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       const operatorClient = new ClientBuilder().build(publicKeyProvider);
 
       const url = await getReadUrl(operatorClient);
+
+      const response = await supertest(server).get(url).set('Origin', `https://${ClientBuilder.defaultHost}/some/page`);
+
+      expect(response.status).toEqual(200);
+      const body = response.body as GetIdsPrefsResponse;
+      expect(body.sender).toEqual(operatorNode.app.hostName);
+      expect(body.body.preferences).toEqual(undefined);
+      expect(body.body.identifiers.length).toEqual(1);
+      expect(body.body.identifiers[0].persisted).toEqual(false);
+
+      assertSpansCalled();
+    });
+  });
+
+  describe('redirect', () => {
+    const getRedirectReadUrl = async (operatorClient: OperatorClient) => {
+      const currentPage = `https://${ClientBuilder.defaultHost}/some/page`;
+      const request = new MockExpressRequest({
+        headers: {
+          referer: currentPage,
+        },
+        query: {
+          returnUrl: currentPage,
+        },
+      });
+
+      // Remove hostname part
+      const fullUrl = await operatorClient.getReadRedirectResponse(request);
+      return fullUrl.replace(/^https?:\/\/[^/]+/i, '');
+    };
+
+    it('should fallback to unknown error in case of an exception', async () => {
+      // Note that the operator node is not start()ed
+      const exceptionValidator = {
+        start: jest.fn(),
+        validate: () => {
+          throw 'UnknownException';
+        },
+      };
+      const faultyOperator = OperatorUtils.buildOperator(exceptionValidator, publicKeyProvider);
+      const server: Express = faultyOperator.app.expressApp;
+
+      await faultyOperator.start();
+
+      const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
+
+      const url = await getRedirectReadUrl(operatorClient);
+
+      const response = await supertest(server).get(url);
+
+      assertRedirectError(response, 500, NodeErrorType.UNKNOWN_ERROR);
+
+      assertSpansCalled();
+    });
+
+    it('should check query string', async () => {
+      const response = await supertest(server)
+        .get('/paf/v1/redirect/get-ids-prefs')
+        .set('referer', 'https://watever.com');
+
+      assertRedirectError(response, 400, NodeErrorType.INVALID_QUERY_STRING);
+
+      assertSpansCalled();
+    });
+
+    it('should check permissions', async () => {
+      const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
+
+      const url = await getRedirectReadUrl(operatorClient);
+
+      const response = await supertest(server).get(url);
+
+      assertRedirectError(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
+
+      assertSpansCalled();
+    });
+
+    describe('should check message signature', () => {
+      it('for wrong signature', async () => {
+        const operatorClient = new ClientBuilder()
+          // Notice different private key, won't match the public key
+          .setClientPrivateKey(
+            `--
+        }---BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiDfb74JY+vBjdEmr
+hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
+7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
+-----END PRIVATE KEY-----`
+          )
+          .build(publicKeyProvider);
+
+        const url = await getRedirectReadUrl(operatorClient);
+
+        const response = await supertest(server).get(url);
+
+        assertRedirectError(response, 403, NodeErrorType.VERIFICATION_FAILED);
+
+        assertSpansCalled();
+      });
+
+      it('for unknown signer', async () => {
+        const operatorClient = new ClientBuilder()
+          // This client host is allowed to read, but the public key won't be found
+          .setClientHost('paf.read-only.com')
+          .build(publicKeyProvider);
+
+        const url = await getRedirectReadUrl(operatorClient);
+
+        const response = await supertest(server).get(url);
+
+        assertRedirectError(response, 403, NodeErrorType.UNKNOWN_SIGNER);
+
+        assertSpansCalled();
+      });
+    });
+
+    it('should check origin header', async () => {
+      const operatorClient = new ClientBuilder().build(publicKeyProvider);
+
+      const url = await getRedirectReadUrl(operatorClient);
+
+      const response = await supertest(server).get(url);
+
+      // FIXME[errors] should be a specific error type
+      assertRedirectError(response, 403, NodeErrorType.VERIFICATION_FAILED);
+
+      assertSpansCalled();
+    });
+
+    it('should handle valid request', async () => {
+      const operatorClient = new ClientBuilder().build(publicKeyProvider);
+
+      const url = await getRedirectReadUrl(operatorClient);
 
       const response = await supertest(server).get(url).set('Origin', `https://${ClientBuilder.defaultHost}/some/page`);
 

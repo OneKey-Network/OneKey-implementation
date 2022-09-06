@@ -6,6 +6,7 @@ import domainParser from 'tld-extract';
 import { ReturnUrl } from '@core/model';
 import { RedirectContext, RestContext } from '@core/crypto';
 import { NodeError } from '@core/errors';
+import { RedirectErrorResponse } from '@core/model/model';
 
 export const setCookie = (
   res: Response,
@@ -52,7 +53,8 @@ export const setInQueryString = <T>(url: URL, requestOrResponse: T): URL => {
 };
 
 export const buildErrorRedirectUrl = (url: URL, httpCode: number, error: NodeError): URL => {
-  const errorResponse = { code: httpCode, error: error };
+  // FIXME[errors] should update Error in generated-model.ts to match NodeError. As it is, this message is not valid with the specs
+  const errorResponse: RedirectErrorResponse = { code: httpCode, error: error };
   url.searchParams.set(QSParam.paf, encodeBase64(JSON.stringify(errorResponse)));
   return url;
 };

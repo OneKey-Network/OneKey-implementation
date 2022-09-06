@@ -206,11 +206,11 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.read,
       timeout(this.redirectResponseTimeoutInMs),
+      this.startSpan(redirectEndpoints.read),
       this.checkQueryString(JsonSchemaType.readIdAndPreferencesRedirectRequest, true),
       this.checkReturnUrl<GetIdsPrefsRequest>(),
       this.checkReadPermission(true),
       this.checkReadIdsAndPreferencesSignature(true),
-      this.startSpan(redirectEndpoints.read),
       this.redirectReadIdsAndPreferences,
       this.catchErrorsWithRedirectToReferer(redirectEndpoints.read),
       this.endSpan(redirectEndpoints.read)
