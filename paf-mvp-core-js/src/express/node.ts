@@ -126,6 +126,8 @@ export class Node implements INode {
         res.status(500);
         res.send();
       }
+
+      next();
     };
 
   /**
