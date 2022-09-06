@@ -50,6 +50,9 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
       Promise.resolve('operatorKey')
     );
     response = createResponse();
+    response.locals.context = {
+      isRedirect: false,
+    };
   });
   describe('restRead', () => {
     let url: string;
@@ -174,7 +177,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
           url,
         });
 
-        await operatorNode.checkReadPermission(false)(request, response, nextMock);
+        await operatorNode.checkReadPermission(request, response, nextMock);
 
         const error: NodeError = {
           type: NodeErrorType.UNAUTHORIZED_OPERATION,

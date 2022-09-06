@@ -1,4 +1,4 @@
-import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import { AxiosRequestConfig } from 'axios';
 import {
@@ -144,101 +144,127 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.get(
       jsonOperatorEndpoints.read,
-      this.startSpan(jsonProxyEndpoints.read),
+      this.startSpan({
+        endPointName: jsonOperatorEndpoints.read,
+        jsonSchemaName: JsonSchemaType.readIdAndPreferencesRestRequest,
+      }),
       cors(corsOptionsAcceptAll),
-      this.checkQueryString(JsonSchemaType.readIdAndPreferencesRestRequest, false),
-      this.checkReadPermission(false),
-      this.checkReadIdsAndPreferencesSignature(false),
+      this.checkQueryString,
+      this.checkReadPermission,
+      this.checkReadIdsAndPreferencesSignature,
       this.restReadIdsAndPreferences,
-      this.catchErrors(jsonProxyEndpoints.read),
-      this.endSpan(jsonProxyEndpoints.read)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.post(
       jsonOperatorEndpoints.write,
-      this.startSpan(jsonProxyEndpoints.write),
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.write,
+        jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRestRequest,
+      }),
       cors(corsOptionsAcceptAll),
-      this.checkJsonBody(JsonSchemaType.writeIdAndPreferencesRestRequest),
-      this.checkWritePermission(false),
-      this.checkWriteIdsAndPreferencesSignature(false),
+      this.checkJsonBody,
+      this.checkWritePermission,
+      this.checkWriteIdsAndPreferencesSignature,
       this.restWriteIdsAndPreferences,
-      this.catchErrors(jsonProxyEndpoints.write),
-      this.endSpan(jsonProxyEndpoints.write)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.get(
       jsonOperatorEndpoints.verify3PC,
-      this.startSpan(jsonProxyEndpoints.verify3PC),
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.verify3PC,
+      }),
       cors(corsOptionsAcceptAll),
       this.read3PCCookie,
-      this.catchErrors(jsonProxyEndpoints.verify3PC),
-      this.endSpan(jsonProxyEndpoints.verify3PC)
+      this.catchErrors,
+      this.endSpan
     );
 
     // enable pre-flight request for DELETE request
     this.app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll));
     this.app.expressApp.delete(
       jsonOperatorEndpoints.delete,
-      this.startSpan(jsonProxyEndpoints.delete),
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.delete,
+        jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRequest,
+      }),
       cors(corsOptionsAcceptAll),
-      this.checkQueryString(JsonSchemaType.deleteIdAndPreferencesRequest, false),
-      this.checkDeletePermission(false),
-      this.checkDeleteIdsAndPreferencesSignature(false),
+      this.checkQueryString,
+      this.checkDeletePermission,
+      this.checkDeleteIdsAndPreferencesSignature,
       this.restDeleteIdsAndPreferences,
-      this.catchErrors(jsonProxyEndpoints.delete),
-      this.endSpan(jsonProxyEndpoints.delete)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.get(
       jsonOperatorEndpoints.newId,
-      this.startSpan(jsonProxyEndpoints.newId),
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.newId,
+        jsonSchemaName: JsonSchemaType.getNewIdRequest,
+      }),
       cors(corsOptionsAcceptAll),
-      this.checkQueryString(JsonSchemaType.getNewIdRequest, false),
+      this.checkQueryString,
       this.checkNewIdPermission,
       this.checkNewIdSignature,
       this.getNewId,
-      this.catchErrors(jsonProxyEndpoints.newId),
-      this.endSpan(jsonProxyEndpoints.newId)
+      this.catchErrors,
+      this.endSpan
     );
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
     this.app.expressApp.get(
       redirectEndpoints.read,
+      this.startSpan({
+        endPointName: redirectEndpoints.read,
+        jsonSchemaName: JsonSchemaType.readIdAndPreferencesRedirectRequest,
+        isRedirect: true,
+      }),
       timeout(this.redirectResponseTimeoutInMs),
-      this.startSpan(redirectEndpoints.read),
-      this.checkQueryString(JsonSchemaType.readIdAndPreferencesRedirectRequest, true),
+      this.checkQueryString,
       this.checkReturnUrl<GetIdsPrefsRequest>(),
-      this.checkReadPermission(true),
-      this.checkReadIdsAndPreferencesSignature(true),
+      this.checkReadPermission,
+      this.checkReadIdsAndPreferencesSignature,
       this.redirectReadIdsAndPreferences,
-      this.catchErrorsWithRedirectToReferer(redirectEndpoints.read),
-      this.endSpan(redirectEndpoints.read)
+      this.catchErrorsWithRedirectToReferer,
+      this.endSpan
     );
     this.app.expressApp.get(
       redirectEndpoints.write,
+      this.startSpan({
+        endPointName: redirectEndpoints.write,
+        jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRedirectRequest,
+        isRedirect: true,
+      }),
       timeout(this.redirectResponseTimeoutInMs),
-      this.startSpan(redirectEndpoints.write),
-      this.checkQueryString(JsonSchemaType.writeIdAndPreferencesRedirectRequest, true),
+      this.checkQueryString,
       this.checkReturnUrl<PostIdsPrefsRequest>(),
-      this.checkWritePermission(true),
-      this.checkWriteIdsAndPreferencesSignature(true),
+      this.checkWritePermission,
+      this.checkWriteIdsAndPreferencesSignature,
       this.redirectWriteIdsAndPreferences,
-      this.catchErrorsWithRedirectToReferer(redirectEndpoints.write),
-      this.endSpan(redirectEndpoints.write)
+      this.catchErrorsWithRedirectToReferer,
+      this.endSpan
     );
 
     this.app.expressApp.get(
       redirectEndpoints.delete,
+      this.startSpan({
+        endPointName: redirectEndpoints.delete,
+        jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRedirectRequest,
+        isRedirect: true,
+      }),
       timeout(this.redirectResponseTimeoutInMs),
-      this.startSpan(redirectEndpoints.delete),
-      this.checkQueryString(JsonSchemaType.deleteIdAndPreferencesRedirectRequest, true),
+      this.checkQueryString,
       this.checkReturnUrl<DeleteIdsPrefsRequest>(),
-      this.checkDeletePermission(true),
-      this.checkDeleteIdsAndPreferencesSignature(true),
+      this.checkDeletePermission,
+      this.checkDeleteIdsAndPreferencesSignature,
       this.redirectDeleteIdsAndPreferences,
-      this.catchErrorsWithRedirectToReferer(redirectEndpoints.delete),
-      this.endSpan(redirectEndpoints.delete)
+      this.catchErrorsWithRedirectToReferer,
+      this.endSpan
     );
   }
 
@@ -403,88 +429,86 @@ export class OperatorNode extends Node {
     return this.allowedHosts[domain]?.includes(permission);
   }
 
-  checkWriteIdsAndPreferencesSignature =
-    (isRedirect: boolean): RequestHandler =>
-    async (req: Request, res: Response, next: NextFunction) => {
-      const request = isRedirect
-        ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
-        : getPayload<PostIdsPrefsRequest>(req);
-      const validationResult = await this.validateWriteRequest(request, req);
-      if (validationResult.isValid) {
-        next();
+  checkWriteIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
+    const { isRedirect } = this.getContext(res);
+    const request = isRedirect
+      ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
+      : getPayload<PostIdsPrefsRequest>(req);
+    const validationResult = await this.validateWriteRequest(request, req);
+    if (validationResult.isValid) {
+      next();
+    } else {
+      const error: NodeError = {
+        type:
+          validationResult.errors[0] instanceof UnableToIdentifySignerError
+            ? NodeErrorType.UNKNOWN_SIGNER
+            : NodeErrorType.VERIFICATION_FAILED,
+        details: validationResult.errors[0].message,
+      };
+      if (isRedirect) {
+        this.redirectWithError(res, (request as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
       } else {
-        const error: NodeError = {
-          type:
-            validationResult.errors[0] instanceof UnableToIdentifySignerError
-              ? NodeErrorType.UNKNOWN_SIGNER
-              : NodeErrorType.VERIFICATION_FAILED,
-          details: validationResult.errors[0].message,
-        };
-        if (isRedirect) {
-          this.redirectWithError(res, (request as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
-        } else {
-          res.status(403);
-          res.json(error);
-        }
-        next(error);
+        res.status(403);
+        res.json(error);
       }
-    };
+      next(error);
+    }
+  };
 
-  checkDeleteIdsAndPreferencesSignature =
-    (isRedirect: boolean): RequestHandler =>
-    async (req: Request, res: Response, next: NextFunction) => {
-      const request = isRedirect
-        ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
-        : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
-      const requestValidationResult = await this.validateDeleteRequest(request, req);
-      if (requestValidationResult.isValid) {
-        next();
+  checkDeleteIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
+    const { isRedirect } = this.getContext(res);
+
+    const request = isRedirect
+      ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
+      : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+    const requestValidationResult = await this.validateDeleteRequest(request, req);
+    if (requestValidationResult.isValid) {
+      next();
+    } else {
+      const error: NodeError = {
+        type:
+          requestValidationResult.errors[0] instanceof UnableToIdentifySignerError
+            ? NodeErrorType.UNKNOWN_SIGNER
+            : NodeErrorType.VERIFICATION_FAILED,
+        details: requestValidationResult.errors[0].message,
+      };
+      if (isRedirect) {
+        this.redirectWithError(res, (request as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
       } else {
-        const error: NodeError = {
-          type:
-            requestValidationResult.errors[0] instanceof UnableToIdentifySignerError
-              ? NodeErrorType.UNKNOWN_SIGNER
-              : NodeErrorType.VERIFICATION_FAILED,
-          details: requestValidationResult.errors[0].message,
-        };
-        if (isRedirect) {
-          this.redirectWithError(res, (request as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
-        } else {
-          res.status(403);
-          res.json(error);
-        }
-        next(error);
+        res.status(403);
+        res.json(error);
       }
-    };
+      next(error);
+    }
+  };
 
-  checkReadIdsAndPreferencesSignature =
-    (isRedirect: boolean): RequestHandler =>
-    async (req: Request, res: Response, next: NextFunction) => {
-      const request = isRedirect
-        ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
-        : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
+  checkReadIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
+    const { isRedirect } = this.getContext(res);
+    const request = isRedirect
+      ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
+      : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
 
-      const signatureValidationResult = await this.validateReadRequest(request, req);
+    const signatureValidationResult = await this.validateReadRequest(request, req);
 
-      if (signatureValidationResult.isValid) {
-        next();
+    if (signatureValidationResult.isValid) {
+      next();
+    } else {
+      const error: NodeError = {
+        type:
+          signatureValidationResult.errors[0] instanceof UnableToIdentifySignerError
+            ? NodeErrorType.UNKNOWN_SIGNER
+            : NodeErrorType.VERIFICATION_FAILED,
+        details: signatureValidationResult.errors[0].message,
+      };
+      if (isRedirect) {
+        this.redirectWithError(res, (request as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
       } else {
-        const error: NodeError = {
-          type:
-            signatureValidationResult.errors[0] instanceof UnableToIdentifySignerError
-              ? NodeErrorType.UNKNOWN_SIGNER
-              : NodeErrorType.VERIFICATION_FAILED,
-          details: signatureValidationResult.errors[0].message,
-        };
-        if (isRedirect) {
-          this.redirectWithError(res, (request as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
-        } else {
-          res.status(403);
-          res.json(error);
-        }
-        next(error);
+        res.status(403);
+        res.json(error);
       }
-    };
+      next(error);
+    }
+  };
 
   restReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     // Attempt to set a cookie (as 3PC), will be useful later if this call fails to get Prebid cookie values
@@ -553,62 +577,60 @@ export class OperatorNode extends Node {
     }
   };
 
-  checkWritePermission =
-    (isRedirect: boolean): RequestHandler =>
-    (req: Request, res: Response, next: NextFunction) => {
-      const input = isRedirect
-        ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
-        : getPayload<PostIdsPrefsRequest>(req);
-      const request = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
-        input,
-        req
-      ).request;
-      const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
-      if (!haveWritePermission) {
-        const error: NodeError = {
-          type: NodeErrorType.UNAUTHORIZED_OPERATION,
-          details: `Domain not allowed to write data: ${request.sender}`,
-        };
-        if (isRedirect) {
-          this.redirectWithError(res, (input as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
-        } else {
-          res.status(403);
-          res.json(error);
-        }
-        next(error);
+  checkWritePermission = (req: Request, res: Response, next: NextFunction) => {
+    const { isRedirect } = this.getContext(res);
+    const input = isRedirect
+      ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
+      : getPayload<PostIdsPrefsRequest>(req);
+    const request = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
+      input,
+      req
+    ).request;
+    const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
+    if (!haveWritePermission) {
+      const error: NodeError = {
+        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        details: `Domain not allowed to write data: ${request.sender}`,
+      };
+      if (isRedirect) {
+        this.redirectWithError(res, (input as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
       } else {
-        next();
+        res.status(403);
+        res.json(error);
       }
-    };
+      next(error);
+    } else {
+      next();
+    }
+  };
 
   // FIXME merge with checkWritePermission
-  checkDeletePermission =
-    (isRedirect: boolean): RequestHandler =>
-    (req: Request, res: Response, next: NextFunction) => {
-      const input = isRedirect
-        ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
-        : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
-      const request = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
-        input,
-        req
-      ).request;
-      const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
-      if (!haveWritePermission) {
-        const error: NodeError = {
-          type: NodeErrorType.UNAUTHORIZED_OPERATION,
-          details: `Domain not allowed to delete data: ${request.sender}`,
-        };
-        if (isRedirect) {
-          this.redirectWithError(res, (input as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
-        } else {
-          res.status(403);
-          res.json(error);
-        }
-        next(error);
+  checkDeletePermission = (req: Request, res: Response, next: NextFunction) => {
+    const { isRedirect } = this.getContext(res);
+    const input = isRedirect
+      ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
+      : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
+    const request = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
+      input,
+      req
+    ).request;
+    const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
+    if (!haveWritePermission) {
+      const error: NodeError = {
+        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        details: `Domain not allowed to delete data: ${request.sender}`,
+      };
+      if (isRedirect) {
+        this.redirectWithError(res, (input as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
       } else {
-        next();
+        res.status(403);
+        res.json(error);
       }
-    };
+      next(error);
+    } else {
+      next();
+    }
+  };
 
   restDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     const input = getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
@@ -725,9 +747,9 @@ export class OperatorNode extends Node {
   };
 
   catchErrorsWithRedirectToReferer =
-    (endPointName: string): ErrorRequestHandler =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (error: unknown, req: Request, res: Response, next: NextFunction) => {
+      const { endPointName } = this.getContext(res);
       this.logger.Error(endPointName, error);
       const nodeError: NodeError = {
         type: NodeErrorType.UNKNOWN_ERROR,
@@ -736,33 +758,32 @@ export class OperatorNode extends Node {
       this.redirectWithError(res, req.header('referer'), 500, nodeError);
     };
 
-  checkReadPermission =
-    (isRedirect: boolean): RequestHandler =>
-    (req: Request, res: Response, next: NextFunction) => {
-      const input = isRedirect
-        ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
-        : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
-      const request = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
-        input,
-        req
-      ).request;
-      const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
-      if (!haveReadPermission) {
-        const error: NodeError = {
-          type: NodeErrorType.UNAUTHORIZED_OPERATION,
-          details: `Domain not allowed to read data: ${request.sender}`,
-        };
-        if (isRedirect) {
-          this.redirectWithError(res, (input as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
-        } else {
-          res.status(403);
-          res.json(error);
-        }
-        next(error);
+  checkReadPermission = (req: Request, res: Response, next: NextFunction) => {
+    const { isRedirect } = this.getContext(res);
+    const input = isRedirect
+      ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
+      : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
+    const request = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
+      input,
+      req
+    ).request;
+    const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
+    if (!haveReadPermission) {
+      const error: NodeError = {
+        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        details: `Domain not allowed to read data: ${request.sender}`,
+      };
+      if (isRedirect) {
+        this.redirectWithError(res, (input as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
       } else {
-        next();
+        res.status(403);
+        res.json(error);
       }
-    };
+      next(error);
+    } else {
+      next();
+    }
+  };
 
   // FIXME merge with checkReadPermission
   checkNewIdPermission = (req: Request, res: Response, next: NextFunction) => {

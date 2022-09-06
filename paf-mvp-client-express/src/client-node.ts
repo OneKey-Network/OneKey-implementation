@@ -56,54 +56,64 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.get(
       jsonProxyEndpoints.read,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.read,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.startSpan(jsonProxyEndpoints.read),
       this.restBuildUrlToGetIdsAndPreferences,
-      this.catchErrors(jsonProxyEndpoints.read),
-      this.endSpan(jsonProxyEndpoints.read)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.post(
       jsonProxyEndpoints.write,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.write,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.startSpan(jsonProxyEndpoints.write),
       this.restBuildUrlToWriteIdsAndPreferences,
-      this.catchErrors(jsonProxyEndpoints.write),
-      this.endSpan(jsonProxyEndpoints.write)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.get(
       jsonProxyEndpoints.verify3PC,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.verify3PC,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.startSpan(jsonProxyEndpoints.verify3PC),
       this.buildUrlToVerify3PC,
-      this.catchErrors(jsonProxyEndpoints.verify3PC),
-      this.endSpan(jsonProxyEndpoints.verify3PC)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.get(
       jsonProxyEndpoints.newId,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.newId,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.startSpan(jsonProxyEndpoints.newId),
       this.buildUrlToGetNewId,
-      this.catchErrors(jsonProxyEndpoints.newId),
-      this.endSpan(jsonProxyEndpoints.newId)
+      this.catchErrors,
+      this.endSpan
     );
 
     // enable pre-flight request for DELETE request
     this.app.expressApp.options(jsonProxyEndpoints.delete, this.websiteIdentityValidator.cors);
     this.app.expressApp.delete(
       jsonProxyEndpoints.delete,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.delete,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.startSpan(jsonProxyEndpoints.delete),
       this.restBuildUrlToDeleteIdsAndPreferences,
-      this.catchErrors(jsonProxyEndpoints.delete),
-      this.endSpan(jsonProxyEndpoints.delete)
+      this.catchErrors,
+      this.endSpan
     );
 
     // *****************************************************************************************************************
@@ -111,35 +121,44 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.get(
       redirectProxyEndpoints.read,
+      this.startSpan({
+        endPointName: redirectProxyEndpoints.read,
+        isRedirect: true,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
-      this.startSpan(redirectProxyEndpoints.read),
       this.redirectBuildUrlToReadIdsAndPreferences,
-      this.catchErrors(redirectProxyEndpoints.read),
-      this.endSpan(redirectProxyEndpoints.read)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.get(
       redirectProxyEndpoints.write,
+      this.startSpan({
+        endPointName: redirectProxyEndpoints.write,
+        isRedirect: true,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
-      this.startSpan(redirectProxyEndpoints.write),
       this.redirectBuildUrlToWriteIdsAndPreferences,
-      this.catchErrors(redirectProxyEndpoints.write),
-      this.endSpan(redirectProxyEndpoints.write)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.get(
       redirectProxyEndpoints.delete,
+      this.startSpan({
+        endPointName: redirectProxyEndpoints.delete,
+        isRedirect: true,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
-      this.startSpan(redirectProxyEndpoints.delete),
       this.redirectBuildUrlToDeleteIdsAndPreferences,
-      this.catchErrors(redirectProxyEndpoints.delete),
-      this.endSpan(redirectProxyEndpoints.delete)
+      this.catchErrors,
+      this.endSpan
     );
 
     // *****************************************************************************************************************
@@ -147,22 +166,28 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.post(
       jsonProxyEndpoints.verifyRead,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.verifyRead,
+        isRedirect: true,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.startSpan(jsonProxyEndpoints.verifyRead),
       this.verifyOperatorReadResponse,
-      this.catchErrors(jsonProxyEndpoints.verifyRead),
-      this.endSpan(jsonProxyEndpoints.verifyRead)
+      this.catchErrors,
+      this.endSpan
     );
 
     this.app.expressApp.post(
       jsonProxyEndpoints.signPrefs,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.signPrefs,
+        isRedirect: true,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.startSpan(jsonProxyEndpoints.signPrefs),
       this.signPreferences,
-      this.catchErrors(jsonProxyEndpoints.signPrefs),
-      this.endSpan(jsonProxyEndpoints.signPrefs)
+      this.catchErrors,
+      this.endSpan
     );
 
     // *****************************************************************************************************************
@@ -170,13 +195,17 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.app.expressApp.post(
       jsonProxyEndpoints.createSeed,
+      this.startSpan({
+        endPointName: jsonProxyEndpoints.createSeed,
+        isRedirect: true,
+        jsonSchemaName: JsonSchemaType.createSeedRequest,
+      }),
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.checkJsonBody(JsonSchemaType.createSeedRequest),
-      this.startSpan(jsonProxyEndpoints.createSeed),
+      this.checkJsonBody,
       this.createSeed,
-      this.catchErrors(jsonProxyEndpoints.createSeed),
-      this.endSpan(jsonProxyEndpoints.createSeed)
+      this.catchErrors,
+      this.endSpan
     );
   }
 

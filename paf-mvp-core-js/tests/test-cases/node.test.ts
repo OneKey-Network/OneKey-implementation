@@ -55,7 +55,9 @@ describe('Json body validator handler', () => {
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysKO, 'validate');
     const node = new Node('MyNode', identity, mockJsonValidatorAlwaysKO, publicKeyProvider);
 
-    node.checkJsonBody(JsonSchemaType.createSeedRequest)(request, response, nextFunction);
+    response.locals.context = { jsonSchemaName: JsonSchemaType.createSeedRequest };
+
+    node.checkJsonBody(request, response, nextFunction);
 
     expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
@@ -72,7 +74,9 @@ describe('Json body validator handler', () => {
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysOK, 'validate');
     const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProvider);
 
-    node.checkJsonBody(JsonSchemaType.createSeedRequest)(request, response, nextFunction);
+    response.locals.context = { jsonSchemaName: JsonSchemaType.createSeedRequest };
+
+    node.checkJsonBody(request, response, nextFunction);
 
     expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
@@ -118,7 +122,12 @@ describe('Query string validator handler', () => {
         method: 'GET',
         url: targetUrl.toString(),
       });
-      node.checkQueryString(JsonSchemaType.createSeedRequest, false)(request, response, nextFunction);
+
+      response.locals.context = {
+        jsonSchemaName: JsonSchemaType.createSeedRequest,
+      };
+
+      node.checkQueryString(request, response, nextFunction);
       const expectedError: NodeError = {
         type: NodeErrorType.INVALID_QUERY_STRING,
         details: input.expected_error,
@@ -137,7 +146,12 @@ describe('Query string validator handler', () => {
       method: 'GET',
       url: targetUrl.toString(),
     });
-    node.checkQueryString(JsonSchemaType.createSeedRequest, false)(request, response, nextFunction);
+
+    response.locals.context = {
+      jsonSchemaName: JsonSchemaType.createSeedRequest,
+    };
+
+    node.checkQueryString(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
   });

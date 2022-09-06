@@ -1,6 +1,6 @@
 import '../helpers/assume-https'; // /!\ Must be imported first
 import { assertError } from '../helpers/integration.helpers';
-import { Express, NextFunction } from 'express';
+import { Express, NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
 import { IJsonValidator, JsonValidator } from '@core/validation/json-validator';
@@ -9,6 +9,7 @@ import { ClientBuilder } from '../utils/client-utils';
 import { OperatorClient } from '@client/operator-client';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import { GetIdsPrefsResponse } from '@core/model';
+import { Context } from '@core/express';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MockExpressRequest = require('mock-express-request');
@@ -35,11 +36,16 @@ describe('read', () => {
   const getContext = async (validator: IJsonValidator = JsonValidator.default()) => {
     const operator = OperatorUtils.buildOperator(validator, publicKeyProvider);
 
-    const startSpan = jest.fn().mockImplementation((req: Request, res: Response, next: NextFunction) => next());
-    operator.startSpan = () => startSpan;
-    const endSpan = jest.fn().mockImplementation((req: Request, res: Response, next: NextFunction) => next());
-    operator.endSpan = () => endSpan;
+    const startSpan = jest.fn();
 
+    // Need to spy on a call of the handler, not the handler builder
+    const originalStart = operator.startSpan;
+    operator.startSpan = (context: Context) => (req: Request, res: Response, next: NextFunction) => {
+      startSpan();
+      originalStart(context)(req, res, next);
+    };
+
+    const endSpan = jest.spyOn(operator, 'endSpan');
     await operator.setup();
 
     const server: Express = operator.app.expressApp;

@@ -13,7 +13,7 @@ import {
 } from '@core/express/utils';
 import { IdentityConfig } from '@core/express/config';
 import { NodeError, NodeErrorType } from '@core/errors';
-import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { IJsonValidator, JsonSchemaType } from '@core/validation/json-validator';
 import { decodeBase64, QSParam } from '@core/query-string';
 import { RedirectRequest } from '@core/model/model';
@@ -25,6 +25,12 @@ export interface INode {
    * Setup resources and routes
    */
   setup(): Promise<void>;
+}
+
+export interface Context {
+  endPointName: string;
+  isRedirect?: boolean;
+  jsonSchemaName?: JsonSchemaType;
 }
 
 /**
@@ -64,37 +70,39 @@ export class Node implements INode {
 
     this.app.expressApp.get(
       participantEndpoints.identity,
+      this.startSpan({
+        endPointName: participantEndpoints.identity,
+      }),
       cors(corsOptionsAcceptAll),
-      this.startSpan(participantEndpoints.identity),
       (req: Request, res: Response, next: NextFunction) => {
         res.json(response);
         next();
       },
-      this.catchErrors(participantEndpoints.identity),
-      this.endSpan(participantEndpoints.identity)
+      this.catchErrors,
+      this.endSpan
     );
   }
 
-  /**
-   * Returns a handler that starts a span
-   * @param endPointName
-   */
   startSpan =
-    (endPointName: string): RequestHandler =>
+    (context: Context): RequestHandler =>
     (req: Request, res: Response, next: NextFunction) => {
-      this.logger.Info(endPointName);
+      res.locals.context = context;
+      this.logger.Info(context.endPointName);
       next();
     };
 
-  /**
-   * Returns a header that ends a span
-   * @param endPointName
-   */
-  endSpan =
-    (endPointName: string): RequestHandler =>
-    () => {
-      this.logger.Info(`${endPointName} - END`);
-    };
+  getContext(res: Response): Context {
+    return (
+      (res.locals.context as Context) ?? {
+        endPointName: 'UNKNOWN',
+      }
+    );
+  }
+
+  endSpan = (req: Request, res: Response, next: NextFunction) => {
+    const { endPointName } = this.getContext(res);
+    this.logger.Info(`${endPointName} - END`);
+  };
 
   redirectWithError = (res: Response, url: string, httpCode: number, error: NodeError): void => {
     try {
@@ -106,14 +114,10 @@ export class Node implements INode {
     }
   };
 
-  /**
-   * Returns a handler that handles errors
-   * @param endPointName
-   */
   catchErrors =
-    (endPointName: string): ErrorRequestHandler =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (err: unknown, req: Request, res: Response, next: NextFunction) => {
+      const { endPointName } = this.getContext(res);
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
 
@@ -142,74 +146,72 @@ export class Node implements INode {
    * against a JSON schema.
    * @returns the built handler
    */
-  checkJsonBody =
-    (jsonSchema: JsonSchemaType): RequestHandler =>
-    (req: Request, res: Response, next: NextFunction) => {
-      const validation = this.jsonValidator.validate(jsonSchema, req.body as string);
-      if (!validation.isValid) {
-        const details = validation.errors.map((e) => e.message).join(' - ');
-        const error: NodeError = {
-          type: NodeErrorType.INVALID_JSON_BODY,
-          details,
-        };
-        res.status(400);
-        res.json(error);
-        next(error);
-      } else {
-        next();
-      }
-    };
+  checkJsonBody = (req: Request, res: Response, next: NextFunction) => {
+    const { jsonSchemaName } = this.getContext(res);
+    const validation = this.jsonValidator.validate(jsonSchemaName, req.body as string);
+    if (!validation.isValid) {
+      const details = validation.errors.map((e) => e.message).join(' - ');
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_JSON_BODY,
+        details,
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    } else {
+      next();
+    }
+  };
 
   /**
    * Builds a handler that validates the query string
    * against a JSON schema.
    * @returns the built handler
    */
-  checkQueryString =
-    (jsonSchema: JsonSchemaType, isRedirect: boolean): RequestHandler =>
-    (req: Request, res: Response, next: NextFunction) => {
-      const data = req.query[QSParam.paf] as string | undefined;
-      const decodedData = data ? decodeBase64(data) : undefined;
-      if (!decodedData) {
+  checkQueryString = (req: Request, res: Response, next: NextFunction) => {
+    const { isRedirect, jsonSchemaName } = this.getContext(res);
+    const data = req.query[QSParam.paf] as string | undefined;
+    const decodedData = data ? decodeBase64(data) : undefined;
+    if (!decodedData) {
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_QUERY_STRING,
+        details: `Received Query string: '${data}' is not a valid Base64 string`,
+      };
+      if (isRedirect) {
+        this.redirectWithError(res, req.header('referer'), 400, error);
+      } else {
+        res.status(400);
+        res.json(error);
+      }
+      next(error);
+      return;
+    }
+    try {
+      const validation = this.jsonValidator.validate(jsonSchemaName, decodedData);
+      if (!validation.isValid) {
+        const details = validation.errors.map((e) => e.message).join(' - ');
         const error: NodeError = {
           type: NodeErrorType.INVALID_QUERY_STRING,
-          details: `Received Query string: '${data}' is not a valid Base64 string`,
+          details,
         };
         if (isRedirect) {
-          this.redirectWithError(res, req.header('referer'), 400, error);
+          const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
+          httpRedirect(res, redirectURL.toString());
         } else {
           res.status(400);
           res.json(error);
         }
         next(error);
-        return;
+      } else {
+        next();
       }
-      try {
-        const validation = this.jsonValidator.validate(jsonSchema, decodedData);
-        if (!validation.isValid) {
-          const details = validation.errors.map((e) => e.message).join(' - ');
-          const error: NodeError = {
-            type: NodeErrorType.INVALID_QUERY_STRING,
-            details,
-          };
-          if (isRedirect) {
-            const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
-            httpRedirect(res, redirectURL.toString());
-          } else {
-            res.status(400);
-            res.json(error);
-          }
-          next(error);
-        } else {
-          next();
-        }
-      } catch (error) {
-        next({
-          type: NodeErrorType.UNKNOWN_ERROR,
-          details: '', // FIXME[errors]
-        });
-      }
-    };
+    } catch (error) {
+      next({
+        type: NodeErrorType.UNKNOWN_ERROR,
+        details: '', // FIXME[errors]
+      });
+    }
+  };
 
   /**
    * Builds and returns a handler that validates the specified return url for Redirect requests.

@@ -48,7 +48,8 @@ describe('Write permission Handler', () => {
   ];
 
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
-    operatorNode.checkWritePermission(input.isRedirect)(input.request, response, nextFunction);
+    response.locals.context = { isRedirect: input.isRedirect };
+    operatorNode.checkWritePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
     expect(response._getStatusCode()).toEqual(input.isRedirect ? 303 : 403);
   });
@@ -66,7 +67,8 @@ describe('Write permission Handler', () => {
     },
   ];
   test.each(successCases)('Should call the nextFunction with no error when $description', (input) => {
-    operatorNode.checkWritePermission(input.isRedirect)(input.request, response, nextFunction);
+    response.locals.context = { isRedirect: input.isRedirect };
+    operatorNode.checkWritePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
   });
@@ -115,7 +117,8 @@ describe('Delete permission Handler', () => {
   ];
 
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
-    operatorNode.checkDeletePermission(input.isRedirect)(input.request, response, nextFunction);
+    response.locals.context = { isRedirect: input.isRedirect };
+    operatorNode.checkDeletePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
     expect(response._getStatusCode()).toEqual(input.isRedirect ? 303 : 403);
   });
@@ -133,7 +136,8 @@ describe('Delete permission Handler', () => {
     },
   ];
   test.each(successCases)('Should call the nextFunction with no error when $description', (input) => {
-    operatorNode.checkDeletePermission(input.isRedirect)(input.request, response, nextFunction);
+    response.locals.context = { isRedirect: input.isRedirect };
+    operatorNode.checkDeletePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
   });
