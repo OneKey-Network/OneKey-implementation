@@ -133,8 +133,8 @@ export class OperatorNode extends Node {
     this.redirectResponseTimeoutInMs = redirectResponseTimeout;
   }
 
-  async start(): Promise<void> {
-    await super.start();
+  async setup(): Promise<void> {
+    await super.setup();
 
     // Note that CORS is "disabled" here because the check is done via signature
     // So accept whatever the referer is

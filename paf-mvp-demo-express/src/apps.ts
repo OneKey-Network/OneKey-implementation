@@ -39,7 +39,7 @@ export const getAppsAndNodes = async (): Promise<{
     await OperatorNode.fromConfig('configs/crto-poc-1-operator/config.json', s2sOptions),
   ];
 
-  await Promise.all(operators.map((o) => o.start()));
+  await Promise.all(operators.map((o) => o.setup()));
 
   const clientConfigFiles = [
     'configs/pafmarket-client/config.json',
@@ -61,7 +61,7 @@ export const getAppsAndNodes = async (): Promise<{
     clientConfigFiles.map((path) => ClientNode.fromConfig(path, s2sOptions))
   );
 
-  await Promise.all(clientNodes.map((o) => o.start()));
+  await Promise.all(clientNodes.map((o) => o.setup()));
 
   return { websites, cdns, operators, clientNodes };
 };

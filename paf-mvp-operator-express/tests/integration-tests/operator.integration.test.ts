@@ -40,7 +40,7 @@ describe('read', () => {
     const endSpan = jest.fn().mockImplementation((req: Request, res: Response, next: NextFunction) => next());
     operator.endSpan = () => endSpan;
 
-    await operator.start();
+    await operator.setup();
 
     const server: Express = operator.app.expressApp;
 

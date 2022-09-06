@@ -48,8 +48,8 @@ export class ClientNode extends Node {
     this.websiteIdentityValidator = new WebsiteIdentityValidator(hostName);
   }
 
-  async start(): Promise<void> {
-    await super.start();
+  async setup(): Promise<void> {
+    await super.setup();
 
     // *****************************************************************************************************************
     // ************************************************************************************************************ REST

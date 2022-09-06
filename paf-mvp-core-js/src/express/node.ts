@@ -22,9 +22,9 @@ export interface INode {
   app: VHostApp;
 
   /**
-   * Start the server by loading resources.
+   * Setup resources and routes
    */
-  start(): Promise<void>;
+  setup(): Promise<void>;
 }
 
 /**
@@ -46,7 +46,14 @@ export class Node implements INode {
     this.jsonValidator = jsonValidator;
   }
 
-  async start(): Promise<void> {
+  /**
+   * The setup of routes is done outside the constructor because:
+   * - the JSON validator loads external resources (async)
+   * - the routes rely on the JSON validator
+   * - the ExpressJS handlers (ex: startSpan) are fields of type arrow function that are created at init time.
+   *   They can be spied before the call to setup() in tests (this would be impossible in the constructor)
+   */
+  async setup(): Promise<void> {
     await this.jsonValidator.start();
 
     // All nodes must implement the identity endpoint
@@ -199,7 +206,7 @@ export class Node implements INode {
       } catch (error) {
         next({
           type: NodeErrorType.UNKNOWN_ERROR,
-          details: '', // FIXME
+          details: '', // FIXME[errors]
         });
       }
     };
