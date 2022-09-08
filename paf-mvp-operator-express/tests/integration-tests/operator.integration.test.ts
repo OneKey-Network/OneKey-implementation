@@ -1,4 +1,3 @@
-import '../helpers/assume-https'; // /!\ Must be imported first
 import { assertError } from '../helpers/integration.helpers';
 import { Express, NextFunction } from 'express';
 import supertest from 'supertest';
