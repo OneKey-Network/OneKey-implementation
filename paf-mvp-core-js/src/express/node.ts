@@ -14,7 +14,7 @@ import {
 import { IdentityConfig } from '@core/express/config';
 import { NodeError, NodeErrorType } from '@core/errors';
 import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { IJsonValidator } from '@core/validation/json-validator';
+import { IJsonValidator, JsonSchemaType } from '@core/validation/json-validator';
 import { decodeBase64, QSParam } from '@core/query-string';
 import { RedirectRequest } from '@core/model/model';
 
@@ -136,7 +136,7 @@ export class Node implements INode {
    * @returns the built handler
    */
   checkJsonBody =
-    (jsonSchema: string): RequestHandler =>
+    (jsonSchema: JsonSchemaType): RequestHandler =>
     (req: Request, res: Response, next: NextFunction) => {
       const validation = this.jsonValidator.validate(jsonSchema, req.body as string);
       if (!validation.isValid) {
@@ -159,7 +159,7 @@ export class Node implements INode {
    * @returns the built handler
    */
   checkQueryString =
-    (jsonSchema: string, isRedirect: boolean): RequestHandler =>
+    (jsonSchema: JsonSchemaType, isRedirect: boolean): RequestHandler =>
     (req: Request, res: Response, next: NextFunction) => {
       const data = req.query[QSParam.paf] as string | undefined;
       const decodedData = data ? decodeBase64(data) : undefined;

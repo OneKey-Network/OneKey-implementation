@@ -54,7 +54,7 @@ import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@core/endpoints';
 import { NodeError, NodeErrorType } from '@core/errors';
-import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
+import { IJsonValidator, JsonSchemaType, JsonValidator } from '@core/validation/json-validator';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import timeout from 'connect-timeout';
 
@@ -149,7 +149,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       jsonOperatorEndpoints.read,
       cors(corsOptionsAcceptAll),
-      this.checkQueryString(JsonSchemaTypes.readIdAndPreferencesRestRequest, false),
+      this.checkQueryString(JsonSchemaType.readIdAndPreferencesRestRequest, false),
       this.checkReadPermission(false),
       this.checkReadIdsAndPreferencesSignature(false),
       this.startSpan(jsonProxyEndpoints.read),
@@ -161,7 +161,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.post(
       jsonOperatorEndpoints.write,
       cors(corsOptionsAcceptAll),
-      this.checkJsonBody(JsonSchemaTypes.writeIdAndPreferencesRestRequest),
+      this.checkJsonBody(JsonSchemaType.writeIdAndPreferencesRestRequest),
       this.checkWritePermission(false),
       this.checkWriteIdsAndPreferencesSignature(false),
       this.startSpan(jsonProxyEndpoints.write),
@@ -184,7 +184,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.delete(
       jsonOperatorEndpoints.delete,
       cors(corsOptionsAcceptAll),
-      this.checkQueryString(JsonSchemaTypes.deleteIdAndPreferencesRequest, false),
+      this.checkQueryString(JsonSchemaType.deleteIdAndPreferencesRequest, false),
       this.checkDeletePermission(false),
       this.checkDeleteIdsAndPreferencesSignature(false),
       this.startSpan(jsonProxyEndpoints.delete),
@@ -196,7 +196,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       jsonOperatorEndpoints.newId,
       cors(corsOptionsAcceptAll),
-      this.checkQueryString(JsonSchemaTypes.getNewIdRequest, false),
+      this.checkQueryString(JsonSchemaType.getNewIdRequest, false),
       this.checkNewIdPermission,
       this.checkNewIdSignature,
       this.startSpan(jsonProxyEndpoints.newId),
@@ -210,7 +210,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.read,
       timeout(this.redirectResponseTimeoutInMs),
-      this.checkQueryString(JsonSchemaTypes.readIdAndPreferencesRedirectRequest, true),
+      this.checkQueryString(JsonSchemaType.readIdAndPreferencesRedirectRequest, true),
       this.checkReturnUrl<GetIdsPrefsRequest>(),
       this.checkReadPermission(true),
       this.checkReadIdsAndPreferencesSignature(true),
@@ -222,7 +222,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.write,
       timeout(this.redirectResponseTimeoutInMs),
-      this.checkQueryString(JsonSchemaTypes.writeIdAndPreferencesRedirectRequest, true),
+      this.checkQueryString(JsonSchemaType.writeIdAndPreferencesRedirectRequest, true),
       this.checkReturnUrl<PostIdsPrefsRequest>(),
       this.checkWritePermission(true),
       this.checkWriteIdsAndPreferencesSignature(true),
@@ -235,7 +235,7 @@ export class OperatorNode extends Node {
     this.app.expressApp.get(
       redirectEndpoints.delete,
       timeout(this.redirectResponseTimeoutInMs),
-      this.checkQueryString(JsonSchemaTypes.deleteIdAndPreferencesRedirectRequest, true),
+      this.checkQueryString(JsonSchemaType.deleteIdAndPreferencesRedirectRequest, true),
       this.checkReturnUrl<DeleteIdsPrefsRequest>(),
       this.checkDeletePermission(true),
       this.checkDeleteIdsAndPreferencesSignature(true),
