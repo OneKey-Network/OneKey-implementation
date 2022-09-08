@@ -22,9 +22,9 @@ export interface INode {
   app: VHostApp;
 
   /**
-   * Start the server by loading resources.
+   * Setup resources and routes
    */
-  start(): Promise<void>;
+  setup(): Promise<void>;
 }
 
 /**
@@ -38,7 +38,7 @@ export class Node implements INode {
 
   constructor(
     hostName: string,
-    identity: IdentityConfig,
+    protected identity: IdentityConfig,
     jsonValidator: IJsonValidator,
     publicKeyProvider: PublicKeyProvider,
     vHostApp = new VHostApp(identity.name, hostName)
@@ -47,9 +47,20 @@ export class Node implements INode {
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
     this.app = vHostApp;
     this.jsonValidator = jsonValidator;
+  }
+
+  /**
+   * The setup of routes is done outside the constructor because:
+   * - the JSON validator loads external resources (async)
+   * - the routes rely on the JSON validator
+   * - the ExpressJS handlers (ex: startSpan) are fields of type arrow function that are created at init time.
+   *   They can be spied before the call to setup() in tests (this would be impossible in the constructor)
+   */
+  async setup(): Promise<void> {
+    await this.jsonValidator.start();
 
     // All nodes must implement the identity endpoint
-    const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = identity;
+    const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = this.identity;
     const response = new GetIdentityResponseBuilder(name, type, dpoEmailAddress, privacyPolicyUrl).buildResponse(
       publicKeys
     );
@@ -65,10 +76,6 @@ export class Node implements INode {
       this.catchErrors(participantEndpoints.identity),
       this.endSpan(participantEndpoints.identity)
     );
-  }
-
-  async start(): Promise<void> {
-    await this.jsonValidator.start();
   }
 
   /**
@@ -108,16 +115,17 @@ export class Node implements INode {
    */
   catchErrors =
     (endPointName: string): ErrorRequestHandler =>
-    (err: any, req: Request, res: Response, next: NextFunction) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (err: unknown, req: Request, res: Response, next: NextFunction) => {
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
 
       // In case of timeout redirect to referer ...
-      if (err.message === 'Response timeout') {
+      if ((err as Error).message === 'Response timeout') {
         // FIXME[errors] only in case of redirect
         const error: NodeError = {
           type: NodeErrorType.RESPONSE_TIMEOUT,
-          details: err.message,
+          details: (err as Error).message,
         };
         this.redirectWithError(res, req.header('referer'), 504, error);
       } else if ((err as NodeError).type) {
@@ -128,6 +136,8 @@ export class Node implements INode {
         res.status(500);
         res.send();
       }
+
+      next();
     };
 
   /**
@@ -199,7 +209,7 @@ export class Node implements INode {
       } catch (error) {
         next({
           type: NodeErrorType.UNKNOWN_ERROR,
-          details: '', // FIXME
+          details: '', // FIXME[errors]
         });
       }
     };

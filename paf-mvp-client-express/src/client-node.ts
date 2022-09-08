@@ -53,6 +53,10 @@ export class ClientNode extends Node {
 
     this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.publicKeyProvider);
     this.websiteIdentityValidator = new WebsiteIdentityValidator(hostName);
+  }
+
+  async setup(): Promise<void> {
+    await super.setup();
 
     // *****************************************************************************************************************
     // ************************************************************************************************************ REST
