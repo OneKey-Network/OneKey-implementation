@@ -34,15 +34,18 @@ export class Node implements INode {
   public app: VHostApp;
   protected logger: Log;
   protected jsonValidator: IJsonValidator;
+  protected publicKeyProvider: PublicKeyProvider;
 
   constructor(
     hostName: string,
     identity: IdentityConfig,
     jsonValidator: IJsonValidator,
-    protected publicKeyProvider: PublicKeyProvider
+    publicKeyProvider: PublicKeyProvider,
+    vHostApp = new VHostApp(identity.name, hostName)
   ) {
+    this.publicKeyProvider = publicKeyProvider;
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
-    this.app = new VHostApp(identity.name, hostName);
+    this.app = vHostApp;
     this.jsonValidator = jsonValidator;
 
     // All nodes must implement the identity endpoint
@@ -111,11 +114,19 @@ export class Node implements INode {
 
       // In case of timeout redirect to referer ...
       if (err.message === 'Response timeout') {
+        // FIXME[errors] only in case of redirect
         const error: NodeError = {
           type: NodeErrorType.RESPONSE_TIMEOUT,
           details: err.message,
         };
         this.redirectWithError(res, req.header('referer'), 504, error);
+      } else if ((err as NodeError).type) {
+        res.status(500); // FIXME[errors] should have a dedicated error code per error type
+        res.send(err);
+      } else {
+        // Unknown error => our fault
+        res.status(500);
+        res.send();
       }
     };
 
@@ -166,23 +177,30 @@ export class Node implements INode {
         next(error);
         return;
       }
-      const validation = this.jsonValidator.validate(jsonSchema, decodedData);
-      if (!validation.isValid) {
-        const details = validation.errors.map((e) => e.message).join(' - ');
-        const error: NodeError = {
-          type: NodeErrorType.INVALID_QUERY_STRING,
-          details,
-        };
-        if (isRedirect) {
-          const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
-          httpRedirect(res, redirectURL.toString());
+      try {
+        const validation = this.jsonValidator.validate(jsonSchema, decodedData);
+        if (!validation.isValid) {
+          const details = validation.errors.map((e) => e.message).join(' - ');
+          const error: NodeError = {
+            type: NodeErrorType.INVALID_QUERY_STRING,
+            details,
+          };
+          if (isRedirect) {
+            const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
+            httpRedirect(res, redirectURL.toString());
+          } else {
+            res.status(400);
+            res.json(error);
+          }
+          next(error);
         } else {
-          res.status(400);
-          res.json(error);
+          next();
         }
-        next(error);
-      } else {
-        next();
+      } catch (error) {
+        next({
+          type: NodeErrorType.UNKNOWN_ERROR,
+          details: '', // FIXME
+        });
       }
     };
 

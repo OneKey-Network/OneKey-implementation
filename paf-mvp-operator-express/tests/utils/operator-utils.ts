@@ -5,6 +5,7 @@ import { getTimeStampInSec } from '@core/timestamp';
 import { Domain, PostIdsPrefsRequest } from '@core/model';
 import { createRequest } from 'node-mocks-http';
 import { encodeBase64, QSParam } from '@core/query-string';
+import { VHostApp } from '@core/express';
 
 export class OperatorUtils {
   private static operatorPublicKey = `-----BEGIN PUBLIC KEY-----
@@ -26,17 +27,19 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
    * @param publicKeyProvider
    * @returns the built OperatorNode
    */
-  static buildOperator = (jsonValidator: IJsonValidator, publicKeyProvider: PublicKeyProvider): OperatorNode =>
-    new OperatorNode(
+  static buildOperator = (jsonValidator: IJsonValidator, publicKeyProvider: PublicKeyProvider): OperatorNode => {
+    const name = 'Example operator';
+
+    return new OperatorNode(
       {
         // Name of the OneKey participant
-        name: 'Example operator',
+        name,
         // Current public key
         publicKeys: [
           {
             // Timestamps are expressed in seconds
             startTimestampInSec: getTimeStampInSec(new Date('2022-01-01T10:50:00.000Z')),
-            endTimestampInSec: getTimeStampInSec(new Date('2022-12-31T12:00:00.000Z')),
+            endTimestampInSec: getTimeStampInSec(new Date('2030-12-31T12:00:00.000Z')),
             publicKey: this.operatorPublicKey,
           },
         ],
@@ -57,8 +60,10 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
       },
       jsonValidator,
       publicKeyProvider,
-      2000
+      2000,
+      new VHostApp(name, this.operatorHost, false) // Do not redirect to HTTPS automatically
     );
+  };
 
   private static buildStaticJsonValidator = (validationResult: boolean): IJsonValidator => {
     const jsonValidation: JsonValidation = {

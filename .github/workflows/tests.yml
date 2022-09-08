@@ -46,7 +46,6 @@ jobs:
       - name: Unit tests
         run: |
           npm run test
-          npm run test --prefix paf-mvp-frontend
   test-build:
     runs-on: ubuntu-latest
     steps:

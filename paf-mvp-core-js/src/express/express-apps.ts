@@ -7,6 +7,9 @@ import vhost from 'vhost';
  * Encapsulate the main Express app that will listen on the local IP
  */
 export class MainApp {
+  /**
+   * @param expressApp the express server
+   */
   constructor(public expressApp: Express = express()) {}
 
   addVhostApp(vhostApp: VHostApp) {
@@ -18,25 +21,43 @@ export class MainApp {
  * Encapsulate an Express App that listens on a specific vhost
  */
 export class VHostApp {
-  constructor(public name: string, public hostName: string, public expressApp: Express = express()) {
-    addMiddlewares(this.expressApp);
+  public name: string;
+  public hostName: string;
+  public expressApp: Express;
+
+  /**
+   * @param name display name
+   * @param hostName vhost hostname
+   * @param forceHttps should all http requests be redirected to https?
+   */
+  constructor(name: string, hostName: string, forceHttps = true) {
+    this.expressApp = express();
+    this.hostName = hostName;
+    this.name = name;
+    this.addCookieParser();
+
+    this.addPostBodyParser();
+
+    if (forceHttps) {
+      // Systematically redirect HTTP requests to HTTPs
+      this.ensureHttps();
+    }
+  }
+
+  private ensureHttps() {
+    this.expressApp.enable('trust proxy');
+    this.expressApp.use((req, res, next) => {
+      req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
+    });
+  }
+
+  private addPostBodyParser() {
+    // POST parser TODO ideally should parse it as JSON directly (but issues with CORS)
+    this.expressApp.use(bodyParser.text());
+  }
+
+  private addCookieParser() {
+    // Cookie parser
+    this.expressApp.use(cookieParser());
   }
 }
-
-/**
- * Adds the main middlewares needed to manipulate cookies and requests
- * @param app
- */
-const addMiddlewares = (app: Express) => {
-  // Cookie parser
-  app.use(cookieParser());
-
-  // POST parser TODO ideally should parse it as JSON directly (but issues with CORS)
-  app.use(bodyParser.text());
-
-  // Systematically redirect HTTP requests to HTTPs
-  app.enable('trust proxy');
-  app.use((req, res, next) => {
-    req.secure ? next() : res.redirect(`https://${req.headers.host}${req.url}`);
-  });
-};

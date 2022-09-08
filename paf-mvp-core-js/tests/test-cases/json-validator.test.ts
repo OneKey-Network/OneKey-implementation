@@ -1,4 +1,4 @@
-import { JsonSchemaRepository, JsonValidator, JsonSchemaError, NoJsonError } from '@core/validation/json-validator';
+import { JsonSchemaError, JsonSchemaRepository, JsonValidator, NoJsonError } from '@core/validation/json-validator';
 import path from 'path';
 
 const fixtureDirectory = path.join(__dirname, '..', 'fixtures', 'fake-json-schemas');
@@ -44,7 +44,7 @@ describe('JsonValidator', () => {
 
     expect(validation).toEqual({
       isValid: false,
-      errors: [new NoJsonError('No JSON value.')],
+      errors: [new NoJsonError('No JSON value')],
     });
   });
 
@@ -55,7 +55,7 @@ describe('JsonValidator', () => {
 
     expect(validation).toEqual({
       isValid: false,
-      errors: [new Error('No JSON value.')],
+      errors: [new Error('No JSON value')],
     });
   });
 
