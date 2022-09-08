@@ -27,18 +27,6 @@ export interface INode {
   setup(): Promise<void>;
 }
 
-/**
- * Context about the current request
- */
-export interface Context {
-  // Endpoint name currently handled
-  endPointName: string;
-  // Whether this endpoint requires redirect return (303 + data in the query string) or not (default = not)
-  isRedirect?: boolean;
-  // Name of the JSON schema used to validate the request
-  jsonSchemaName?: JsonSchemaType;
-}
-
 interface EndpointConfiguration {
   // Endpoint display name
   endPointName: string;
