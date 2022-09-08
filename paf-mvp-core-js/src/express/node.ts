@@ -59,7 +59,7 @@ export class Node implements INode {
         res.json(response);
         next();
       },
-      this.handleErrors(participantEndpoints.identity),
+      this.catchErrors(participantEndpoints.identity),
       this.endSpan(participantEndpoints.identity)
     );
   }
@@ -71,32 +71,41 @@ export class Node implements INode {
   /**
    * Returns a handler that starts a span
    * @param endPointName
-   * @protected
    */
-  protected startSpan(endPointName: string): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  startSpan =
+    (endPointName: string): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       this.logger.Info(endPointName);
       next();
     };
-  }
 
   /**
    * Returns a header that ends a span
    * @param endPointName
-   * @protected
    */
-  protected endSpan(endPointName: string): RequestHandler {
-    return () => {
+  endSpan =
+    (endPointName: string): RequestHandler =>
+    () => {
       this.logger.Info(`${endPointName} - END`);
     };
-  }
+
+  redirectWithError = (res: Response, url: string, httpCode: number, error: NodeError): void => {
+    try {
+      this.logger.Info(`redirecting to ${url} ...`);
+      const redirectURL = buildErrorRedirectUrl(new URL(url), httpCode, error);
+      httpRedirect(res, redirectURL.toString());
+    } catch (e) {
+      this.logger.Error(e);
+    }
+  };
 
   /**
    * Returns a handler that handles errors
    * @param endPointName
    */
-  handleErrors(endPointName: string): ErrorRequestHandler {
-    return (err: any, req: Request, res: Response, next: NextFunction) => {
+  catchErrors =
+    (endPointName: string): ErrorRequestHandler =>
+    (err: any, req: Request, res: Response, next: NextFunction) => {
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
 
@@ -109,15 +118,15 @@ export class Node implements INode {
         this.redirectWithError(res, req.header('referer'), 504, error);
       }
     };
-  }
 
   /**
    * Build a handler that validates the body of the Request
    * against a JSON schema.
    * @returns the built handler
    */
-  buildJsonBodyValidatorHandler(jsonSchema: string): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  checkJsonBody =
+    (jsonSchema: string): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       const validation = this.jsonValidator.validate(jsonSchema, req.body as string);
       if (!validation.isValid) {
         const details = validation.errors.map((e) => e.message).join(' - ');
@@ -132,15 +141,15 @@ export class Node implements INode {
         next();
       }
     };
-  }
 
   /**
    * Builds a handler that validates the query string
    * against a JSON schema.
    * @returns the built handler
    */
-  buildQueryStringValidatorHandler(jsonSchema: string, isRedirect: boolean): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  checkQueryString =
+    (jsonSchema: string, isRedirect: boolean): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       const data = req.query[QSParam.paf] as string | undefined;
       const decodedData = data ? decodeBase64(data) : undefined;
       if (!decodedData) {
@@ -176,12 +185,12 @@ export class Node implements INode {
         next();
       }
     };
-  }
+
   /**
    * Builds and returns a handler that validates the specified return url for Redirect requests.
    * @returns the built handler
    */
-  returnUrlValidationHandler<T>(): RequestHandler {
+  checkReturnUrl<T>(): RequestHandler {
     return (req: Request, res: Response, next: NextFunction) => {
       const request = getPafDataFromQueryString<RedirectRequest<T>>(req);
       const returnUrl = request?.returnUrl;
@@ -198,13 +207,4 @@ export class Node implements INode {
       }
     };
   }
-  protected redirectWithError = (res: Response, url: string, httpCode: number, error: NodeError): void => {
-    try {
-      this.logger.Info(`redirecting to ${url} ...`);
-      const redirectURL = buildErrorRedirectUrl(new URL(url), httpCode, error);
-      httpRedirect(res, redirectURL.toString());
-    } catch (e) {
-      this.logger.Error(e);
-    }
-  };
 }
