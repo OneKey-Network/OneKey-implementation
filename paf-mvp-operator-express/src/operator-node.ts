@@ -14,6 +14,7 @@ import {
   parseConfig,
   removeCookie,
   setCookie,
+  VHostApp,
 } from '@core/express';
 import {
   IdentifierDefinition,
@@ -96,31 +97,38 @@ export class OperatorNode extends Node {
   idBuilder: IdBuilder;
   redirectResponseTimeoutInMs: number;
 
+  private readonly host: string;
+  private allowedHosts: AllowedHosts;
+
   constructor(
     identity: Omit<IdentityConfig, 'type'>,
-    private host: string,
+    hostName: string,
     privateKey: string,
-    private allowedHosts: AllowedHosts,
+    allowedHosts: AllowedHosts,
     jsonValidator: IJsonValidator,
     publicKeyProvider: PublicKeyProvider,
-    redirectResponseTimeout: number
+    redirectResponseTimeout: number,
+    vHostApp = new VHostApp(identity.name, hostName)
   ) {
     super(
-      host,
+      hostName,
       {
         ...identity,
         type: 'operator',
       },
       jsonValidator,
-      publicKeyProvider
+      publicKeyProvider,
+      vHostApp
     );
+    this.allowedHosts = allowedHosts;
+    this.host = hostName;
 
-    this.topLevelDomain = getTopLevelDomain(host);
-    this.getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(host, privateKey);
+    this.topLevelDomain = getTopLevelDomain(hostName);
+    this.getIdsPrefsResponseBuilder = new GetIdsPrefsResponseBuilder(hostName, privateKey);
     this.get3PCResponseBuilder = new Get3PCResponseBuilder();
-    this.postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(host, privateKey);
-    this.getNewIdResponseBuilder = new GetNewIdResponseBuilder(host, privateKey);
-    this.deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(host, privateKey);
+    this.postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(hostName, privateKey);
+    this.getNewIdResponseBuilder = new GetNewIdResponseBuilder(hostName, privateKey);
+    this.deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(hostName, privateKey);
     this.idVerifier = new Verifier(this.publicKeyProvider, new IdentifierDefinition());
     this.prefsVerifier = new Verifier(this.publicKeyProvider, new IdsAndPreferencesDefinition());
     this.postIdsPrefsRequestVerifier = new RequestVerifier(
@@ -129,7 +137,7 @@ export class OperatorNode extends Node {
     );
     this.getIdsPrefsRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
     this.getNewIdRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
-    this.idBuilder = new IdBuilder(host, privateKey);
+    this.idBuilder = new IdBuilder(hostName, privateKey);
     this.redirectResponseTimeoutInMs = redirectResponseTimeout;
 
     // Note that CORS is "disabled" here because the check is done via signature
