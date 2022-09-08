@@ -1,6 +1,5 @@
-import '../helpers/assume-https'; // /!\ Must be imported first
 import { assertError } from '../helpers/integration.helpers';
-import { Express, NextFunction, Request, Response } from 'express';
+import { Express, NextFunction } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
 import { IJsonValidator, JsonValidator } from '@core/validation/json-validator';
