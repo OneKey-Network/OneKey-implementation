@@ -131,7 +131,7 @@ export class Node implements INode {
 
   /**
    * Begin handling of a request.
-   * Should be called last.
+   * Should be called first.
    */
   beginHandling = (req: Request, res: Response, next: NextFunction) => {
     const { endPointName } = this.getRequestConfig(req);
@@ -211,8 +211,7 @@ export class Node implements INode {
   };
 
   /**
-   * Builds a handler that validates the query string
-   * against a JSON schema.
+   * Validate the query string against a JSON schema.
    * @returns the built handler
    */
   checkQueryString = (req: Request, res: Response, next: NextFunction) => {
