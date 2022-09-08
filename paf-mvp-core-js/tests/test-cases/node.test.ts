@@ -192,7 +192,7 @@ describe('Return URL validation handler', () => {
         method: 'GET',
         url: targetUrl.toString(),
       });
-      node.checkReturnUrl()(request, response, nextFunction);
+      node.checkReturnUrl(request, response, nextFunction);
       expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.INVALID_RETURN_URL }));
     }
   );
@@ -204,7 +204,7 @@ describe('Return URL validation handler', () => {
       method: 'GET',
       url: targetUrl.toString(),
     });
-    node.checkReturnUrl()(request, response, nextFunction);
+    node.checkReturnUrl(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
   });
 });

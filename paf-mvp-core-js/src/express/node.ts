@@ -13,7 +13,7 @@ import {
 } from '@core/express/utils';
 import { IdentityConfig } from '@core/express/config';
 import { NodeError, NodeErrorType } from '@core/errors';
-import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { IJsonValidator, JsonSchemaType } from '@core/validation/json-validator';
 import { decodeBase64, QSParam } from '@core/query-string';
 import { RedirectRequest } from '@core/model/model';
@@ -260,24 +260,21 @@ export class Node implements INode {
   };
 
   /**
-   * Builds and returns a handler that validates the specified return url for Redirect requests.
-   * @returns the built handler
+   * Validate the specified return url for Redirect requests.
    */
-  checkReturnUrl<T>(): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
-      const request = getPafDataFromQueryString<RedirectRequest<T>>(req);
-      const returnUrl = request?.returnUrl;
-      // check if return url is a valid http/https url
-      if (!isValidHttpUrl(returnUrl)) {
-        const error: NodeError = {
-          type: NodeErrorType.INVALID_RETURN_URL,
-          details: `Specified returnUrl '${returnUrl}' is not a valid url`,
-        };
-        this.redirectWithError(res, req.header('referer'), 400, error);
-        next(error);
-      } else {
-        next();
-      }
-    };
-  }
+  checkReturnUrl = (req: Request, res: Response, next: NextFunction) => {
+    const request = getPafDataFromQueryString<RedirectRequest<unknown>>(req);
+    const returnUrl = request?.returnUrl;
+    // check if return url is a valid http/https url
+    if (!isValidHttpUrl(returnUrl)) {
+      const error: NodeError = {
+        type: NodeErrorType.INVALID_RETURN_URL,
+        details: `Specified returnUrl '${returnUrl}' is not a valid url`,
+      };
+      this.redirectWithError(res, req.header('referer'), 400, error);
+      next(error);
+    } else {
+      next();
+    }
+  };
 }
