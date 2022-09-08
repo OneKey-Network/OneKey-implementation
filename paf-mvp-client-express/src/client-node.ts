@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
 import { PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@core/model';
 import { jsonProxyEndpoints, redirectProxyEndpoints } from '@core/endpoints';
-import { Config, Node, parseConfig } from '@core/express';
+import { Config, Node, parseConfig, VHostApp } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { NodeError, NodeErrorType } from '@core/errors';
@@ -28,8 +28,14 @@ export class ClientNode extends Node {
    *   privateKey: the OneKey client private key string
    * @param jsonValidator Service for validating JSON in Request
    * @param publicKeyProvider a function that gives the public key of a domain
+   * @param vHostApp the Virtual host app
    */
-  constructor(config: ClientNodeConfig, jsonValidator: IJsonValidator, publicKeyProvider: PublicKeyProvider) {
+  constructor(
+    config: ClientNodeConfig,
+    jsonValidator: IJsonValidator,
+    publicKeyProvider: PublicKeyProvider,
+    vHostApp = new VHostApp(config.identity.name, config.host)
+  ) {
     super(
       config.host,
       {
@@ -37,7 +43,8 @@ export class ClientNode extends Node {
         type: 'vendor',
       },
       jsonValidator,
-      publicKeyProvider
+      publicKeyProvider,
+      vHostApp
     );
 
     const { currentPrivateKey } = config;

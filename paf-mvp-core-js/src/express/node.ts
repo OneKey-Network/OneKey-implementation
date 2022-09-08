@@ -34,15 +34,18 @@ export class Node implements INode {
   public app: VHostApp;
   protected logger: Log;
   protected jsonValidator: IJsonValidator;
+  protected publicKeyProvider: PublicKeyProvider;
 
   constructor(
     hostName: string,
     identity: IdentityConfig,
     jsonValidator: IJsonValidator,
-    protected publicKeyProvider: PublicKeyProvider
+    publicKeyProvider: PublicKeyProvider,
+    vHostApp = new VHostApp(identity.name, hostName)
   ) {
+    this.publicKeyProvider = publicKeyProvider;
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
-    this.app = new VHostApp(identity.name, hostName);
+    this.app = vHostApp;
     this.jsonValidator = jsonValidator;
 
     // All nodes must implement the identity endpoint
