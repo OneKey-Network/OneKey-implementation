@@ -52,7 +52,7 @@ import {
 } from '@core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
-import { jsonOperatorEndpoints, jsonProxyEndpoints, redirectEndpoints } from '@core/endpoints';
+import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
 import { NodeError, NodeErrorType } from '@core/errors';
 import { IJsonValidator, JsonSchemaType, JsonValidator } from '@core/validation/json-validator';
 import { UnableToIdentifySignerError } from '@core/express/errors';
@@ -150,88 +150,94 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
+    this.setEndpointConfig('GET', jsonOperatorEndpoints.read, {
+      endPointName: 'Read',
+      jsonSchemaName: JsonSchemaType.readIdAndPreferencesRestRequest,
+    });
     this.app.expressApp.get(
       jsonOperatorEndpoints.read,
-      this.startSpan({
-        endPointName: jsonOperatorEndpoints.read,
-        jsonSchemaName: JsonSchemaType.readIdAndPreferencesRestRequest,
-      }),
+      this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkQueryString,
       this.checkReadPermission,
       this.checkReadIdsAndPreferencesSignature,
       this.restReadIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('POST', jsonOperatorEndpoints.write, {
+      endPointName: 'Write',
+      jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRestRequest,
+    });
     this.app.expressApp.post(
       jsonOperatorEndpoints.write,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.write,
-        jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRestRequest,
-      }),
+      this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkJsonBody,
       this.checkWritePermission,
       this.checkWriteIdsAndPreferencesSignature,
       this.restWriteIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('GET', jsonOperatorEndpoints.verify3PC, {
+      endPointName: 'Verify3PC',
+    });
     this.app.expressApp.get(
       jsonOperatorEndpoints.verify3PC,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.verify3PC,
-      }),
+      this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.read3PCCookie,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('DELETE', jsonOperatorEndpoints.delete, {
+      endPointName: 'Delete',
+      jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRequest,
+    });
     // enable pre-flight request for DELETE request
     this.app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll));
     this.app.expressApp.delete(
       jsonOperatorEndpoints.delete,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.delete,
-        jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRequest,
-      }),
+      this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkQueryString,
       this.checkDeletePermission,
       this.checkDeleteIdsAndPreferencesSignature,
       this.restDeleteIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('GET', jsonOperatorEndpoints.newId, {
+      endPointName: 'GetNewId',
+      jsonSchemaName: JsonSchemaType.getNewIdRequest,
+    });
     this.app.expressApp.get(
       jsonOperatorEndpoints.newId,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.newId,
-        jsonSchemaName: JsonSchemaType.getNewIdRequest,
-      }),
+      this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkQueryString,
       this.checkNewIdPermission,
       this.checkNewIdSignature,
       this.getNewId,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
+    this.setEndpointConfig('GET', redirectEndpoints.read, {
+      endPointName: 'RedirectRead',
+      isRedirect: true,
+      jsonSchemaName: JsonSchemaType.readIdAndPreferencesRedirectRequest,
+    });
     this.app.expressApp.get(
       redirectEndpoints.read,
-      this.startSpan({
-        endPointName: redirectEndpoints.read,
-        jsonSchemaName: JsonSchemaType.readIdAndPreferencesRedirectRequest,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
       this.checkReturnUrl<GetIdsPrefsRequest>(),
@@ -239,15 +245,17 @@ export class OperatorNode extends Node {
       this.checkReadIdsAndPreferencesSignature,
       this.redirectReadIdsAndPreferences,
       this.catchErrorsWithRedirectToReferer,
-      this.endSpan
+      this.endHandling
     );
+
+    this.setEndpointConfig('GET', redirectEndpoints.write, {
+      endPointName: 'RedirectWrite',
+      isRedirect: true,
+      jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRedirectRequest,
+    });
     this.app.expressApp.get(
       redirectEndpoints.write,
-      this.startSpan({
-        endPointName: redirectEndpoints.write,
-        jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRedirectRequest,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
       this.checkReturnUrl<PostIdsPrefsRequest>(),
@@ -255,16 +263,17 @@ export class OperatorNode extends Node {
       this.checkWriteIdsAndPreferencesSignature,
       this.redirectWriteIdsAndPreferences,
       this.catchErrorsWithRedirectToReferer,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('GET', redirectEndpoints.delete, {
+      endPointName: 'RedirectDelete',
+      isRedirect: true,
+      jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRedirectRequest,
+    });
     this.app.expressApp.get(
       redirectEndpoints.delete,
-      this.startSpan({
-        endPointName: redirectEndpoints.delete,
-        jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRedirectRequest,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
       this.checkReturnUrl<DeleteIdsPrefsRequest>(),
@@ -272,7 +281,7 @@ export class OperatorNode extends Node {
       this.checkDeleteIdsAndPreferencesSignature,
       this.redirectDeleteIdsAndPreferences,
       this.catchErrorsWithRedirectToReferer,
-      this.endSpan
+      this.endHandling
     );
   }
 
@@ -438,7 +447,7 @@ export class OperatorNode extends Node {
   }
 
   checkWriteIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getContext(res);
+    const { isRedirect } = this.getRequestConfig(req);
     const request = isRedirect
       ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
       : getPayload<PostIdsPrefsRequest>(req);
@@ -464,7 +473,7 @@ export class OperatorNode extends Node {
   };
 
   checkDeleteIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getContext(res);
+    const { isRedirect } = this.getRequestConfig(req);
 
     const request = isRedirect
       ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
@@ -491,7 +500,7 @@ export class OperatorNode extends Node {
   };
 
   checkReadIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getContext(res);
+    const { isRedirect } = this.getRequestConfig(req);
     const request = isRedirect
       ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
       : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
@@ -586,7 +595,7 @@ export class OperatorNode extends Node {
   };
 
   checkWritePermission = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getContext(res);
+    const { isRedirect } = this.getRequestConfig(req);
     const input = isRedirect
       ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
       : getPayload<PostIdsPrefsRequest>(req);
@@ -614,7 +623,7 @@ export class OperatorNode extends Node {
 
   // FIXME merge with checkWritePermission
   checkDeletePermission = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getContext(res);
+    const { isRedirect } = this.getRequestConfig(req);
     const input = isRedirect
       ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
       : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
@@ -757,7 +766,7 @@ export class OperatorNode extends Node {
   catchErrorsWithRedirectToReferer =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (error: unknown, req: Request, res: Response, next: NextFunction) => {
-      const { endPointName } = this.getContext(res);
+      const { endPointName } = this.getRequestConfig(req);
       this.logger.Error(endPointName, error);
       const nodeError: NodeError = {
         type: NodeErrorType.UNKNOWN_ERROR,
@@ -767,7 +776,7 @@ export class OperatorNode extends Node {
     };
 
   checkReadPermission = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getContext(res);
+    const { isRedirect } = this.getRequestConfig(req);
     const input = isRedirect
       ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
       : getPafDataFromQueryString<GetIdsPrefsRequest>(req);

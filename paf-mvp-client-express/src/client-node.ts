@@ -61,158 +61,166 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     // ************************************************************************************************************ REST
     // *****************************************************************************************************************
+    this.setEndpointConfig('GET', jsonProxyEndpoints.read, {
+      endPointName: 'Read',
+    });
     this.app.expressApp.get(
       jsonProxyEndpoints.read,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.read,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.restBuildUrlToGetIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('POST', jsonProxyEndpoints.write, {
+      endPointName: 'Write',
+    });
     this.app.expressApp.post(
       jsonProxyEndpoints.write,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.write,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.restBuildUrlToWriteIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('GET', jsonProxyEndpoints.verify3PC, {
+      endPointName: 'Verify3PC',
+    });
     this.app.expressApp.get(
       jsonProxyEndpoints.verify3PC,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.verify3PC,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.buildUrlToVerify3PC,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('GET', jsonProxyEndpoints.newId, {
+      endPointName: 'GetNewId',
+    });
     this.app.expressApp.get(
       jsonProxyEndpoints.newId,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.newId,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.buildUrlToGetNewId,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('DELETE', jsonProxyEndpoints.delete, {
+      endPointName: 'Delete',
+    });
     // enable pre-flight request for DELETE request
     this.app.expressApp.options(jsonProxyEndpoints.delete, this.websiteIdentityValidator.cors);
     this.app.expressApp.delete(
       jsonProxyEndpoints.delete,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.delete,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.restBuildUrlToDeleteIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
+    this.setEndpointConfig('GET', redirectProxyEndpoints.read, {
+      endPointName: 'RedirectRead',
+      isRedirect: true,
+    });
     this.app.expressApp.get(
       redirectProxyEndpoints.read,
-      this.startSpan({
-        endPointName: redirectProxyEndpoints.read,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
       this.redirectBuildUrlToReadIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('GET', redirectProxyEndpoints.write, {
+      endPointName: 'RedirectWrite',
+      isRedirect: true,
+    });
     this.app.expressApp.get(
       redirectProxyEndpoints.write,
-      this.startSpan({
-        endPointName: redirectProxyEndpoints.write,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
       this.redirectBuildUrlToWriteIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('GET', redirectProxyEndpoints.delete, {
+      endPointName: 'RedirectDelete',
+      isRedirect: true,
+    });
     this.app.expressApp.get(
       redirectProxyEndpoints.delete,
-      this.startSpan({
-        endPointName: redirectProxyEndpoints.delete,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
       this.websiteIdentityValidator.checkReturnUrl,
       this.redirectBuildUrlToDeleteIdsAndPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
     // *****************************************************************************************************************
     // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************
+    this.setEndpointConfig('POST', jsonProxyEndpoints.verifyRead, {
+      endPointName: 'VerifyRead',
+    });
     this.app.expressApp.post(
       jsonProxyEndpoints.verifyRead,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.verifyRead,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.verifyOperatorReadResponse,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
+    this.setEndpointConfig('POST', jsonProxyEndpoints.signPrefs, {
+      endPointName: 'SignPrefs',
+    });
     this.app.expressApp.post(
       jsonProxyEndpoints.signPrefs,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.signPrefs,
-        isRedirect: true,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.signPreferences,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
 
     // *****************************************************************************************************************
     // ***************************************************************************************************** JSON - SEED
     // *****************************************************************************************************************
+    this.setEndpointConfig('POST', jsonProxyEndpoints.createSeed, {
+      endPointName: 'CreateSeed',
+      jsonSchemaName: JsonSchemaType.createSeedRequest,
+    });
     this.app.expressApp.post(
       jsonProxyEndpoints.createSeed,
-      this.startSpan({
-        endPointName: jsonProxyEndpoints.createSeed,
-        isRedirect: true,
-        jsonSchemaName: JsonSchemaType.createSeedRequest,
-      }),
+      this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
       this.checkJsonBody,
       this.createSeed,
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
   }
 

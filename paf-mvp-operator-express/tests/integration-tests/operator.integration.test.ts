@@ -1,5 +1,5 @@
 import { assertError } from '../helpers/integration.helpers';
-import { Express, NextFunction } from 'express';
+import { Express } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
 import { IJsonValidator, JsonValidator } from '@core/validation/json-validator';
@@ -8,7 +8,6 @@ import { ClientBuilder } from '../utils/client-utils';
 import { OperatorClient } from '@client/operator-client';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import { GetIdsPrefsResponse } from '@core/model';
-import { Context } from '@core/express';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MockExpressRequest = require('mock-express-request');
@@ -35,21 +34,13 @@ describe('read', () => {
   const getContext = async (validator: IJsonValidator = JsonValidator.default()) => {
     const operator = OperatorUtils.buildOperator(validator, publicKeyProvider);
 
-    const startSpan = jest.fn();
-
-    // Need to spy on a call of the handler, not the handler builder
-    const originalStart = operator.startSpan;
-    operator.startSpan = (context: Context) => (req: Request, res: Response, next: NextFunction) => {
-      startSpan();
-      originalStart(context)(req, res, next);
-    };
-
-    const endSpan = jest.spyOn(operator, 'endSpan');
+    const startMock = jest.spyOn(operator, 'beginHandling');
+    const endMock = jest.spyOn(operator, 'endHandling');
     await operator.setup();
 
     const server: Express = operator.app.expressApp;
 
-    return { server, operator, startSpan, endSpan };
+    return { server, operator, startMock, endMock };
   };
 
   describe('rest', () => {
@@ -64,7 +55,7 @@ describe('read', () => {
         },
       };
 
-      const { server, startSpan, endSpan } = await getContext(exceptionValidator);
+      const { server, startMock, endMock } = await getContext(exceptionValidator);
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
 
@@ -74,23 +65,23 @@ describe('read', () => {
 
       assertError(response, 500, NodeErrorType.UNKNOWN_ERROR);
 
-      expect(startSpan).toHaveBeenCalled();
-      expect(endSpan).toHaveBeenCalled();
+      expect(startMock).toHaveBeenCalled();
+      expect(endMock).toHaveBeenCalled();
     });
 
     it('should check query string', async () => {
-      const { server, startSpan, endSpan } = await getContext();
+      const { server, startMock, endMock } = await getContext();
 
       const response = await supertest(server).get('/paf/v1/ids-prefs');
 
       assertError(response, 400, NodeErrorType.INVALID_QUERY_STRING);
 
-      expect(startSpan).toHaveBeenCalled();
+      expect(startMock).toHaveBeenCalled();
       // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
     });
 
     it('should check permissions', async () => {
-      const { server, startSpan, endSpan } = await getContext();
+      const { server, startMock, endMock } = await getContext();
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
 
@@ -100,13 +91,13 @@ describe('read', () => {
 
       assertError(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
 
-      expect(startSpan).toHaveBeenCalled();
+      expect(startMock).toHaveBeenCalled();
       // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
     });
 
     describe('should check message signature', () => {
       it('for wrong signature', async () => {
-        const { server, startSpan, endSpan } = await getContext();
+        const { server, startMock, endMock } = await getContext();
 
         const operatorClient = new ClientBuilder()
           // Notice different private key, won't match the public key
@@ -125,12 +116,12 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 
         assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
 
-        expect(startSpan).toHaveBeenCalled();
+        expect(startMock).toHaveBeenCalled();
         // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
       });
 
       it('for unknown signer', async () => {
-        const { server, startSpan, endSpan } = await getContext();
+        const { server, startMock, endMock } = await getContext();
 
         const operatorClient = new ClientBuilder()
           // This client host is allowed to read, but the public key won't be found
@@ -143,13 +134,13 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 
         assertError(response, 403, NodeErrorType.UNKNOWN_SIGNER);
 
-        expect(startSpan).toHaveBeenCalled();
+        expect(startMock).toHaveBeenCalled();
         // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
       });
     });
 
     it('should check origin header', async () => {
-      const { server, startSpan, endSpan } = await getContext();
+      const { server, startMock, endMock } = await getContext();
 
       const operatorClient = new ClientBuilder().build(publicKeyProvider);
 
@@ -160,12 +151,12 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       // FIXME[errors] should be a specific error type
       assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
 
-      expect(startSpan).toHaveBeenCalled();
+      expect(startMock).toHaveBeenCalled();
       // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
     });
 
     it('should handle valid request', async () => {
-      const { server, startSpan, endSpan, operator } = await getContext();
+      const { server, startMock, endMock, operator } = await getContext();
 
       const operatorClient = new ClientBuilder().build(publicKeyProvider);
 
@@ -180,8 +171,8 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       expect(body.body.identifiers.length).toEqual(1);
       expect(body.body.identifiers[0].persisted).toEqual(false);
 
-      expect(startSpan).toHaveBeenCalled();
-      expect(endSpan).toHaveBeenCalled();
+      expect(startMock).toHaveBeenCalled();
+      expect(endMock).toHaveBeenCalled();
     });
   });
 });

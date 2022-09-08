@@ -39,6 +39,15 @@ export interface Context {
   jsonSchemaName?: JsonSchemaType;
 }
 
+interface EndpointConfiguration {
+  // Endpoint display name
+  endPointName: string;
+  // Whether this endpoint requires redirect return (303 + data in the query string) or not (default = not)
+  isRedirect?: boolean;
+  // Name of the JSON schema used to validate the request
+  jsonSchemaName?: JsonSchemaType;
+}
+
 /**
  * A OneKey ExpressJS participant
  */
@@ -47,6 +56,7 @@ export class Node implements INode {
   protected logger: Log;
   protected jsonValidator: IJsonValidator;
   protected publicKeyProvider: PublicKeyProvider;
+  protected endpointConfigurations: { [route: string]: EndpointConfiguration } = {};
 
   constructor(
     hostName: string,
@@ -62,14 +72,37 @@ export class Node implements INode {
   }
 
   /**
-   * Get context from the current response. See Context
-   * @param res
+   * Define the configuration for a route
+   * @param httpMethod
+   * @param path
+   * @param configuration
    * @protected
    */
-  protected getContext(res: Response): Context {
+  protected setEndpointConfig(
+    httpMethod: 'GET' | 'POST' | 'DELETE',
+    path: string,
+    configuration: EndpointConfiguration
+  ) {
+    const route = `${httpMethod} ${path}`;
+
+    if (this.endpointConfigurations[route]) {
+      throw `Cannot re-define configuration for ${route}`;
+    }
+
+    this.endpointConfigurations[route] = configuration;
+  }
+
+  /**
+   * Extract the endpoint configuration from the current request
+   * @param req
+   * @protected
+   */
+  protected getRequestConfig(req: Request): EndpointConfiguration {
+    const route = `${req.method} ${req.path}`;
+    // If configuration is not found, return a default configuration useful for logs
     return (
-      (res.locals.context as Context) ?? {
-        endPointName: 'UNKNOWN',
+      this.endpointConfigurations[route] ?? {
+        endPointName: `[Unidentified endpoint ${route}]`,
       }
     );
   }
@@ -84,49 +117,49 @@ export class Node implements INode {
   async setup(): Promise<void> {
     await this.jsonValidator.start();
 
-    // All nodes must implement the identity endpoint
     const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = this.identity;
     const response = new GetIdentityResponseBuilder(name, type, dpoEmailAddress, privacyPolicyUrl).buildResponse(
       publicKeys
     );
 
+    // --------------------------------------------------------------- Identity endpoint
+    // All nodes must implement the identity endpoint
+    this.setEndpointConfig('GET', participantEndpoints.identity, {
+      endPointName: 'Identity',
+    });
+
     this.app.expressApp.get(
       participantEndpoints.identity,
-      this.startSpan({
-        endPointName: participantEndpoints.identity,
-      }),
+      this.beginHandling,
       cors(corsOptionsAcceptAll),
       (req: Request, res: Response, next: NextFunction) => {
         res.json(response);
         next();
       },
       this.catchErrors,
-      this.endSpan
+      this.endHandling
     );
   }
 
   /**
-   * Start a span, providing context that will be used by other handlers.
-   * /!\ **Must** be called as the first handler
-   * @param context
+   * Begin handling of a request.
+   * Should be called last.
    */
-  startSpan =
-    (context: Context): RequestHandler =>
-    (req: Request, res: Response, next: NextFunction) => {
-      res.locals.context = context;
-      this.logger.Info(context.endPointName);
-      next();
-    };
+  beginHandling = (req: Request, res: Response, next: NextFunction) => {
+    const { endPointName } = this.getRequestConfig(req);
+    this.logger.Info(endPointName);
+    next();
+  };
 
   /**
-   * End a span.
-   * Must be called last
+   * End handing of a request.
+   * Should be called last.
    * @param req
    * @param res
    * @param next
    */
-  endSpan = (req: Request, res: Response, next: NextFunction) => {
-    const { endPointName } = this.getContext(res);
+  endHandling = (req: Request, res: Response, next: NextFunction) => {
+    const { endPointName } = this.getRequestConfig(req);
     this.logger.Info(`${endPointName} - END`);
   };
 
@@ -143,7 +176,7 @@ export class Node implements INode {
   catchErrors =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (err: unknown, req: Request, res: Response, next: NextFunction) => {
-      const { endPointName } = this.getContext(res);
+      const { endPointName } = this.getRequestConfig(req);
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
 
@@ -173,7 +206,7 @@ export class Node implements INode {
    * @returns the built handler
    */
   checkJsonBody = (req: Request, res: Response, next: NextFunction) => {
-    const { jsonSchemaName } = this.getContext(res);
+    const { jsonSchemaName } = this.getRequestConfig(req);
     const validation = this.jsonValidator.validate(jsonSchemaName, req.body as string);
     if (!validation.isValid) {
       const details = validation.errors.map((e) => e.message).join(' - ');
@@ -195,7 +228,7 @@ export class Node implements INode {
    * @returns the built handler
    */
   checkQueryString = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect, jsonSchemaName } = this.getContext(res);
+    const { isRedirect, jsonSchemaName } = this.getRequestConfig(req);
     const data = req.query[QSParam.paf] as string | undefined;
     const decodedData = data ? decodeBase64(data) : undefined;
     if (!decodedData) {
