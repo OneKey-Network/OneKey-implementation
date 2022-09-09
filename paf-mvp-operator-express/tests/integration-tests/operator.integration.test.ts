@@ -50,6 +50,8 @@ const publicKeyProvider = (host: string) => {
 };
 
 describe('read', () => {
+  const originUrl = `https://${ClientBuilder.defaultHost}/some/page`;
+
   const getContext = async (validator: IJsonValidator = JsonValidator.default()) => {
     const operator = OperatorUtils.buildOperator(validator, publicKeyProvider);
 
@@ -91,7 +93,7 @@ describe('read', () => {
 
       const url = await getReadUrl(input.isRedirect)(operatorClient);
 
-      const response = await supertest(server).get(url);
+      const response = await supertest(server).get(url).set('referer', originUrl).set('Origin', originUrl);
 
       assertError(input.isRedirect)(response, 500, NodeErrorType.UNKNOWN_ERROR);
 
@@ -102,7 +104,10 @@ describe('read', () => {
     it('should check query string', async () => {
       const { server, startMock, endMock } = await getContext();
 
-      const response = await supertest(server).get('/paf/v1/ids-prefs');
+      const response = await supertest(server)
+        .get(input.isRedirect ? '/paf/v1/redirect/get-ids-prefs' : '/paf/v1/ids-prefs')
+        .set('referer', originUrl)
+        .set('Origin', originUrl);
 
       assertError(input.isRedirect)(response, 400, NodeErrorType.INVALID_QUERY_STRING);
 
@@ -117,7 +122,7 @@ describe('read', () => {
 
       const url = await getReadUrl(input.isRedirect)(operatorClient);
 
-      const response = await supertest(server).get(url);
+      const response = await supertest(server).get(url).set('referer', originUrl).set('Origin', originUrl);
 
       assertError(input.isRedirect)(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
 
@@ -169,7 +174,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       });
     });
 
-    it('should check origin header', async () => {
+    it(`should check ${input.isRedirect ? 'referer' : 'origin'} header`, async () => {
       const { server, startMock, endMock } = await getContext();
 
       const operatorClient = new ClientBuilder().build(publicKeyProvider);
@@ -190,17 +195,9 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 
       const operatorClient = new ClientBuilder().build(publicKeyProvider);
 
-      const originUrl = `https://${ClientBuilder.defaultHost}/some/page`;
-
       const url = await getReadUrl(input.isRedirect)(operatorClient);
 
-      const request = supertest(server).get(url);
-
-      if (input.isRedirect) {
-        request.set('Referer', originUrl);
-      } else {
-        request.set('Origin', originUrl);
-      }
+      const request = supertest(server).get(url).set('referer', originUrl).set('Origin', originUrl);
 
       const response = await request;
 

@@ -773,6 +773,8 @@ export class OperatorNode extends Node {
         details: '',
       };
       this.redirectWithError(res, req.header('referer'), 500, nodeError);
+
+      next();
     };
 
   checkReadPermission = (req: Request, res: Response, next: NextFunction) => {
