@@ -2,13 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
 import { PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@core/model';
 import { jsonProxyEndpoints, redirectProxyEndpoints } from '@core/endpoints';
-import { Config, Node, parseConfig } from '@core/express';
+import { Config, Node, parseConfig, VHostApp } from '@core/express';
 import { fromDataToObject } from '@core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { NodeError, NodeErrorType } from '@core/errors';
-
 import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
-import { IJsonValidator, JsonSchemaTypes, JsonValidator } from '@core/validation/json-validator';
+import { IJsonValidator, JsonSchemaType, JsonValidator } from '@core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**
@@ -29,8 +28,14 @@ export class ClientNode extends Node {
    *   privateKey: the OneKey client private key string
    * @param jsonValidator Service for validating JSON in Request
    * @param publicKeyProvider a function that gives the public key of a domain
+   * @param vHostApp the Virtual host app
    */
-  constructor(config: ClientNodeConfig, jsonValidator: IJsonValidator, publicKeyProvider: PublicKeyProvider) {
+  constructor(
+    config: ClientNodeConfig,
+    jsonValidator: IJsonValidator,
+    publicKeyProvider: PublicKeyProvider,
+    vHostApp = new VHostApp(config.identity.name, config.host)
+  ) {
     super(
       config.host,
       {
@@ -38,7 +43,8 @@ export class ClientNode extends Node {
         type: 'vendor',
       },
       jsonValidator,
-      publicKeyProvider
+      publicKeyProvider,
+      vHostApp
     );
 
     const { currentPrivateKey } = config;
@@ -47,6 +53,10 @@ export class ClientNode extends Node {
 
     this.client = new OperatorClient(operatorHost, hostName, currentPrivateKey, this.publicKeyProvider);
     this.websiteIdentityValidator = new WebsiteIdentityValidator(hostName);
+  }
+
+  async setup(): Promise<void> {
+    await super.setup();
 
     // *****************************************************************************************************************
     // ************************************************************************************************************ REST
@@ -57,7 +67,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.read),
       this.restBuildUrlToGetIdsAndPreferences,
-      this.handleErrors(jsonProxyEndpoints.read),
+      this.catchErrors(jsonProxyEndpoints.read),
       this.endSpan(jsonProxyEndpoints.read)
     );
 
@@ -67,7 +77,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.write),
       this.restBuildUrlToWriteIdsAndPreferences,
-      this.handleErrors(jsonProxyEndpoints.write),
+      this.catchErrors(jsonProxyEndpoints.write),
       this.endSpan(jsonProxyEndpoints.write)
     );
 
@@ -77,7 +87,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.verify3PC),
       this.buildUrlToVerify3PC,
-      this.handleErrors(jsonProxyEndpoints.verify3PC),
+      this.catchErrors(jsonProxyEndpoints.verify3PC),
       this.endSpan(jsonProxyEndpoints.verify3PC)
     );
 
@@ -87,7 +97,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.newId),
       this.buildUrlToGetNewId,
-      this.handleErrors(jsonProxyEndpoints.newId),
+      this.catchErrors(jsonProxyEndpoints.newId),
       this.endSpan(jsonProxyEndpoints.newId)
     );
 
@@ -99,7 +109,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.delete),
       this.restBuildUrlToDeleteIdsAndPreferences,
-      this.handleErrors(jsonProxyEndpoints.delete),
+      this.catchErrors(jsonProxyEndpoints.delete),
       this.endSpan(jsonProxyEndpoints.delete)
     );
 
@@ -113,7 +123,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.read),
       this.redirectBuildUrlToReadIdsAndPreferences,
-      this.handleErrors(redirectProxyEndpoints.read),
+      this.catchErrors(redirectProxyEndpoints.read),
       this.endSpan(redirectProxyEndpoints.read)
     );
 
@@ -124,7 +134,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.write),
       this.redirectBuildUrlToWriteIdsAndPreferences,
-      this.handleErrors(redirectProxyEndpoints.write),
+      this.catchErrors(redirectProxyEndpoints.write),
       this.endSpan(redirectProxyEndpoints.write)
     );
 
@@ -135,7 +145,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkReturnUrl,
       this.startSpan(redirectProxyEndpoints.delete),
       this.redirectBuildUrlToDeleteIdsAndPreferences,
-      this.handleErrors(redirectProxyEndpoints.delete),
+      this.catchErrors(redirectProxyEndpoints.delete),
       this.endSpan(redirectProxyEndpoints.delete)
     );
 
@@ -148,7 +158,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.verifyRead),
       this.verifyOperatorReadResponse,
-      this.handleErrors(jsonProxyEndpoints.verifyRead),
+      this.catchErrors(jsonProxyEndpoints.verifyRead),
       this.endSpan(jsonProxyEndpoints.verifyRead)
     );
 
@@ -158,7 +168,7 @@ export class ClientNode extends Node {
       this.websiteIdentityValidator.checkOrigin,
       this.startSpan(jsonProxyEndpoints.signPrefs),
       this.signPreferences,
-      this.handleErrors(jsonProxyEndpoints.signPrefs),
+      this.catchErrors(jsonProxyEndpoints.signPrefs),
       this.endSpan(jsonProxyEndpoints.signPrefs)
     );
 
@@ -169,17 +179,22 @@ export class ClientNode extends Node {
       jsonProxyEndpoints.createSeed,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
-      this.buildJsonBodyValidatorHandler(JsonSchemaTypes.createSeedRequest),
+      this.checkJsonBody(JsonSchemaType.createSeedRequest),
       this.startSpan(jsonProxyEndpoints.createSeed),
       this.createSeed,
-      this.handleErrors(jsonProxyEndpoints.createSeed),
+      this.catchErrors(jsonProxyEndpoints.createSeed),
       this.endSpan(jsonProxyEndpoints.createSeed)
     );
   }
 
+  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
+    const config = (await parseConfig(configPath)) as ClientNodeConfig;
+    return new ClientNode(config, JsonValidator.default(), new PublicKeyStore(s2sOptions).provider);
+  }
+
   restBuildUrlToGetIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const url = await this.client.getReadResponse(req);
+      const url = await this.client.getReadRequest(req);
       res.send(url);
       next();
     } catch (e) {
@@ -397,9 +412,4 @@ export class ClientNode extends Node {
       next(error);
     }
   };
-
-  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
-    const config = (await parseConfig(configPath)) as ClientNodeConfig;
-    return new ClientNode(config, JsonValidator.default(), new PublicKeyStore(s2sOptions).provider);
-  }
 }

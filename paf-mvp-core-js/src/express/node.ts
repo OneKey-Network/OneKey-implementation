@@ -14,7 +14,7 @@ import {
 import { IdentityConfig } from '@core/express/config';
 import { NodeError, NodeErrorType } from '@core/errors';
 import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { IJsonValidator } from '@core/validation/json-validator';
+import { IJsonValidator, JsonSchemaType } from '@core/validation/json-validator';
 import { decodeBase64, QSParam } from '@core/query-string';
 import { RedirectRequest } from '@core/model/model';
 
@@ -22,9 +22,9 @@ export interface INode {
   app: VHostApp;
 
   /**
-   * Start the server by loading resources.
+   * Setup resources and routes
    */
-  start(): Promise<void>;
+  setup(): Promise<void>;
 }
 
 /**
@@ -34,19 +34,33 @@ export class Node implements INode {
   public app: VHostApp;
   protected logger: Log;
   protected jsonValidator: IJsonValidator;
+  protected publicKeyProvider: PublicKeyProvider;
 
   constructor(
     hostName: string,
-    identity: IdentityConfig,
+    protected identity: IdentityConfig,
     jsonValidator: IJsonValidator,
-    protected publicKeyProvider: PublicKeyProvider
+    publicKeyProvider: PublicKeyProvider,
+    vHostApp = new VHostApp(identity.name, hostName)
   ) {
+    this.publicKeyProvider = publicKeyProvider;
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
-    this.app = new VHostApp(identity.name, hostName);
+    this.app = vHostApp;
     this.jsonValidator = jsonValidator;
+  }
+
+  /**
+   * The setup of routes is done outside the constructor because:
+   * - the JSON validator loads external resources (async)
+   * - the routes rely on the JSON validator
+   * - the ExpressJS handlers (ex: startSpan) are fields of type arrow function that are created at init time.
+   *   They can be spied before the call to setup() in tests (this would be impossible in the constructor)
+   */
+  async setup(): Promise<void> {
+    await this.jsonValidator.start();
 
     // All nodes must implement the identity endpoint
-    const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = identity;
+    const { name, type, publicKeys, dpoEmailAddress, privacyPolicyUrl } = this.identity;
     const response = new GetIdentityResponseBuilder(name, type, dpoEmailAddress, privacyPolicyUrl).buildResponse(
       publicKeys
     );
@@ -59,65 +73,81 @@ export class Node implements INode {
         res.json(response);
         next();
       },
-      this.handleErrors(participantEndpoints.identity),
+      this.catchErrors(participantEndpoints.identity),
       this.endSpan(participantEndpoints.identity)
     );
-  }
-
-  async start(): Promise<void> {
-    await this.jsonValidator.start();
   }
 
   /**
    * Returns a handler that starts a span
    * @param endPointName
-   * @protected
    */
-  protected startSpan(endPointName: string): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  startSpan =
+    (endPointName: string): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       this.logger.Info(endPointName);
       next();
     };
-  }
 
   /**
    * Returns a header that ends a span
    * @param endPointName
-   * @protected
    */
-  protected endSpan(endPointName: string): RequestHandler {
-    return () => {
+  endSpan =
+    (endPointName: string): RequestHandler =>
+    () => {
       this.logger.Info(`${endPointName} - END`);
     };
-  }
+
+  redirectWithError = (res: Response, url: string, httpCode: number, error: NodeError): void => {
+    try {
+      this.logger.Info(`redirecting to ${url} ...`);
+      const redirectURL = buildErrorRedirectUrl(new URL(url), httpCode, error);
+      httpRedirect(res, redirectURL.toString());
+    } catch (e) {
+      this.logger.Error(e);
+    }
+  };
 
   /**
    * Returns a handler that handles errors
    * @param endPointName
    */
-  handleErrors(endPointName: string): ErrorRequestHandler {
-    return (err: any, req: Request, res: Response, next: NextFunction) => {
+  catchErrors =
+    (endPointName: string): ErrorRequestHandler =>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (err: unknown, req: Request, res: Response, next: NextFunction) => {
       // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
       this.logger.Error(endPointName, err);
 
       // In case of timeout redirect to referer ...
-      if (err.message === 'Response timeout') {
+      if ((err as Error).message === 'Response timeout') {
+        // FIXME[errors] only in case of redirect
         const error: NodeError = {
           type: NodeErrorType.RESPONSE_TIMEOUT,
-          details: err.message,
+          details: (err as Error).message,
         };
         this.redirectWithError(res, req.header('referer'), 504, error);
+      } else if ((err as NodeError).type) {
+        res.status(500); // FIXME[errors] should have a dedicated error code per error type
+        res.send(err);
+      } else {
+        // Unknown error => our fault
+        res.status(500);
+        res.send();
       }
+
+      next();
     };
-  }
 
   /**
    * Build a handler that validates the body of the Request
    * against a JSON schema.
    * @returns the built handler
    */
-  buildJsonBodyValidatorHandler(jsonSchema: string): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  checkJsonBody =
+    (jsonSchema: JsonSchemaType): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       const validation = this.jsonValidator.validate(jsonSchema, req.body as string);
       if (!validation.isValid) {
         const details = validation.errors.map((e) => e.message).join(' - ');
@@ -132,15 +162,15 @@ export class Node implements INode {
         next();
       }
     };
-  }
 
   /**
    * Builds a handler that validates the query string
    * against a JSON schema.
    * @returns the built handler
    */
-  buildQueryStringValidatorHandler(jsonSchema: string, isRedirect: boolean): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction) => {
+  checkQueryString =
+    (jsonSchema: JsonSchemaType, isRedirect: boolean): RequestHandler =>
+    (req: Request, res: Response, next: NextFunction) => {
       const data = req.query[QSParam.paf] as string | undefined;
       const decodedData = data ? decodeBase64(data) : undefined;
       if (!decodedData) {
@@ -157,31 +187,38 @@ export class Node implements INode {
         next(error);
         return;
       }
-      const validation = this.jsonValidator.validate(jsonSchema, decodedData);
-      if (!validation.isValid) {
-        const details = validation.errors.map((e) => e.message).join(' - ');
-        const error: NodeError = {
-          type: NodeErrorType.INVALID_QUERY_STRING,
-          details,
-        };
-        if (isRedirect) {
-          const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
-          httpRedirect(res, redirectURL.toString());
+      try {
+        const validation = this.jsonValidator.validate(jsonSchema, decodedData);
+        if (!validation.isValid) {
+          const details = validation.errors.map((e) => e.message).join(' - ');
+          const error: NodeError = {
+            type: NodeErrorType.INVALID_QUERY_STRING,
+            details,
+          };
+          if (isRedirect) {
+            const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
+            httpRedirect(res, redirectURL.toString());
+          } else {
+            res.status(400);
+            res.json(error);
+          }
+          next(error);
         } else {
-          res.status(400);
-          res.json(error);
+          next();
         }
-        next(error);
-      } else {
-        next();
+      } catch (error) {
+        next({
+          type: NodeErrorType.UNKNOWN_ERROR,
+          details: '', // FIXME[errors]
+        });
       }
     };
-  }
+
   /**
    * Builds and returns a handler that validates the specified return url for Redirect requests.
    * @returns the built handler
    */
-  returnUrlValidationHandler<T>(): RequestHandler {
+  checkReturnUrl<T>(): RequestHandler {
     return (req: Request, res: Response, next: NextFunction) => {
       const request = getPafDataFromQueryString<RedirectRequest<T>>(req);
       const returnUrl = request?.returnUrl;
@@ -198,13 +235,4 @@ export class Node implements INode {
       }
     };
   }
-  protected redirectWithError = (res: Response, url: string, httpCode: number, error: NodeError): void => {
-    try {
-      this.logger.Info(`redirecting to ${url} ...`);
-      const redirectURL = buildErrorRedirectUrl(new URL(url), httpCode, error);
-      httpRedirect(res, redirectURL.toString());
-    } catch (e) {
-      this.logger.Error(e);
-    }
-  };
 }

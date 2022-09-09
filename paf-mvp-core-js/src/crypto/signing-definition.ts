@@ -204,6 +204,7 @@ export abstract class RequestDefinition<T extends MessageBase>
       inputData.push(redirectContext.referer);
       inputData.push(redirectContext.returnUrl);
     } else {
+      // FIXME[errors] throw typed exception
       throw `Missing origin or referer in ${JSON.stringify(requestAndContext)}`;
     }
   }

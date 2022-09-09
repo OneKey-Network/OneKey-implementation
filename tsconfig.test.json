@@ -16,8 +16,7 @@
       "@frontend/*": ["./paf-mvp-frontend/src/*"],
       "@test-helpers/*": ["./paf-mvp-core-js/tests/helpers/*"],
       "@test-fixtures/*": ["./paf-mvp-core-js/tests/fixtures/*"],
-    },
-    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+    }
   },
   "include":
   [

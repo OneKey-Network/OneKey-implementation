@@ -55,7 +55,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
     let url: string;
 
     beforeAll(async () => {
-      url = await client.getReadResponse(clientRequest);
+      url = await client.getReadRequest(clientRequest);
     });
 
     test('should return new ID for unknown user', async () => {
@@ -164,7 +164,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
     test.each(cases)(
       '$name client should be allowed to read: $authorized',
       async ({ client, authorized, name, hostName }) => {
-        const url = await client.getReadResponse(clientRequest);
+        const url = await client.getReadRequest(clientRequest);
         const request = createRequest({
           method: 'GET',
           headers: {
@@ -174,7 +174,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
           url,
         });
 
-        await operatorNode.buildReadPermissionHandler(false)(request, response, nextMock);
+        await operatorNode.checkReadPermission(false)(request, response, nextMock);
 
         const error: NodeError = {
           type: NodeErrorType.UNAUTHORIZED_OPERATION,

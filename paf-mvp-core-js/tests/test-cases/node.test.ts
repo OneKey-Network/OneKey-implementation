@@ -1,4 +1,4 @@
-import { IJsonValidator, JsonValidation } from '@core/validation/json-validator';
+import { IJsonValidator, JsonSchemaType, JsonValidation } from '@core/validation/json-validator';
 import { IdentityConfig, Node } from '@core/express';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { NextFunction, Response } from 'express';
@@ -55,9 +55,9 @@ describe('Json body validator handler', () => {
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysKO, 'validate');
     const node = new Node('MyNode', identity, mockJsonValidatorAlwaysKO, publicKeyProvider);
 
-    node.buildJsonBodyValidatorHandler('jsonSchema')(request, response, nextFunction);
+    node.checkJsonBody(JsonSchemaType.createSeedRequest)(request, response, nextFunction);
 
-    expect(validationSpy).toBeCalledWith('jsonSchema', payload);
+    expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
     const expectedError: NodeError = {
       type: NodeErrorType.INVALID_JSON_BODY,
@@ -72,9 +72,9 @@ describe('Json body validator handler', () => {
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysOK, 'validate');
     const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProvider);
 
-    node.buildJsonBodyValidatorHandler('jsonSchema')(request, response, nextFunction);
+    node.checkJsonBody(JsonSchemaType.createSeedRequest)(request, response, nextFunction);
 
-    expect(validationSpy).toBeCalledWith('jsonSchema', payload);
+    expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
@@ -118,7 +118,7 @@ describe('Query string validator handler', () => {
         method: 'GET',
         url: targetUrl.toString(),
       });
-      node.buildQueryStringValidatorHandler('jsonSchema', false)(request, response, nextFunction);
+      node.checkQueryString(JsonSchemaType.createSeedRequest, false)(request, response, nextFunction);
       const expectedError: NodeError = {
         type: NodeErrorType.INVALID_QUERY_STRING,
         details: input.expected_error,
@@ -137,7 +137,7 @@ describe('Query string validator handler', () => {
       method: 'GET',
       url: targetUrl.toString(),
     });
-    node.buildQueryStringValidatorHandler('jsonSchema', false)(request, response, nextFunction);
+    node.checkQueryString(JsonSchemaType.createSeedRequest, false)(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
   });
@@ -178,7 +178,7 @@ describe('Return URL validation handler', () => {
         method: 'GET',
         url: targetUrl.toString(),
       });
-      node.returnUrlValidationHandler()(request, response, nextFunction);
+      node.checkReturnUrl()(request, response, nextFunction);
       expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.INVALID_RETURN_URL }));
     }
   );
@@ -190,7 +190,7 @@ describe('Return URL validation handler', () => {
       method: 'GET',
       url: targetUrl.toString(),
     });
-    node.returnUrlValidationHandler()(request, response, nextFunction);
+    node.checkReturnUrl()(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
   });
 });
