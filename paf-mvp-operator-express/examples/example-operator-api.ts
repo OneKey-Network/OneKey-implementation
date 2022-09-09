@@ -45,4 +45,4 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
   2000
 );
 
-/* await */ operator.start();
+/* await */ operator.setup();

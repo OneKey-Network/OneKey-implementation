@@ -1,6 +1,6 @@
 import { fail } from 'assert';
 import { executeInQueueAsync, IQueueContainer, setUpImmediateProcessingQueue } from '../../src/utils/queue';
-import { PromiseMock } from '../helpers/promises';
+import { PromiseMock } from '@test-helpers/promises';
 
 describe('queue', () => {
   let cmd1: jest.Mock;

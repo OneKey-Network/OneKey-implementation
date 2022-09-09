@@ -15,7 +15,6 @@
     "sourceMap": true,
     "jsx": "react",
     "jsxFactory": "h",
-    "plugins": [{ "name": "typescript-plugin-css-modules" }],
     "skipLibCheck": true,
     "rootDir": ".",
     "baseUrl": ".",
@@ -28,11 +27,14 @@
       "@core/*": ["./paf-mvp-core-js/src/*"],
       "@operator/*": ["./paf-mvp-operator-express/src/*"],
       "@client/*": ["./paf-mvp-client-express/src/*"],
-      "@frontend/*": ["./paf-mvp-frontend/src/*"]
+      "@frontend/*": ["./paf-mvp-frontend/src/*"],
+      "@test-helpers/*": ["./paf-mvp-core-js/tests/helpers/*"],
+      "@test-fixtures/*": ["./paf-mvp-core-js/tests/fixtures/*"]
     }
   },
   "exclude": [
     "paf-mvp-frontend/cypress",
+    "paf-mvp-audit/cypress",
     "addressability-framework",
     "**/tests"
   ]

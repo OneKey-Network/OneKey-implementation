@@ -13,9 +13,10 @@
       "@core/*": ["paf-mvp-core-js/src/*"],
       "@operator/*": ["./paf-mvp-operator-express/src/*"],
       "@client/*": ["./paf-mvp-client-express/src/*"],
-      "@frontend/*": ["./paf-mvp-frontend/src/*"]
-    },
-    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+      "@frontend/*": ["./paf-mvp-frontend/src/*"],
+      "@test-helpers/*": ["./paf-mvp-core-js/tests/helpers/*"],
+      "@test-fixtures/*": ["./paf-mvp-core-js/tests/fixtures/*"],
+    }
   },
   "include":
   [

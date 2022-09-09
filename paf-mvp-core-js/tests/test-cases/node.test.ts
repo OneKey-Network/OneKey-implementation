@@ -1,7 +1,7 @@
 import { IJsonValidator, JsonSchemaType, JsonValidation } from '@core/validation/json-validator';
-import { IdentityConfig, Node } from '@core/express';
+import { EndpointConfiguration, IdentityConfig, Node } from '@core/express';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
-import { NextFunction, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { NodeError, NodeErrorType } from '@core/errors';
 import { getTimeStampInSec } from '@core/timestamp';
 import { encodeBase64, QSParam } from '@core/query-string';
@@ -37,6 +37,17 @@ const identity: IdentityConfig = {
 };
 const publicKeyProvider = () => Promise.resolve('myKey');
 
+class MockedNode extends Node {
+  constructor(jsonValidator: IJsonValidator) {
+    super('fake host', identity, jsonValidator, publicKeyProvider);
+  }
+
+  // Assume configuration only contains createSeedRequest schema
+  protected getRequestConfig(req: Request): EndpointConfiguration {
+    return { endPointName: 'Fake endpoint', jsonSchemaName: JsonSchemaType.createSeedRequest };
+  }
+}
+
 describe('Json body validator handler', () => {
   let response: MockResponse<Response>;
   let nextFunction: NextFunction;
@@ -53,9 +64,9 @@ describe('Json body validator handler', () => {
   test('should pass an InvalidJsonBody error to the nextFunction if the validation of request body fails', () => {
     const mockJsonValidatorAlwaysKO = buildStaticJsonValidator(false);
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysKO, 'validate');
-    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysKO, publicKeyProvider);
+    const node = new MockedNode(mockJsonValidatorAlwaysKO);
 
-    node.checkJsonBody(JsonSchemaType.createSeedRequest)(request, response, nextFunction);
+    node.checkJsonBody(request, response, nextFunction);
 
     expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
@@ -70,9 +81,9 @@ describe('Json body validator handler', () => {
   test('should call the nextFunction with no error when request body validation succeeds', () => {
     const mockJsonValidatorAlwaysOK = buildStaticJsonValidator(true);
     const validationSpy = jest.spyOn(mockJsonValidatorAlwaysOK, 'validate');
-    const node = new Node('MyNode', identity, mockJsonValidatorAlwaysOK, publicKeyProvider);
+    const node = new MockedNode(mockJsonValidatorAlwaysOK);
 
-    node.checkJsonBody(JsonSchemaType.createSeedRequest)(request, response, nextFunction);
+    node.checkJsonBody(request, response, nextFunction);
 
     expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
@@ -118,7 +129,8 @@ describe('Query string validator handler', () => {
         method: 'GET',
         url: targetUrl.toString(),
       });
-      node.checkQueryString(JsonSchemaType.createSeedRequest, false)(request, response, nextFunction);
+
+      node.checkQueryString(request, response, nextFunction);
       const expectedError: NodeError = {
         type: NodeErrorType.INVALID_QUERY_STRING,
         details: input.expected_error,
@@ -137,7 +149,8 @@ describe('Query string validator handler', () => {
       method: 'GET',
       url: targetUrl.toString(),
     });
-    node.checkQueryString(JsonSchemaType.createSeedRequest, false)(request, response, nextFunction);
+
+    node.checkQueryString(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
   });
@@ -178,7 +191,7 @@ describe('Return URL validation handler', () => {
         method: 'GET',
         url: targetUrl.toString(),
       });
-      node.checkReturnUrl()(request, response, nextFunction);
+      node.checkReturnUrl(request, response, nextFunction);
       expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.INVALID_RETURN_URL }));
     }
   );
@@ -190,7 +203,7 @@ describe('Return URL validation handler', () => {
       method: 'GET',
       url: targetUrl.toString(),
     });
-    node.checkReturnUrl()(request, response, nextFunction);
+    node.checkReturnUrl(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
   });
 });

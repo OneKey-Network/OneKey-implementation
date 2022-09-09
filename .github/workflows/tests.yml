@@ -40,8 +40,19 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Cypress run
+      - name: Cypress frontend
         run: npm run cypress:wait-and-run --prefix paf-mvp-frontend
+
+      - name: Cypress audit log
+        uses: cypress-io/github-action@v2
+        with:
+          project: ./paf-mvp-audit
+          start: npm run start --prefix paf-mvp-audit
+          browser: chrome
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Unit tests
         run: |

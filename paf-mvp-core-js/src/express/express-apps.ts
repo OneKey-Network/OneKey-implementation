@@ -7,6 +7,9 @@ import vhost from 'vhost';
  * Encapsulate the main Express app that will listen on the local IP
  */
 export class MainApp {
+  /**
+   * @param expressApp the express server
+   */
   constructor(public expressApp: Express = express()) {}
 
   addVhostApp(vhostApp: VHostApp) {
@@ -18,13 +21,27 @@ export class MainApp {
  * Encapsulate an Express App that listens on a specific vhost
  */
 export class VHostApp {
-  constructor(public name: string, public hostName: string, public expressApp: Express = express()) {
+  public name: string;
+  public hostName: string;
+  public expressApp: Express;
+
+  /**
+   * @param name display name
+   * @param hostName vhost hostname
+   * @param forceHttps should all http requests be redirected to https?
+   */
+  constructor(name: string, hostName: string, forceHttps = true) {
+    this.expressApp = express();
+    this.hostName = hostName;
+    this.name = name;
     this.addCookieParser();
 
     this.addPostBodyParser();
 
-    // Systematically redirect HTTP requests to HTTPs
-    this.ensureHttps();
+    if (forceHttps) {
+      // Systematically redirect HTTP requests to HTTPs
+      this.ensureHttps();
+    }
   }
 
   private ensureHttps() {

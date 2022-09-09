@@ -672,7 +672,7 @@ export class OneKeyLib implements IOneKeyLib {
     return values as IdsAndPreferences;
   };
 
-  createSeed = async (transactionIds: TransactionId[]): Promise<SeedEntry | undefined> => {
+  private createSeed = async (transactionIds: TransactionId[]): Promise<SeedEntry | undefined> => {
     if (transactionIds.length == 0) {
       return undefined;
     }
@@ -727,18 +727,22 @@ export class OneKeyLib implements IOneKeyLib {
     const divId = mapAdUnitCodeToDivId(divIdOrAdUnitCode) || divIdOrAdUnitCode;
     const divContainer = document.getElementById(divId);
     if (divContainer === undefined) {
+      this.log.Warn('No div found with id', divId);
       return undefined;
     }
     const pafTransactionId = findTransactionPath(transmissionResponse, contentId)?.transactionId;
     if (pafTransactionId === undefined) {
+      this.log.Warn('Transaction id not found for content id', contentId);
       return undefined;
     }
     const seedEntry = this.seedStorageService.getSeed(pafTransactionId);
     if (seedEntry === undefined) {
+      this.log.Warn('Seed entry not found for transaction', pafTransactionId);
       return undefined;
     }
     const auditLog = buildAuditLog(seedEntry.seed, seedEntry.idsAndPreferences, transmissionResponse, contentId);
     if (auditLog === undefined) {
+      this.log.Warn('Empty audit log');
       return undefined;
     }
     this.auditLogStorageService.saveAuditLog(divId, auditLog);
@@ -890,7 +894,6 @@ export interface IOneKeyLib {
   signPreferences: (input: PostSignPreferencesRequest) => Promise<Preferences>;
   getNewId: () => Promise<Identifier>;
   getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined>;
-  createSeed: (transactionIds: TransactionId[]) => Promise<SeedEntry | undefined>;
   generateSeed: (pafTransactionIds: TransactionId[]) => Promise<Seed | undefined>;
   registerTransmissionResponse: (
     { divIdOrAdUnitCode, contentId, auditHandler }: TransmissionRegistryContext,
