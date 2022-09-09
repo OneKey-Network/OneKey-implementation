@@ -13,7 +13,7 @@ import styles from 'rollup-plugin-styles';
 import { terser } from 'rollup-plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 
-// When developing the "frontend" project independently of the other projects
+// When developing this project independently of the other projects in the repo
 const IS_PROJECT_DEV = process.env.ROLLUP_WATCH !== undefined;
 
 // When developing the demo project, that depends on the frontend project
@@ -24,7 +24,6 @@ const IS_DEV = IS_PROJECT_DEV || IS_DEMO_DEV;
 const DIST = 'dist';
 
 const relative = path => join(__dirname, path);
-const getDestFolder = (path) => (IS_PROJECT_DEV ? DIST : relative('../paf-mvp-demo-express/public/assets')) + path
 
 // To facilitate debug, generate map files in two situations:
 // - local debug in this directory (DEV), where files will be generated locally in dist
@@ -36,7 +35,7 @@ export default [
   defineConfig({
     input: relative('src/lib/one-key.ts'),
     output: {
-      file: getDestFolder(`/onekey.js`),
+      file: `${DIST}/onekey.js`,
       format: 'umd',
       name: 'OneKey',
       sourcemap: generateSourceMap
@@ -65,7 +64,7 @@ export default [
   defineConfig({
     input: relative('src/main.ts'), // entry file
     output: {
-      file: getDestFolder(`/app.bundle.js`),
+      file: `${DIST}/app.bundle.js`,
       format: 'umd', // preact-habitat requires "umd" format
       name: 'bundle',
       sourcemap: generateSourceMap
@@ -112,7 +111,7 @@ export default [
             copy({ // copy files
               targets: [
                 {
-                  src: './assets/*',
+                  src: `${DIST}/*`,
                   dest: '../paf-mvp-demo-express/public/assets',
                 },
               ],
@@ -124,7 +123,7 @@ export default [
               targets: [
                 {
                   src: './assets/*',
-                  dest: 'dist',
+                  dest: DIST,
                 },
               ],
             }),

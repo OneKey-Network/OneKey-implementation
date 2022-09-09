@@ -1,7 +1,10 @@
 import { Locale } from './locale';
 import { Controller } from './controller';
-import { Log } from '@core/log';
 import { Window } from '@frontend/global';
+import { Log, LogLevel } from '@core/log';
+
+// Debug level while playing with MVP
+Log.level = LogLevel.Debug;
 
 const log = new Log('audit', '#18a9e1');
 const auditLogHandler = (element: HTMLElement) =>
