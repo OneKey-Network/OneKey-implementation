@@ -10,10 +10,16 @@ describe('Write permission Handler', () => {
   const operatorNode: OperatorNode = OperatorUtils.buildOperator(OperatorUtils.getUnsuccessfulJsonValidatorMock(), () =>
     Promise.resolve('operatorKey')
   );
+
+  beforeAll(async () => {
+    await operatorNode.setup();
+  });
+
   beforeEach(() => {
     response = createResponse();
     nextFunction = jest.fn();
   });
+
   const failCases = [
     {
       request: OperatorUtils.generateMockPostIdsPrefRequest('', false),
@@ -48,7 +54,6 @@ describe('Write permission Handler', () => {
   ];
 
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
-    response.locals.context = { isRedirect: input.isRedirect };
     operatorNode.checkWritePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
     expect(response._getStatusCode()).toEqual(input.isRedirect ? 303 : 403);
@@ -67,57 +72,62 @@ describe('Write permission Handler', () => {
     },
   ];
   test.each(successCases)('Should call the nextFunction with no error when $description', (input) => {
-    response.locals.context = { isRedirect: input.isRedirect };
     operatorNode.checkWritePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);
   });
 });
+
 describe('Delete permission Handler', () => {
   let response: MockResponse<Response>;
   let nextFunction: NextFunction;
   const operatorNode: OperatorNode = OperatorUtils.buildOperator(OperatorUtils.getUnsuccessfulJsonValidatorMock(), () =>
     Promise.resolve('operatorKey')
   );
+
+  beforeAll(async () => {
+    await operatorNode.setup();
+  });
+
   beforeEach(() => {
     response = createResponse();
     nextFunction = jest.fn();
   });
+
   const failCases = [
     {
-      request: OperatorUtils.generateMockGetRequest('', false),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('', false),
       description: 'the domain is empty (getRequest)',
       isRedirect: false,
     },
     {
-      request: OperatorUtils.generateMockGetRequest('unknown domain', false),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('unknown domain', false),
       description: 'the domain is unknown (getRequest)',
       isRedirect: false,
     },
     {
-      request: OperatorUtils.generateMockGetRequest('paf.read-only.com', false),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('paf.read-only.com', false),
       description: 'the domain does not have the write permission (getRequest)',
       isRedirect: false,
     },
     {
-      request: OperatorUtils.generateMockGetRequest('', true),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('', true),
       description: 'the domain is empty (redirectRequest)',
       isRedirect: true,
     },
     {
-      request: OperatorUtils.generateMockGetRequest('unknown domain', true),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('unknown domain', true),
       description: 'the domain is unknown (redirectRequest)',
       isRedirect: true,
     },
     {
-      request: OperatorUtils.generateMockGetRequest('paf.read-only.com', true),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('paf.read-only.com', true),
       description: 'the domain does not have the write permission (redirectRequest)',
       isRedirect: true,
     },
   ];
 
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
-    response.locals.context = { isRedirect: input.isRedirect };
     operatorNode.checkDeletePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
     expect(response._getStatusCode()).toEqual(input.isRedirect ? 303 : 403);
@@ -125,18 +135,17 @@ describe('Delete permission Handler', () => {
 
   const successCases = [
     {
-      request: OperatorUtils.generateMockGetRequest('paf.write-only.com', false),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('paf.write-only.com', false),
       description: 'the domain is authorized to write (getRequest)',
       isRedirect: false,
     },
     {
-      request: OperatorUtils.generateMockGetRequest('paf.read-write.com', true),
+      request: OperatorUtils.generateMockGetIdsPrefsRequest('paf.read-write.com', true),
       description: 'the domain is authorized to write (redirectRequest)',
       isRedirect: true,
     },
   ];
   test.each(successCases)('Should call the nextFunction with no error when $description', (input) => {
-    response.locals.context = { isRedirect: input.isRedirect };
     operatorNode.checkDeletePermission(input.request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
     expect(response._getStatusCode()).toEqual(200);

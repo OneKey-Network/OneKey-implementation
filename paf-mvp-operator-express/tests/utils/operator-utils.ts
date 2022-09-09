@@ -98,7 +98,7 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
       body: undefined,
     };
     if (isRedirect) {
-      const targetUrl = new URL('https://somedomain.com');
+      const targetUrl = new URL(`https://${this.operatorHost}/paf/v1/redirect/post-ids-prefs`);
       const queryString = encodeBase64(
         JSON.stringify({ returnUrl: 'https://someurl.com', request: postIdsPrefRequest })
       );
@@ -109,8 +109,10 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
       });
     } else {
       const payload = JSON.stringify(postIdsPrefRequest);
+      const targetUrl = new URL(`https://${this.operatorHost}/paf/v1/ids-prefs`);
       const postRequest = createRequest({
         method: 'POST',
+        url: targetUrl.toString(),
       });
       postRequest.body = payload;
       return postRequest;
@@ -120,14 +122,15 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
   /**
    * @returns a mock GetRequest with the specified sender domain
    */
-  static generateMockGetRequest(domain: Domain, isRedirect: boolean) {
+  static generateMockGetIdsPrefsRequest(domain: Domain, isRedirect: boolean) {
     const getRequest = {
       sender: domain,
       receiver: undefined,
       timestamp: undefined,
       signature: undefined,
     };
-    const targetUrl = new URL('https://somedomain.com');
+    const path = isRedirect ? 'redirect/get-ids-prefs' : 'ids-prefs';
+    const targetUrl = new URL(`https://${this.operatorHost}/paf/v1/${path}`);
     const queryString = encodeBase64(
       JSON.stringify(
         isRedirect
