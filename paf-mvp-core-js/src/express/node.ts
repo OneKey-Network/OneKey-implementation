@@ -27,7 +27,7 @@ export interface INode {
   setup(): Promise<void>;
 }
 
-interface EndpointConfiguration {
+export interface EndpointConfiguration {
   // Endpoint display name
   endPointName: string;
   // Whether this endpoint requires redirect return (303 + data in the query string) or not (default = not)
