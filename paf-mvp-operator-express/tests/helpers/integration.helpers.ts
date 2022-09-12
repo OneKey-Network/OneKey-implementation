@@ -4,6 +4,12 @@ import { fromDataToObject, QSParam } from '@core/query-string';
 import { RedirectErrorResponse } from '@core/model/model';
 import { Error, ResponseCode } from '@core/model';
 
+export const getRedirectUrl = (response: request.Response) => {
+  return new URL(response.header['location']);
+};
+
+export const removeQueryString = (url: URL) => `${url.protocol}//${url.host}${url.pathname}`;
+
 export const assertRestError = (response: request.Response, status: number, type: NodeErrorType) => {
   expect(response.status).toEqual(status);
   const error = response.body as NodeError;
@@ -14,7 +20,8 @@ export const getRedirectResponse = <T extends { code: ResponseCode; error?: Erro
   response: request.Response
 ): T => {
   expect(response.status).toEqual(303);
-  const redirectUrl = new URL(response.header['location']);
+
+  const redirectUrl = getRedirectUrl(response);
   return fromDataToObject<T>(redirectUrl.searchParams.get(QSParam.paf));
 };
 
