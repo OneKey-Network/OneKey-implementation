@@ -49,14 +49,17 @@ const getRedirectReadUrl = async (operatorClient: OperatorClient, specificReturn
 const getReadUrl = (isRedirect: boolean) => (isRedirect ? getRedirectReadUrl : getRestReadUrl);
 const assertError = (isRedirect: boolean) => (isRedirect ? assertRedirectError : assertRestError);
 
-const publicKeyProvider = (host: string) => {
+const defaultPublicKeyProvider = (host: string) => {
   if (host === ClientBuilder.defaultHost) return Promise.resolve(ClientBuilder.defaultPublicKey);
 
   throw new UnableToIdentifySignerError(`Error calling Identity endpoint on ${host}`);
 };
 
 describe('read', () => {
-  const getContext = async (validator: IJsonValidator = JsonValidator.default()) => {
+  const getContext = async (
+    validator: IJsonValidator = JsonValidator.default(),
+    publicKeyProvider = defaultPublicKeyProvider
+  ) => {
     const operator = OperatorUtils.buildOperator(validator, publicKeyProvider);
 
     const startMock = jest.spyOn(operator, 'beginHandling');
@@ -95,7 +98,7 @@ describe('read', () => {
 
       const { server, startMock, endMock } = await getContext(exceptionValidator);
 
-      const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
+      const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(defaultPublicKeyProvider);
 
       const url = await getReadUrl(isRedirect)(operatorClient);
 
@@ -134,7 +137,7 @@ describe('read', () => {
     it('should check permissions', async () => {
       const { server, startMock, endMock } = await getContext();
 
-      const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
+      const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(defaultPublicKeyProvider);
 
       const url = await getReadUrl(isRedirect)(operatorClient);
 
@@ -163,7 +166,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
 -----END PRIVATE KEY-----`
           )
-          .build(publicKeyProvider);
+          .build(defaultPublicKeyProvider);
 
         const url = await getReadUrl(isRedirect)(operatorClient);
 
@@ -185,7 +188,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
         const operatorClient = new ClientBuilder()
           // This client host is allowed to read, but the public key won't be found
           .setClientHost('paf.read-only.com')
-          .build(publicKeyProvider);
+          .build(defaultPublicKeyProvider);
 
         const url = await getReadUrl(isRedirect)(operatorClient);
 
@@ -205,7 +208,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
     it(`should check ${isRedirect ? 'referer' : 'origin'} header`, async () => {
       const { server, startMock, endMock } = await getContext();
 
-      const operatorClient = new ClientBuilder().build(publicKeyProvider);
+      const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
 
       const url = await getReadUrl(isRedirect)(operatorClient);
 
@@ -226,7 +229,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       it('should check return url', async () => {
         const { server, startMock, endMock } = await getContext();
 
-        const operatorClient = new ClientBuilder().build(publicKeyProvider);
+        const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
 
         // Set an invalid return url
         const url = await getRedirectReadUrl(operatorClient, 'ftp://ftp-not-permitted.com');
@@ -241,12 +244,37 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
         expect(startMock).toHaveBeenCalled();
         // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
       });
+
+      it('should timeout', async () => {
+        const endlessPublicKeyProvider = (host: string): Promise<string> => {
+          return new Promise((resolve, reject) => {
+            // do not call resolve or reject
+          });
+        };
+
+        const { server, startMock, endMock } = await getContext(JsonValidator.default(), endlessPublicKeyProvider);
+
+        const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
+
+        // Set an invalid return url
+        const url = await getRedirectReadUrl(operatorClient);
+
+        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+
+        assertError(isRedirect)(response, 504, NodeErrorType.RESPONSE_TIMEOUT);
+
+        // Notice: redirects to referer
+        expect(removeQueryString(getRedirectUrl(response))).toEqual(refererUrl);
+
+        expect(startMock).toHaveBeenCalled();
+        // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+      });
     }
 
     it('should handle valid request', async () => {
       const { server, startMock, endMock, operator } = await getContext();
 
-      const operatorClient = new ClientBuilder().build(publicKeyProvider);
+      const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
 
       const url = await getReadUrl(isRedirect)(operatorClient);
 
