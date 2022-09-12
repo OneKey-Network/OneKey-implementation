@@ -3,7 +3,7 @@ import { default as AjvClass, ErrorObject } from 'ajv';
 import fs from 'fs';
 import path from 'path';
 
-export type Json = any;
+export type Json = object;
 
 export enum JsonSchemaType {
   createSeedRequest = 'post-seed-request.json',
