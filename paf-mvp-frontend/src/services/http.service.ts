@@ -12,6 +12,8 @@ export interface IHttpService {
    * Stringify the JS object and HTTP-POST it at the given URL
    * with headers including 'credentials: include'.
    *
+   * Return a rejected promise if the service is currently redirecting.
+   *
    * For now, we don't use Content-type JSON to avoid CORS pre-flight request.
    * See https://stackoverflow.com/questions/37668282/unable-to-fetch-post-without-no-cors-in-header
    */
@@ -19,16 +21,22 @@ export interface IHttpService {
   /**
    * Call HTTP POST the given body at the given URL
    * with headers including 'credentials: include'.
+   *
+   * Return a rejected promise if the service is currently redirecting.
    */
   postText(url: string, input: string): Promise<Response>;
   /**
    * Call HTTP GET at the given URL
    * with headers including 'credentials: include'.
+   *
+   * Return a rejected promise if the service is currently redirecting.
    */
   get(url: string): Promise<Response>;
   /**
    * Call HTTP DELETE at the given URL
    * with headers including 'credentials: include'.
+   *
+   * Return a rejected promise if the service is currently redirecting.
    */
   deleteHttp(url: string): Promise<Response>;
 }
