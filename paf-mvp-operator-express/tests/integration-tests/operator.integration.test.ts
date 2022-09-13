@@ -16,6 +16,12 @@ import { UnableToIdentifySignerError } from '@core/express/errors';
 import { GetIdsPrefsResponse, RedirectGetIdsPrefsResponse } from '@core/model';
 import { createRequest } from 'node-mocks-http';
 
+const specificPrivateKey = `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiDfb74JY+vBjdEmr
+hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
+7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
+-----END PRIVATE KEY-----`;
+
 const refererUrl = `https://${ClientBuilder.defaultHost}/some/page`;
 const returnUrl = `https://${ClientBuilder.defaultHost}/after/redirect`;
 
@@ -46,9 +52,6 @@ const getRedirectReadUrl = async (operatorClient: OperatorClient, specificReturn
   return fullUrl.replace(/^https?:\/\/[^/]+/i, '');
 };
 
-const getReadUrl = (isRedirect: boolean) => (isRedirect ? getRedirectReadUrl : getRestReadUrl);
-const assertError = (isRedirect: boolean) => (isRedirect ? assertRedirectError : assertRestError);
-
 const defaultPublicKeyProvider = (host: string) => {
   if (host === ClientBuilder.defaultHost) return Promise.resolve(ClientBuilder.defaultPublicKey);
 
@@ -57,6 +60,7 @@ const defaultPublicKeyProvider = (host: string) => {
 
 describe('read', () => {
   const getContext = async (
+    // Note: use real JSON validator by default
     validator: IJsonValidator = JsonValidator.default(),
     publicKeyProvider = defaultPublicKeyProvider
   ) => {
@@ -83,9 +87,17 @@ describe('read', () => {
   ];
 
   describe.each(cases)('$name', (input) => {
-    // Note: use real JSON validator
-
     const isRedirect = input.isRedirect;
+
+    const getReadUrl = isRedirect ? getRedirectReadUrl : getRestReadUrl;
+    const assertError = isRedirect ? assertRedirectError : assertRestError;
+
+    // Verify the redirect URL is the expected one, in case of redirect endpoint
+    const verifyRedirectUrl = isRedirect
+      ? (response: supertest.Response, url: string) => expect(removeQueryString(getRedirectUrl(response))).toEqual(url)
+      : () => {
+          // Nothing to verify in case of REST call
+        };
 
     it('should fallback to unknown error in case of an exception', async () => {
       // Note that the operator node is not start()ed
@@ -100,16 +112,14 @@ describe('read', () => {
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(defaultPublicKeyProvider);
 
-      const url = await getReadUrl(isRedirect)(operatorClient);
+      const url = await getReadUrl(operatorClient);
 
       const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-      assertError(isRedirect)(response, 500, NodeErrorType.UNKNOWN_ERROR);
+      assertError(response, 500, NodeErrorType.UNKNOWN_ERROR);
 
-      if (isRedirect) {
-        // Not return URL because was not parsed, fallback to referer
-        expect(removeQueryString(getRedirectUrl(response))).toEqual(refererUrl);
-      }
+      // Not return URL because was not parsed, fallback to referer
+      verifyRedirectUrl(response, refererUrl);
 
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
@@ -123,12 +133,10 @@ describe('read', () => {
         .set('referer', refererUrl)
         .set('Origin', refererUrl);
 
-      assertError(isRedirect)(response, 400, NodeErrorType.INVALID_QUERY_STRING);
+      assertError(response, 400, NodeErrorType.INVALID_QUERY_STRING);
 
-      if (isRedirect) {
-        // Not return URL because was not parsed, fallback to referer
-        // expect(removeQueryString(getRedirectUrl(response))).toEqual(refererUrl); // FIXME[errors] should work when catchError handles http responses
-      }
+      // Not return URL because was not parsed, fallback to referer
+      // checkRedirectUrl(response, refererUrl); // FIXME[errors] should work when catchError handles http responses
 
       expect(startMock).toHaveBeenCalled();
       // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
@@ -139,15 +147,13 @@ describe('read', () => {
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(defaultPublicKeyProvider);
 
-      const url = await getReadUrl(isRedirect)(operatorClient);
+      const url = await getReadUrl(operatorClient);
 
       const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-      assertError(isRedirect)(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
+      assertError(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
 
-      if (isRedirect) {
-        expect(removeQueryString(getRedirectUrl(response))).toEqual(returnUrl);
-      }
+      verifyRedirectUrl(response, returnUrl);
 
       expect(startMock).toHaveBeenCalled();
       // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
@@ -156,27 +162,17 @@ describe('read', () => {
     describe('should check message signature', () => {
       it('for wrong signature', async () => {
         const { server, startMock, endMock } = await getContext();
-
         const operatorClient = new ClientBuilder()
-          // Notice different private key, won't match the public key
-          .setClientPrivateKey(
-            `-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiDfb74JY+vBjdEmr
-hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
-7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
------END PRIVATE KEY-----`
-          )
+          .setClientPrivateKey(specificPrivateKey)
           .build(defaultPublicKeyProvider);
 
-        const url = await getReadUrl(isRedirect)(operatorClient);
+        const url = await getReadUrl(operatorClient);
 
         const response = await supertest(server).get(url);
 
-        assertError(isRedirect)(response, 403, NodeErrorType.VERIFICATION_FAILED);
+        assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
 
-        if (isRedirect) {
-          expect(removeQueryString(getRedirectUrl(response))).toEqual(returnUrl);
-        }
+        verifyRedirectUrl(response, returnUrl);
 
         expect(startMock).toHaveBeenCalled();
         // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
@@ -190,15 +186,13 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
           .setClientHost('paf.read-only.com')
           .build(defaultPublicKeyProvider);
 
-        const url = await getReadUrl(isRedirect)(operatorClient);
+        const url = await getReadUrl(operatorClient);
 
         const response = await supertest(server).get(url);
 
-        assertError(isRedirect)(response, 403, NodeErrorType.UNKNOWN_SIGNER);
+        assertError(response, 403, NodeErrorType.UNKNOWN_SIGNER);
 
-        if (isRedirect) {
-          expect(removeQueryString(getRedirectUrl(response))).toEqual(returnUrl);
-        }
+        verifyRedirectUrl(response, returnUrl);
 
         expect(startMock).toHaveBeenCalled();
         // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
@@ -210,16 +204,14 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 
       const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
 
-      const url = await getReadUrl(isRedirect)(operatorClient);
+      const url = await getReadUrl(operatorClient);
 
       const response = await supertest(server).get(url);
 
       // FIXME[errors] should be a specific error type
-      assertError(isRedirect)(response, 403, NodeErrorType.VERIFICATION_FAILED);
+      assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
 
-      if (isRedirect) {
-        expect(removeQueryString(getRedirectUrl(response))).toEqual(returnUrl);
-      }
+      verifyRedirectUrl(response, returnUrl);
 
       expect(startMock).toHaveBeenCalled();
       // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
@@ -236,10 +228,10 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 
         const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(isRedirect)(response, 400, NodeErrorType.INVALID_RETURN_URL);
+        assertError(response, 400, NodeErrorType.INVALID_RETURN_URL);
 
         // Notice: redirects to referer
-        expect(removeQueryString(getRedirectUrl(response))).toEqual(refererUrl);
+        verifyRedirectUrl(response, refererUrl);
 
         expect(startMock).toHaveBeenCalled();
         // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
@@ -261,24 +253,47 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 
         const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(isRedirect)(response, 504, NodeErrorType.RESPONSE_TIMEOUT);
+        assertError(response, 504, NodeErrorType.RESPONSE_TIMEOUT);
 
         // Notice: redirects to referer
-        expect(removeQueryString(getRedirectUrl(response))).toEqual(refererUrl);
+        verifyRedirectUrl(response, refererUrl);
 
         expect(startMock).toHaveBeenCalled();
         // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
       });
     }
 
-    it('should handle valid request', async () => {
+    const validCases = [
+      {
+        existingData: undefined,
+        name: 'unknown user',
+      },
+      {
+        existingData: {
+          paf_preferences:
+            '{"version":"0.1","data":{"use_browsing_for_personalization":false},"source":{"domain":"cmp.pifdemopublisher.com","timestamp":1663067569,"signature":"KcD3rJszZUOBSfd2Hngk5TIQ6RN7+zGMjJHQ8FcpNiU+nRWvuy0a2Tp9hvc3/4nQK6Or5th+MntX4zrMSTSRmA=="}}',
+          paf_identifiers:
+            '[{"version":"0.1","type":"paf_browser_id","value":"cb658b2d-c977-4512-a8ae-9f5306cb087b","source":{"domain":"crto.onekey.network","timestamp":1663067561,"signature":"h0XkwwKGe3kbpGyir0uY/vdeQNuBaoO9S00Rvhtw9QIUa4s+jQhv2XxAmjn1XpsK3AoNi5V+0fErtv/unXT/pw=="}}]',
+        },
+        name: 'existing user',
+      },
+    ];
+
+    test.each(validCases)('should handle valid request with $name', async ({ existingData }) => {
       const { server, startMock, endMock, operator } = await getContext();
 
       const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
 
-      const url = await getReadUrl(isRedirect)(operatorClient);
+      const url = await getReadUrl(operatorClient);
 
-      const request = supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+      const request = supertest(server)
+        .get(url)
+        .set('referer', refererUrl)
+        .set('Origin', refererUrl)
+        .set(
+          'Cookie',
+          Object.keys(existingData ?? []).map((key) => `${key}=${existingData[key]}`)
+        );
 
       const response = await request;
 
@@ -297,13 +312,18 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       }
 
       expect(data.sender).toEqual(operator.app.hostName);
-      expect(data.body.preferences).toEqual(undefined);
-      expect(data.body.identifiers.length).toEqual(1);
-      expect(data.body.identifiers[0].persisted).toEqual(false);
 
-      if (isRedirect) {
-        expect(removeQueryString(getRedirectUrl(response))).toEqual(returnUrl);
+      if (existingData) {
+        expect(data.body.preferences.data.use_browsing_for_personalization).toEqual(false);
+        expect(data.body.identifiers.length).toEqual(1);
+        expect(data.body.identifiers[0].persisted).not.toEqual(false);
+      } else {
+        expect(data.body.preferences).toEqual(undefined);
+        expect(data.body.identifiers.length).toEqual(1);
+        expect(data.body.identifiers[0].persisted).toEqual(false);
       }
+
+      verifyRedirectUrl(response, returnUrl);
 
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();

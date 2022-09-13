@@ -769,7 +769,7 @@ export class OperatorNode extends Node {
       const { endPointName } = this.getRequestConfig(req);
       this.logger.Error(endPointName, err);
 
-      // FIXME[errors] this whole method must be merged with catchErrors to avoid duplication like this
+      // FIXME[errors] this whole method could be merged with catchErrors to avoid duplication like this
       if ((err as Error).message === 'Response timeout') {
         const error: NodeError = {
           type: NodeErrorType.RESPONSE_TIMEOUT,
