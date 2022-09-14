@@ -4,39 +4,39 @@ export interface IHttpService {
   /** Yes if the service has started a redirection. */
   isRedirecting: boolean;
   /**
-   * Start a redirection on the given URL if the service
+   * Starts a redirection on the given URL if the service
    * hasn't started already one.
    */
   redirect(url: string): boolean;
   /**
-   * Stringify the JS object and HTTP-POST it at the given URL
+   * Stringifies the JS object and HTTP-POST it at the given URL
    * with headers including 'credentials: include'.
    *
-   * Return a rejected promise if the service is currently redirecting.
+   * Returns a rejected promise if the service is currently redirecting.
    *
    * For now, we don't use Content-type JSON to avoid CORS pre-flight request.
    * See https://stackoverflow.com/questions/37668282/unable-to-fetch-post-without-no-cors-in-header
    */
   postJson(url: string, input: object): Promise<Response>;
   /**
-   * Call HTTP POST the given body at the given URL
+   * Calls HTTP POST the given body at the given URL
    * with headers including 'credentials: include'.
    *
-   * Return a rejected promise if the service is currently redirecting.
+   * Returns a rejected promise if the service is currently redirecting.
    */
   postText(url: string, input: string): Promise<Response>;
   /**
-   * Call HTTP GET at the given URL
+   * Calls HTTP GET at the given URL
    * with headers including 'credentials: include'.
    *
-   * Return a rejected promise if the service is currently redirecting.
+   * Returns a rejected promise if the service is currently redirecting.
    */
   get(url: string): Promise<Response>;
   /**
-   * Call HTTP DELETE at the given URL
+   * Calls HTTP DELETE at the given URL
    * with headers including 'credentials: include'.
    *
-   * Return a rejected promise if the service is currently redirecting.
+   * Returns a rejected promise if the service is currently redirecting.
    */
   deleteHttp(url: string): Promise<Response>;
 }
@@ -47,11 +47,11 @@ export interface IHttpService {
  */
 export interface IHttpClient {
   /**
-   * Call the fetch API including custom init for aborting.
+   * Calls the fetch API including custom init for aborting.
    */
   fetch(input: RequestInfo, init?: RequestInit): Promise<Response>;
   /**
-   * Abort all fech calls that are in progress thanks to the
+   * Aborts all fech calls that are in progress thanks to the
    * AbortController API.
    */
   abortInProgressFetch(): void;
