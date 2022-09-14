@@ -156,7 +156,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
     });
 
     it('should check origin header', async () => {
-      const { server, startMock, endMock } = await getContext();
+      const { server, startMock } = await getContext();
 
       const operatorClient = new ClientBuilder().build(publicKeyProvider);
 

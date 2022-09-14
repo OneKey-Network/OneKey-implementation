@@ -3,7 +3,8 @@ import { default as AjvClass, ErrorObject } from 'ajv';
 import fs from 'fs';
 import path from 'path';
 
-export type Json = object;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Json = any;
 
 export enum JsonSchemaType {
   createSeedRequest = 'post-seed-request.json',
