@@ -146,6 +146,7 @@ export class Node implements INode {
    * @param res
    * @param next
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   endHandling = (req: Request, res: Response, next: NextFunction) => {
     const { endPointName } = this.getRequestConfig(req);
     this.logger.Info(`${endPointName} - END`);

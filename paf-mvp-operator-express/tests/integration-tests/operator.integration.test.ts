@@ -70,7 +70,11 @@ describe('read', () => {
     });
 
     it('should check query string', async () => {
-      const { server, startMock, endMock } = await getContext();
+      const {
+        server,
+        startMock,
+        //  endMock,
+      } = await getContext();
 
       const response = await supertest(server).get('/paf/v1/ids-prefs');
 
@@ -81,7 +85,11 @@ describe('read', () => {
     });
 
     it('should check permissions', async () => {
-      const { server, startMock, endMock } = await getContext();
+      const {
+        server,
+        startMock,
+        //  endMock,
+      } = await getContext();
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(publicKeyProvider);
 
@@ -97,7 +105,11 @@ describe('read', () => {
 
     describe('should check message signature', () => {
       it('for wrong signature', async () => {
-        const { server, startMock, endMock } = await getContext();
+        const {
+          server,
+          startMock,
+          //  endMock
+        } = await getContext();
 
         const operatorClient = new ClientBuilder()
           // Notice different private key, won't match the public key
@@ -121,7 +133,11 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
       });
 
       it('for unknown signer', async () => {
-        const { server, startMock, endMock } = await getContext();
+        const {
+          server,
+          startMock,
+          //  endMock,
+        } = await getContext();
 
         const operatorClient = new ClientBuilder()
           // This client host is allowed to read, but the public key won't be found
@@ -140,7 +156,7 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
     });
 
     it('should check origin header', async () => {
-      const { server, startMock, endMock } = await getContext();
+      const { server, startMock } = await getContext();
 
       const operatorClient = new ClientBuilder().build(publicKeyProvider);
 
