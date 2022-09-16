@@ -42,7 +42,7 @@ export class Verifier<T> {
       result.isValid = await verifier.verify(toVerify, signature);
       if (result.isValid) this.logger.Debug('Verified', signedData);
       else {
-        const message = `Verification failed for ${signedData}`;
+        const message = `Verification failed for ${JSON.stringify(signedData)}`;
         this.logger.Error(message);
         result.errors = [new Error(message)];
       }

@@ -5,6 +5,7 @@ import { CorsOptions } from 'cors';
 import domainParser from 'tld-extract';
 import { ReturnUrl } from '@core/model';
 import { RedirectContext, RestContext } from '@core/crypto';
+import { NodeError } from '@core/errors';
 
 export const setCookie = (
   res: Response,

@@ -43,6 +43,7 @@ class MockedNode extends Node {
   }
 
   // Assume configuration only contains createSeedRequest schema
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected getRequestConfig(req: Request): EndpointConfiguration {
     return { endPointName: 'Fake endpoint', jsonSchemaName: JsonSchemaType.createSeedRequest };
   }
