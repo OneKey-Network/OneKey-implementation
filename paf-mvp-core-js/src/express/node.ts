@@ -186,6 +186,7 @@ export class Node implements INode {
         res.send();
       }
 
+      // This is the last error handling in the chain => we do not forward to another error handler with next(error)
       next();
     };
 

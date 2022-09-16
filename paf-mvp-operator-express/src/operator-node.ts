@@ -765,14 +765,26 @@ export class OperatorNode extends Node {
 
   catchErrorsWithRedirectToReferer =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (error: unknown, req: Request, res: Response, next: NextFunction) => {
+    (err: unknown, req: Request, res: Response, next: NextFunction) => {
       const { endPointName } = this.getRequestConfig(req);
-      this.logger.Error(endPointName, error);
-      const nodeError: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      this.redirectWithError(res, req.header('referer'), 500, nodeError);
+      this.logger.Error(endPointName, err);
+
+      // FIXME[errors] this whole method could be merged with catchErrors to avoid duplication like this
+      if ((err as Error).message === 'Response timeout') {
+        const error: NodeError = {
+          type: NodeErrorType.RESPONSE_TIMEOUT,
+          details: (err as Error).message,
+        };
+        this.redirectWithError(res, req.header('referer'), 504, error);
+      } else if ((err as NodeError).type) {
+        const nodeError: NodeError = {
+          type: NodeErrorType.UNKNOWN_ERROR,
+          details: '',
+        };
+        this.redirectWithError(res, req.header('referer'), 500, nodeError);
+      }
+
+      next();
     };
 
   checkReadPermission = (req: Request, res: Response, next: NextFunction) => {
