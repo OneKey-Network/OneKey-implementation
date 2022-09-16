@@ -126,7 +126,11 @@ describe('read', () => {
     });
 
     it('should check query string', async () => {
-      const { server, startMock, endMock } = await getContext();
+      const {
+        server,
+        startMock,
+        //  endMock,
+      } = await getContext();
 
       const response = await supertest(server)
         .get(isRedirect ? '/paf/v1/redirect/get-ids-prefs' : '/paf/v1/ids-prefs')
@@ -143,7 +147,11 @@ describe('read', () => {
     });
 
     it('should check permissions', async () => {
-      const { server, startMock, endMock } = await getContext();
+      const {
+        server,
+        startMock,
+        //  endMock,
+      } = await getContext();
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(defaultPublicKeyProvider);
 
@@ -179,7 +187,11 @@ describe('read', () => {
       });
 
       it('for unknown signer', async () => {
-        const { server, startMock, endMock } = await getContext();
+        const {
+          server,
+          startMock,
+          //  endMock,
+        } = await getContext();
 
         const operatorClient = new ClientBuilder()
           // This client host is allowed to read, but the public key won't be found
