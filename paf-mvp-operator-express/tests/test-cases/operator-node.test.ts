@@ -183,8 +183,6 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
           expect(nextMock).toHaveBeenCalledWith();
         } else {
           expect(nextMock).toHaveBeenCalledWith(error);
-          const data = response._getJSONData() as NodeError;
-          expect(data).toEqual(error);
         }
       }
     );
