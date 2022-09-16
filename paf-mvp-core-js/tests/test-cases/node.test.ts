@@ -76,7 +76,6 @@ describe('Json body validator handler', () => {
       details: 'error message from validator',
     };
     expect(nextFunction).toBeCalledWith(expectedError);
-    expect(response._getStatusCode()).toEqual(400);
   });
 
   test('should call the nextFunction with no error when request body validation succeeds', () => {
@@ -89,7 +88,6 @@ describe('Json body validator handler', () => {
     expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
     expect(nextFunction).toBeCalledWith();
-    expect(response._getStatusCode()).toEqual(200);
   });
 });
 
@@ -137,7 +135,6 @@ describe('Query string validator handler', () => {
         details: input.expected_error,
       };
       expect(nextFunction).toBeCalledWith(expectedError);
-      expect(response._getStatusCode()).toEqual(400);
     }
   );
 
@@ -153,7 +150,6 @@ describe('Query string validator handler', () => {
 
     node.checkQueryString(request, response, nextFunction);
     expect(nextFunction).toBeCalledWith();
-    expect(response._getStatusCode()).toEqual(200);
   });
 });
 

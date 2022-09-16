@@ -179,11 +179,7 @@ describe('read', () => {
       });
 
       it('for unknown signer', async () => {
-        const {
-          server,
-          startMock,
-          //  endMock,
-        } = await getContext();
+        const { server, startMock, endMock } = await getContext();
 
         const operatorClient = new ClientBuilder()
           // This client host is allowed to read, but the public key won't be found
@@ -197,8 +193,6 @@ describe('read', () => {
         assertError(response, 502, NodeErrorType.UNKNOWN_SIGNER);
 
         verifyRedirectUrl(response, refererUrl);
-
-        verifyRedirectUrl(response, returnUrl);
 
         expect(startMock).toHaveBeenCalled();
         expect(endMock).toHaveBeenCalled();
@@ -268,52 +262,6 @@ describe('read', () => {
 
         expect(startMock).toHaveBeenCalled();
         expect(endMock).toHaveBeenCalled();
-      });
-    }
-
-    if (isRedirect) {
-      it('should check return url', async () => {
-        const { server, startMock, endMock } = await getContext();
-
-        const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
-
-        // Set an invalid return url
-        const url = await getRedirectReadUrl(operatorClient, 'ftp://ftp-not-permitted.com');
-
-        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
-
-        assertError(response, 400, NodeErrorType.INVALID_RETURN_URL);
-
-        // Notice: redirects to referer
-        verifyRedirectUrl(response, refererUrl);
-
-        expect(startMock).toHaveBeenCalled();
-        // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
-      });
-
-      it('should timeout', async () => {
-        const endlessPublicKeyProvider = (host: string): Promise<string> => {
-          return new Promise((resolve, reject) => {
-            // do not call resolve or reject
-          });
-        };
-
-        const { server, startMock, endMock } = await getContext(JsonValidator.default(), endlessPublicKeyProvider);
-
-        const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
-
-        // Set an invalid return url
-        const url = await getRedirectReadUrl(operatorClient);
-
-        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
-
-        assertError(response, 504, NodeErrorType.RESPONSE_TIMEOUT);
-
-        // Notice: redirects to referer
-        verifyRedirectUrl(response, refererUrl);
-
-        expect(startMock).toHaveBeenCalled();
-        // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
       });
     }
 
