@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request } from 'express';
 import cors from 'cors';
 import { AxiosRequestConfig } from 'axios';
 import {
@@ -13,6 +13,7 @@ import {
   Node,
   parseConfig,
   removeCookie,
+  Response,
   setCookie,
   VHostApp,
 } from '@core/express';
@@ -107,7 +108,7 @@ export class OperatorNode extends Node {
     allowedHosts: AllowedHosts,
     jsonValidator: IJsonValidator,
     publicKeyProvider: PublicKeyProvider,
-    redirectResponseTimeout: number,
+    redirectResponseTimeoutInMs: number,
     vHostApp = new VHostApp(identity.name, hostName)
   ) {
     super(
@@ -138,14 +139,14 @@ export class OperatorNode extends Node {
     this.getIdsPrefsRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
     this.getNewIdRequestVerifier = new RequestVerifier(this.publicKeyProvider, new RequestWithoutBodyDefinition());
     this.idBuilder = new IdBuilder(hostName, privateKey);
-    this.redirectResponseTimeoutInMs = redirectResponseTimeout;
+    this.redirectResponseTimeoutInMs = redirectResponseTimeoutInMs;
   }
 
   async setup(): Promise<void> {
     await super.setup();
 
     // Note that CORS is "disabled" here because the check is done via signature
-    // So accept whatever the referer is
+    // So accept whatever the origin is
 
     // *****************************************************************************************************************
     // ************************************************************************************************************ JSON
@@ -240,11 +241,11 @@ export class OperatorNode extends Node {
       this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
-      this.checkReturnUrl,
       this.checkReadPermission,
       this.checkReadIdsAndPreferencesSignature,
+      this.checkReturnUrl,
       this.redirectReadIdsAndPreferences,
-      this.catchErrorsWithRedirectToReferer,
+      this.catchErrors,
       this.endHandling
     );
 
@@ -258,11 +259,11 @@ export class OperatorNode extends Node {
       this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
-      this.checkReturnUrl,
       this.checkWritePermission,
       this.checkWriteIdsAndPreferencesSignature,
+      this.checkReturnUrl,
       this.redirectWriteIdsAndPreferences,
-      this.catchErrorsWithRedirectToReferer,
+      this.catchErrors,
       this.endHandling
     );
 
@@ -276,11 +277,11 @@ export class OperatorNode extends Node {
       this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
-      this.checkReturnUrl,
       this.checkDeletePermission,
       this.checkDeleteIdsAndPreferencesSignature,
+      this.checkReturnUrl,
       this.redirectDeleteIdsAndPreferences,
-      this.catchErrorsWithRedirectToReferer,
+      this.catchErrors,
       this.endHandling
     );
   }
@@ -462,12 +463,6 @@ export class OperatorNode extends Node {
             : NodeErrorType.VERIFICATION_FAILED,
         details: validationResult.errors[0].message,
       };
-      if (isRedirect) {
-        this.redirectWithError(res, (request as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
-      } else {
-        res.status(403);
-        res.json(error);
-      }
       next(error);
     }
   };
@@ -489,12 +484,6 @@ export class OperatorNode extends Node {
             : NodeErrorType.VERIFICATION_FAILED,
         details: requestValidationResult.errors[0].message,
       };
-      if (isRedirect) {
-        this.redirectWithError(res, (request as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
-      } else {
-        res.status(403);
-        res.json(error);
-      }
       next(error);
     }
   };
@@ -517,12 +506,7 @@ export class OperatorNode extends Node {
             : NodeErrorType.VERIFICATION_FAILED,
         details: signatureValidationResult.errors[0].message,
       };
-      if (isRedirect) {
-        this.redirectWithError(res, (request as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
-      } else {
-        res.status(403);
-        res.json(error);
-      }
+
       next(error);
     }
   };
@@ -538,15 +522,8 @@ export class OperatorNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonOperatorEndpoints.read, e);
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -563,15 +540,8 @@ export class OperatorNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonOperatorEndpoints.verify3PC, e);
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -582,15 +552,8 @@ export class OperatorNode extends Node {
       res.json(signedData);
       next();
     } catch (e) {
-      this.logger.Error(jsonOperatorEndpoints.write, e);
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -609,12 +572,6 @@ export class OperatorNode extends Node {
         type: NodeErrorType.UNAUTHORIZED_OPERATION,
         details: `Domain not allowed to write data: ${request.sender}`,
       };
-      if (isRedirect) {
-        this.redirectWithError(res, (input as RedirectPostIdsPrefsRequest).returnUrl, 403, error);
-      } else {
-        res.status(403);
-        res.json(error);
-      }
       next(error);
     } else {
       next();
@@ -637,12 +594,6 @@ export class OperatorNode extends Node {
         type: NodeErrorType.UNAUTHORIZED_OPERATION,
         details: `Domain not allowed to delete data: ${request.sender}`,
       };
-      if (isRedirect) {
-        this.redirectWithError(res, (input as RedirectDeleteIdsPrefsRequest).returnUrl, 403, error);
-      } else {
-        res.status(403);
-        res.json(error);
-      }
       next(error);
     } else {
       next();
@@ -656,15 +607,8 @@ export class OperatorNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonOperatorEndpoints.delete, e);
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -678,15 +622,8 @@ export class OperatorNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonOperatorEndpoints.newId, e);
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -701,16 +638,8 @@ export class OperatorNode extends Node {
       httpRedirect(res, redirectUrl.toString());
       next();
     } catch (e) {
-      this.logger.Error(redirectEndpoints.read, e);
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -724,16 +653,8 @@ export class OperatorNode extends Node {
       httpRedirect(res, redirectUrl.toString());
       next();
     } catch (e) {
-      this.logger.Error(redirectEndpoints.write, e);
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -750,42 +671,10 @@ export class OperatorNode extends Node {
       httpRedirect(res, redirectUrl.toString());
       next();
     } catch (e) {
-      this.logger.Error(redirectEndpoints.delete, e);
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      // FIXME finer error return
-      const error: NodeError = {
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
-
-  catchErrorsWithRedirectToReferer =
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (err: unknown, req: Request, res: Response, next: NextFunction) => {
-      const { endPointName } = this.getRequestConfig(req);
-      this.logger.Error(endPointName, err);
-
-      // FIXME[errors] this whole method could be merged with catchErrors to avoid duplication like this
-      if ((err as Error).message === 'Response timeout') {
-        const error: NodeError = {
-          type: NodeErrorType.RESPONSE_TIMEOUT,
-          details: (err as Error).message,
-        };
-        this.redirectWithError(res, req.header('referer'), 504, error);
-      } else if ((err as NodeError).type) {
-        const nodeError: NodeError = {
-          type: NodeErrorType.UNKNOWN_ERROR,
-          details: '',
-        };
-        this.redirectWithError(res, req.header('referer'), 500, nodeError);
-      }
-
-      next();
-    };
 
   checkReadPermission = (req: Request, res: Response, next: NextFunction) => {
     const { isRedirect } = this.getRequestConfig(req);
@@ -802,12 +691,6 @@ export class OperatorNode extends Node {
         type: NodeErrorType.UNAUTHORIZED_OPERATION,
         details: `Domain not allowed to read data: ${request.sender}`,
       };
-      if (isRedirect) {
-        this.redirectWithError(res, (input as RedirectGetIdsPrefsRequest).returnUrl, 403, error);
-      } else {
-        res.status(403);
-        res.json(error);
-      }
       next(error);
     } else {
       next();
@@ -823,8 +706,6 @@ export class OperatorNode extends Node {
         type: NodeErrorType.UNAUTHORIZED_OPERATION,
         details: `Domain not allowed to read data: ${request.sender}`,
       };
-      res.status(403);
-      res.json(error);
       next(error);
     } else {
       next();
@@ -848,8 +729,6 @@ export class OperatorNode extends Node {
             : NodeErrorType.VERIFICATION_FAILED,
         details: signatureValidationResult.errors[0].message,
       };
-      res.status(400);
-      res.json(error);
       next(error);
     } else {
       next();

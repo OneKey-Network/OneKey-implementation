@@ -22,13 +22,13 @@ hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
 7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
 -----END PRIVATE KEY-----`;
 
-const refererUrl = `https://${ClientBuilder.defaultHost}/some/page`;
-const returnUrl = `https://${ClientBuilder.defaultHost}/after/redirect`;
+const refererUrl = `https://${ClientBuilder.defaultHost}/this/is/the/referer/page`;
+const returnUrl = `https://${ClientBuilder.defaultHost}/this/is/the/return/url`;
 
 const getRestReadUrl = async (operatorClient: OperatorClient) => {
   const request = createRequest({
     headers: {
-      origin: `https://${ClientBuilder.defaultHost}/some/page`,
+      origin: refererUrl,
     },
   });
 
@@ -126,11 +126,7 @@ describe('read', () => {
     });
 
     it('should check query string', async () => {
-      const {
-        server,
-        startMock,
-        //  endMock,
-      } = await getContext();
+      const { server, startMock, endMock } = await getContext();
 
       const response = await supertest(server)
         .get(isRedirect ? '/paf/v1/redirect/get-ids-prefs' : '/paf/v1/ids-prefs')
@@ -140,18 +136,14 @@ describe('read', () => {
       assertError(response, 400, NodeErrorType.INVALID_QUERY_STRING);
 
       // Not return URL because was not parsed, fallback to referer
-      // checkRedirectUrl(response, refererUrl); // FIXME[errors] should work when catchError handles http responses
+      verifyRedirectUrl(response, refererUrl);
 
       expect(startMock).toHaveBeenCalled();
-      // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+      expect(endMock).toHaveBeenCalled();
     });
 
     it('should check permissions', async () => {
-      const {
-        server,
-        startMock,
-        //  endMock,
-      } = await getContext();
+      const { server, startMock, endMock } = await getContext();
 
       const operatorClient = new ClientBuilder().setClientHost('no-permission.com').build(defaultPublicKeyProvider);
 
@@ -161,10 +153,10 @@ describe('read', () => {
 
       assertError(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
 
-      verifyRedirectUrl(response, returnUrl);
+      verifyRedirectUrl(response, refererUrl);
 
       expect(startMock).toHaveBeenCalled();
-      // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+      expect(endMock).toHaveBeenCalled();
     });
 
     describe('should check message signature', () => {
@@ -176,22 +168,18 @@ describe('read', () => {
 
         const url = await getReadUrl(operatorClient);
 
-        const response = await supertest(server).get(url);
+        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
         assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
 
-        verifyRedirectUrl(response, returnUrl);
+        verifyRedirectUrl(response, refererUrl);
 
         expect(startMock).toHaveBeenCalled();
-        // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+        expect(endMock).toHaveBeenCalled();
       });
 
       it('for unknown signer', async () => {
-        const {
-          server,
-          startMock,
-          //  endMock,
-        } = await getContext();
+        const { server, startMock, endMock } = await getContext();
 
         const operatorClient = new ClientBuilder()
           // This client host is allowed to read, but the public key won't be found
@@ -200,14 +188,14 @@ describe('read', () => {
 
         const url = await getReadUrl(operatorClient);
 
-        const response = await supertest(server).get(url);
+        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(response, 403, NodeErrorType.UNKNOWN_SIGNER);
+        assertError(response, 502, NodeErrorType.UNKNOWN_SIGNER);
 
-        verifyRedirectUrl(response, returnUrl);
+        verifyRedirectUrl(response, refererUrl);
 
         expect(startMock).toHaveBeenCalled();
-        // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+        expect(endMock).toHaveBeenCalled();
       });
     });
 
@@ -218,15 +206,17 @@ describe('read', () => {
 
       const url = await getReadUrl(operatorClient);
 
+      // Notice no referer and origin are set
       const response = await supertest(server).get(url);
 
-      // FIXME[errors] should be a specific error type
-      assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
-
-      verifyRedirectUrl(response, returnUrl);
+      // Notice: here we can't redirect because we can't trust the return URL, and there is no referer value set
+      // So the response will be the same for REST and redirect
+      // Notice assertRestError
+      assertRestError(response, 403, NodeErrorType.VERIFICATION_FAILED); // FIXME[errors] should be a specific error type, not VERIFICATION_FAILED
+      // Notice no call to verifyRedirectUrl
 
       expect(startMock).toHaveBeenCalled();
-      // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+      expect(endMock).toHaveBeenCalled();
     });
 
     if (isRedirect) {
@@ -246,7 +236,7 @@ describe('read', () => {
         verifyRedirectUrl(response, refererUrl);
 
         expect(startMock).toHaveBeenCalled();
-        // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+        expect(endMock).toHaveBeenCalled();
       });
 
       it('should timeout', async () => {
@@ -265,13 +255,13 @@ describe('read', () => {
 
         const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(response, 504, NodeErrorType.RESPONSE_TIMEOUT);
+        assertError(response, 503, NodeErrorType.RESPONSE_TIMEOUT);
 
         // Notice: redirects to referer
         verifyRedirectUrl(response, refererUrl);
 
         expect(startMock).toHaveBeenCalled();
-        // expect(endSpan).toHaveBeenCalled(); //FIXME[errors] should work when catchError handles http responses
+        expect(endMock).toHaveBeenCalled();
       });
     }
 

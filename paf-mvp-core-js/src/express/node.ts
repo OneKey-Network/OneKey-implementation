@@ -5,18 +5,18 @@ import { GetIdentityResponseBuilder } from '@core/model';
 import { participantEndpoints } from '@core/endpoints';
 import cors from 'cors';
 import {
-  buildErrorRedirectUrl,
   corsOptionsAcceptAll,
   getPafDataFromQueryString,
   httpRedirect,
   isValidHttpUrl,
+  setInQueryString,
 } from '@core/express/utils';
 import { IdentityConfig } from '@core/express/config';
 import { NodeError, NodeErrorType } from '@core/errors';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response as ExpressResponse } from 'express';
 import { IJsonValidator, JsonSchemaType } from '@core/validation/json-validator';
 import { decodeBase64, QSParam } from '@core/query-string';
-import { RedirectRequest } from '@core/model/model';
+import { RedirectErrorResponse, RedirectRequest } from '@core/model/model';
 
 export interface INode {
   app: VHostApp;
@@ -25,6 +25,14 @@ export interface INode {
    * Setup resources and routes
    */
   setup(): Promise<void>;
+}
+
+export interface ResponseLocals {
+  returnUrl?: string;
+}
+
+export interface Response extends ExpressResponse {
+  locals: ResponseLocals;
 }
 
 export interface EndpointConfiguration {
@@ -152,39 +160,79 @@ export class Node implements INode {
     this.logger.Info(`${endPointName} - END`);
   };
 
-  redirectWithError = (res: Response, url: string, httpCode: number, error: NodeError): void => {
-    try {
-      this.logger.Info(`redirecting to ${url} ...`);
-      const redirectURL = buildErrorRedirectUrl(new URL(url), httpCode, error);
-      httpRedirect(res, redirectURL.toString());
-    } catch (e) {
-      this.logger.Error(e);
-    }
-  };
-
   catchErrors =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (err: unknown, req: Request, res: Response, next: NextFunction) => {
-      const { endPointName } = this.getRequestConfig(req);
-      // TODO next step: define a common logging format for errors (on 1 line), usable for monitoring
-      this.logger.Error(endPointName, err);
+    (error: unknown, req: Request, res: Response, next: NextFunction) => {
+      const { endPointName, isRedirect } = this.getRequestConfig(req);
 
-      // In case of timeout redirect to referer ...
-      if ((err as Error).message === 'Response timeout') {
-        // FIXME[errors] only in case of redirect
-        const error: NodeError = {
+      this.logger.Error(endPointName, error);
+
+      let typedError: NodeError;
+
+      // Map miscellaneous types of error
+      if ((error as Error).message === 'Response timeout') {
+        // timeout() middleware triggers this kind of errors
+        typedError = {
           type: NodeErrorType.RESPONSE_TIMEOUT,
-          details: (err as Error).message,
+          details: 'The request could not be processed on time',
         };
-        this.redirectWithError(res, req.header('referer'), 504, error);
-      } else if ((err as NodeError).type) {
-        res.status(500); // FIXME[errors] should have a dedicated error code per error type
-        res.send(err);
+      } else if ((error as NodeError).type) {
+        // Already a properly typed error
+        typedError = error as NodeError;
       } else {
-        // Unknown error => our fault
-        res.status(500);
-        res.send();
+        // Another type of exception
+        typedError = {
+          type: NodeErrorType.UNKNOWN_ERROR,
+          details: '', // Security: don't give details about the exception to the outside world
+        };
       }
+
+      // Associate an HTTP code to each type of error
+      let httpCode = 500; // By default, it's our fault => 500 Internal Server Error
+
+      switch (typedError.type) {
+        case NodeErrorType.INVALID_RETURN_URL:
+        case NodeErrorType.INVALID_QUERY_STRING:
+        case NodeErrorType.INVALID_ORIGIN:
+        case NodeErrorType.INVALID_REFERER:
+        case NodeErrorType.INVALID_JSON_BODY:
+          httpCode = 400; // Bad Request
+          break;
+        case NodeErrorType.VERIFICATION_FAILED:
+        case NodeErrorType.UNAUTHORIZED_OPERATION:
+          httpCode = 403; // Forbidden
+          break;
+        case NodeErrorType.UNKNOWN_SIGNER:
+          httpCode = 502; // Bad gateway
+          break;
+        case NodeErrorType.RESPONSE_TIMEOUT:
+          httpCode = 503; // Service Unavailable
+          break;
+        case NodeErrorType.UNKNOWN_ERROR:
+          httpCode = 500; // Internal Server Error
+          break;
+      }
+
+      // Now send the appropriate response
+      if (isRedirect) {
+        // Best case, we can redirect to the provided returnUrl. Worst case, we redirect to the referer
+
+        // This would have been set by this.checkReturnUrl
+        const returnUrl = (res.locals as ResponseLocals).returnUrl;
+        const rootRedirectUrl = returnUrl ?? req.header('referer');
+
+        if (rootRedirectUrl !== undefined) {
+          const redirectURL = this.buildErrorRedirectUrl(new URL(rootRedirectUrl), httpCode, typedError);
+          httpRedirect(res, redirectURL.toString());
+          next();
+          return;
+        }
+
+        // As a fallback if no return URL and no referer, the error will be returned in JSON
+      }
+
+      res.status(httpCode);
+      res.send(typedError);
 
       // This is the last error handling in the chain => we do not forward to another error handler with next(error)
       next();
@@ -204,8 +252,6 @@ export class Node implements INode {
         type: NodeErrorType.INVALID_JSON_BODY,
         details,
       };
-      res.status(400);
-      res.json(error);
       next(error);
     } else {
       next();
@@ -220,20 +266,16 @@ export class Node implements INode {
     const { isRedirect, jsonSchemaName } = this.getRequestConfig(req);
     const data = req.query[QSParam.paf] as string | undefined;
     const decodedData = data ? decodeBase64(data) : undefined;
+
     if (!decodedData) {
       const error: NodeError = {
         type: NodeErrorType.INVALID_QUERY_STRING,
         details: `Received Query string: '${data}' is not a valid Base64 string`,
       };
-      if (isRedirect) {
-        this.redirectWithError(res, req.header('referer'), 400, error);
-      } else {
-        res.status(400);
-        res.json(error);
-      }
       next(error);
       return;
     }
+
     try {
       const validation = this.jsonValidator.validate(jsonSchemaName, decodedData);
       if (!validation.isValid) {
@@ -242,22 +284,13 @@ export class Node implements INode {
           type: NodeErrorType.INVALID_QUERY_STRING,
           details,
         };
-        if (isRedirect) {
-          const redirectURL = buildErrorRedirectUrl(new URL(req.header('referer')), 400, error);
-          httpRedirect(res, redirectURL.toString());
-        } else {
-          res.status(400);
-          res.json(error);
-        }
         next(error);
       } else {
         next();
       }
-    } catch (error) {
-      next({
-        type: NodeErrorType.UNKNOWN_ERROR,
-        details: '', // FIXME[errors]
-      });
+    } catch (e) {
+      // FIXME[errors] this would be automatic with ExpressJS 5, will remove the try / catch
+      next(e);
     }
   };
 
@@ -273,10 +306,20 @@ export class Node implements INode {
         type: NodeErrorType.INVALID_RETURN_URL,
         details: `Specified returnUrl '${returnUrl}' is not a valid url`,
       };
-      this.redirectWithError(res, req.header('referer'), 400, error);
       next(error);
     } else {
+      // Save returnURL for next handlers.
+      // Note: this can only be considered safe now that the signature was validated, and we can trust the sender.
+      // To avoid "open redirects" (see https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html)
+      res.locals.returnUrl = returnUrl;
+
       next();
     }
   };
+
+  protected buildErrorRedirectUrl(url: URL, httpCode: number, error: NodeError): URL {
+    // FIXME[errors] should update Error in generated-model.ts to match NodeError. As it is, this message is not valid with the specs
+    const errorResponse: RedirectErrorResponse = { code: httpCode, error: error };
+    return setInQueryString(url, errorResponse);
+  }
 }
