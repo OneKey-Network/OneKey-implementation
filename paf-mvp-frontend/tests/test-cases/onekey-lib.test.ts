@@ -16,7 +16,6 @@ import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.se
 import { HttpService } from '@frontend/services/http.service';
 import { ISeedStorageService } from '@frontend/services/seed-storage.service';
 import { DEFAULT_TTL_IN_SECONDS, MAXIMUM_TTL_IN_SECONDS } from '@frontend/utils/cookie';
-import { Browser } from 'detect-browser';
 
 jest.mock('@core/user-agent');
 const mockedIsBrowserKnownToSupport3PC = jest.mocked(isBrowserKnownToSupport3PC, true);
@@ -320,7 +319,8 @@ describe('Function refreshIdsAndPreferences', () => {
             }), // Actual call to the operator
             'operatorURLCheck3PC', // Call to the proxy to get the operator URL
             JSON.stringify(<Error>{
-              message: 'No 3PC supported',
+              type: '3PC_NOT_SUPPORTED',
+              details: 'No 3PC supported',
             }) // Actual call to the operator
           );
         });

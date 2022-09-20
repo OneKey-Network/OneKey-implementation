@@ -2,7 +2,6 @@ import { OperatorNode } from '@operator/operator-node';
 import { createResponse, MockResponse } from 'node-mocks-http';
 import { NextFunction, Response } from 'express';
 import { OperatorUtils } from '../utils/operator-utils';
-import { NodeErrorType } from '@core/errors';
 
 describe('Write permission Handler', () => {
   let response: MockResponse<Response>;
@@ -55,7 +54,7 @@ describe('Write permission Handler', () => {
 
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
     operatorNode.checkWritePermission(input.request, response, nextFunction);
-    expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
+    expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: 'UNAUTHORIZED_OPERATION' }));
   });
 
   const successCases = [
@@ -127,7 +126,7 @@ describe('Delete permission Handler', () => {
 
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
     operatorNode.checkDeletePermission(input.request, response, nextFunction);
-    expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
+    expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: 'UNAUTHORIZED_OPERATION' }));
   });
 
   const successCases = [

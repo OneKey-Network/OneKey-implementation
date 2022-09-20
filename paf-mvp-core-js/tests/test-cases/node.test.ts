@@ -2,7 +2,7 @@ import { IJsonValidator, JsonSchemaType, JsonValidation } from '@core/validation
 import { EndpointConfiguration, IdentityConfig, Node } from '@core/express';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { NextFunction, Request, Response } from 'express';
-import { NodeError, NodeErrorType } from '@core/errors';
+import { NodeError } from '@core/model';
 import { getTimeStampInSec } from '@core/timestamp';
 import { encodeBase64, QSParam } from '@core/query-string';
 
@@ -72,7 +72,7 @@ describe('Json body validator handler', () => {
     expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
 
     const expectedError: NodeError = {
-      type: NodeErrorType.INVALID_JSON_BODY,
+      type: 'INVALID_JSON_BODY',
       details: 'error message from validator',
     };
     expect(nextFunction).toBeCalledWith(expectedError);
@@ -131,7 +131,7 @@ describe('Query string validator handler', () => {
 
       node.checkQueryString(request, response, nextFunction);
       const expectedError: NodeError = {
-        type: NodeErrorType.INVALID_QUERY_STRING,
+        type: 'INVALID_QUERY_STRING',
         details: input.expected_error,
       };
       expect(nextFunction).toBeCalledWith(expectedError);
@@ -189,7 +189,7 @@ describe('Return URL validation handler', () => {
         url: targetUrl.toString(),
       });
       node.checkReturnUrl(request, response, nextFunction);
-      expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.INVALID_RETURN_URL }));
+      expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: 'INVALID_RETURN_URL' }));
     }
   );
 

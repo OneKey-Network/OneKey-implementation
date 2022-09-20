@@ -42,6 +42,7 @@ import {
   Identifier,
   Identifiers,
   IdsAndPreferences,
+  NodeError,
   PostIdsPrefsRequest,
   PostIdsPrefsResponse,
   PostIdsPrefsResponseBuilder,
@@ -54,7 +55,6 @@ import {
 import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
 import { getTimeStampInSec } from '@core/timestamp';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
-import { NodeError, NodeErrorType } from '@core/errors';
 import { IJsonValidator, JsonSchemaType, JsonValidator } from '@core/validation/json-validator';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import timeout from 'connect-timeout';
@@ -458,9 +458,7 @@ export class OperatorNode extends Node {
     } else {
       const error: NodeError = {
         type:
-          validationResult.errors[0] instanceof UnableToIdentifySignerError
-            ? NodeErrorType.UNKNOWN_SIGNER
-            : NodeErrorType.VERIFICATION_FAILED,
+          validationResult.errors[0] instanceof UnableToIdentifySignerError ? 'UNKNOWN_SIGNER' : 'VERIFICATION_FAILED',
         details: validationResult.errors[0].message,
       };
       next(error);
@@ -480,8 +478,8 @@ export class OperatorNode extends Node {
       const error: NodeError = {
         type:
           requestValidationResult.errors[0] instanceof UnableToIdentifySignerError
-            ? NodeErrorType.UNKNOWN_SIGNER
-            : NodeErrorType.VERIFICATION_FAILED,
+            ? 'UNKNOWN_SIGNER'
+            : 'VERIFICATION_FAILED',
         details: requestValidationResult.errors[0].message,
       };
       next(error);
@@ -502,8 +500,8 @@ export class OperatorNode extends Node {
       const error: NodeError = {
         type:
           signatureValidationResult.errors[0] instanceof UnableToIdentifySignerError
-            ? NodeErrorType.UNKNOWN_SIGNER
-            : NodeErrorType.VERIFICATION_FAILED,
+            ? 'UNKNOWN_SIGNER'
+            : 'VERIFICATION_FAILED',
         details: signatureValidationResult.errors[0].message,
       };
 
@@ -569,7 +567,7 @@ export class OperatorNode extends Node {
     const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
     if (!haveWritePermission) {
       const error: NodeError = {
-        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        type: 'UNAUTHORIZED_OPERATION',
         details: `Domain not allowed to write data: ${request.sender}`,
       };
       next(error);
@@ -591,7 +589,7 @@ export class OperatorNode extends Node {
     const haveWritePermission = this.checkPermission(request.sender, Permission.WRITE);
     if (!haveWritePermission) {
       const error: NodeError = {
-        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        type: 'UNAUTHORIZED_OPERATION',
         details: `Domain not allowed to delete data: ${request.sender}`,
       };
       next(error);
@@ -688,7 +686,7 @@ export class OperatorNode extends Node {
     const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
     if (!haveReadPermission) {
       const error: NodeError = {
-        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        type: 'UNAUTHORIZED_OPERATION',
         details: `Domain not allowed to read data: ${request.sender}`,
       };
       next(error);
@@ -703,7 +701,7 @@ export class OperatorNode extends Node {
     const haveReadPermission = this.checkPermission(request.sender, Permission.READ);
     if (!haveReadPermission) {
       const error: NodeError = {
-        type: NodeErrorType.UNAUTHORIZED_OPERATION,
+        type: 'UNAUTHORIZED_OPERATION',
         details: `Domain not allowed to read data: ${request.sender}`,
       };
       next(error);
@@ -725,8 +723,8 @@ export class OperatorNode extends Node {
       const error: NodeError = {
         type:
           signatureValidationResult.errors[0] instanceof UnableToIdentifySignerError
-            ? NodeErrorType.UNKNOWN_SIGNER
-            : NodeErrorType.VERIFICATION_FAILED,
+            ? 'UNKNOWN_SIGNER'
+            : 'VERIFICATION_FAILED',
         details: signatureValidationResult.errors[0].message,
       };
       next(error);

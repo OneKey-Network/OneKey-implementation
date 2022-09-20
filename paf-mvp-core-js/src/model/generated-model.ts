@@ -245,9 +245,26 @@ export interface IdsAndOptionalPreferences {
  */
 export interface Error {
   /**
-   * The error message
+   * The type of error
    */
-  message: string;
+  type: (
+    | 'INVALID_QUERY_STRING'
+    | 'INVALID_RETURN_URL'
+    | 'INVALID_JSON_BODY'
+    | 'INVALID_ORIGIN'
+    | 'INVALID_REFERER'
+    | 'UNAUTHORIZED_OPERATION'
+    | 'UNKNOWN_SIGNER'
+    | 'VERIFICATION_FAILED'
+    | 'RESPONSE_TIMEOUT'
+    | '3PC_NOT_SUPPORTED'
+    | 'UNKNOWN_ERROR'
+  ) &
+    string;
+  /**
+   * An optional more detailed description of the error
+   */
+  details?: string;
 }
 /**
  * GET /v1/3pc response
@@ -288,7 +305,7 @@ export interface GetIdentityResponse {
    */
   keys: {
     /**
-     * Public key string value
+     * Public key string value in PEM format
      */
     key: string;
     start: Timestamp;

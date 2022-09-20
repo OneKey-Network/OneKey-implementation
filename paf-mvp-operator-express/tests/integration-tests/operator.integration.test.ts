@@ -9,7 +9,6 @@ import { Express } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
 import { IJsonValidator, JsonValidator } from '@core/validation/json-validator';
-import { NodeErrorType } from '@core/errors';
 import { ClientBuilder } from '../utils/client-utils';
 import { OperatorClient } from '@client/operator-client';
 import { UnableToIdentifySignerError } from '@core/express/errors';
@@ -116,7 +115,7 @@ describe('read', () => {
 
       const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-      assertError(response, 500, NodeErrorType.UNKNOWN_ERROR);
+      assertError(response, 500, 'UNKNOWN_ERROR');
 
       // Not return URL because was not parsed, fallback to referer
       verifyRedirectUrl(response, refererUrl);
@@ -133,7 +132,7 @@ describe('read', () => {
         .set('referer', refererUrl)
         .set('Origin', refererUrl);
 
-      assertError(response, 400, NodeErrorType.INVALID_QUERY_STRING);
+      assertError(response, 400, 'INVALID_QUERY_STRING');
 
       // Not return URL because was not parsed, fallback to referer
       verifyRedirectUrl(response, refererUrl);
@@ -151,7 +150,7 @@ describe('read', () => {
 
       const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-      assertError(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
+      assertError(response, 403, 'UNAUTHORIZED_OPERATION');
 
       verifyRedirectUrl(response, refererUrl);
 
@@ -170,7 +169,7 @@ describe('read', () => {
 
         const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
+        assertError(response, 403, 'VERIFICATION_FAILED');
 
         verifyRedirectUrl(response, refererUrl);
 
@@ -190,7 +189,7 @@ describe('read', () => {
 
         const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(response, 502, NodeErrorType.UNKNOWN_SIGNER);
+        assertError(response, 502, 'UNKNOWN_SIGNER');
 
         verifyRedirectUrl(response, refererUrl);
 
@@ -212,7 +211,7 @@ describe('read', () => {
       // Notice: here we can't redirect because we can't trust the return URL, and there is no referer value set
       // So the response will be the same for REST and redirect
       // Notice assertRestError
-      assertRestError(response, 403, NodeErrorType.VERIFICATION_FAILED); // FIXME[errors] should be a specific error type, not VERIFICATION_FAILED
+      assertRestError(response, 403, 'VERIFICATION_FAILED'); // FIXME[errors] should be a specific error type, not VERIFICATION_FAILED
       // Notice no call to verifyRedirectUrl
 
       expect(startMock).toHaveBeenCalled();
@@ -230,7 +229,7 @@ describe('read', () => {
 
         const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(response, 400, NodeErrorType.INVALID_RETURN_URL);
+        assertError(response, 400, 'INVALID_RETURN_URL');
 
         // Notice: redirects to referer
         verifyRedirectUrl(response, refererUrl);
@@ -255,7 +254,7 @@ describe('read', () => {
 
         const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
 
-        assertError(response, 503, NodeErrorType.RESPONSE_TIMEOUT);
+        assertError(response, 503, 'RESPONSE_TIMEOUT');
 
         // Notice: redirects to referer
         verifyRedirectUrl(response, refererUrl);

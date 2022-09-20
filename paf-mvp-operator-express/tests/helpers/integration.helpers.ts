@@ -1,8 +1,6 @@
-import { NodeError, NodeErrorType } from '@core/errors';
+import { Error, NodeError, RedirectErrorResponse, ResponseCode } from '@core/model';
 import request from 'supertest';
 import { fromDataToObject, QSParam } from '@core/query-string';
-import { RedirectErrorResponse } from '@core/model/model';
-import { Error, ResponseCode } from '@core/model';
 
 export const getRedirectUrl = (response: request.Response) => {
   return new URL(response.header['location']);
@@ -10,7 +8,7 @@ export const getRedirectUrl = (response: request.Response) => {
 
 export const removeQueryString = (url: URL) => `${url.protocol}//${url.host}${url.pathname}`;
 
-export const assertRestError = (response: request.Response, status: number, type: NodeErrorType) => {
+export const assertRestError = (response: request.Response, status: number, type: string) => {
   expect(response.status).toEqual(status);
   const error = response.body as NodeError;
   expect(error.type).toEqual(type);
@@ -25,7 +23,7 @@ export const getRedirectResponse = <T extends { code: ResponseCode; error?: Erro
   return fromDataToObject<T>(redirectUrl.searchParams.get(QSParam.paf));
 };
 
-export const assertRedirectError = (response: request.Response, status: number, type: NodeErrorType) => {
+export const assertRedirectError = (response: request.Response, status: number, type: string) => {
   const data = getRedirectResponse<RedirectErrorResponse>(response);
 
   expect(data.code).toEqual(status);

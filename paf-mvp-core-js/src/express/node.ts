@@ -1,7 +1,7 @@
 import { Log } from '@core/log';
 import { PublicKeyProvider } from '@core/crypto';
 import { VHostApp } from '@core/express/express-apps';
-import { GetIdentityResponseBuilder } from '@core/model';
+import { GetIdentityResponseBuilder, NodeError, RedirectErrorResponse, RedirectRequest } from '@core/model';
 import { participantEndpoints } from '@core/endpoints';
 import cors from 'cors';
 import {
@@ -12,11 +12,9 @@ import {
   setInQueryString,
 } from '@core/express/utils';
 import { IdentityConfig } from '@core/express/config';
-import { NodeError, NodeErrorType } from '@core/errors';
 import { NextFunction, Request, Response as ExpressResponse } from 'express';
 import { IJsonValidator, JsonSchemaType } from '@core/validation/json-validator';
 import { decodeBase64, QSParam } from '@core/query-string';
-import { RedirectErrorResponse, RedirectRequest } from '@core/model/model';
 
 export interface INode {
   app: VHostApp;
@@ -173,7 +171,7 @@ export class Node implements INode {
       if ((error as Error).message === 'Response timeout') {
         // timeout() middleware triggers this kind of errors
         typedError = {
-          type: NodeErrorType.RESPONSE_TIMEOUT,
+          type: 'RESPONSE_TIMEOUT',
           details: 'The request could not be processed on time',
         };
       } else if ((error as NodeError).type) {
@@ -182,7 +180,7 @@ export class Node implements INode {
       } else {
         // Another type of exception
         typedError = {
-          type: NodeErrorType.UNKNOWN_ERROR,
+          type: 'UNKNOWN_ERROR',
           details: '', // Security: don't give details about the exception to the outside world
         };
       }
@@ -191,24 +189,24 @@ export class Node implements INode {
       let httpCode = 500; // By default, it's our fault => 500 Internal Server Error
 
       switch (typedError.type) {
-        case NodeErrorType.INVALID_RETURN_URL:
-        case NodeErrorType.INVALID_QUERY_STRING:
-        case NodeErrorType.INVALID_ORIGIN:
-        case NodeErrorType.INVALID_REFERER:
-        case NodeErrorType.INVALID_JSON_BODY:
+        case 'INVALID_RETURN_URL':
+        case 'INVALID_QUERY_STRING':
+        case 'INVALID_ORIGIN':
+        case 'INVALID_REFERER':
+        case 'INVALID_JSON_BODY':
           httpCode = 400; // Bad Request
           break;
-        case NodeErrorType.VERIFICATION_FAILED:
-        case NodeErrorType.UNAUTHORIZED_OPERATION:
+        case 'VERIFICATION_FAILED':
+        case 'UNAUTHORIZED_OPERATION':
           httpCode = 403; // Forbidden
           break;
-        case NodeErrorType.UNKNOWN_SIGNER:
+        case 'UNKNOWN_SIGNER':
           httpCode = 502; // Bad gateway
           break;
-        case NodeErrorType.RESPONSE_TIMEOUT:
+        case 'RESPONSE_TIMEOUT':
           httpCode = 503; // Service Unavailable
           break;
-        case NodeErrorType.UNKNOWN_ERROR:
+        case 'UNKNOWN_ERROR':
           httpCode = 500; // Internal Server Error
           break;
       }
@@ -249,7 +247,7 @@ export class Node implements INode {
     if (!validation.isValid) {
       const details = validation.errors.map((e) => e.message).join(' - ');
       const error: NodeError = {
-        type: NodeErrorType.INVALID_JSON_BODY,
+        type: 'INVALID_JSON_BODY',
         details,
       };
       next(error);
@@ -269,7 +267,7 @@ export class Node implements INode {
 
     if (!decodedData) {
       const error: NodeError = {
-        type: NodeErrorType.INVALID_QUERY_STRING,
+        type: 'INVALID_QUERY_STRING',
         details: `Received Query string: '${data}' is not a valid Base64 string`,
       };
       next(error);
@@ -281,7 +279,7 @@ export class Node implements INode {
       if (!validation.isValid) {
         const details = validation.errors.map((e) => e.message).join(' - ');
         const error: NodeError = {
-          type: NodeErrorType.INVALID_QUERY_STRING,
+          type: 'INVALID_QUERY_STRING',
           details,
         };
         next(error);
@@ -303,7 +301,7 @@ export class Node implements INode {
     // check if return url is a valid http/https url
     if (!isValidHttpUrl(returnUrl)) {
       const error: NodeError = {
-        type: NodeErrorType.INVALID_RETURN_URL,
+        type: 'INVALID_RETURN_URL',
         details: `Specified returnUrl '${returnUrl}' is not a valid url`,
       };
       next(error);

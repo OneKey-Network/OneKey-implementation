@@ -1,3 +1,3 @@
 export * from './operator-node';
 export * from '@core/express';
-export * from '@core/errors';
+export * from '@core/model';
