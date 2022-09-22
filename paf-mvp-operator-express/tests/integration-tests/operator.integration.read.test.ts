@@ -14,20 +14,12 @@ import { OperatorClient } from '@client/operator-client';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import { GetIdsPrefsResponse, RedirectGetIdsPrefsResponse } from '@core/model';
 import { createRequest } from 'node-mocks-http';
-
-const specificPrivateKey = `-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiDfb74JY+vBjdEmr
-hScLNr4U4Wrp4dKKMm0Z/+h3OnahRANCAARqwDtVwGtTx+zY/5njGZxnxuGePdAq
-7fKlkuHOKtwM/AJ6oBTJ7+l3rY5ffNJZkVBB3Pt9H3cHO3Bztmh1h7xR
------END PRIVATE KEY-----`;
-
-const refererUrl = `https://${ClientBuilder.defaultHost}/this/is/the/referer/page`;
-const returnUrl = `https://${ClientBuilder.defaultHost}/this/is/the/return/url`;
+import { randomPrivateKey, defaultRefererUrl, defaultReturnUrl } from '../utils/constants';
 
 const getRestReadUrl = async (operatorClient: OperatorClient) => {
   const request = createRequest({
     headers: {
-      origin: refererUrl,
+      origin: defaultRefererUrl,
     },
   });
 
@@ -36,10 +28,10 @@ const getRestReadUrl = async (operatorClient: OperatorClient) => {
   return fullUrl.replace(/^https?:\/\/[^/]+/i, '');
 };
 
-const getRedirectReadUrl = async (operatorClient: OperatorClient, specificReturnUrl = returnUrl) => {
+const getRedirectReadUrl = async (operatorClient: OperatorClient, specificReturnUrl = defaultReturnUrl) => {
   const request = createRequest({
     headers: {
-      referer: refererUrl,
+      referer: defaultRefererUrl,
     },
     query: {
       returnUrl: specificReturnUrl,
@@ -91,13 +83,6 @@ describe('read', () => {
     const getReadUrl = isRedirect ? getRedirectReadUrl : getRestReadUrl;
     const assertError = isRedirect ? assertRedirectError : assertRestError;
 
-    // Verify the redirect URL is the expected one, in case of redirect endpoint
-    const verifyRedirectUrl = isRedirect
-      ? (response: supertest.Response, url: string) => expect(removeQueryString(getRedirectUrl(response))).toEqual(url)
-      : () => {
-          // Nothing to verify in case of REST call
-        };
-
     it('should fallback to unknown error in case of an exception', async () => {
       // Note that the operator node is not start()ed
       const exceptionValidator = {
@@ -113,12 +98,17 @@ describe('read', () => {
 
       const url = await getReadUrl(operatorClient);
 
-      const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+      const response = await supertest(server)
+        .get(url)
+        .set('referer', defaultRefererUrl)
+        .set('Origin', defaultRefererUrl);
 
       assertError(response, 500, 'UNKNOWN_ERROR');
 
       // Not return URL because was not parsed, fallback to referer
-      verifyRedirectUrl(response, refererUrl);
+      if (isRedirect) {
+        expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
+      }
 
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
@@ -129,13 +119,15 @@ describe('read', () => {
 
       const response = await supertest(server)
         .get(isRedirect ? '/paf/v1/redirect/get-ids-prefs' : '/paf/v1/ids-prefs')
-        .set('referer', refererUrl)
-        .set('Origin', refererUrl);
+        .set('referer', defaultRefererUrl)
+        .set('Origin', defaultRefererUrl);
 
       assertError(response, 400, 'INVALID_QUERY_STRING');
 
       // Not return URL because was not parsed, fallback to referer
-      verifyRedirectUrl(response, refererUrl);
+      if (isRedirect) {
+        expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
+      }
 
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
@@ -148,11 +140,16 @@ describe('read', () => {
 
       const url = await getReadUrl(operatorClient);
 
-      const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+      const response = await supertest(server)
+        .get(url)
+        .set('referer', defaultRefererUrl)
+        .set('Origin', defaultRefererUrl);
 
       assertError(response, 403, 'UNAUTHORIZED_OPERATION');
 
-      verifyRedirectUrl(response, refererUrl);
+      if (isRedirect) {
+        expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
+      }
 
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
@@ -162,16 +159,21 @@ describe('read', () => {
       it('for wrong signature', async () => {
         const { server, startMock, endMock } = await getContext();
         const operatorClient = new ClientBuilder()
-          .setClientPrivateKey(specificPrivateKey)
+          .setClientPrivateKey(randomPrivateKey)
           .build(defaultPublicKeyProvider);
 
         const url = await getReadUrl(operatorClient);
 
-        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+        const response = await supertest(server)
+          .get(url)
+          .set('referer', defaultRefererUrl)
+          .set('Origin', defaultRefererUrl);
 
         assertError(response, 403, 'VERIFICATION_FAILED');
 
-        verifyRedirectUrl(response, refererUrl);
+        if (isRedirect) {
+          expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
+        }
 
         expect(startMock).toHaveBeenCalled();
         expect(endMock).toHaveBeenCalled();
@@ -187,11 +189,16 @@ describe('read', () => {
 
         const url = await getReadUrl(operatorClient);
 
-        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+        const response = await supertest(server)
+          .get(url)
+          .set('referer', defaultRefererUrl)
+          .set('Origin', defaultRefererUrl);
 
         assertError(response, 502, 'UNKNOWN_SIGNER');
 
-        verifyRedirectUrl(response, refererUrl);
+        if (isRedirect) {
+          expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
+        }
 
         expect(startMock).toHaveBeenCalled();
         expect(endMock).toHaveBeenCalled();
@@ -227,12 +234,17 @@ describe('read', () => {
         // Set an invalid return url
         const url = await getRedirectReadUrl(operatorClient, 'ftp://ftp-not-permitted.com');
 
-        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+        const response = await supertest(server)
+          .get(url)
+          .set('referer', defaultRefererUrl)
+          .set('Origin', defaultRefererUrl);
 
         assertError(response, 400, 'INVALID_RETURN_URL');
 
         // Notice: redirects to referer
-        verifyRedirectUrl(response, refererUrl);
+        if (isRedirect) {
+          expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
+        }
 
         expect(startMock).toHaveBeenCalled();
         expect(endMock).toHaveBeenCalled();
@@ -252,12 +264,17 @@ describe('read', () => {
         // Set an invalid return url
         const url = await getRedirectReadUrl(operatorClient);
 
-        const response = await supertest(server).get(url).set('referer', refererUrl).set('Origin', refererUrl);
+        const response = await supertest(server)
+          .get(url)
+          .set('referer', defaultRefererUrl)
+          .set('Origin', defaultRefererUrl);
 
         assertError(response, 503, 'RESPONSE_TIMEOUT');
 
         // Notice: redirects to referer
-        verifyRedirectUrl(response, refererUrl);
+        if (isRedirect) {
+          expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
+        }
 
         expect(startMock).toHaveBeenCalled();
         expect(endMock).toHaveBeenCalled();
@@ -289,8 +306,8 @@ describe('read', () => {
 
       const request = supertest(server)
         .get(url)
-        .set('referer', refererUrl)
-        .set('Origin', refererUrl)
+        .set('referer', defaultRefererUrl)
+        .set('Origin', defaultRefererUrl)
         .set(
           'Cookie',
           Object.keys(existingData ?? []).map((key) => `${key}=${existingData[key]}`)
@@ -324,7 +341,9 @@ describe('read', () => {
         expect(data.body.identifiers[0].persisted).toEqual(false);
       }
 
-      verifyRedirectUrl(response, returnUrl);
+      if (isRedirect) {
+        expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultReturnUrl);
+      }
 
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
