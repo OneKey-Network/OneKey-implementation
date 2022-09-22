@@ -429,7 +429,7 @@ export class OperatorNode extends Node {
     const sender = request.sender;
     removeCookie(null, res, Cookies.identifiers, { domain: this.topLevelDomain });
     removeCookie(null, res, Cookies.preferences, { domain: this.topLevelDomain });
-    res.status(204);
+    res.status(200);
     return this.deleteIdsPrefsResponseBuilder.buildResponse(sender);
   }
 
