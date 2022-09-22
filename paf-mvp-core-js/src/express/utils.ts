@@ -53,7 +53,7 @@ export const setInQueryString = <T>(url: URL, requestOrResponse: T): URL => {
 export const isValidHttpUrl = (urlString: string) => {
   try {
     const url = new URL(urlString);
-    return url.protocol === 'http:' || url.protocol === 'https:';
+    return url.protocol === 'https:';
   } catch (_) {
     return false;
   }

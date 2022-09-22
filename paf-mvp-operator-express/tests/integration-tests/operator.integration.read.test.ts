@@ -14,7 +14,8 @@ import { OperatorClient } from '@client/operator-client';
 import { UnableToIdentifySignerError } from '@core/express/errors';
 import { GetIdsPrefsResponse, RedirectGetIdsPrefsResponse } from '@core/model';
 import { createRequest } from 'node-mocks-http';
-import { randomPrivateKey, defaultRefererUrl, defaultReturnUrl } from '../utils/constants';
+import { defaultRefererUrl, defaultReturnUrl, randomPrivateKey } from '../utils/constants';
+import { invalidUrls } from '../fixtures/operator-fixtures';
 
 const getRestReadUrl = async (operatorClient: OperatorClient) => {
   const request = createRequest({
@@ -226,16 +227,16 @@ describe('read', () => {
     });
 
     if (isRedirect) {
-      it('should check return url', async () => {
+      it.each(invalidUrls)('should refuse $name as return url', async ({ url }) => {
         const { server, startMock, endMock } = await getContext();
 
         const operatorClient = new ClientBuilder().build(defaultPublicKeyProvider);
 
         // Set an invalid return url
-        const url = await getRedirectReadUrl(operatorClient, 'ftp://ftp-not-permitted.com');
+        const operatorUrl = await getRedirectReadUrl(operatorClient, url);
 
         const response = await supertest(server)
-          .get(url)
+          .get(operatorUrl)
           .set('referer', defaultRefererUrl)
           .set('Origin', defaultRefererUrl);
 
@@ -251,8 +252,8 @@ describe('read', () => {
       });
 
       it('should timeout', async () => {
-        const endlessPublicKeyProvider = (host: string): Promise<string> => {
-          return new Promise((resolve, reject) => {
+        const endlessPublicKeyProvider = (): Promise<string> => {
+          return new Promise(() => {
             // do not call resolve or reject
           });
         };
