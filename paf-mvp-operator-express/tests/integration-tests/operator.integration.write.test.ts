@@ -14,7 +14,7 @@ import {
   removeQueryString,
 } from '../helpers/integration.helpers';
 import { defaultRefererUrl, defaultReturnUrl, randomPrivateKey } from '../utils/constants';
-import { id, preferences } from '../fixtures/operator-fixtures';
+import { id, invalidUrls, preferences } from '../fixtures/operator-fixtures';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MockExpressRequest = require('mock-express-request');
@@ -232,16 +232,16 @@ describe('write', () => {
       expect(endMock).toHaveBeenCalled();
     });
     if (isRedirect) {
-      it('should check return url', async () => {
+      it.each(invalidUrls)('should refuse $name as return url', async ({ url }) => {
         const { server, startMock, endMock } = await getContext();
 
         const operatorClient = new ClientBuilder().build(publicKeyProvider);
 
         // Set an invalid return url
-        const url = await getRedirectWriteUrl(operatorClient, 'ftp://ftp-not-permitted.com');
+        const operatorUrl = await getRedirectWriteUrl(operatorClient, url);
 
         const response = await supertest(server)
-          .get(url)
+          .get(operatorUrl)
           .set('referer', defaultRefererUrl)
           .set('Origin', defaultRefererUrl);
 
@@ -255,8 +255,8 @@ describe('write', () => {
       });
 
       it('should timeout', async () => {
-        const endlessPublicKeyProvider = (host: string): Promise<string> => {
-          return new Promise((resolve, reject) => {
+        const endlessPublicKeyProvider = (): Promise<string> => {
+          return new Promise(() => {
             // do not call resolve or reject
           });
         };

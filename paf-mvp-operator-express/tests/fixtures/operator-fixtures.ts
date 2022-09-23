@@ -20,3 +20,18 @@ export const preferences: Preferences = {
     signature: 'Wb6iHK39JF3iWauJSrb332r58XCTktFmBe7qCNdRnWjVvgpQRhAjuMIKEeV8osa6gmXkJh9zaV11/foGjrdHTA==',
   },
 };
+
+export const invalidUrls = [
+  {
+    url: 'ftp://ftp-not-permitted.com',
+    name: 'ftp url',
+  },
+  {
+    url: 'www.someurl.com',
+    name: 'url without protocol',
+  },
+  {
+    url: 'http://www.someurl.com',
+    name: 'http (not https) url',
+  },
+];
