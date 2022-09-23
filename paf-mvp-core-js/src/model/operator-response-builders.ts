@@ -12,7 +12,7 @@ import {
 } from './generated-model';
 import { Unsigned } from './model';
 import { getTimeStampInSec } from '../timestamp';
-import { setInQueryString } from '../express/utils';
+import { setInQueryString } from '@core/express';
 import { ResponseDefinition } from '@core/crypto/signing-definition';
 import { Signer } from '@core/crypto/signer';
 
@@ -126,7 +126,12 @@ export class GetNewIdResponseBuilder {
 
 export class Get3PCResponseBuilder {
   buildResponse(cookieFound: Test3Pc | undefined): Get3PcResponse | Error {
-    return cookieFound ? { '3pc': cookieFound } : { message: '3PC not supported' };
+    return cookieFound
+      ? { '3pc': cookieFound }
+      : {
+          type: '3PC_NOT_SUPPORTED',
+          details: '3PC not supported',
+        };
   }
 }
 

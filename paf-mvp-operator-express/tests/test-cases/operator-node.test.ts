@@ -2,9 +2,8 @@ import { OperatorNode } from '@operator/operator-node';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { Response } from 'express';
 import { OperatorClient } from '@client/operator-client';
-import { GetIdsPrefsResponse, Signature, Timestamp } from '@core/model';
+import { GetIdsPrefsResponse, NodeError, Signature, Timestamp } from '@core/model';
 import { id, preferences } from '../fixtures/operator-fixtures';
-import { NodeError, NodeErrorType } from '@core/errors';
 import { OperatorUtils } from '../utils/operator-utils';
 
 describe('Operator Node', () => {
@@ -175,7 +174,7 @@ j9Z8xExWHcciqiO3csiy9RCKDWub1mRw3H4gdlWEMz6GyjaxeUaMX3E5
         await operatorNode.checkReadPermission(request, response, nextMock);
 
         const error: NodeError = {
-          type: NodeErrorType.UNAUTHORIZED_OPERATION,
+          type: 'UNAUTHORIZED_OPERATION',
           details: `Domain not allowed to read data: ${hostName}`,
         };
 

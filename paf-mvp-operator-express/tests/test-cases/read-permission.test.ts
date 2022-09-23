@@ -2,7 +2,6 @@ import { OperatorNode } from '@operator/operator-node';
 import { createResponse, MockResponse } from 'node-mocks-http';
 import { NextFunction, Response } from 'express';
 import { OperatorUtils } from '../utils/operator-utils';
-import { NodeErrorType } from '@core/errors';
 
 const failCases = [
   {
@@ -67,7 +66,7 @@ describe('Read permission Handler', () => {
 
   test.each(failCases)('Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description', (input) => {
     operatorNode.checkReadPermission(input.request, response, nextFunction);
-    expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
+    expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: 'UNAUTHORIZED_OPERATION' }));
   });
 
   test.each(successCases)('Should call the nextFunction with no error when $description', (input) => {
@@ -91,7 +90,7 @@ describe('GetNewId permission Handler', () => {
     'Should pass an UNAUTHORIZED_OPERATION error to the nextFunction when $description',
     (input) => {
       operatorNode.checkNewIdPermission(input.request, response, nextFunction);
-      expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: NodeErrorType.UNAUTHORIZED_OPERATION }));
+      expect(nextFunction).toBeCalledWith(expect.objectContaining({ type: 'UNAUTHORIZED_OPERATION' }));
     }
   );
 

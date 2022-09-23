@@ -1,7 +1,7 @@
 import cors, { CorsOptions } from 'cors';
 import { NextFunction, Request, Response } from 'express';
 import { escapeRegExp, getTopLevelDomain } from '@core/express';
-import { NodeError, NodeErrorType } from '@core/errors';
+import { NodeError } from '@core/model';
 import { proxyUriParams } from '@core/endpoints';
 
 /**
@@ -55,7 +55,7 @@ export class WebsiteIdentityValidator {
       next();
     } else {
       const error: NodeError = {
-        type: NodeErrorType.INVALID_ORIGIN,
+        type: 'INVALID_ORIGIN',
         details: `Origin is not allowed: ${origin}`,
       };
       res.status(400);
@@ -74,7 +74,7 @@ export class WebsiteIdentityValidator {
       next();
     } else {
       const error: NodeError = {
-        type: NodeErrorType.INVALID_REFERER,
+        type: 'INVALID_REFERER',
         details: `Referer is not allowed: ${referer}`,
       };
       res.status(400);
@@ -93,7 +93,7 @@ export class WebsiteIdentityValidator {
       next();
     } else {
       const error: NodeError = {
-        type: NodeErrorType.INVALID_RETURN_URL,
+        type: 'INVALID_RETURN_URL',
         details: `Invalid return URL: ${returnUrl}`,
       };
       res.status(400);

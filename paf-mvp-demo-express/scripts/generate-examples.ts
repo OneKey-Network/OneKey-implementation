@@ -479,7 +479,7 @@ class Examples {
 
     const verifyGetIdsPrefsRequestBuilder = new ProxyRestVerifyGetIdsPrefsRequestBuilder(publisherHost);
     this.verifyGetIdsPrefsHttp = getPOSTUrl(verifyGetIdsPrefsRequestBuilder.getRestUrl(undefined)); // Notice is POST url
-    this.verifyGetIdsPrefs_invalidJson = { message: 'Invalid signature' };
+    this.verifyGetIdsPrefs_invalidJson = { type: 'INVALID_JSON_BODY', details: 'Invalid signature' };
   }
 
   private setObject<T extends { source: U }, U extends { signature: string }>(keyName: keyof Examples, newValue: T) {

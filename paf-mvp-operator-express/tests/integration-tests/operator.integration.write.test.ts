@@ -2,7 +2,6 @@ import { Express } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
 import { IJsonValidator, JsonValidator } from '@core/validation/json-validator';
-import { NodeErrorType } from '@core/errors';
 import { ClientBuilder } from '../utils/client-utils';
 import { OperatorClient } from '@client/operator-client';
 import { UnableToIdentifySignerError } from '@core/express/errors';
@@ -106,7 +105,7 @@ describe('write', () => {
           .send(JSON.stringify(writeRequest.payload));
       }
 
-      assertError(response, 500, NodeErrorType.UNKNOWN_ERROR);
+      assertError(response, 500, 'UNKNOWN_ERROR');
       if (isRedirect) {
         expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
       }
@@ -123,7 +122,7 @@ describe('write', () => {
             .set('Origin', defaultRefererUrl)
         : await supertest(server).post('/paf/v1/ids-prefs');
 
-      assertError(response, 400, isRedirect ? NodeErrorType.INVALID_QUERY_STRING : NodeErrorType.INVALID_JSON_BODY);
+      assertError(response, 400, isRedirect ? 'INVALID_QUERY_STRING' : 'INVALID_JSON_BODY');
       if (isRedirect) {
         expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
       }
@@ -149,7 +148,7 @@ describe('write', () => {
           .send(JSON.stringify(writeRequest.payload));
       }
 
-      assertError(response, 403, NodeErrorType.UNAUTHORIZED_OPERATION);
+      assertError(response, 403, 'UNAUTHORIZED_OPERATION');
       if (isRedirect) {
         expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
       }
@@ -174,7 +173,7 @@ describe('write', () => {
             .type('text/plain')
             .send(JSON.stringify(writeRequest.payload));
         }
-        assertError(response, 403, NodeErrorType.VERIFICATION_FAILED);
+        assertError(response, 403, 'VERIFICATION_FAILED');
 
         if (isRedirect) {
           expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
@@ -204,7 +203,7 @@ describe('write', () => {
             .send(JSON.stringify(writeRequest.payload));
         }
 
-        assertError(response, 502, NodeErrorType.UNKNOWN_SIGNER);
+        assertError(response, 502, 'UNKNOWN_SIGNER');
         if (isRedirect) {
           expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
         }
@@ -228,7 +227,7 @@ describe('write', () => {
           .send(JSON.stringify(writeRequest.payload));
       }
 
-      assertRestError(response, 403, NodeErrorType.VERIFICATION_FAILED);
+      assertRestError(response, 403, 'VERIFICATION_FAILED');
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
     });
@@ -246,7 +245,7 @@ describe('write', () => {
           .set('referer', defaultRefererUrl)
           .set('Origin', defaultRefererUrl);
 
-        assertError(response, 400, NodeErrorType.INVALID_RETURN_URL);
+        assertError(response, 400, 'INVALID_RETURN_URL');
 
         if (isRedirect) {
           expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
@@ -274,7 +273,7 @@ describe('write', () => {
           .set('referer', defaultRefererUrl)
           .set('Origin', defaultRefererUrl);
 
-        assertError(response, 503, NodeErrorType.RESPONSE_TIMEOUT);
+        assertError(response, 503, 'RESPONSE_TIMEOUT');
 
         if (isRedirect) {
           expect(removeQueryString(getRedirectUrl(response))).toEqual(defaultRefererUrl);
