@@ -47,7 +47,7 @@ When **the PR is merged**, the new versions of these packages must be deployed t
 **In each directory**:
 
 ```shell
-npm publish --access public
+npm publish
 ```
 
 Note that you must be part of the [OneKey NPM organisation](https://www.npmjs.com/settings/onekey) and be authenticated to publish.
