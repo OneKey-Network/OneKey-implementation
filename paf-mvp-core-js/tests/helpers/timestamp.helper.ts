@@ -1,5 +1,5 @@
-import { Timestamp } from '@core/model/generated-model';
-import { getTimeStampInSec } from '@core/timestamp';
+import { Timestamp } from '@onekey/core/model/generated-model';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
 
 export class MockTimer {
   get timestamp(): Timestamp {

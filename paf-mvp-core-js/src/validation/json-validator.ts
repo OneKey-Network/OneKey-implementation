@@ -1,4 +1,4 @@
-import { Log } from '@core/log';
+import { Log } from '@onekey/core/log';
 import { default as AjvClass, ErrorObject } from 'ajv';
 import fs from 'fs';
 import path from 'path';

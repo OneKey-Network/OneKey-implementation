@@ -2,7 +2,7 @@
  * TODO this file should be split into sub-modules, like i-one-key-lib.ts, one-key-lib.ts and rtb.ts
  */
 import { executeInQueueAsync } from '../utils/queue';
-import { PafStatus } from '@frontend/enums/status.enum';
+import { PafStatus } from '@onekey/frontend/enums/status.enum';
 import {
   AuditLog,
   DeleteIdsPrefsResponse,
@@ -21,22 +21,22 @@ import {
   Seed,
   TransactionId,
   TransmissionResponse,
-} from '@core/model';
-import { NotificationEnum } from '@frontend/enums/notification.enum';
-import { Log } from '@core/log';
-import { EventHandler } from '@frontend/utils/event-handler';
-import { Cookies, getPrebidDataCacheExpiration, typedCookie } from '@core/cookies';
-import { DEFAULT_TTL_IN_SECONDS, getCookieValue, MAXIMUM_TTL_IN_SECONDS } from '@frontend/utils/cookie';
-import { QSParam } from '@core/query-string';
-import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@core/endpoints';
-import { isBrowserKnownToSupport3PC } from '@core/user-agent';
+} from '@onekey/core/model';
+import { NotificationEnum } from '@onekey/frontend/enums/notification.enum';
+import { Log } from '@onekey/core/log';
+import { EventHandler } from '@onekey/frontend/utils/event-handler';
+import { Cookies, getPrebidDataCacheExpiration, typedCookie } from '@onekey/core/cookies';
+import { DEFAULT_TTL_IN_SECONDS, getCookieValue, MAXIMUM_TTL_IN_SECONDS } from '@onekey/frontend/utils/cookie';
+import { QSParam } from '@onekey/core/query-string';
+import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@onekey/core/endpoints';
+import { isBrowserKnownToSupport3PC } from '@onekey/core/user-agent';
 import { browserName } from 'detect-browser';
-import { mapAdUnitCodeToDivId } from '@frontend/utils/ad-unit-code';
-import { buildAuditLog, findTransactionPath } from '@core/model/audit-log';
-import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
-import { ISeedStorageService } from '@frontend/services/seed-storage.service';
-import { parseDuration } from '@frontend/utils/date-utils';
-import { IHttpService } from '@frontend/services/http.service';
+import { mapAdUnitCodeToDivId } from '@onekey/frontend/utils/ad-unit-code';
+import { buildAuditLog, findTransactionPath } from '@onekey/core/model/audit-log';
+import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
+import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
+import { parseDuration } from '@onekey/frontend/utils/date-utils';
+import { IHttpService } from '@onekey/frontend/services/http.service';
 
 // TODO ------------------------------------------------------ move to one-key-lib.ts START
 export class OneKeyLib implements IOneKeyLib {

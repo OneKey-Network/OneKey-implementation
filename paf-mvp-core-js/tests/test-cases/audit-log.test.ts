@@ -1,5 +1,5 @@
-import { buildAuditLog, fromResponseToResult } from '@core/model/audit-log';
-import { TransmissionResponse } from '@core/model/generated-model';
+import { buildAuditLog, fromResponseToResult } from '@onekey/core/model/audit-log';
+import { TransmissionResponse } from '@onekey/core/model/generated-model';
 import {
   buildAuditLogFixture,
   buildTransmissionResponseFixture,

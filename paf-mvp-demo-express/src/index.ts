@@ -3,9 +3,9 @@ import { join } from 'path';
 import { createServer } from 'https';
 import { isRunningOnDeveloperPC, sslOptions } from './demo-utils';
 import { create } from 'express-handlebars';
-import { MainApp, VHostApp } from '@core/express/express-apps';
+import { MainApp, VHostApp } from '@onekey/core/express/express-apps';
 import { getAppsAndNodes } from './apps';
-import { Log, LogLevel } from '@core/log';
+import { Log, LogLevel } from '@onekey/core/log';
 
 const relative = (dir: string) => join(__dirname, dir);
 

@@ -4,7 +4,7 @@ import {
   JsonSchemaType,
   JsonValidator,
   NoJsonError,
-} from '@core/validation/json-validator';
+} from '@onekey/core/validation/json-validator';
 import path from 'path';
 
 const fixtureDirectory = path.join(__dirname, '..', 'fixtures', 'fake-json-schemas');

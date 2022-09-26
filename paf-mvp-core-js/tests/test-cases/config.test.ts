@@ -1,4 +1,4 @@
-import { Config, JSONConfig, parseConfig } from '@core/express/config';
+import { Config, JSONConfig, parseConfig } from '@onekey/core/express/config';
 import mock from 'mock-fs';
 
 describe('parseConfig', () => {

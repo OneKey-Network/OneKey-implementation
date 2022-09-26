@@ -1,4 +1,4 @@
-import { Identifier, Preferences } from '@core/model';
+import { Identifier, Preferences } from '@onekey/core/model';
 
 export const id: Identifier = {
   version: '0.1',

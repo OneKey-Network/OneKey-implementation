@@ -1,5 +1,5 @@
-import { Field, IFieldBind, IModel } from '@core/ui/fields';
-import { AuditLog, TransmissionResult } from '@core/model/generated-model';
+import { Field, IFieldBind, IModel } from '@onekey/core/ui/fields';
+import { AuditLog, TransmissionResult } from '@onekey/core/model/generated-model';
 
 /**
  * Field represents the transmission result from the audit log.

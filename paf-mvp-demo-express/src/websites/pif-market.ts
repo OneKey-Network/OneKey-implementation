@@ -1,4 +1,4 @@
-import { VHostApp } from '@core/express/express-apps';
+import { VHostApp } from '@onekey/core/express/express-apps';
 import { anythingButAssets, WebSiteConfig } from '../website-config';
 
 const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {

@@ -1,5 +1,5 @@
-import { SigningDefinition } from '@core/crypto/signing-definition';
-import { IDSABuilder } from '@core/crypto/digital-signature';
+import { SigningDefinition } from '@onekey/core/crypto/signing-definition';
+import { IDSABuilder } from '@onekey/core/crypto/digital-signature';
 
 export interface FooType {
   foo: string;

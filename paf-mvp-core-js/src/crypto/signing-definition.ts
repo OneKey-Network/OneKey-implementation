@@ -13,8 +13,8 @@ import {
   PostIdsPrefsResponse,
   Preferences,
   Seed,
-} from '@core/model/generated-model';
-import { Unsigned, UnsignedSource } from '@core/model/model';
+} from '@onekey/core/model/generated-model';
+import { Unsigned, UnsignedSource } from '@onekey/core/model/model';
 import { SignatureStringBuilder } from './signer';
 
 /**

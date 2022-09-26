@@ -1,5 +1,5 @@
-import { PublicKeyInfo } from '@core/crypto/identity';
-import { GetIdentityResponse } from '@core/model/generated-model';
+import { PublicKeyInfo } from '@onekey/core/crypto/identity';
+import { GetIdentityResponse } from '@onekey/core/model/generated-model';
 
 export class GetIdentityResponseBuilder {
   constructor(

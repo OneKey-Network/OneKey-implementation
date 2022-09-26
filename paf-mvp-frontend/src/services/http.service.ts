@@ -1,4 +1,4 @@
-import { Log } from '@core/log';
+import { Log } from '@onekey/core/log';
 
 export interface IHttpService {
   /** Yes if the service has started a redirection. */

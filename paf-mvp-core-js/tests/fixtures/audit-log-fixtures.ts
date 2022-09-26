@@ -4,9 +4,9 @@ import {
   Seed,
   TransmissionResponse,
   TransmissionResult,
-} from '@core/model/generated-model';
+} from '@onekey/core/model/generated-model';
 
-import { fromResponseToResult } from '@core/model/audit-log';
+import { fromResponseToResult } from '@onekey/core/model/audit-log';
 
 export interface Content {
   transaction_id: string;

@@ -1,7 +1,7 @@
 import { NotificationPage } from '../pages/notification.page';
 import { NotificationEnum } from '../../src/enums/notification.enum';
 import { getFakeIdentifier, getFakePreferences } from '@test-fixtures/cookies';
-import { GetIdsPrefsResponse } from '@core/model';
+import { GetIdsPrefsResponse } from '@onekey/core/model';
 
 describe('Notification widget', () => {
   let page: NotificationPage;

@@ -1,7 +1,7 @@
 import path, { join } from 'path';
 import fs from 'fs';
-import { getTimeStampInSec } from '@core/timestamp';
-import { isValidKey, PublicKeyInfo } from '@core/crypto/identity';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { isValidKey, PublicKeyInfo } from '@onekey/core/crypto/identity';
 
 /**
  * The representation of a pair of public and private keys, in JSON

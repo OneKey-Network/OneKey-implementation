@@ -1,5 +1,5 @@
-import { IdsAndPreferencesDefinition } from '@core/crypto/signing-definition';
-import { IdsAndPreferences } from '@core/model/generated-model';
+import { IdsAndPreferencesDefinition } from '@onekey/core/crypto/signing-definition';
+import { IdsAndPreferences } from '@onekey/core/model/generated-model';
 
 describe('IdsAndPreferencesDefinition', () => {
   test('should extract appropriate data', () => {

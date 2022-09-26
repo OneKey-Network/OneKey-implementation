@@ -1,6 +1,6 @@
 {
   "name": "@onekey/client-node",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "OneKey Client node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
@@ -47,5 +47,8 @@
     "ts-jest": "^28.0.7",
     "tslib": "^2.4.0",
     "typescript": "^4.5.4"
+  },
+  "peerDependencies": {
+    "@onekey/core": "^1.0.10"
   }
 }

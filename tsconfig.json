@@ -24,10 +24,10 @@
       "node_modules/@types"
     ],
     "paths": {
-      "@core/*": ["./paf-mvp-core-js/src/*"],
-      "@operator/*": ["./paf-mvp-operator-express/src/*"],
-      "@client/*": ["./paf-mvp-client-express/src/*"],
-      "@frontend/*": ["./paf-mvp-frontend/src/*"],
+      "@onekey/core/*": ["./paf-mvp-core-js/src/*"],
+      "@onekey/operator-node/*": ["./paf-mvp-operator-express/src/*"],
+      "@onekey/client-node/*": ["./paf-mvp-client-express/src/*"],
+      "@onekey/frontend/*": ["./paf-mvp-frontend/src/*"],
       "@test-helpers/*": ["./paf-mvp-core-js/tests/helpers/*"],
       "@test-fixtures/*": ["./paf-mvp-core-js/tests/fixtures/*"]
     }

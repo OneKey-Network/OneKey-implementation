@@ -1,5 +1,5 @@
-import { Cookies } from '@core/cookies';
-import { Identifier, Identifiers, IdsAndPreferences, Preferences } from '@core/model/generated-model';
+import { Cookies } from '@onekey/core/cookies';
+import { Identifier, Identifiers, IdsAndPreferences, Preferences } from '@onekey/core/model/generated-model';
 
 export const timestamp = Date.now();
 

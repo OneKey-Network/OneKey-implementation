@@ -1,5 +1,5 @@
-import { TransactionId } from '@core/model';
-import { SeedEntry } from '@frontend/lib/paf-lib';
+import { TransactionId } from '@onekey/core/model';
+import { SeedEntry } from '@onekey/frontend/lib/paf-lib';
 
 class SeedStorageService implements ISeedStorageService {
   /** Internal storage for generated Seeds. */

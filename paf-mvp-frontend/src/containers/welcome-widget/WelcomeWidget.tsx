@@ -16,8 +16,8 @@ import { Arrow } from '../../components/svg/arrow/Arrow';
 import { Refresh } from '../../components/svg/refresh/Refresh';
 import { DotTyping } from '../../components/animations/DotTyping';
 import { OnekeyLogo } from '../../components/svg/onekey-logo/OnekeyLogo';
-import { Window } from '@frontend/global';
-import { IdsAndPreferences } from '@core/model';
+import { Window } from '@onekey/frontend/global';
+import { IdsAndPreferences } from '@onekey/core/model';
 
 export interface IWelcomeWidgetProps {
   brandName?: string;

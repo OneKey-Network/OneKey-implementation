@@ -146,10 +146,10 @@
     "webpack-cli": "^4.9.1"
   },
   "_moduleAliases": {
-    "@core": "paf-mvp-core-js/src",
-    "@operator": "paf-mvp-operator-express/src",
-    "@client": "paf-mvp-client-express/src",
-    "@frontend": "paf-mvp-frontend/src"
+    "@onekey/core": "paf-mvp-core-js/src",
+    "@onekey/operator-node": "paf-mvp-operator-express/src",
+    "@onekey/client-node": "paf-mvp-client-express/src",
+    "@onekey/frontend": "paf-mvp-frontend/src"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

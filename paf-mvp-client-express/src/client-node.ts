@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
-import { NodeError, PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@core/model';
-import { jsonProxyEndpoints, redirectProxyEndpoints } from '@core/endpoints';
-import { Config, Node, parseConfig, VHostApp } from '@core/express';
-import { fromDataToObject } from '@core/query-string';
+import { NodeError, PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@onekey/core/model';
+import { jsonProxyEndpoints, redirectProxyEndpoints } from '@onekey/core/endpoints';
+import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
+import { fromDataToObject } from '@onekey/core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyProvider, PublicKeyStore } from '@core/crypto';
-import { IJsonValidator, JsonSchemaType, JsonValidator } from '@core/validation/json-validator';
+import { PublicKeyProvider, PublicKeyStore } from '@onekey/core/crypto';
+import { IJsonValidator, JsonSchemaType, JsonValidator } from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**

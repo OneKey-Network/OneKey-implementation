@@ -1,5 +1,5 @@
 import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
-import { Cookies } from '@core/cookies';
+import { Cookies } from '@onekey/core/cookies';
 import { PafStatus } from '../../src/enums/status.enum';
 import {
   Error,
@@ -8,16 +8,16 @@ import {
   IdsAndPreferences,
   PostSeedResponse,
   TransactionId,
-} from '@core/model/generated-model';
+} from '@onekey/core/model/generated-model';
 import fetch from 'jest-fetch-mock';
-import { isBrowserKnownToSupport3PC } from '@core/user-agent';
-import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@frontend/lib/paf-lib';
-import { IAuditLogStorageService } from '@frontend/services/audit-log-storage.service';
-import { HttpService } from '@frontend/services/http.service';
-import { ISeedStorageService } from '@frontend/services/seed-storage.service';
-import { DEFAULT_TTL_IN_SECONDS, MAXIMUM_TTL_IN_SECONDS } from '@frontend/utils/cookie';
+import { isBrowserKnownToSupport3PC } from '@onekey/core/user-agent';
+import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@onekey/frontend/lib/paf-lib';
+import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
+import { HttpService } from '@onekey/frontend/services/http.service';
+import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
+import { DEFAULT_TTL_IN_SECONDS, MAXIMUM_TTL_IN_SECONDS } from '@onekey/frontend/utils/cookie';
 
-jest.mock('@core/user-agent');
+jest.mock('@onekey/core/user-agent');
 const mockedIsBrowserKnownToSupport3PC = jest.mocked(isBrowserKnownToSupport3PC, true);
 
 jest.mock('ua-parser-js', () => () => ({ getBrowser: () => 'JEST-DOM' }));

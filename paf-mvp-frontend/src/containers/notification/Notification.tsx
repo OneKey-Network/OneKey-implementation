@@ -5,7 +5,7 @@ import { ISnackBarProps, SnackBar } from '../../components/snack-bar/SnackBar';
 import { useEffect } from 'react';
 import { NotificationEnum } from '../../enums/notification.enum';
 import { useRef } from 'preact/hooks';
-import { Window } from '@frontend/global';
+import { Window } from '@onekey/frontend/global';
 
 export interface INotificationProps {
   type: NotificationEnum;

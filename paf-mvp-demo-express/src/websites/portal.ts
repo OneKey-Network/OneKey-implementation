@@ -1,7 +1,7 @@
 import express, { Request } from 'express';
 import { WebSiteConfig } from '../website-config';
-import { OperatorClient } from '@client/operator-client';
-import { Cookies, typedCookie } from '@core/cookies';
+import { OperatorClient } from '@onekey/client-node/operator-client';
+import { Cookies, typedCookie } from '@onekey/core/cookies';
 import {
   _ as Model,
   Identifier,
@@ -11,17 +11,17 @@ import {
   PostIdsPrefsRequest,
   Preferences,
   RedirectGetIdsPrefsResponse,
-} from '@core/model/generated-model';
+} from '@onekey/core/model/generated-model';
 import {
   getPafDataFromQueryString,
   getRequestUrl,
   getTopLevelDomain,
   httpRedirect,
   removeCookie,
-} from '@core/express/utils';
-import { PostIdsPrefsRequestBuilder } from '@core/model/operator-request-builders';
+} from '@onekey/core/express/utils';
+import { PostIdsPrefsRequestBuilder } from '@onekey/core/model/operator-request-builders';
 import { s2sOptions } from '../demo-utils';
-import { PublicKeyStore } from '@core/crypto/key-store';
+import { PublicKeyStore } from '@onekey/core/crypto/key-store';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
@@ -30,18 +30,18 @@ import {
   RequestWithoutBodyDefinition,
   ResponseDefinition,
   ResponseType,
-} from '@core/crypto/signing-definition';
+} from '@onekey/core/crypto/signing-definition';
 import {
   IdsAndPreferencesVerifier,
   MessageVerificationResult,
   RequestVerifier,
   ResponseVerifier,
   Verifier,
-} from '@core/crypto/verifier';
-import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
-import { VHostApp } from '@core/express/express-apps';
-import { parseConfig } from '@core/express/config';
-import { ClientNodeConfig } from '@client/client-node';
+} from '@onekey/core/crypto/verifier';
+import { jsonOperatorEndpoints, redirectEndpoints } from '@onekey/core/endpoints';
+import { VHostApp } from '@onekey/core/express/express-apps';
+import { parseConfig } from '@onekey/core/express/config';
+import { ClientNodeConfig } from '@onekey/client-node/client-node';
 
 const { name, host }: WebSiteConfig = {
   name: 'A OneKey portal',

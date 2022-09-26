@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import path from 'path';
-import { DSAKeyPair, ECDSA_NIT_P256Builder, IDSAKeyService, PEM } from '@core/crypto/digital-signature';
+import { DSAKeyPair, ECDSA_NIT_P256Builder, IDSAKeyService, PEM } from '@onekey/core/crypto/digital-signature';
 
 describe('ECDSA_NIT_P256', () => {
   const validPair: DSAKeyPair = {

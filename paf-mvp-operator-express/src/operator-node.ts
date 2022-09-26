@@ -16,7 +16,7 @@ import {
   Response,
   setCookie,
   VHostApp,
-} from '@core/express';
+} from '@onekey/core/express';
 import {
   IdentifierDefinition,
   IdsAndPreferencesDefinition,
@@ -27,7 +27,7 @@ import {
   RequestWithBodyDefinition,
   RequestWithoutBodyDefinition,
   Verifier,
-} from '@core/crypto';
+} from '@onekey/core/crypto';
 import {
   DeleteIdsPrefsRequest,
   DeleteIdsPrefsResponseBuilder,
@@ -51,12 +51,12 @@ import {
   RedirectGetIdsPrefsRequest,
   RedirectPostIdsPrefsRequest,
   Test3Pc,
-} from '@core/model';
-import { Cookies, toTest3pcCookie, typedCookie } from '@core/cookies';
-import { getTimeStampInSec } from '@core/timestamp';
-import { jsonOperatorEndpoints, redirectEndpoints } from '@core/endpoints';
-import { IJsonValidator, JsonSchemaType, JsonValidator } from '@core/validation/json-validator';
-import { UnableToIdentifySignerError } from '@core/express/errors';
+} from '@onekey/core/model';
+import { Cookies, toTest3pcCookie, typedCookie } from '@onekey/core/cookies';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { jsonOperatorEndpoints, redirectEndpoints } from '@onekey/core/endpoints';
+import { IJsonValidator, JsonSchemaType, JsonValidator } from '@onekey/core/validation/json-validator';
+import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
 import timeout from 'connect-timeout';
 
 /**
