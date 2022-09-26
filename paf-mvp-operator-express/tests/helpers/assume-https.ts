@@ -2,7 +2,7 @@
 // in express-apps.ts, all unsecure requests are redirected to HTTPS, making all tests end up with a 302 status.
 // To prevent that, we consider that all requests are secure
 jest.mock('@onekey/core/express/express-apps', () => {
-  const module = jest.requireActual('@core/express/express-apps');
+  const module = jest.requireActual('@onekey/core/express/express-apps');
   module.VHostApp.prototype.ensureHttps = () => {
     // No redirect to HTTPS
   };
