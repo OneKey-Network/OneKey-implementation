@@ -3,8 +3,8 @@ import { CookieOptions } from 'express-serve-static-core';
 import { encodeBase64, fromDataToObject, QSParam } from '../query-string';
 import { CorsOptions } from 'cors';
 import domainParser from 'tld-extract';
-import { ReturnUrl } from '@onekey/core/model';
-import { RedirectContext, RestContext } from '@onekey/core/crypto';
+import { ReturnUrl } from '../model';
+import { RedirectContext, RestContext } from '../crypto';
 
 export const setCookie = (
   res: Response,

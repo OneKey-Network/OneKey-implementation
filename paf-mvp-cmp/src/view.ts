@@ -11,7 +11,7 @@ import itemTemplate from './html/components/customize.html';
 import snackbarTemplate from './html/cards/snackbar.html';
 import popupTemplate from './html/containers/popup.html';
 import { Config } from './config';
-import { IView } from '@onekey/core/ui/binding';
+import { IView } from '@onekey/core';
 import { ILocale } from './ILocale';
 import { Tooltip } from './tooltip';
 

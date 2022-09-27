@@ -1,10 +1,9 @@
 import { fromIdentityResponse, isValidKey, PublicKeyInfo } from './identity';
-import { GetIdentityRequestBuilder } from '@onekey/core/model/identity-request-builder';
-import { GetIdentityResponse, Timestamp } from '@onekey/core/model/generated-model';
-import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { GetIdentityRequestBuilder, GetIdentityResponse, Timestamp } from '../model';
+import { getTimeStampInSec } from '../timestamp';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
-import { PEM } from '@onekey/core/crypto/digital-signature';
+import { UnableToIdentifySignerError } from '../express/errors';
+import { PEM } from './digital-signature';
 
 /**
  * A function that provides a public key from a domain name

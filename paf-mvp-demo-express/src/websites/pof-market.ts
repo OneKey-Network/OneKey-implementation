@@ -1,5 +1,5 @@
 import { anythingButAssets, WebSiteConfig } from '../website-config';
-import { VHostApp } from '@onekey/core/express/express-apps';
+import { VHostApp } from '@onekey/core';
 
 const { name, host, cdnHost, pafNodeHost }: WebSiteConfig = {
   name: 'POF advertiser',

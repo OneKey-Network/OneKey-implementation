@@ -1,5 +1,5 @@
 import { FieldSingle, Marketing, Model } from '../../src/model';
-import { Identifier, Preferences, PreferencesData } from '@onekey/core/model/generated-model';
+import { Identifier, Preferences, PreferencesData } from '@onekey/core';
 
 let model: Model;
 

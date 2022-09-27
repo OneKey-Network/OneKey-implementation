@@ -26,6 +26,7 @@ import * as yaml from 'js-yaml';
 
 // Used to get the TCF core string from the environment.
 import { env } from 'process';
+import json from '@rollup/plugin-json';
 
 const DEV = process.env.ROLLUP_WATCH;
 
@@ -185,6 +186,7 @@ function buildLocaleConfig(localeCode, localeContent, tcfCoreTemplate) {
     // paf-lib must not be included in the bundle: it is imported separately
     external: [ path.resolve( '../paf-mvp-frontend/src/lib/paf-lib.ts' ) ],
     plugins: [
+      json(),
       replace({
         include: './src/main.ts',
         preventAssignment: true,

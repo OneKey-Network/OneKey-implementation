@@ -1,9 +1,8 @@
 import { AuditHandler, OneKeyLib, SeedEntry } from '@onekey/frontend/lib/paf-lib';
-import { TransactionId, TransmissionResponse } from '@onekey/core/model';
+import { buildAuditLog, TransactionId, TransmissionResponse } from '@onekey/core';
 import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
 import { HttpService } from '@onekey/frontend/services/http.service';
 import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
-import { buildAuditLog } from '@onekey/core/model/audit-log';
 
 const auditLogStorageService: IAuditLogStorageService = {
   saveAuditLog: jest.fn(),

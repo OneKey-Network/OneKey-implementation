@@ -5,34 +5,39 @@ import { executeInQueueAsync } from '../utils/queue';
 import { PafStatus } from '@onekey/frontend/enums/status.enum';
 import {
   AuditLog,
+  buildAuditLog,
+  Cookies,
   DeleteIdsPrefsResponse,
   Error,
+  findTransactionPath,
   Get3PcResponse,
   GetIdsPrefsResponse,
   GetNewIdResponse,
+  getPrebidDataCacheExpiration,
   Identifier,
   IdsAndOptionalPreferences,
   IdsAndPreferences,
+  isBrowserKnownToSupport3PC,
+  jsonProxyEndpoints,
+  Log,
   PostIdsPrefsRequest,
   PostIdsPrefsResponse,
   PostSeedRequest,
   PostSignPreferencesRequest,
   Preferences,
+  proxyUriParams,
+  QSParam,
+  redirectProxyEndpoints,
   Seed,
   TransactionId,
   TransmissionResponse,
-} from '@onekey/core/model';
+  typedCookie,
+} from '@onekey/core';
 import { NotificationEnum } from '@onekey/frontend/enums/notification.enum';
-import { Log } from '@onekey/core/log';
 import { EventHandler } from '@onekey/frontend/utils/event-handler';
-import { Cookies, getPrebidDataCacheExpiration, typedCookie } from '@onekey/core/cookies';
 import { DEFAULT_TTL_IN_SECONDS, getCookieValue, MAXIMUM_TTL_IN_SECONDS } from '@onekey/frontend/utils/cookie';
-import { QSParam } from '@onekey/core/query-string';
-import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@onekey/core/endpoints';
-import { isBrowserKnownToSupport3PC } from '@onekey/core/user-agent';
 import { browserName } from 'detect-browser';
 import { mapAdUnitCodeToDivId } from '@onekey/frontend/utils/ad-unit-code';
-import { buildAuditLog, findTransactionPath } from '@onekey/core/model/audit-log';
 import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
 import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
 import { parseDuration } from '@onekey/frontend/utils/date-utils';

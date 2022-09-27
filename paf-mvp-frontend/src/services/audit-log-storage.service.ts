@@ -1,5 +1,5 @@
 import { DivId } from '@onekey/frontend/lib/paf-lib';
-import { AuditLog } from '@onekey/core/model';
+import { AuditLog } from '@onekey/core';
 
 class AuditLogStorageService implements IAuditLogStorageService {
   /**

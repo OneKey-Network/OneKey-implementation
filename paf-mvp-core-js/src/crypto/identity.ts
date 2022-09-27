@@ -1,5 +1,5 @@
-import { Timestamp } from '@onekey/core/model';
-import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { Timestamp } from '../model';
+import { getTimeStampInSec } from '../timestamp';
 
 export interface PublicKeyInfo {
   startTimestampInSec: Timestamp;

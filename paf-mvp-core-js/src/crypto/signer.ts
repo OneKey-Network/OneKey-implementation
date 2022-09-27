@@ -1,5 +1,5 @@
-import { Log } from '@onekey/core/log';
-import { ECDSA_NIT_P256Builder, IDSABuilder, IDSASigner, PEM } from '@onekey/core/crypto/digital-signature';
+import { Log } from '../log';
+import { ECDSA_NIT_P256Builder, IDSABuilder, IDSASigner, PEM } from './digital-signature';
 
 export interface SignatureStringBuilder<U> {
   /**

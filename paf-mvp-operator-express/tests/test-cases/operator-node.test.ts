@@ -2,7 +2,7 @@ import { OperatorNode } from '@onekey/operator-node/operator-node';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { Response } from 'express';
 import { OperatorClient } from '@onekey/client-node/operator-client';
-import { GetIdsPrefsResponse, NodeError, Signature, Timestamp } from '@onekey/core/model';
+import { GetIdsPrefsResponse, NodeError, Signature, Timestamp } from '@onekey/core';
 import { id, preferences } from '../fixtures/operator-fixtures';
 import { OperatorUtils } from '../utils/operator-utils';
 

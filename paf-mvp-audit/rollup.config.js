@@ -17,6 +17,7 @@ import { string } from 'rollup-plugin-string';
 import livereload from 'rollup-plugin-livereload';
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
+import json from '@rollup/plugin-json';
 
 // When developing this project independently of the other projects in the repo
 const IS_PROJECT_DEV = process.env.ROLLUP_WATCH !== undefined;
@@ -26,6 +27,7 @@ const DIST = 'dist';
 export default {
   input: './src/main.ts',
   plugins: [
+    json(),
     string({ include: ['**/*.css', '**/*.svg'] }),
     postHTML({ template: true }),
     yaml(),

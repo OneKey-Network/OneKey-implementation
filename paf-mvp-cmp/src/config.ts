@@ -1,4 +1,4 @@
-import { Log } from '@onekey/core/log';
+import { Log } from '@onekey/core';
 import { TcfCore } from './tcfcore';
 
 /**

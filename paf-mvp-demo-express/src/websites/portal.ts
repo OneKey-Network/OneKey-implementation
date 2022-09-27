@@ -1,46 +1,42 @@
 import express, { Request } from 'express';
 import { WebSiteConfig } from '../website-config';
 import { OperatorClient } from '@onekey/client-node/operator-client';
-import { Cookies, typedCookie } from '@onekey/core/cookies';
 import {
   _ as Model,
-  Identifier,
-  Identifiers,
-  IdsAndPreferences,
-  MessageBase,
-  PostIdsPrefsRequest,
-  Preferences,
-  RedirectGetIdsPrefsResponse,
-} from '@onekey/core/model/generated-model';
-import {
+  Cookies,
   getPafDataFromQueryString,
   getRequestUrl,
   getTopLevelDomain,
   httpRedirect,
-  removeCookie,
-} from '@onekey/core/express/utils';
-import { PostIdsPrefsRequestBuilder } from '@onekey/core/model/operator-request-builders';
-import { s2sOptions } from '../demo-utils';
-import { PublicKeyStore } from '@onekey/core/crypto/key-store';
-import {
+  Identifier,
   IdentifierDefinition,
+  Identifiers,
+  IdsAndPreferences,
   IdsAndPreferencesDefinition,
+  IdsAndPreferencesVerifier,
+  jsonOperatorEndpoints,
+  MessageBase,
+  MessageVerificationResult,
+  parseConfig,
+  PostIdsPrefsRequest,
+  PostIdsPrefsRequestBuilder,
+  Preferences,
+  PublicKeyStore,
+  redirectEndpoints,
+  RedirectGetIdsPrefsResponse,
+  removeCookie,
+  RequestVerifier,
   RequestWithBodyDefinition,
   RequestWithContext,
   RequestWithoutBodyDefinition,
   ResponseDefinition,
   ResponseType,
-} from '@onekey/core/crypto/signing-definition';
-import {
-  IdsAndPreferencesVerifier,
-  MessageVerificationResult,
-  RequestVerifier,
   ResponseVerifier,
+  typedCookie,
   Verifier,
-} from '@onekey/core/crypto/verifier';
-import { jsonOperatorEndpoints, redirectEndpoints } from '@onekey/core/endpoints';
-import { VHostApp } from '@onekey/core/express/express-apps';
-import { parseConfig } from '@onekey/core/express/config';
+  VHostApp,
+} from '@onekey/core';
+import { s2sOptions } from '../demo-utils';
 import { ClientNodeConfig } from '@onekey/client-node/client-node';
 
 const { name, host }: WebSiteConfig = {

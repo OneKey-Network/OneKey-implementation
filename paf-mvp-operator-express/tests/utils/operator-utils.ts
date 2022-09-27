@@ -1,11 +1,16 @@
-import { IJsonValidator, JsonValidation } from '@onekey/core/validation/json-validator';
-import { PublicKeyProvider } from '@onekey/core/crypto';
+import {
+  Domain,
+  encodeBase64,
+  getTimeStampInSec,
+  IJsonValidator,
+  JsonValidation,
+  PostIdsPrefsRequest,
+  PublicKeyProvider,
+  QSParam,
+  VHostApp,
+} from '@onekey/core';
 import { OperatorNode, Permission } from '@onekey/operator-node/operator-node';
-import { getTimeStampInSec } from '@onekey/core/timestamp';
-import { Domain, PostIdsPrefsRequest } from '@onekey/core/model';
 import { createRequest } from 'node-mocks-http';
-import { encodeBase64, QSParam } from '@onekey/core/query-string';
-import { VHostApp } from '@onekey/core/express';
 
 export class OperatorUtils {
   private static operatorPublicKey = `-----BEGIN PUBLIC KEY-----

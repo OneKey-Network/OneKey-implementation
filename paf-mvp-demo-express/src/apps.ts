@@ -1,6 +1,6 @@
 import { OperatorNode } from '@onekey/operator-node/operator-node';
 import { ClientNode } from '@onekey/client-node/client-node';
-import { VHostApp } from '@onekey/core/express/express-apps';
+import { VHostApp } from '@onekey/core';
 import { pafPublisherCdnApp, pafPublisherWebSiteApp } from './websites/paf-publisher';
 import { pifPublisherCdnApp, pifPublisherWebSiteApp } from './websites/pif-publisher';
 import { pofPublisherCdnApp, pofPublisherWebSiteApp } from './websites/pof-publisher';

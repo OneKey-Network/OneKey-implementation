@@ -1,16 +1,16 @@
 import { CookiesHelpers, getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
-import { Cookies } from '@onekey/core/cookies';
-import { PafStatus } from '../../src/enums/status.enum';
 import {
+  Cookies,
   Error,
   GetIdsPrefsResponse,
   Identifier,
   IdsAndPreferences,
+  isBrowserKnownToSupport3PC,
   PostSeedResponse,
   TransactionId,
-} from '@onekey/core/model/generated-model';
+} from '@onekey/core';
+import { PafStatus } from '../../src/enums/status.enum';
 import fetch from 'jest-fetch-mock';
-import { isBrowserKnownToSupport3PC } from '@onekey/core/user-agent';
 import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@onekey/frontend/lib/paf-lib';
 import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
 import { HttpService } from '@onekey/frontend/services/http.service';

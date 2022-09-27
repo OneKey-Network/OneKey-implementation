@@ -20,11 +20,7 @@
  * ⚠️ data if the code grows.
  */
 import { createPrivateKey, createPublicKey, generateKeyPairSync, KeyObject, sign, verify } from 'node:crypto';
-
-/**
- * Signature of a Digital Signature Algorithm.
- */
-export type Signature = string;
+import { Signature } from '../model';
 
 /**
  * PEM (Privacy_enhanced Mail) is the used format for

@@ -7,7 +7,7 @@ import { OneKeyLib } from '@onekey/frontend/lib/paf-lib';
 import { CurrentScript } from '@onekey/frontend/utils/current-script';
 import { auditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
 import { seedStorageService } from '@onekey/frontend/services/seed-storage.service';
-import { Log, LogLevel } from '@onekey/core/log';
+import { Log, LogLevel } from '@onekey/core';
 import { HttpService } from '@onekey/frontend/services/http.service';
 
 // Debug level while playing with MVP

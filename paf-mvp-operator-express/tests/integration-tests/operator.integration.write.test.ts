@@ -1,11 +1,16 @@
 import { Express } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
-import { IJsonValidator, JsonValidator } from '@onekey/core/validation/json-validator';
+import {
+  IdsAndPreferences,
+  IJsonValidator,
+  JsonValidator,
+  PostIdsPrefsResponse,
+  RedirectPostIdsPrefsResponse,
+  UnableToIdentifySignerError,
+} from '@onekey/core';
 import { ClientBuilder } from '../utils/client-utils';
 import { OperatorClient } from '@onekey/client-node/operator-client';
-import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
-import { IdsAndPreferences, PostIdsPrefsResponse, RedirectPostIdsPrefsResponse } from '@onekey/core/model';
 import {
   assertRedirectError,
   assertRestError,

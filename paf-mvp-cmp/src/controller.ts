@@ -1,18 +1,22 @@
 import { Config } from './config';
 import { BindingDisplayRandomId, BindingShowRandomIdDiv, BindingThisSiteOnly } from './bindings';
-import { Log } from '@onekey/core/log';
-import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@onekey/core/ui/binding';
 import {
+  BindingButton,
+  BindingChecked,
+  BindingCheckedMap,
+  BindingElement,
+  Cookies,
+  getPrebidDataCacheExpiration,
   Identifier,
   IdsAndOptionalPreferences,
+  Log,
   Preferences,
   PreferencesData,
-} from '@onekey/core/model/generated-model';
+} from '@onekey/core';
 import { Marketing, Model } from './model';
 import { PafStatus } from '@onekey/frontend/enums/status.enum';
 import { View } from './view';
 import { getCookieValue } from '@onekey/frontend/utils/cookie';
-import { Cookies, getPrebidDataCacheExpiration } from '@onekey/core/cookies';
 import { TcfCore } from './tcfcore';
 import { ILocale } from './ILocale';
 import { Window } from '@onekey/frontend/global';

@@ -1,5 +1,5 @@
-import { RestRequestBuilder } from '@onekey/core/model/request-builders';
-import { participantEndpoints } from '@onekey/core/endpoints';
+import { RestRequestBuilder } from './request-builders';
+import { participantEndpoints } from '..';
 
 export class GetIdentityRequestBuilder extends RestRequestBuilder<undefined> {
   constructor(serverHost: string) {

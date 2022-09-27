@@ -1,36 +1,34 @@
 import {
-  GetIdsPrefsResponse,
-  Identifiers,
-  IdsAndPreferences,
-  PostSignPreferencesRequest,
-  Preferences,
-  ProxyPostIdsPrefsResponse,
-  Seed,
-  Signature,
-  TransactionId,
-} from '@onekey/core/model/generated-model';
-import { CurrentModelVersion, UnsignedSource } from '@onekey/core/model/model';
-import { PublicKeyProvider } from '@onekey/core/crypto/key-store';
-import {
+  CurrentModelVersion,
   DeleteIdsPrefsRequestBuilder,
   Get3PCRequestBuilder,
   GetIdsPrefsRequestBuilder,
+  GetIdsPrefsResponse,
   GetNewIdRequestBuilder,
-  PostIdsPrefsRequestBuilder,
-} from '@onekey/core/model/operator-request-builders';
-import { Signer } from '@onekey/core/crypto/signer';
-import {
+  getPayload,
+  getTimeStampInSec,
+  Identifiers,
+  IdsAndPreferences,
   IdsAndPreferencesDefinition,
   IdsAndUnsignedPreferences,
+  MessageVerificationResult,
+  PostIdsPrefsRequestBuilder,
+  PostSignPreferencesRequest,
+  Preferences,
+  ProxyPostIdsPrefsResponse,
+  proxyUriParams,
+  PublicKeyProvider,
   ResponseDefinition,
+  ResponseVerifier,
+  Seed,
   SeedSignatureBuilder,
   SeedSignatureContainer,
-} from '@onekey/core/crypto/signing-definition';
-import { MessageVerificationResult, ResponseVerifier } from '@onekey/core/crypto/verifier';
-import { getTimeStampInSec } from '@onekey/core/timestamp';
+  Signature,
+  Signer,
+  TransactionId,
+  UnsignedSource,
+} from '@onekey/core';
 import { Request } from 'express';
-import { getPayload } from '@onekey/core/express';
-import { proxyUriParams } from '@onekey/core/endpoints';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
