@@ -8,11 +8,15 @@ import {
 import { Express } from 'express';
 import supertest from 'supertest';
 import { OperatorUtils } from '../utils/operator-utils';
-import { IJsonValidator, JsonValidator } from '@onekey/core/validation/json-validator';
+import {
+  GetIdsPrefsResponse,
+  IJsonValidator,
+  JsonValidator,
+  RedirectGetIdsPrefsResponse,
+  UnableToIdentifySignerError,
+} from '@onekey/core';
 import { ClientBuilder } from '../utils/client-utils';
 import { OperatorClient } from '@onekey/client-node/operator-client';
-import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
-import { GetIdsPrefsResponse, RedirectGetIdsPrefsResponse } from '@onekey/core/model';
 import { createRequest } from 'node-mocks-http';
 import { defaultRefererUrl, defaultReturnUrl, randomPrivateKey } from '../utils/constants';
 import { invalidUrls } from '../fixtures/operator-fixtures';

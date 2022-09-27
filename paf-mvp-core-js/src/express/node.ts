@@ -1,8 +1,8 @@
-import { Log } from '@onekey/core/log';
-import { PublicKeyProvider } from '@onekey/core/crypto';
-import { VHostApp } from '@onekey/core/express/express-apps';
-import { GetIdentityResponseBuilder, NodeError, RedirectErrorResponse, RedirectRequest } from '@onekey/core/model';
-import { participantEndpoints } from '@onekey/core/endpoints';
+import { Log } from '../log';
+import { PublicKeyProvider } from '../crypto';
+import { VHostApp } from '../express/express-apps';
+import { GetIdentityResponseBuilder, NodeError, RedirectErrorResponse, RedirectRequest } from '../model';
+import { participantEndpoints } from '../endpoints';
 import cors from 'cors';
 import {
   corsOptionsAcceptAll,
@@ -10,11 +10,11 @@ import {
   httpRedirect,
   isValidHttpUrl,
   setInQueryString,
-} from '@onekey/core/express/utils';
-import { IdentityConfig } from '@onekey/core/express/config';
+} from '../express/utils';
+import { IdentityConfig } from '../express/config';
 import { NextFunction, Request, Response as ExpressResponse } from 'express';
-import { IJsonValidator, JsonSchemaType } from '@onekey/core/validation/json-validator';
-import { decodeBase64, QSParam } from '@onekey/core/query-string';
+import { IJsonValidator, JsonSchemaType } from '../validation/json-validator';
+import { decodeBase64, QSParam } from '../query-string';
 
 export interface INode {
   app: VHostApp;

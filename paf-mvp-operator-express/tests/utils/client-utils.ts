@@ -1,4 +1,4 @@
-import { PublicKeyProvider } from '@onekey/core/crypto';
+import { PublicKeyProvider } from '@onekey/core';
 import { OperatorClient } from '@onekey/client-node/operator-client';
 
 export class ClientBuilder {

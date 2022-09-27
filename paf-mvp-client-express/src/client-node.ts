@@ -1,12 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
-import { NodeError, PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@onekey/core/model';
-import { jsonProxyEndpoints, redirectProxyEndpoints } from '@onekey/core/endpoints';
-import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
-import { fromDataToObject } from '@onekey/core/query-string';
+import {
+  Config,
+  fromDataToObject,
+  IJsonValidator,
+  jsonProxyEndpoints,
+  JsonSchemaType,
+  JsonValidator,
+  Node,
+  NodeError,
+  parseConfig,
+  PostSeedRequest,
+  PostSeedResponse,
+  PublicKeyProvider,
+  PublicKeyStore,
+  RedirectGetIdsPrefsResponse,
+  redirectProxyEndpoints,
+  VHostApp,
+} from '@onekey/core';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyProvider, PublicKeyStore } from '@onekey/core/crypto';
-import { IJsonValidator, JsonSchemaType, JsonValidator } from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**

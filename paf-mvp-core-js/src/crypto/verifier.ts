@@ -4,13 +4,12 @@ import {
   RequestWithContext,
   SigningDefinition,
   UnsignedRequestWithContext,
-} from '@onekey/core/crypto/signing-definition';
-import { Identifier, IdsAndPreferences, MessageBase } from '@onekey/core/model/generated-model';
-import { getTimeStampInSec } from '@onekey/core/timestamp';
-import { Unsigned } from '@onekey/core/model/model';
-import { Log } from '@onekey/core/log';
-import { PublicKeyProvider } from '@onekey/core/crypto/key-store';
-import { ECDSA_NIT_P256Builder, IDSABuilder } from '@onekey/core/crypto/digital-signature';
+} from './signing-definition';
+import { Identifier, IdsAndPreferences, MessageBase, Unsigned } from '../model';
+import { getTimeStampInSec } from '../timestamp';
+import { Log } from '../log';
+import { PublicKeyProvider } from './key-store';
+import { ECDSA_NIT_P256Builder, IDSABuilder } from './digital-signature';
 
 /**
  * Verifier class

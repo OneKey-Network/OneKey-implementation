@@ -1,6 +1,6 @@
 import { Config } from './config';
 import { Controller } from './controller';
-import { Log, LogLevel } from '@onekey/core/log';
+import { Log, LogLevel } from '@onekey/core';
 import { NotificationEnum } from '@onekey/frontend/enums/notification.enum';
 import { Window } from '@onekey/frontend/global';
 

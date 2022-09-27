@@ -24,7 +24,6 @@
       "node_modules/@types"
     ],
     "paths": {
-      "@onekey/core/*": ["./paf-mvp-core-js/src/*"],
       "@onekey/operator-node/*": ["./paf-mvp-operator-express/src/*"],
       "@onekey/client-node/*": ["./paf-mvp-client-express/src/*"],
       "@onekey/frontend/*": ["./paf-mvp-frontend/src/*"],

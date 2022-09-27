@@ -1,7 +1,6 @@
 import { AuditLogPage } from '../pages/audit-log.page';
-import { Seed, Source, TransactionId, TransmissionResponse } from '@onekey/core/model';
+import { Cookies, Seed, Source, TransactionId, TransmissionResponse } from '@onekey/core';
 import { getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
-import { Cookies } from '@onekey/core/cookies';
 import { IOneKeyLib, TransmissionRegistryContext } from '@onekey/frontend/lib/paf-lib';
 
 describe('Audit log', () => {

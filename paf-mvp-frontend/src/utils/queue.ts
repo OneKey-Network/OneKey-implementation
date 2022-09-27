@@ -1,4 +1,4 @@
-import { Log } from '@onekey/core/log';
+import { Log } from '@onekey/core';
 
 // API for loading OneKey asynchronously and run functions regardless
 // whether it gets loaded before or after their script executes.

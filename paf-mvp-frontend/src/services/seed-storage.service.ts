@@ -1,4 +1,4 @@
-import { TransactionId } from '@onekey/core/model';
+import { TransactionId } from '@onekey/core';
 import { SeedEntry } from '@onekey/frontend/lib/paf-lib';
 
 class SeedStorageService implements ISeedStorageService {

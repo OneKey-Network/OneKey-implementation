@@ -1,4 +1,4 @@
-import { Identifier, NodeError, ResponseCode, Source } from '@onekey/core/model';
+import { Identifier, NodeError, ResponseCode, Source } from '../model';
 
 export const CurrentModelVersion = '0.1';
 

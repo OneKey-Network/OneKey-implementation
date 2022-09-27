@@ -1,7 +1,6 @@
 import { WidgetPage } from '../pages/widget.page';
-import { Cookies } from '@onekey/core/cookies';
+import { Cookies, GetIdsPrefsResponse, Identifiers } from '@onekey/core';
 import { getFakeIdentifier, getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
-import { GetIdsPrefsResponse, Identifiers } from '@onekey/core/model/generated-model';
 
 describe('Welcome widget view', () => {
   let page: WidgetPage;

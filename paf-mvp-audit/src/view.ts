@@ -7,8 +7,7 @@ import css from './css/ok-ui.css';
 import auditTemplate from './html/containers/audit.html';
 import buttonTemplate from './html/components/button.html';
 import { Locale } from './locale';
-import { IView } from '@onekey/core/ui/binding';
-import { Log } from '@onekey/core/log';
+import { IView, Log } from '@onekey/core';
 
 export class View implements IView {
   // The shadow root for the UI.

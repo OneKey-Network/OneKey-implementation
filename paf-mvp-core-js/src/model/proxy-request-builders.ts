@@ -1,6 +1,6 @@
 import { GetIdsPrefsResponse, Identifiers, PostSignPreferencesRequest, PreferencesData } from './generated-model';
 import { jsonProxyEndpoints } from '../endpoints';
-import { setInQueryString } from '../express/utils';
+import { setInQueryString } from '../express';
 
 export abstract class ProxyRestRequestBuilder<T extends object | undefined> {
   constructor(public proxyHost: string, protected restEndpoint: string) {}

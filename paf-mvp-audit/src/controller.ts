@@ -1,9 +1,7 @@
 import { Locale } from './locale';
-import { TransmissionResult } from '@onekey/core/model/generated-model';
-import { Log } from '@onekey/core/log';
+import { BindingViewOnly, Log, TransmissionResult } from '@onekey/core';
 import { Model } from './model';
 import { View } from './view';
-import { BindingViewOnly } from '@onekey/core/ui/binding';
 import providerComponent from './html/components/provider.html';
 import iconTick from './images/IconTick.svg';
 import { Window } from '@onekey/frontend/global';

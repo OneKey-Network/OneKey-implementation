@@ -8,14 +8,9 @@ import {
 import { Unsigned } from './model';
 import { jsonOperatorEndpoints, redirectEndpoints } from '../endpoints';
 import { getTimeStampInSec } from '../timestamp';
-import { RestAndRedirectRequestBuilder, RestRequestBuilder } from '@onekey/core/model/request-builders';
-import { Signer } from '@onekey/core/crypto/signer';
-import {
-  RequestDefinition,
-  RequestWithBodyDefinition,
-  RequestWithoutBodyDefinition,
-  RestContext,
-} from '@onekey/core/crypto/signing-definition';
+import { RestAndRedirectRequestBuilder, RestRequestBuilder } from './request-builders';
+import { Signer } from '../crypto/signer';
+import { RequestDefinition, RequestWithBodyDefinition, RequestWithoutBodyDefinition, RestContext } from '../crypto';
 
 export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
   constructor(operatorHost: string) {

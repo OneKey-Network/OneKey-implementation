@@ -1,6 +1,6 @@
 {
   "name": "@onekey/operator-node",
-  "version": "1.0.10",
+  "version": "1.0.13",
   "description": "OneKey Operator node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
@@ -10,7 +10,6 @@
   ],
   "scripts": {
     "prebuild": "npm install --prefix ../paf-mvp-core-js && npm install",
-    "npm:install": "npm install --legacy-peer-deps",
     "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublishOnly": "npm run build"
@@ -34,7 +33,8 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "tld-extract": "^2.0.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "@onekey/core": "../paf-mvp-core-js/src"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
@@ -56,6 +56,6 @@
     "typescript": "^4.5.4"
   },
   "peerDependencies": {
-    "@onekey/core": "^1.0.10"
+    "@onekey/core": "^1.0.13"
   }
 }
