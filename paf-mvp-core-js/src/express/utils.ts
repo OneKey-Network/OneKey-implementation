@@ -5,6 +5,7 @@ import { CorsOptions } from 'cors';
 import domainParser from 'tld-extract';
 import { ReturnUrl } from '@onekey/core/model';
 import { RedirectContext, RestContext } from '@onekey/core/crypto';
+import { CORRELATION_ID_HEADER_NAME } from '@onekey/core/log';
 
 export const setCookie = (
   res: Response,
@@ -66,6 +67,7 @@ export const corsOptionsAcceptAll = (req: Request, callback: (err: Error | null,
     origin: req.header('Origin'),
     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
     credentials: true,
+    allowedHeaders: CORRELATION_ID_HEADER_NAME,
   });
 };
 

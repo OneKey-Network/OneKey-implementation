@@ -188,6 +188,7 @@ export class OperatorNode extends Node {
       this.endHandling
     );
 
+    this.app.expressApp.options('*', cors(corsOptionsAcceptAll));
     this.setEndpointConfig('GET', jsonOperatorEndpoints.verify3PC, {
       endPointName: 'Verify3PC',
     });
@@ -666,7 +667,6 @@ export class OperatorNode extends Node {
   };
 
   redirectDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
-    this.logger.Info(redirectEndpoints.delete);
     const request = getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req);
     try {
       const response = await this.getDeleteResponse(request, req, res);

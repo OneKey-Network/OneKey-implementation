@@ -63,3 +63,4 @@ export class Log {
     return newArgs;
   }
 }
+export const CORRELATION_ID_HEADER_NAME = 'onekey-correlation-id';

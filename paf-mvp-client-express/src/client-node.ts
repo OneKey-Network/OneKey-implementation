@@ -13,7 +13,7 @@ import {
   JsonValidator,
 } from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
-
+import { CORRELATION_ID_HEADER_NAME } from '@onekey/core/log';
 /**
  * The configuration of a OneKey client Node
  */
@@ -68,6 +68,7 @@ export class ClientNode extends Node {
     this.setEndpointConfig('GET', jsonProxyEndpoints.read, {
       endPointName: 'Read',
     });
+
     this.app.expressApp.get(
       jsonProxyEndpoints.read,
       this.beginHandling,
@@ -90,6 +91,8 @@ export class ClientNode extends Node {
       this.catchErrors,
       this.endHandling
     );
+
+    this.app.expressApp.options('*', this.websiteIdentityValidator.cors);
 
     this.setEndpointConfig('GET', jsonProxyEndpoints.verify3PC, {
       endPointName: 'Verify3PC',
@@ -263,7 +266,8 @@ export class ClientNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.write, e);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(jsonProxyEndpoints.write, e, req.header(CORRELATION_ID_HEADER_NAME));
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -280,7 +284,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verify3PC, e);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(jsonProxyEndpoints.verify3PC, e, req.header(CORRELATION_ID_HEADER_NAME));
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -297,7 +302,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.newId, e);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(jsonProxyEndpoints.newId, e, req.header(CORRELATION_ID_HEADER_NAME));
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -314,7 +320,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.delete, e);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(jsonProxyEndpoints.delete, e, req.header(CORRELATION_ID_HEADER_NAME));
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -331,7 +338,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(redirectProxyEndpoints.read, e);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(redirectProxyEndpoints.read, e, req.header(CORRELATION_ID_HEADER_NAME));
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -348,7 +356,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(redirectProxyEndpoints.write, e);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(redirectProxyEndpoints.write, e, req.header(CORRELATION_ID_HEADER_NAME));
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
@@ -366,7 +375,8 @@ export class ClientNode extends Node {
       res.send(url.toString());
       next();
     } catch (e) {
-      this.logger.Error(redirectProxyEndpoints.delete, e);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(redirectProxyEndpoints.delete, e, req.header(CORRELATION_ID_HEADER_NAME));
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -383,7 +393,8 @@ export class ClientNode extends Node {
     const hasResponse = message.response !== undefined;
 
     if (!hasResponse) {
-      this.logger.Error(jsonProxyEndpoints.verifyRead, message.error);
+      //TODO handle errors properly in a dedicated middleware
+      this.logger.Error(jsonProxyEndpoints.verifyRead, message.error, req.header(CORRELATION_ID_HEADER_NAME));
       res.status(message.code);
       res.json(message.error);
       next(message.error);
@@ -398,7 +409,7 @@ export class ClientNode extends Node {
           type: 'VERIFICATION_FAILED',
           details: '',
         };
-        this.logger.Error(jsonProxyEndpoints.verifyRead, error);
+        this.logger.Error(jsonProxyEndpoints.verifyRead, error, req.header(CORRELATION_ID_HEADER_NAME));
         res.status(400);
         res.json(error);
         next(error);
@@ -407,7 +418,7 @@ export class ClientNode extends Node {
         next();
       }
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verifyRead, e);
+      this.logger.Error(jsonProxyEndpoints.verifyRead, e, req.header(CORRELATION_ID_HEADER_NAME));
       // FIXME finer error return
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
@@ -425,7 +436,7 @@ export class ClientNode extends Node {
       res.json(preferences);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.signPrefs, e);
+      this.logger.Error(jsonProxyEndpoints.signPrefs, e, req.header(CORRELATION_ID_HEADER_NAME));
       // FIXME finer error return
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
@@ -445,7 +456,7 @@ export class ClientNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.createSeed, e);
+      this.logger.Error(jsonProxyEndpoints.createSeed, e, req.header(CORRELATION_ID_HEADER_NAME));
       // FIXME finer error return
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
