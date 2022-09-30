@@ -1,4 +1,4 @@
-import { Log } from '@onekey/core/log';
+import { CORRELATION_ID_HEADER_NAME, Log } from '@onekey/core/log';
 import { PublicKeyProvider } from '@onekey/core/crypto';
 import { VHostApp } from '@onekey/core/express/express-apps';
 import { GetIdentityResponseBuilder, NodeError, RedirectErrorResponse, RedirectRequest } from '@onekey/core/model';
@@ -139,9 +139,10 @@ export class Node implements INode {
    * Begin handling of a request.
    * Should be called first.
    */
-  beginHandling = (req: Request, res: Response, next: NextFunction) => {
+  beginHandling = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
     const { endPointName } = this.getRequestConfig(req);
-    this.logger.Info(endPointName);
+    //req.correlationId() will get correlation-id from request header or generate a new one if it does not exist
+    this.logger.Info(`${endPointName} --correlation-id=${req.correlationId()} - START`);
     next();
   };
 
@@ -155,15 +156,14 @@ export class Node implements INode {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   endHandling = (req: Request, res: Response, next: NextFunction) => {
     const { endPointName } = this.getRequestConfig(req);
-    this.logger.Info(`${endPointName} - END`);
+    // we can get correlation-id from the request header as it was already set
+    this.logger.Info(`${endPointName} --correlation-id=${req.header(CORRELATION_ID_HEADER_NAME)} - END`);
   };
 
   catchErrors =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (error: unknown, req: Request, res: Response, next: NextFunction) => {
       const { endPointName, isRedirect } = this.getRequestConfig(req);
-
-      this.logger.Error(endPointName, error);
 
       let typedError: NodeError;
 
@@ -210,6 +210,11 @@ export class Node implements INode {
           httpCode = 500; // Internal Server Error
           break;
       }
+
+      const correlationId = req.header(CORRELATION_ID_HEADER_NAME);
+      const sender = req.header('referer') || req.header('origin');
+      const errorMessage = `@${endPointName} --correlation-id=${correlationId} --type=${typedError.type} --details=${typedError.details} --sender=${sender}`;
+      this.logger.Error(errorMessage);
 
       // Now send the appropriate response
       if (isRedirect) {

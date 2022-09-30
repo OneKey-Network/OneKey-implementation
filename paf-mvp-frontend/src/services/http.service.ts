@@ -1,4 +1,5 @@
-import { Log } from '@onekey/core/log';
+import { CORRELATION_ID_HEADER_NAME, Log } from '@onekey/core/log';
+import { randomUUID } from 'crypto';
 
 export interface IHttpService {
   /** Yes if the service has started a redirection. */
@@ -141,9 +142,12 @@ export class HttpClient implements IHttpClient {
   }
 
   fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+    const requestHeaders: HeadersInit = new Headers();
+    requestHeaders.set(CORRELATION_ID_HEADER_NAME, randomUUID());
     const enhancedInit: RequestInit = {
       ...init,
       signal: this.abortController.signal,
+      headers: requestHeaders,
     };
     return fetch(input, enhancedInit);
   }

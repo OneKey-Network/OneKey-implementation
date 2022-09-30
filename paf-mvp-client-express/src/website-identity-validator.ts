@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { escapeRegExp, getTopLevelDomain } from '@onekey/core/express';
 import { NodeError } from '@onekey/core/model';
 import { proxyUriParams } from '@onekey/core/endpoints';
+import { CORRELATION_ID_HEADER_NAME } from '@onekey/core/log';
 
 /**
  * Class to manipulate allowed origins and referrers based on current hostname
@@ -22,7 +23,7 @@ export class WebsiteIdentityValidator {
       origin: this.allowedOrigins,
       optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
       credentials: true,
-      allowedHeaders: ['Content-Type'],
+      allowedHeaders: ['Content-Type', CORRELATION_ID_HEADER_NAME],
     };
 
     this.cors = cors(corsOptions);

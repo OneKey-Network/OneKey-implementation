@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import vhost from 'vhost';
+import correlator from 'express-correlation-id';
 
 /**
  * Encapsulate the main Express app that will listen on the local IP
@@ -38,6 +39,8 @@ export class VHostApp {
 
     this.addPostBodyParser();
 
+    this.addCorrelator();
+
     if (forceHttps) {
       // Systematically redirect HTTP requests to HTTPs
       this.ensureHttps();
@@ -54,6 +57,10 @@ export class VHostApp {
   private addPostBodyParser() {
     // POST parser TODO ideally should parse it as JSON directly (but issues with CORS)
     this.expressApp.use(bodyParser.text());
+  }
+
+  private addCorrelator() {
+    this.expressApp.use(correlator({ header: 'onekey-correlation-id' }));
   }
 
   private addCookieParser() {
