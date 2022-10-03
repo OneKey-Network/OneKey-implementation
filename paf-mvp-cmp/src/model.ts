@@ -1,5 +1,5 @@
-import { PafStatus } from '@frontend/enums/status.enum';
-import { Field, FieldReadOnly, IFieldBind, IFieldChangable, IModel } from '@core/ui/fields';
+import { PafStatus } from '@onekey/frontend/enums/status.enum';
+import { Field, FieldReadOnly, IFieldBind, IFieldChangable, IModel } from '@onekey/core/ui/fields';
 import {
   Identifier,
   IdsAndOptionalPreferences,
@@ -7,7 +7,7 @@ import {
   PreferencesData,
   Source,
   Version,
-} from '@core/model/generated-model';
+} from '@onekey/core/model/generated-model';
 
 /**
  * The different states for the marketing preferences field.

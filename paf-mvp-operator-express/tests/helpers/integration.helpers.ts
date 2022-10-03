@@ -1,6 +1,6 @@
-import { Error, NodeError, RedirectErrorResponse, ResponseCode } from '@core/model';
+import { Error, NodeError, RedirectErrorResponse, ResponseCode } from '@onekey/core/model';
 import request from 'supertest';
-import { fromDataToObject, QSParam } from '@core/query-string';
+import { fromDataToObject, QSParam } from '@onekey/core/query-string';
 
 export const getRedirectUrl = (response: request.Response) => {
   return new URL(response.header['location']);

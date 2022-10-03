@@ -1,6 +1,6 @@
 {
   "name": "@onekey/core",
-  "version": "1.0.9",
+  "version": "1.0.14",
   "description": "OneKey core JS library",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
@@ -34,6 +34,7 @@
     "atob": "^2.1.2",
     "axios": "^0.26.1",
     "btoa": "^1.2.1",
+    "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "detect-browser": "^5.3.0",
     "json-schema-to-ts": "^1.6.5",
@@ -47,6 +48,7 @@
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
+    "@types/connect-timeout": "^0.0.36",
     "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.1",
     "@types/express-serve-static-core": "^4.17.28",

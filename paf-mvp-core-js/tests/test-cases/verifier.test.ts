@@ -1,7 +1,7 @@
 import { FooSigningDefinition, FooType, mockBuilder } from '../helpers/crypto.helper';
-import { Verifier } from '@core/crypto/verifier';
-import { PublicKeyProvider } from '@core/crypto';
-import { UnableToIdentifySignerError } from '@core/express/errors';
+import { Verifier } from '@onekey/core/crypto/verifier';
+import { PublicKeyProvider } from '@onekey/core/crypto';
+import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
 import SpyInstance = jest.SpyInstance;
 
 describe('Verifier', () => {

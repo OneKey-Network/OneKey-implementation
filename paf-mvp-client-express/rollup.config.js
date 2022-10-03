@@ -14,7 +14,6 @@ const DEV = process.env.ROLLUP_WATCH;
 const relative = path => join(__dirname, path);
 
 const entryPath = relative('src/index.ts');
-const coreExpressPath = relative('../paf-mvp-core-js/src/express/index.ts');
 
 // https://rollupjs.org/guide/en/#configuration-files
 export default [
@@ -22,9 +21,6 @@ export default [
     {
       input: {
         index: entryPath,
-        // Include core typings
-        // TODO this should be a proper npm package, not part of the build
-        core: coreExpressPath
       },
       plugins: [dts()], // Generate type declaration file index.d.ts
       output: {

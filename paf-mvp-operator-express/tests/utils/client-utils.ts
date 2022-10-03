@@ -1,5 +1,5 @@
-import { PublicKeyProvider } from '@core/crypto';
-import { OperatorClient } from '@client/operator-client';
+import { PublicKeyProvider } from '@onekey/core/crypto';
+import { OperatorClient } from '@onekey/client-node/operator-client';
 
 export class ClientBuilder {
   private operatorHost = 'example.onekey.network';

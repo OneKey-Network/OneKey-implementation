@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { EOL, type } from 'os';
-import { VHostApp } from '@core/express/express-apps';
+import { VHostApp } from '@onekey/core/express/express-apps';
 import { getAppsAndNodes } from '../src/apps';
 
 if (!(process.argv[2]?.length > 0)) {

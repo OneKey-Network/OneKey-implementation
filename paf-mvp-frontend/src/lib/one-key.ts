@@ -1,14 +1,14 @@
 /**
  * Entry point to OneKey library, built as onekey.js (TODO rename js file)
  */
-import { Window } from '@frontend/global';
-import { setUpImmediateProcessingQueue } from '@frontend/utils/queue';
-import { OneKeyLib } from '@frontend/lib/paf-lib';
-import { CurrentScript } from '@frontend/utils/current-script';
-import { auditLogStorageService } from '@frontend/services/audit-log-storage.service';
-import { seedStorageService } from '@frontend/services/seed-storage.service';
-import { Log, LogLevel } from '@core/log';
-import { HttpService } from '@frontend/services/http.service';
+import { Window } from '@onekey/frontend/global';
+import { setUpImmediateProcessingQueue } from '@onekey/frontend/utils/queue';
+import { OneKeyLib } from '@onekey/frontend/lib/paf-lib';
+import { CurrentScript } from '@onekey/frontend/utils/current-script';
+import { auditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
+import { seedStorageService } from '@onekey/frontend/services/seed-storage.service';
+import { Log, LogLevel } from '@onekey/core/log';
+import { HttpService } from '@onekey/frontend/services/http.service';
 
 // Debug level while playing with MVP
 Log.level = LogLevel.Debug;

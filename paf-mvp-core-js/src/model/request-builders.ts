@@ -1,9 +1,9 @@
-import { setInQueryString } from '@core/express/utils';
-import { MessageBase } from '@core/model/generated-model';
-import { RedirectRequest, Unsigned } from '@core/model/model';
-import { RedirectContext, RequestDefinition, RestContext } from '@core/crypto/signing-definition';
-import { getTimeStampInSec } from '@core/timestamp';
-import { Signer } from '@core/crypto/signer';
+import { setInQueryString } from '@onekey/core/express/utils';
+import { MessageBase } from '@onekey/core/model/generated-model';
+import { RedirectRequest, Unsigned } from '@onekey/core/model/model';
+import { RedirectContext, RequestDefinition, RestContext } from '@onekey/core/crypto/signing-definition';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { Signer } from '@onekey/core/crypto/signer';
 
 export abstract class RestRequestBuilder<R extends object | undefined> {
   constructor(public serverHost: string, protected restEndpoint: string) {}

@@ -1,8 +1,8 @@
-import { OperatorNode } from '@operator/operator-node';
+import { OperatorNode } from '@onekey/operator-node/operator-node';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { Response } from 'express';
-import { OperatorClient } from '@client/operator-client';
-import { GetIdsPrefsResponse, NodeError, Signature, Timestamp } from '@core/model';
+import { OperatorClient } from '@onekey/client-node/operator-client';
+import { GetIdsPrefsResponse, NodeError, Signature, Timestamp } from '@onekey/core/model';
 import { id, preferences } from '../fixtures/operator-fixtures';
 import { OperatorUtils } from '../utils/operator-utils';
 

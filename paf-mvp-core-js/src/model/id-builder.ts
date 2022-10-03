@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
-import { getTimeStampInSec } from '@core/timestamp';
-import { Identifier } from '@core/model/generated-model';
-import { UnsignedSource } from '@core/model/model';
-import { ISigner, Signer } from '@core/crypto/signer';
-import { IdentifierDefinition } from '@core/crypto/signing-definition';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { Identifier } from '@onekey/core/model/generated-model';
+import { UnsignedSource } from '@onekey/core/model/model';
+import { ISigner, Signer } from '@onekey/core/crypto/signer';
+import { IdentifierDefinition } from '@onekey/core/crypto/signing-definition';
 
 export class IdBuilder {
   constructor(

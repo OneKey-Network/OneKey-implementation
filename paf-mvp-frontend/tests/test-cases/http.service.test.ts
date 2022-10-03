@@ -1,4 +1,4 @@
-import { HttpService, IHttpClient, RedirectingError } from '@frontend/services/http.service';
+import { HttpService, IHttpClient, RedirectingError } from '@onekey/frontend/services/http.service';
 
 describe('HttpService', () => {
   const defaultUrl = 'https://test.com';

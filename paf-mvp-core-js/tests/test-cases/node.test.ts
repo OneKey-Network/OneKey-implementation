@@ -1,10 +1,10 @@
-import { IJsonValidator, JsonSchemaType, JsonValidation } from '@core/validation/json-validator';
-import { EndpointConfiguration, IdentityConfig, Node } from '@core/express';
+import { IJsonValidator, JsonSchemaType, JsonValidation } from '@onekey/core/validation/json-validator';
+import { EndpointConfiguration, IdentityConfig, Node } from '@onekey/core/express';
 import { createRequest, createResponse, MockResponse } from 'node-mocks-http';
 import { NextFunction, Request, Response } from 'express';
-import { NodeError } from '@core/model';
-import { getTimeStampInSec } from '@core/timestamp';
-import { encodeBase64, QSParam } from '@core/query-string';
+import { NodeError } from '@onekey/core/model';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { encodeBase64, QSParam } from '@onekey/core/query-string';
 
 const buildStaticJsonValidator = (validationResult: boolean): IJsonValidator => {
   const jsonValidation: JsonValidation = {

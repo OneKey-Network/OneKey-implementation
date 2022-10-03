@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "types": ["@testing-library/cypress", "cypress"],
     "paths": {
-      "@core/*": ["../../paf-mvp-core-js/src/*"],
+      "@onekey/core/*": ["../../paf-mvp-core-js/src/*"],
       "@test-helpers/*": ["../../paf-mvp-core-js/tests/helpers/*"],
       "@test-fixtures/*": ["../../paf-mvp-core-js/tests/fixtures/*"],
     }

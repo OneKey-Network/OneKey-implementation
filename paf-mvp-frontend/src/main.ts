@@ -2,8 +2,8 @@ import './polyfills/assign';
 import './styles.scss';
 import { PromptConsent } from './widgets/prompt-consent';
 import { notificationService } from './services/notification.service';
-import { NotificationEnum } from '@frontend/enums/notification.enum';
-import { currentScript } from '@frontend/utils/current-script';
+import { NotificationEnum } from '@onekey/frontend/enums/notification.enum';
+import { currentScript } from '@onekey/frontend/utils/current-script';
 import { Window } from './global';
 
 currentScript.setScript(document.currentScript as HTMLScriptElement);

@@ -1,8 +1,8 @@
 import { Config } from './config';
 import { Controller } from './controller';
-import { Log, LogLevel } from '@core/log';
-import { NotificationEnum } from '@frontend/enums/notification.enum';
-import { Window } from '@frontend/global';
+import { Log, LogLevel } from '@onekey/core/log';
+import { NotificationEnum } from '@onekey/frontend/enums/notification.enum';
+import { Window } from '@onekey/frontend/global';
 
 /**
  * The language text object populated by rollup.config.js at build time based on the YAML resource language files.

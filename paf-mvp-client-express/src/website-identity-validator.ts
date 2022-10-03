@@ -1,8 +1,8 @@
 import cors, { CorsOptions } from 'cors';
 import { NextFunction, Request, Response } from 'express';
-import { escapeRegExp, getTopLevelDomain } from '@core/express';
-import { NodeError } from '@core/model';
-import { proxyUriParams } from '@core/endpoints';
+import { escapeRegExp, getTopLevelDomain } from '@onekey/core/express';
+import { NodeError } from '@onekey/core/model';
+import { proxyUriParams } from '@onekey/core/endpoints';
 
 /**
  * Class to manipulate allowed origins and referrers based on current hostname

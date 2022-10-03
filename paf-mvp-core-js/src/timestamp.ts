@@ -1,4 +1,4 @@
-import { Timestamp } from '@core/model/generated-model';
+import { Timestamp } from '@onekey/core/model/generated-model';
 
 /**
  * Transform a date into a timestamp IN SECONDS, rounded to an integer

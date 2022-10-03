@@ -1,10 +1,10 @@
-import { PublicKeyStore } from '@core/crypto/key-store';
-import { GetIdentityResponse, Timestamp } from '@core/model/generated-model';
-import { getTimeStampInSec } from '@core/timestamp';
+import { PublicKeyStore } from '@onekey/core/crypto/key-store';
+import { GetIdentityResponse, Timestamp } from '@onekey/core/model/generated-model';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { MockTimer } from '../helpers/timestamp.helper';
-import { PublicKeyInfo } from '@core/crypto/identity';
+import { PublicKeyInfo } from '@onekey/core/crypto/identity';
 
 interface KeyInfo {
   key: string;

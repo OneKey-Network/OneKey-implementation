@@ -1,12 +1,12 @@
 import { Locale } from './locale';
-import { TransmissionResult } from '@core/model/generated-model';
-import { Log } from '@core/log';
+import { TransmissionResult } from '@onekey/core/model/generated-model';
+import { Log } from '@onekey/core/log';
 import { Model } from './model';
 import { View } from './view';
-import { BindingViewOnly } from '@core/ui/binding';
+import { BindingViewOnly } from '@onekey/core/ui/binding';
 import providerComponent from './html/components/provider.html';
 import iconTick from './images/IconTick.svg';
-import { Window } from '@frontend/global';
+import { Window } from '@onekey/frontend/global';
 
 // TODO: Add back when full audit information is available.
 // import iconCross from './images/iconCross.svg';

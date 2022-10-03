@@ -1,7 +1,7 @@
-import { getTimeStampInSec } from '@core/timestamp';
-import { JsonValidator } from '@core/validation/json-validator';
-import { OperatorNode, Permission } from '@operator/operator-node';
-import { PublicKeyStore } from '@core/crypto';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { JsonValidator } from '@onekey/core/validation/json-validator';
+import { OperatorNode, Permission } from '@onekey/operator-node/operator-node';
+import { PublicKeyStore } from '@onekey/core/crypto';
 
 // This is just an example of a basic operator node configuration
 export const operator = new OperatorNode(

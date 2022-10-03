@@ -1,4 +1,4 @@
-import { Signer } from '@core/crypto/signer';
+import { Signer } from '@onekey/core/crypto/signer';
 import { FooSigningDefinition, FooType, mockBuilder } from '../helpers/crypto.helper';
 
 describe('Signer', () => {

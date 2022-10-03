@@ -1,16 +1,21 @@
 import { Config } from './config';
 import { BindingDisplayRandomId, BindingShowRandomIdDiv, BindingThisSiteOnly } from './bindings';
-import { Log } from '@core/log';
-import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@core/ui/binding';
-import { Identifier, IdsAndOptionalPreferences, Preferences, PreferencesData } from '@core/model/generated-model';
+import { Log } from '@onekey/core/log';
+import { BindingButton, BindingChecked, BindingCheckedMap, BindingElement } from '@onekey/core/ui/binding';
+import {
+  Identifier,
+  IdsAndOptionalPreferences,
+  Preferences,
+  PreferencesData,
+} from '@onekey/core/model/generated-model';
 import { Marketing, Model } from './model';
-import { PafStatus } from '@frontend/enums/status.enum';
+import { PafStatus } from '@onekey/frontend/enums/status.enum';
 import { View } from './view';
-import { getCookieValue } from '@frontend/utils/cookie';
-import { Cookies, getPrebidDataCacheExpiration } from '@core/cookies';
+import { getCookieValue } from '@onekey/frontend/utils/cookie';
+import { Cookies, getPrebidDataCacheExpiration } from '@onekey/core/cookies';
 import { TcfCore } from './tcfcore';
 import { ILocale } from './ILocale';
-import { Window } from '@frontend/global';
+import { Window } from '@onekey/frontend/global';
 
 const OneKeyLib = (<Window>window).OneKey;
 

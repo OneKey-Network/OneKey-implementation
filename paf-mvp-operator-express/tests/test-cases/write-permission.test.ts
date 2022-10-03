@@ -1,4 +1,4 @@
-import { OperatorNode } from '@operator/operator-node';
+import { OperatorNode } from '@onekey/operator-node/operator-node';
 import { createResponse, MockResponse } from 'node-mocks-http';
 import { NextFunction, Response } from 'express';
 import { OperatorUtils } from '../utils/operator-utils';

@@ -1,4 +1,4 @@
-import { parseDuration } from '@frontend/utils/date-utils';
+import { parseDuration } from '@onekey/frontend/utils/date-utils';
 
 describe('ISO-8601 duration parser', () => {
   const invalid_inputs = [null, 'SOME_RANDOM_STRING', 'PTT1S', ''];

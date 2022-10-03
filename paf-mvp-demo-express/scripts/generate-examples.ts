@@ -22,38 +22,38 @@ import {
   RedirectPostIdsPrefsRequest,
   RedirectPostIdsPrefsResponse,
   Test3Pc,
-} from '@core/model/generated-model';
-import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@core/cookies';
-import { getTimeStampInSec } from '@core/timestamp';
+} from '@onekey/core/model/generated-model';
+import { toIdsCookie, toPrefsCookie, toTest3pcCookie } from '@onekey/core/cookies';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
 import path from 'path';
-import { OperatorClient } from '@client/operator-client';
+import { OperatorClient } from '@onekey/client-node/operator-client';
 import {
   DeleteIdsPrefsRequestBuilder,
   Get3PCRequestBuilder,
   GetIdsPrefsRequestBuilder,
   GetNewIdRequestBuilder,
   PostIdsPrefsRequestBuilder,
-} from '@core/model/operator-request-builders';
+} from '@onekey/core/model/operator-request-builders';
 import {
   DeleteIdsPrefsResponseBuilder,
   Get3PCResponseBuilder,
   GetIdsPrefsResponseBuilder,
   GetNewIdResponseBuilder,
   PostIdsPrefsResponseBuilder,
-} from '@core/model/operator-response-builders';
+} from '@onekey/core/model/operator-response-builders';
 import { Schema, Validator } from 'jsonschema';
 import * as fs from 'fs';
 import {
   ProxyRestSignPreferencesRequestBuilder,
   ProxyRestVerifyGetIdsPrefsRequestBuilder,
-} from '@core/model/proxy-request-builders';
+} from '@onekey/core/model/proxy-request-builders';
 import isEqual from 'lodash.isequal';
 import cloneDeep from 'lodash.clonedeep';
-import { GetIdentityResponseBuilder } from '@core/model/identity-response-builder';
-import { GetIdentityRequestBuilder } from '@core/model/identity-request-builder';
-import { PublicKeyStore } from '@core/crypto/key-store';
-import { parseConfig } from '@core/express/config';
-import { IdBuilder } from '@core/model/id-builder';
+import { GetIdentityResponseBuilder } from '@onekey/core/model/identity-response-builder';
+import { GetIdentityRequestBuilder } from '@onekey/core/model/identity-request-builder';
+import { PublicKeyStore } from '@onekey/core/crypto/key-store';
+import { parseConfig } from '@onekey/core/express/config';
+import { IdBuilder } from '@onekey/core/model/id-builder';
 
 const getTimestamp = (dateString: string) => getTimeStampInSec(new Date(dateString));
 const getUrl = (method: 'POST' | 'GET' | 'DELETE', url: URL): string =>

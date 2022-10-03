@@ -1,6 +1,6 @@
 import { Config } from './config';
-import { BindingViewOnly } from '@core/ui/binding';
-import { Identifier, PreferencesData } from '@core/model/generated-model';
+import { BindingViewOnly } from '@onekey/core/ui/binding';
+import { Identifier, PreferencesData } from '@onekey/core/model/generated-model';
 import { Marketing, Model } from './model';
 import { View } from './view';
 

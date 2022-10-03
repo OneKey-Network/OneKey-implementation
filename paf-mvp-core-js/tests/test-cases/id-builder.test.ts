@@ -1,4 +1,4 @@
-import { IdBuilder } from '@core/model/id-builder';
+import { IdBuilder } from '@onekey/core/model/id-builder';
 
 describe('IdBuilder', () => {
   const privateKey =

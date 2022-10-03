@@ -1,7 +1,7 @@
 import { Locale } from './locale';
 import { Controller } from './controller';
-import { Window } from '@frontend/global';
-import { Log, LogLevel } from '@core/log';
+import { Window } from '@onekey/frontend/global';
+import { Log, LogLevel } from '@onekey/core/log';
 
 // Debug level while playing with MVP
 Log.level = LogLevel.Debug;

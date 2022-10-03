@@ -1,7 +1,7 @@
 import { ComponentFactory, createElement, render, VNode } from 'preact';
 import { createHtmlElement } from '../../utils/create-html-element';
 import { env } from '../../config';
-import { currentScript } from '@frontend/utils/current-script';
+import { currentScript } from '@onekey/frontend/utils/current-script';
 
 const fontFaces = (domain: string) => `@font-face {
   font-family: 'SF Pro Display';
