@@ -55,7 +55,12 @@ import {
 import { Cookies, toTest3pcCookie, typedCookie } from '@onekey/core/cookies';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { jsonOperatorEndpoints, redirectEndpoints } from '@onekey/core/endpoints';
-import { IJsonValidator, JsonSchemaType, JsonValidator } from '@onekey/core/validation/json-validator';
+import {
+  IJsonValidator,
+  JsonSchemaRepository,
+  JsonSchemaType,
+  JsonValidator,
+} from '@onekey/core/validation/json-validator';
 import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
 import timeout from 'connect-timeout';
 
@@ -81,6 +86,7 @@ export type AllowedHosts = { [host: string]: Permission[] };
 export interface OperatorNodeConfig extends Config {
   allowedHosts: AllowedHosts;
   redirectResponseTimeoutInMs: number;
+  jsonSchemaPath: string;
 }
 
 export class OperatorNode extends Node {
@@ -287,15 +293,14 @@ export class OperatorNode extends Node {
   }
 
   static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
-    const { host, identity, currentPrivateKey, allowedHosts, redirectResponseTimeoutInMs } = (await parseConfig(
-      configPath
-    )) as OperatorNodeConfig;
+    const { host, identity, currentPrivateKey, allowedHosts, redirectResponseTimeoutInMs, jsonSchemaPath } =
+      (await parseConfig(configPath)) as OperatorNodeConfig;
     return new OperatorNode(
       identity,
       host,
       currentPrivateKey,
       allowedHosts,
-      JsonValidator.default(),
+      jsonSchemaPath ? new JsonValidator(JsonSchemaRepository.build(jsonSchemaPath)) : JsonValidator.default(),
       new PublicKeyStore(s2sOptions).provider,
       redirectResponseTimeoutInMs || 2000
     );
