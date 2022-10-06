@@ -1,6 +1,6 @@
 {
   "name": "@onekey/core",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "OneKey core JS library",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
