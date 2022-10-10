@@ -86,7 +86,6 @@ export type AllowedHosts = { [host: string]: Permission[] };
 export interface OperatorNodeConfig extends Config {
   allowedHosts: AllowedHosts;
   redirectResponseTimeoutInMs: number;
-  jsonSchemaPath: string;
 }
 
 export class OperatorNode extends Node {
@@ -292,9 +291,14 @@ export class OperatorNode extends Node {
     );
   }
 
-  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<OperatorNode> {
-    const { host, identity, currentPrivateKey, allowedHosts, redirectResponseTimeoutInMs, jsonSchemaPath } =
-      (await parseConfig(configPath)) as OperatorNodeConfig;
+  static async fromConfig(
+    configPath: string,
+    s2sOptions?: AxiosRequestConfig,
+    jsonSchemaPath?: string
+  ): Promise<OperatorNode> {
+    const { host, identity, currentPrivateKey, allowedHosts, redirectResponseTimeoutInMs } = (await parseConfig(
+      configPath
+    )) as OperatorNodeConfig;
     return new OperatorNode(
       identity,
       host,
