@@ -6,7 +6,12 @@ import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
 import { fromDataToObject } from '@onekey/core/query-string';
 import { AxiosRequestConfig } from 'axios';
 import { PublicKeyProvider, PublicKeyStore } from '@onekey/core/crypto';
-import { IJsonValidator, JsonSchemaType, JsonValidator } from '@onekey/core/validation/json-validator';
+import {
+  IJsonValidator,
+  JsonSchemaRepository,
+  JsonSchemaType,
+  JsonValidator,
+} from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 
 /**
@@ -223,9 +228,17 @@ export class ClientNode extends Node {
     );
   }
 
-  static async fromConfig(configPath: string, s2sOptions?: AxiosRequestConfig): Promise<ClientNode> {
+  static async fromConfig(
+    configPath: string,
+    s2sOptions?: AxiosRequestConfig,
+    jsonSchemaPath?: string
+  ): Promise<ClientNode> {
     const config = (await parseConfig(configPath)) as ClientNodeConfig;
-    return new ClientNode(config, JsonValidator.default(), new PublicKeyStore(s2sOptions).provider);
+    return new ClientNode(
+      config,
+      jsonSchemaPath ? new JsonValidator(JsonSchemaRepository.build(jsonSchemaPath)) : JsonValidator.default(),
+      new PublicKeyStore(s2sOptions).provider
+    );
   }
 
   restBuildUrlToGetIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
