@@ -1,5 +1,5 @@
 import { AuditLogPage } from '../pages/audit-log.page';
-import { Seed, Source, TransactionId, TransmissionResponse } from '@onekey/core/model';
+import { GetIdentityResponse, Seed, Source, TransactionId, TransmissionResponse } from '@onekey/core/model';
 import { getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
 import { Cookies } from '@onekey/core/cookies';
 import { IOneKeyLib, TransmissionRegistryContext } from '@onekey/frontend/lib/paf-lib';
@@ -47,6 +47,25 @@ describe('Audit log', () => {
     transaction_ids: transactions,
   };
 
+  const identities: { [domain: string]: GetIdentityResponse } = {
+    'publisher.com': {
+      version: '1.0',
+      dpo_email: 'dpo@publisher.com',
+      name: 'Publisher',
+      type: 'vendor',
+      privacy_policy_url: 'https://publisher.com/privacy',
+      keys: [],
+    },
+    'receiver.com': {
+      version: '1.0',
+      dpo_email: 'dpo@receiver.com',
+      name: 'Receiver',
+      type: 'vendor',
+      privacy_policy_url: 'https://receiver.com/privacy',
+      keys: [],
+    },
+  };
+
   beforeEach(() => {
     page = new AuditLogPage();
     page.open();
@@ -59,6 +78,9 @@ describe('Audit log', () => {
   describe('audit log button', () => {
     beforeEach(() => {
       cy.intercept('POST', `https://${proxyHostname}/paf-proxy/v1/seed`, seed);
+      Object.entries(identities).forEach(([key, value]) => {
+        cy.intercept('GET', `https://${key}/paf/v1/identity`, value);
+      });
     });
 
     it('should be visible', () => {
@@ -77,8 +99,51 @@ describe('Audit log', () => {
 
           page.getAdAuditLogBtnContainerDiv(divId).should('exist');
 
-          // FIXME for the test to proceed (like this next line), the shadow dom must be added with open mode. See https://github.com/OneKey-Network/OneKey-implementation/pull/231#issuecomment-1241979603
-          // page.getAuditLogBtn(divId).should('be.visible');
+          const auditLogBtn = page.getAuditLogBtn(divId);
+          auditLogBtn.should('be.visible');
+
+          auditLogBtn.click();
+
+          page.getAudit(divId).should('be.visible');
+        });
+    });
+
+    it('should display success audit', () => {
+      cy.window()
+        .its('OneKey')
+        .then(async (oneKey: IOneKeyLib) => {
+          // PrebidJS would call this on bid request
+          await oneKey.generateSeed(transactions);
+
+          // PrebidJS would call this on bid response
+          oneKey.registerTransmissionResponse(context, transmissionResponse);
+
+          // Click to show audit
+          page.getAuditLogBtn(divId).click();
+
+          const providersDiv = page.getProviders(divId);
+          providersDiv.should('be.visible');
+
+          const providers = providersDiv.children<HTMLDivElement>('div');
+
+          const expectedResults = [
+            {
+              name: 'Receiver',
+              email: 'mailto:dpo@receiver.com',
+              url: 'https://receiver.com/privacy',
+            },
+          ];
+
+          providers.should('have.length', expectedResults.length);
+
+          providers.each((provider, index) => {
+            const { name, email, url } = expectedResults[index];
+            cy.wrap(provider).get('h2').contains(name);
+            cy.wrap(provider).findByTestId('email').invoke('attr', 'href').should('eq', email);
+            cy.wrap(provider).findByTestId('url').invoke('attr', 'href').should('eq', url);
+          });
+
+          // TODO icon should be green check
         });
     });
   });

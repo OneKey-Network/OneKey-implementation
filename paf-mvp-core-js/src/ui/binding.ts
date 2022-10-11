@@ -85,7 +85,10 @@ export abstract class BindingBase<E extends HTMLElement> {
 /**
  * Binding used only to display the value of a field and not update it.
  */
-export abstract class BindingViewOnly<T, M extends IModel, E extends HTMLElement> extends BindingBase<E> {
+export abstract class BindingViewOnly<T, M extends IModel, E extends HTMLElement>
+  extends BindingBase<E>
+  implements IBindingField<T, M>
+{
   /**
    * The field that the binding relates to. Set when the binding is added to the field.
    */
