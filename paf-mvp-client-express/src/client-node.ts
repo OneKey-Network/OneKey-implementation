@@ -13,7 +13,7 @@ import {
   JsonValidator,
 } from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
-import { CORRELATION_ID_HEADER_NAME } from '@onekey/core/log';
+
 /**
  * The configuration of a OneKey client Node
  */
@@ -260,14 +260,18 @@ export class ClientNode extends Node {
     }
   };
 
-  restBuildUrlToWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToWriteIdsAndPreferences = async (
+    req: Request & { correlationId(): string },
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const response = await this.client.getWriteResponse(req);
       res.json(response);
       next();
     } catch (e) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(jsonProxyEndpoints.write, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.write, e, req.correlationId());
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -278,14 +282,14 @@ export class ClientNode extends Node {
     }
   };
 
-  buildUrlToVerify3PC = (req: Request, res: Response, next: NextFunction) => {
+  buildUrlToVerify3PC = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getVerify3PCResponse();
       res.send(url);
       next();
     } catch (e) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(jsonProxyEndpoints.verify3PC, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.verify3PC, e, req.correlationId());
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -296,14 +300,14 @@ export class ClientNode extends Node {
     }
   };
 
-  buildUrlToGetNewId = async (req: Request, res: Response, next: NextFunction) => {
+  buildUrlToGetNewId = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
     try {
       const url = await this.client.getNewIdResponse(req);
       res.send(url);
       next();
     } catch (e) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(jsonProxyEndpoints.newId, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.newId, e, req.correlationId());
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -314,14 +318,18 @@ export class ClientNode extends Node {
     }
   };
 
-  restBuildUrlToDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+  restBuildUrlToDeleteIdsAndPreferences = async (
+    req: Request & { correlationId(): string },
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const url = await this.client.getDeleteResponse(req);
       res.send(url);
       next();
     } catch (e) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(jsonProxyEndpoints.delete, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.delete, e, req.correlationId());
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -332,14 +340,18 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectBuildUrlToReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToReadIdsAndPreferences = async (
+    req: Request & { correlationId(): string },
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const url = await this.client.getReadRedirectResponse(req);
       res.send(url);
       next();
     } catch (e) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(redirectProxyEndpoints.read, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(redirectProxyEndpoints.read, e, req.correlationId());
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -350,14 +362,18 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectBuildUrlToWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToWriteIdsAndPreferences = async (
+    req: Request & { correlationId(): string },
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const url = await this.client.getWriteRedirectResponse(req);
       res.send(url);
       next();
     } catch (e) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(redirectProxyEndpoints.write, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(redirectProxyEndpoints.write, e, req.correlationId());
       // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
@@ -369,14 +385,18 @@ export class ClientNode extends Node {
     }
   };
 
-  redirectBuildUrlToDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
+  redirectBuildUrlToDeleteIdsAndPreferences = async (
+    req: Request & { correlationId(): string },
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const url = await this.client.getDeleteRedirectResponse(req);
       res.send(url.toString());
       next();
     } catch (e) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(redirectProxyEndpoints.delete, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(redirectProxyEndpoints.delete, e, req.correlationId());
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
         details: '',
@@ -387,14 +407,14 @@ export class ClientNode extends Node {
     }
   };
 
-  verifyOperatorReadResponse = (req: Request, res: Response, next: NextFunction) => {
+  verifyOperatorReadResponse = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
     const hasResponse = message.response !== undefined;
 
     if (!hasResponse) {
       //TODO handle errors properly in a dedicated middleware
-      this.logger.Error(jsonProxyEndpoints.verifyRead, message.error, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.verifyRead, message.error, req.correlationId());
       res.status(message.code);
       res.json(message.error);
       next(message.error);
@@ -409,7 +429,7 @@ export class ClientNode extends Node {
           type: 'VERIFICATION_FAILED',
           details: '',
         };
-        this.logger.Error(jsonProxyEndpoints.verifyRead, error, req.header(CORRELATION_ID_HEADER_NAME));
+        this.logger.Error(jsonProxyEndpoints.verifyRead, error, req.correlationId());
         res.status(400);
         res.json(error);
         next(error);
@@ -418,7 +438,7 @@ export class ClientNode extends Node {
         next();
       }
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verifyRead, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.verifyRead, e, req.correlationId());
       // FIXME finer error return
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
@@ -430,13 +450,13 @@ export class ClientNode extends Node {
     }
   };
 
-  signPreferences = async (req: Request, res: Response, next: NextFunction) => {
+  signPreferences = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
     try {
       const preferences = await this.client.getSignPreferencesResponse(req);
       res.json(preferences);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.signPrefs, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.signPrefs, e, req.correlationId());
       // FIXME finer error return
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
@@ -448,7 +468,7 @@ export class ClientNode extends Node {
     }
   };
 
-  createSeed = async (req: Request, res: Response, next: NextFunction) => {
+  createSeed = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
     try {
       const request = JSON.parse(req.body as string) as PostSeedRequest;
       const seed = await this.client.buildSeed(request.transaction_ids, request.data);
@@ -456,7 +476,7 @@ export class ClientNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.createSeed, e, req.header(CORRELATION_ID_HEADER_NAME));
+      this.logger.Error(jsonProxyEndpoints.createSeed, e, req.correlationId());
       // FIXME finer error return
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',
