@@ -12,9 +12,9 @@ import {
 } from './generated-model';
 import { Unsigned } from './model';
 import { getTimeStampInSec } from '../timestamp';
-import { setInQueryString } from '../express/utils';
 import { ResponseDefinition } from '../crypto/signing-definition';
 import { Signer } from '../crypto/signer';
+import { setInQueryString } from '@onekey/core/query-string';
 
 export abstract class ResponseBuilderWithRedirect<T> {
   protected constructor(protected host: string) {}

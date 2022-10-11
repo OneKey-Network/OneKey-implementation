@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { CookieOptions } from 'express-serve-static-core';
-import { encodeBase64, fromDataToObject, QSParam } from '../query-string';
+import { fromDataToObject, QSParam } from '../query-string';
 import { CorsOptions } from 'cors';
 import domainParser from 'tld-extract';
 import { ReturnUrl } from '@onekey/core/model';
@@ -38,16 +38,6 @@ export const httpRedirect = (res: Response, redirectUrl: string, httpCode = 303)
 export const getPafDataFromQueryString = <T>(req: Request): T | undefined => {
   const data = req.query[QSParam.paf] as string | undefined;
   return fromDataToObject(data);
-};
-
-/**
- * Set request or response object in query string
- * @param url
- * @param requestOrResponse
- */
-export const setInQueryString = <T>(url: URL, requestOrResponse: T): URL => {
-  url.searchParams.set(QSParam.paf, encodeBase64(JSON.stringify(requestOrResponse)));
-  return url;
 };
 
 export const isValidHttpUrl = (urlString: string) => {
