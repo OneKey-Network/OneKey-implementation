@@ -1,12 +1,11 @@
 import { Locale } from './locale';
 import { Log } from '@onekey/core/log';
-import { Model, ValidatedTransmissionResult } from './model';
+import { AuditLine, Model } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@onekey/core/ui/binding';
 import providerComponent from './html/components/provider.html';
 import iconTick from './images/IconTick.svg';
 import { Window } from '@onekey/frontend/global';
-import { HttpService, IHttpService } from '@onekey/frontend/services/http.service';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -122,13 +121,8 @@ export class Controller {
 /**
  * Custom UI binding to display the providers from the audit log.
  */
-class BindingProviders extends BindingViewOnly<ValidatedTransmissionResult, Model, HTMLDivElement> {
-  constructor(
-    view: View,
-    id: string,
-    private readonly locale: Locale,
-    private httpService: IHttpService = new HttpService()
-  ) {
+class BindingProviders extends BindingViewOnly<AuditLine, Model, HTMLDivElement> {
+  constructor(view: View, id: string, private readonly locale: Locale) {
     super(view, id);
   }
 

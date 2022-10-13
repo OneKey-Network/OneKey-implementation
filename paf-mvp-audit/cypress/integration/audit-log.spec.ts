@@ -1,8 +1,9 @@
 import { AuditLogPage } from '../pages/audit-log.page';
-import { GetIdentityResponse, Seed, Source, TransactionId, TransmissionResponse } from '@onekey/core/model';
+import { GetIdentityResponse, Seed, TransactionId, TransmissionResponse } from '@onekey/core/model';
 import { getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
 import { Cookies } from '@onekey/core/cookies';
 import { IOneKeyLib, TransmissionRegistryContext } from '@onekey/frontend/lib/paf-lib';
+import { getTimeStampInSec } from '@onekey/core/timestamp';
 
 describe('Audit log', () => {
   let page: AuditLogPage;
@@ -10,13 +11,9 @@ describe('Audit log', () => {
   const transactions: TransactionId[] = ['1', '2'];
   const version = '0.1';
 
-  const source: Source = {
-    timestamp: Date.now(),
-    domain: 'publisher.com',
-    signature: 'TODO',
-  };
-
   const contentId = 'content1';
+
+  const nowTimestampSeconds = getTimeStampInSec();
 
   const preferences = getFakePreferences();
   const identifiers = getFakeIdentifiers();
@@ -36,12 +33,20 @@ describe('Audit log', () => {
     ],
     status: 'success',
     details: '',
-    source,
+    source: {
+      timestamp: Date.now(),
+      domain: 'receiver.com',
+      signature: 'TODO',
+    },
     children: [],
   };
 
   const seed: Seed = {
-    source,
+    source: {
+      timestamp: Date.now(),
+      domain: 'publisher.com',
+      signature: 'TODO',
+    },
     version,
     publisher: 'publisher.com',
     transaction_ids: transactions,
@@ -62,7 +67,15 @@ describe('Audit log', () => {
       name: 'Receiver',
       type: 'vendor',
       privacy_policy_url: 'https://receiver.com/privacy',
-      keys: [],
+      keys: [
+        {
+          key: `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEl0278pcupaxUfiqHJ9AG9gVMyIO+
+n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
+-----END PUBLIC KEY-----`,
+          start: nowTimestampSeconds - 3 * 3600, // 3 hours in the past
+        },
+      ],
     },
   };
 
@@ -127,6 +140,11 @@ describe('Audit log', () => {
           const providers = providersDiv.children<HTMLDivElement>('div');
 
           const expectedResults = [
+            {
+              name: 'Publisher',
+              email: 'mailto:dpo@publisher.com',
+              url: 'https://publisher.com/privacy',
+            },
             {
               name: 'Receiver',
               email: 'mailto:dpo@receiver.com',
