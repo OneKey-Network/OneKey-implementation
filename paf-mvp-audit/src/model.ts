@@ -10,6 +10,9 @@ export interface AuditLine {
   privacyUrl?: string;
 }
 
+/**
+ * A field that holds values for a line of the audit log
+ */
 export abstract class FieldAuditLine extends Field<AuditLine, Model> implements IFieldBind {
   constructor(model: Model, private domain: string, private httpService: IHttpService = new HttpService()) {
     super(model, null);
@@ -82,7 +85,7 @@ export class Model implements IModel {
 
   constructor(private httpService: IHttpService = new HttpService()) {}
 
-  async addField(field: FieldAuditLine) {
+  private async addField(field: FieldAuditLine) {
     await field.populateValues();
 
     this.results.push(field);
