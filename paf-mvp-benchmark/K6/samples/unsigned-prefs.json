@@ -1,0 +1,21 @@
+{
+    "identifiers": [
+        {
+            "version": "0.1",
+            "type": "paf_browser_id",
+            "value": "6c26cf1c-1930-425a-aff7-ebeca2ff02f7",
+            "source": {
+                "domain": "crto-poc-1.onekey.network",
+                "timestamp": 1659509062,
+                "signature": "NZDDcBXgmIVpw8EqHgMjQRjYUi/YoXzxKa9eWqiGOeZ9SxEflAhuIiUkbZ8SUGtOPtcj3Vnk7vfweZIv89KjyQ=="
+            },
+            "persisted": true
+        }
+    ],
+    "unsignedPreferences": {
+        "data": {
+            "use_browsing_for_personalization": false
+        },
+        "version": null
+    }
+}

@@ -15,6 +15,8 @@ import { IdentityConfig } from '@onekey/core/express/config';
 import { NextFunction, Request, Response as ExpressResponse } from 'express';
 import { IJsonValidator, JsonSchemaType } from '@onekey/core/validation/json-validator';
 import { decodeBase64, QSParam } from '@onekey/core/query-string';
+import { TracerFactory } from '@onekey/core/monitoring/tracer-factory';
+import { Span, SpanKind, SpanOptions, SpanStatusCode, Tracer } from '@opentelemetry/api';
 
 export interface INode {
   app: VHostApp;
@@ -26,6 +28,8 @@ export interface INode {
 }
 
 export interface ResponseLocals {
+  spans?: Span[];
+  currentSpanStatus?: SpanStatusCode;
   returnUrl?: string;
 }
 
@@ -51,6 +55,7 @@ export class Node implements INode {
   protected jsonValidator: IJsonValidator;
   protected publicKeyProvider: PublicKeyProvider;
   protected endpointConfigurations: { [route: string]: EndpointConfiguration } = {};
+  protected tracer: Tracer;
 
   constructor(
     hostName: string,
@@ -63,6 +68,7 @@ export class Node implements INode {
     this.logger = new Log(`${identity.type}[${identity.name}]`, '#bbb');
     this.app = vHostApp;
     this.jsonValidator = jsonValidator;
+    this.tracer = TracerFactory.getTracer(vHostApp.name);
   }
 
   /**
@@ -143,6 +149,15 @@ export class Node implements INode {
     const { endPointName } = this.getRequestConfig(req);
     //req.correlationId() will get correlation-id from request header or generate a new one if it does not exist
     this.logger.Info(`${endPointName} --correlation-id=${req.correlationId()} - START`);
+    //Push a new span
+    let currentSpans = res.locals.spans;
+    if (!currentSpans) {
+      currentSpans = [];
+      res.locals.spans = currentSpans;
+    }
+    const spanOptions: SpanOptions = { kind: SpanKind.SERVER };
+    const currentSpan = this.tracer.startSpan(endPointName, spanOptions);
+    currentSpans.push(currentSpan);
     next();
   };
 
@@ -151,20 +166,28 @@ export class Node implements INode {
    * Should be called last.
    * @param req
    * @param res
-   * @param next
+   * @param _next
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  endHandling = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  endHandling = (req: Request & { correlationId(): string }, res: Response, _next: NextFunction) => {
     const { endPointName } = this.getRequestConfig(req);
     //this.logger.Info(req.rawHeaders);
     // we can get correlation-id from the request header as it was already set
     this.logger.Info(`${endPointName} --correlation-id=${req.correlationId()} - END`);
+    //End span
+    const currentSpans = res.locals.spans;
+    const currentSpan = currentSpans.pop();
+    currentSpan.setStatus({ code: res.locals.currentSpanStatus ?? SpanStatusCode.OK });
+    currentSpan.end();
   };
 
   catchErrors =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (error: unknown, req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
       const { endPointName, isRedirect } = this.getRequestConfig(req);
+
+      this.logger.Error(endPointName, error);
+      res.locals.currentSpanStatus = SpanStatusCode.ERROR;
 
       let typedError: NodeError;
 
@@ -267,7 +290,7 @@ export class Node implements INode {
    * @returns the built handler
    */
   checkQueryString = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect, jsonSchemaName } = this.getRequestConfig(req);
+    const { jsonSchemaName } = this.getRequestConfig(req);
     const data = req.query[QSParam.paf] as string | undefined;
     const decodedData = data ? decodeBase64(data) : undefined;
 

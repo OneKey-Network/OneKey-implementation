@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+
+  # Jaeger
+  jaeger-all-in-one:
+    image: jaegertracing/all-in-one:latest
+    volumes:
+      - "./jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+     - METRICS_STORAGE_TYPE=prometheus
+     - PROMETHEUS_SERVER_URL=http://prometheus:9090
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+
+  # Collector
+  otel-collector:
+    image: ${OTELCOL_IMG}
+    command: ["--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./logs:/logs
+    ports:
+      - "1888:1888"   # pprof extension
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP html receiver
+    depends_on:
+      - jaeger-all-in-one
+      - prometheus
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    command: --enable-feature=remote-write-receiver --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+networks:
+  default:
+    name: observability-network
+    external: true
