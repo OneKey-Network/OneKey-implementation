@@ -12,4 +12,12 @@ export class AuditLogPage extends BasePage {
   getAdDiv(id: string): Cypress.Chainable<JQuery<HTMLDivElement>> {
     return cy.get(`div#${id}`);
   }
+
+  getAudit(id: string): Cypress.Chainable<JQuery<HTMLElement>> {
+    return this.getAdAuditLogBtnContainerDiv(id).shadow().findByTestId('audit');
+  }
+
+  getProviders(id: string): Cypress.Chainable<JQuery<Element>> {
+    return this.getAdAuditLogBtnContainerDiv(id).shadow().get('#ok-ui-providers');
+  }
 }

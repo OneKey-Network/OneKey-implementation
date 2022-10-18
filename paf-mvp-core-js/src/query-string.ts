@@ -12,3 +12,13 @@ export const decodeBase64 = (data: string): string => {
 export const fromDataToObject = <T>(rawData: string | undefined): T | undefined => {
   return rawData ? (JSON.parse(decodeBase64(rawData)) as T) : undefined;
 };
+
+/**
+ * Set request or response object in query string
+ * @param url
+ * @param requestOrResponse
+ */
+export const setInQueryString = <T>(url: URL, requestOrResponse: T): URL => {
+  url.searchParams.set(QSParam.paf, encodeBase64(JSON.stringify(requestOrResponse)));
+  return url;
+};

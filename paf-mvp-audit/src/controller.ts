@@ -1,15 +1,11 @@
 import { Locale } from './locale';
-import { TransmissionResult } from '@onekey/core/model/generated-model';
 import { Log } from '@onekey/core/log';
-import { Model } from './model';
+import { AuditLine, Model } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@onekey/core/ui/binding';
 import providerComponent from './html/components/provider.html';
 import iconTick from './images/IconTick.svg';
 import { Window } from '@onekey/frontend/global';
-
-// TODO: Add back when full audit information is available.
-// import iconCross from './images/iconCross.svg';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -43,17 +39,19 @@ export class Controller {
     this.locale = locale;
     this.element = advert;
     this.log = log;
+    this.model = new Model();
+    this.view = new View(advert, locale, log);
+  }
 
-    ///const auditLog = <AuditLog>JSON.parse(advert.getAttribute('auditLog'));
-    const auditLog = (<Window>window).OneKey.getAuditLogByDivId(advert.id);
+  async setup() {
+    const auditLog = (<Window>window).OneKey.getAuditLogByDivId(this.element.id);
     if (auditLog !== undefined) {
-      this.model = new Model(auditLog);
-      this.view = new View(advert, locale, log);
+      await this.model.build(auditLog);
       this.mapFieldsToUI();
       this.view.display('button');
       this.bindActions();
 
-      log.Info('Audit registered', advert.id);
+      this.log.Info('Audit registered', this.element.id);
     }
   }
 
@@ -123,12 +121,9 @@ export class Controller {
 /**
  * Custom UI binding to display the providers from the audit log.
  */
-class BindingProviders extends BindingViewOnly<TransmissionResult, Model, HTMLDivElement> {
-  private readonly locale: Locale;
-
-  constructor(view: View, id: string, locale: Locale) {
+class BindingProviders extends BindingViewOnly<AuditLine, Model, HTMLDivElement> {
+  constructor(view: View, id: string, private readonly locale: Locale) {
     super(view, id);
-    this.locale = locale;
   }
 
   /**
@@ -139,9 +134,12 @@ class BindingProviders extends BindingViewOnly<TransmissionResult, Model, HTMLDi
     if (element !== null) {
       const item = <HTMLParagraphElement>document.createElement('div');
       item.className = 'ok-ui-provider';
+
       item.innerHTML = providerComponent({
         ResultSVG: iconTick,
-        Name: this.field.value.source.domain,
+        Name: this.field.value.name,
+        Email: this.field.value.dpoEmailAddress,
+        PrivacyUrl: this.field.value.privacyUrl,
       });
       element.appendChild(item);
     }

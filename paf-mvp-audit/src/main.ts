@@ -10,7 +10,6 @@ const log = new Log('audit', '#18a9e1');
 const auditLogHandler = (element: HTMLElement) =>
   new Promise<void>((resolve) => {
     log.Info('register', element.id);
-    new Controller(new Locale(window.navigator.languages), element, log);
-    resolve();
+    new Controller(new Locale(window.navigator.languages), element, log).setup().then(resolve);
   });
 (<Window>window).OneKey.setAuditLogHandler(auditLogHandler);
