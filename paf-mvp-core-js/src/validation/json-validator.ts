@@ -15,6 +15,7 @@ export enum JsonSchemaType {
   deleteIdAndPreferencesRequest = 'delete-ids-prefs-request.json',
   deleteIdAndPreferencesRedirectRequest = 'redirect-delete-ids-prefs-request.json',
   getNewIdRequest = 'get-new-id-request.json',
+  signPreferencesRequest = 'post-sign-preferences-request.json',
 }
 
 /**

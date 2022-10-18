@@ -564,7 +564,7 @@ export class Controller {
         identifiers: [this.model.rid.value],
         unsignedPreferences: {
           data: this.model.pref.value,
-          version: null,
+          version: '0.1',
         },
       });
     }
