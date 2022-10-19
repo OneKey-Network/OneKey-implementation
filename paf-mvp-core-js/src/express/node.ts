@@ -150,14 +150,10 @@ export class Node implements INode {
     //req.correlationId() will get correlation-id from request header or generate a new one if it does not exist
     this.logger.Info(`${endPointName} --correlation-id=${req.correlationId()} - START`);
     //Push a new span
-    let currentSpans = res.locals.spans;
-    if (!currentSpans) {
-      currentSpans = [];
-      res.locals.spans = currentSpans;
-    }
+    res.locals.spans ??= [];
     const spanOptions: SpanOptions = { kind: SpanKind.SERVER };
     const currentSpan = this.tracer.startSpan(endPointName, spanOptions);
-    currentSpans.push(currentSpan);
+    res.locals.spans.push(currentSpan);
     next();
   };
 
@@ -175,8 +171,7 @@ export class Node implements INode {
     // we can get correlation-id from the request header as it was already set
     this.logger.Info(`${endPointName} --correlation-id=${req.correlationId()} - END`);
     //End span
-    const currentSpans = res.locals.spans;
-    const currentSpan = currentSpans.pop();
+    const currentSpan = res.locals.spans.pop();
     currentSpan.setStatus({ code: res.locals.currentSpanStatus ?? SpanStatusCode.OK });
     currentSpan.end();
   };
@@ -186,7 +181,6 @@ export class Node implements INode {
     (error: unknown, req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
       const { endPointName, isRedirect } = this.getRequestConfig(req);
 
-      this.logger.Error(endPointName, error);
       res.locals.currentSpanStatus = SpanStatusCode.ERROR;
 
       let typedError: NodeError;

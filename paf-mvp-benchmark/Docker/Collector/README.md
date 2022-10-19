@@ -2,7 +2,7 @@
 docker network create observability-network
 
 ## Launch OTLP collector
-Go to paf-mv-benchmark/Collector and run:\
+Go to paf-mvp-benchmark/Docker/Collector and run:\
 `docker-compose up -d`\
 Omit -d (detach option) to keep docker attached to current terminal.
 

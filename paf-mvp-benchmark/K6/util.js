@@ -33,7 +33,7 @@ export function logCookiesFromResponse(response) {
     //Cookies seen by K6
     console.log(`>>>Cookies for ${response.url}`);
     for (const name in response.cookies) {
-        if (response.cookies.hasOwnProperty(name) !== undefined) {
+        if (response.cookies.hasOwnProperty(name)) {
             logCookie(response.cookies[name][0]);
         }
     }
