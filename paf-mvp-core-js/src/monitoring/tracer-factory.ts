@@ -12,14 +12,7 @@ import {
   Exception,
 } from '@opentelemetry/api';
 
-class NoopSpanContext implements SpanContext {
-  spanId: string;
-  traceFlags: number;
-  traceId: string;
-}
-
 class NoopSpan implements Span {
-  private _spanContext: SpanContext = new NoopSpanContext();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   addEvent(name: string, attributesOrStartTime?: SpanAttributes | TimeInput, startTime?: TimeInput): this {
     return this;
@@ -46,7 +39,11 @@ class NoopSpan implements Span {
     return this;
   }
   spanContext(): SpanContext {
-    return this._spanContext;
+    return {
+      spanId: '',
+      traceFlags: 0,
+      traceId: '',
+    };
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   updateName(name: string): this {
