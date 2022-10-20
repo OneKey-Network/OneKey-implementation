@@ -1,41 +1,23 @@
-import {
-  trace,
-  Tracer,
-  Span,
-  SpanOptions,
-  SpanContext,
-  SpanStatus,
-  Attributes as SpanAttributes,
-  AttributeValue as SpanAttributeValue,
-  TimeInput,
-  Context,
-  Exception,
-} from '@opentelemetry/api';
+import { trace, Tracer, Span, SpanOptions, SpanContext, Context } from '@opentelemetry/api';
 
 class NoopSpan implements Span {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  addEvent(name: string, attributesOrStartTime?: SpanAttributes | TimeInput, startTime?: TimeInput): this {
+  addEvent(): this {
     return this;
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
-  end(endTime?: TimeInput): void {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  end(): void {}
   isRecording(): boolean {
     return false;
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
-  recordException(exception: Exception, time?: TimeInput): void {}
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setAttribute(key: string, value: SpanAttributeValue): this {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  recordException(): void {}
+  setAttribute(): this {
     return this;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setAttributes(attributes: SpanAttributes): this {
+  setAttributes(): this {
     return this;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setStatus(status: SpanStatus): this {
+  setStatus(): this {
     return this;
   }
   spanContext(): SpanContext {
@@ -45,8 +27,7 @@ class NoopSpan implements Span {
       traceId: '',
     };
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  updateName(name: string): this {
+  updateName(): this {
     return this;
   }
 }
@@ -61,12 +42,10 @@ class NoopTracer implements Tracer {
     context: Context,
     fn: F
   ): ReturnType<F>;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  startActiveSpan(name: string, options?: SpanOptions, context?: Context): Span {
+  startActiveSpan(): Span {
     return this._noopSpan;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  startSpan(name: string, options?: SpanOptions, context?: Context): Span {
+  startSpan(): Span {
     return this._noopSpan;
   }
 }
@@ -77,8 +56,7 @@ interface TracerFactoryImplementation {
 
 class NoopTracerFactory implements TracerFactoryImplementation {
   private _noopTracer = new NoopTracer();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getTracer(serviceName: string): Tracer {
+  public getTracer(): Tracer {
     return this._noopTracer;
   }
 }
