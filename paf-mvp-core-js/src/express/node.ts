@@ -9,12 +9,11 @@ import {
   getPafDataFromQueryString,
   httpRedirect,
   isValidHttpUrl,
-  setInQueryString,
 } from '@onekey/core/express/utils';
 import { IdentityConfig } from '@onekey/core/express/config';
 import { NextFunction, Request, Response as ExpressResponse } from 'express';
 import { IJsonValidator, JsonSchemaType } from '@onekey/core/validation/json-validator';
-import { decodeBase64, QSParam } from '@onekey/core/query-string';
+import { decodeBase64, QSParam, setInQueryString } from '@onekey/core/query-string';
 import { TracerFactory } from '@onekey/core/monitoring/tracer-factory';
 import { Span, SpanKind, SpanOptions, SpanStatusCode, Tracer } from '@opentelemetry/api';
 
