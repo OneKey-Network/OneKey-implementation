@@ -407,7 +407,7 @@ export class ClientNode extends Node {
     }
   };
 
-  verifySeed = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  verifySeed = (req: Request, res: Response, next: NextFunction) => {
     const message = fromDataToObject<SeedSignatureContainer>(req.body);
     try {
       const verificationResult = await this.client.verifySeed(message);
@@ -425,39 +425,7 @@ export class ClientNode extends Node {
         next();
       }
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verifySeed, e, req.correlationId());
       next(e);
-    }
-  };
-
-  verifySeed = (req: Request, res: Response, next: NextFunction) => {
-    const message = fromDataToObject<SeedSignatureContainer>(req.body);
-    try {
-      const isResponseValid = this.client.verifySeed(message);
-      if (!isResponseValid) {
-        // TODO [errors] finer error feedback
-        const error: NodeError = {
-          type: 'VERIFICATION_FAILED',
-          details: '',
-        };
-        this.logger.Error(jsonProxyEndpoints.verifySeed, error);
-        res.status(400);
-        res.json(error);
-        next(error);
-      } else {
-        res.json(); // For the moment, send empty response
-        next();
-      }
-    } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verifySeed, e);
-      // FIXME finer error return
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
     }
   };
 
