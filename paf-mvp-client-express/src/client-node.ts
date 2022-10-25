@@ -407,34 +407,26 @@ export class ClientNode extends Node {
     }
   };
 
-  verifySeed = (req: Request, res: Response, next: NextFunction) => {
+  verifySeed = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
     const message = fromDataToObject<SeedSignatureContainer>(req.body);
     try {
-      const isResponseValid = this.client.verifySeed(message);
-      if (!isResponseValid) {
-        // TODO [errors] finer error feedback
+      const verificationResult = await this.client.verifySeed(message);
+      if (!verificationResult.isValid) {
         const error: NodeError = {
-          type: 'VERIFICATION_FAILED',
-          details: '',
+          type:
+            verificationResult.errors[0] instanceof UnableToIdentifySignerError
+              ? 'UNKNOWN_SIGNER'
+              : 'VERIFICATION_FAILED',
+          details: verificationResult.errors[0].message,
         };
-        this.logger.Error(jsonProxyEndpoints.verifySeed, error);
-        res.status(400);
-        res.json(error);
         next(error);
       } else {
-        res.json(); // For the moment, send empty response
+        res.json(); // Empty response is fine if code is 200
         next();
       }
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verifySeed, e);
-      // FIXME finer error return
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      this.logger.Error(jsonProxyEndpoints.verifySeed, e, req.correlationId());
+      next(e);
     }
   };
 
