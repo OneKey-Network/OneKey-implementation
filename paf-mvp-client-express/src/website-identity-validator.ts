@@ -59,8 +59,6 @@ export class WebsiteIdentityValidator {
         type: 'INVALID_ORIGIN',
         details: `Origin is not allowed: ${origin}`,
       };
-      res.status(400);
-      res.json(error);
       next(error);
     }
   };
@@ -78,8 +76,6 @@ export class WebsiteIdentityValidator {
         type: 'INVALID_REFERER',
         details: `Referer is not allowed: ${referer}`,
       };
-      res.status(400);
-      res.json(error);
       next(error);
     }
   };
@@ -97,8 +93,6 @@ export class WebsiteIdentityValidator {
         type: 'INVALID_RETURN_URL',
         details: `Invalid return URL: ${returnUrl}`,
       };
-      res.status(400);
-      res.json(error);
       next(error);
     }
   };

@@ -13,6 +13,7 @@ import {
   JsonValidator,
 } from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
+import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
 
 /**
  * The configuration of a OneKey client Node
@@ -201,12 +202,14 @@ export class ClientNode extends Node {
 
     this.setEndpointConfig('POST', jsonProxyEndpoints.signPrefs, {
       endPointName: 'SignPrefs',
+      jsonSchemaName: JsonSchemaType.signPreferencesRequest,
     });
     this.app.expressApp.post(
       jsonProxyEndpoints.signPrefs,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
+      this.checkJsonBody,
       this.signPreferences,
       this.catchErrors,
       this.endHandling
@@ -263,13 +266,7 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -283,15 +280,8 @@ export class ClientNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(jsonProxyEndpoints.write, e, req.correlationId());
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -301,15 +291,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(jsonProxyEndpoints.verify3PC, e, req.correlationId());
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -319,15 +302,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(jsonProxyEndpoints.newId, e, req.correlationId());
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -341,15 +317,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(jsonProxyEndpoints.delete, e, req.correlationId());
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -363,15 +332,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(redirectProxyEndpoints.read, e, req.correlationId());
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -385,16 +347,8 @@ export class ClientNode extends Node {
       res.send(url);
       next();
     } catch (e) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(redirectProxyEndpoints.write, e, req.correlationId());
-      // FIXME more robust error handling: websites should not be broken in this case, do a redirect with empty data
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -408,43 +362,40 @@ export class ClientNode extends Node {
       res.send(url.toString());
       next();
     } catch (e) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(redirectProxyEndpoints.delete, e, req.correlationId());
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
-  verifyOperatorReadResponse = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  verifyOperatorReadResponse = async (
+    req: Request & { correlationId(): string },
+    res: Response,
+    next: NextFunction
+  ) => {
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
     const hasResponse = message.response !== undefined;
 
     if (!hasResponse) {
-      //TODO handle errors properly in a dedicated middleware
       this.logger.Error(jsonProxyEndpoints.verifyRead, message.error, req.correlationId());
-      res.status(message.code);
-      res.json(message.error);
-      next(message.error);
+      const error: NodeError = {
+        type: 'INVALID_JSON_BODY',
+        details: `Request body : '${req.body}' is not valid`,
+      };
+      next(error);
       return;
     }
 
     try {
-      const isResponseValid = this.client.verifyReadResponse(message.response);
-      if (!isResponseValid) {
-        // TODO [errors] finer error feedback
+      const verificationResult = await this.client.verifyReadResponse(message.response);
+      if (!verificationResult.isValid) {
         const error: NodeError = {
-          type: 'VERIFICATION_FAILED',
-          details: '',
+          type:
+            verificationResult.errors[0] instanceof UnableToIdentifySignerError
+              ? 'UNKNOWN_SIGNER'
+              : 'VERIFICATION_FAILED',
+          details: verificationResult.errors[0].message,
         };
-        this.logger.Error(jsonProxyEndpoints.verifyRead, error, req.correlationId());
-        res.status(400);
-        res.json(error);
         next(error);
       } else {
         res.json(message.response);
@@ -452,14 +403,7 @@ export class ClientNode extends Node {
       }
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, e, req.correlationId());
-      // FIXME finer error return
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -501,14 +445,7 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.signPrefs, e, req.correlationId());
-      // FIXME finer error return
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 
@@ -521,14 +458,7 @@ export class ClientNode extends Node {
       next();
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.createSeed, e, req.correlationId());
-      // FIXME finer error return
-      const error: NodeError = {
-        type: 'UNKNOWN_ERROR',
-        details: '',
-      };
-      res.status(400);
-      res.json(error);
-      next(error);
+      next(e);
     }
   };
 }
