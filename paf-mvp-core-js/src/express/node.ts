@@ -45,6 +45,10 @@ export interface EndpointConfiguration {
   jsonSchemaName?: JsonSchemaType;
 }
 
+export type CorrelatedRequest = Request & {
+  correlationId(): string;
+};
+
 /**
  * A OneKey ExpressJS participant
  */
@@ -144,7 +148,7 @@ export class Node implements INode {
    * Begin handling of a request.
    * Should be called first.
    */
-  beginHandling = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  beginHandling = (req: CorrelatedRequest, res: Response, next: NextFunction) => {
     const { endPointName } = this.getRequestConfig(req);
     //req.correlationId() will get correlation-id from request header or generate a new one if it does not exist
     this.logger.Info(`${endPointName} --correlation-id=${req.correlationId()} - START`);
@@ -164,7 +168,7 @@ export class Node implements INode {
    * @param _next
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  endHandling = (req: Request & { correlationId(): string }, res: Response, _next: NextFunction) => {
+  endHandling = (req: CorrelatedRequest, res: Response, _next: NextFunction) => {
     const { endPointName } = this.getRequestConfig(req);
     //this.logger.Info(req.rawHeaders);
     // we can get correlation-id from the request header as it was already set
@@ -177,7 +181,7 @@ export class Node implements INode {
 
   catchErrors =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (error: unknown, req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+    (error: unknown, req: CorrelatedRequest, res: Response, next: NextFunction) => {
       const { endPointName, isRedirect } = this.getRequestConfig(req);
 
       res.locals.currentSpanStatus = SpanStatusCode.ERROR;
@@ -200,6 +204,9 @@ export class Node implements INode {
           type: 'UNKNOWN_ERROR',
           details: '', // Security: don't give details about the exception to the outside world
         };
+
+        // ...but log the complete error for future diagnostic
+        this.logger.Error('Unknown error', error);
       }
 
       // Associate an HTTP code to each type of error
