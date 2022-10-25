@@ -1,57 +1,85 @@
 import { Locale } from './locale';
 import { Log } from '@onekey/core/log';
-import { AuditLine, Model } from './model';
+import { AuditLine, FieldAuditLine, FieldSeed, FieldTransmissionResult, Model } from './model';
 import { View } from './view';
 import { BindingViewOnly } from '@onekey/core/ui/binding';
 import providerComponent from './html/components/provider.html';
 import iconTick from './images/IconTick.svg';
 import { Window } from '@onekey/frontend/global';
+import { GetIdentityRequestBuilder, GetIdentityResponse } from '@onekey/core/model';
+import { HttpService, IHttpService } from '@onekey/frontend/services/http.service';
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
  */
 export class Controller {
-  // The locale that the UI should adopt.
-  private readonly locale: Locale;
-
   // The view associated with the controller.
   private readonly view: View;
 
   // The model that wraps the audit log.
   private readonly model: Model;
 
-  // The HTML element the audit module instance is listening to.
-  private readonly element: HTMLElement;
-
   // The HTML element that will open the audit view if selected.
   private readonly button: HTMLElement;
 
-  // Logger.
-  private readonly log: Log;
-
   /**
    * Constructs a new instance of Controller and displays the audit popup.
-   * @param locale the language file to use with the UI
-   * @param advert to bind the audit viewer to
-   * @param log
+   * @param locale The locale that the UI should adopt.
+   * @param element The HTML element the audit module instance is listening to.
+   * @param log Logger
+   * @param httpService the HTTP service used to contact participants on their identity endpoint
    */
-  constructor(locale: Locale, advert: HTMLElement, log: Log) {
-    this.locale = locale;
-    this.element = advert;
+  constructor(
+    private readonly locale: Locale,
+    private readonly element: HTMLElement,
+    private readonly log: Log,
+    private readonly httpService: IHttpService = new HttpService()
+  ) {
     this.log = log;
     this.model = new Model();
-    this.view = new View(advert, locale, log);
+    this.view = new View(element, locale, log);
   }
 
   async setup() {
     const auditLog = (<Window>window).OneKey.getAuditLogByDivId(this.element.id);
     if (auditLog !== undefined) {
-      await this.model.build(auditLog);
+      const seedField = new FieldSeed(this.model, auditLog.seed);
+      await this.populateFieldValues(seedField);
+      await this.model.addField(seedField);
+
+      for (const t of auditLog.transmissions) {
+        const transmissionField = new FieldTransmissionResult(this.model, t);
+        await this.populateFieldValues(transmissionField);
+        await this.model.addField(transmissionField);
+      }
+
       this.mapFieldsToUI();
       this.view.display('button');
       this.bindActions();
 
       this.log.Info('Audit registered', this.element.id);
+    }
+  }
+
+  private async populateFieldValues(field: FieldAuditLine) {
+    const domain = field.domain;
+
+    const queryBuilder = new GetIdentityRequestBuilder(domain);
+    const request = queryBuilder.buildRequest();
+    const url = queryBuilder.getRestUrl(request);
+
+    try {
+      const identity = JSON.parse(await (await this.httpService.get(url.toString())).text()) as GetIdentityResponse;
+      field.value = {
+        name: identity.name,
+        dpoEmailAddress: identity.dpo_email,
+        privacyUrl: identity.privacy_policy_url,
+      };
+    } catch (e) {
+      field.value = {
+        name: domain,
+        isValid: false,
+      };
     }
   }
 
