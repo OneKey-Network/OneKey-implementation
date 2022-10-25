@@ -33,9 +33,11 @@ export const participantEndpoints = {
 // Endpoints exposed by the PAF client node
 const proxyPrefix = '/paf-proxy';
 const jsonVerifyRead = '/v1/verify/read';
+const jsonVerifySeed = '/v1/verify/seed';
 const jsonSignPrefs = '/v1/sign/prefs';
 export const jsonProxyEndpoints = {
   verifyRead: `${proxyPrefix}${jsonVerifyRead}`,
+  verifySeed: `${proxyPrefix}${jsonVerifySeed}`,
   signPrefs: `${proxyPrefix}${jsonSignPrefs}`,
   read: `${proxyPrefix}${jsonRead}`,
   write: `${proxyPrefix}${jsonWrite}`,

@@ -30,6 +30,8 @@ import {
   RequestWithoutBodyDefinition,
   ResponseDefinition,
   ResponseType,
+  SeedSigningDefinition,
+  UnsignedSeedSignatureContainer,
 } from '@onekey/core/crypto/signing-definition';
 import {
   IdsAndPreferencesVerifier,
@@ -164,6 +166,8 @@ export const portalWebSiteApp = new VHostApp(name, host);
     new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature(request);
   const responseVerifier = (response: ResponseType) =>
     new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature(response);
+  const seedVerifier = (seed: UnsignedSeedSignatureContainer) =>
+    new Verifier(keyStore.provider, new SeedSigningDefinition()).verifySignature(seed);
 
   const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<MessageVerificationResult> } = {
     identifier: (id: Identifier) => new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature(id),
@@ -175,6 +179,7 @@ export const portalWebSiteApp = new VHostApp(name, host);
     'get-new-id-response': responseVerifier,
     'post-ids-prefs-request': postIdsPrefsRequestVerifier,
     'post-ids-prefs-response': responseVerifier,
+    seed: seedVerifier,
   };
 
   type Mappings = { [host: string]: { [path: string]: keyof Model } };

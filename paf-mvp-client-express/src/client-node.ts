@@ -5,7 +5,7 @@ import { jsonProxyEndpoints, redirectProxyEndpoints } from '@onekey/core/endpoin
 import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
 import { fromDataToObject } from '@onekey/core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyProvider, PublicKeyStore } from '@onekey/core/crypto';
+import { PublicKeyProvider, PublicKeyStore, SeedSignatureContainer } from '@onekey/core/crypto';
 import {
   IJsonValidator,
   JsonSchemaRepository,
@@ -232,6 +232,19 @@ export class ClientNode extends Node {
       this.catchErrors,
       this.endHandling
     );
+
+    this.setEndpointConfig('POST', jsonProxyEndpoints.verifySeed, {
+      endPointName: 'VerifySeed',
+    });
+    this.app.expressApp.post(
+      jsonProxyEndpoints.verifySeed,
+      this.beginHandling,
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
+      this.verifySeed,
+      this.catchErrors,
+      this.endHandling
+    );
   }
 
   static async fromConfig(
@@ -390,6 +403,29 @@ export class ClientNode extends Node {
       }
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, e, req.correlationId());
+      next(e);
+    }
+  };
+
+  verifySeed = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+    const message = fromDataToObject<SeedSignatureContainer>(req.body);
+    try {
+      const verificationResult = await this.client.verifySeed(message);
+      if (!verificationResult.isValid) {
+        const error: NodeError = {
+          type:
+            verificationResult.errors[0] instanceof UnableToIdentifySignerError
+              ? 'UNKNOWN_SIGNER'
+              : 'VERIFICATION_FAILED',
+          details: verificationResult.errors[0].message,
+        };
+        next(error);
+      } else {
+        res.json(); // Empty response is fine if code is 200
+        next();
+      }
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.verifySeed, e, req.correlationId());
       next(e);
     }
   };
