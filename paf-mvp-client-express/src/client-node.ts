@@ -5,7 +5,7 @@ import { jsonProxyEndpoints, redirectProxyEndpoints } from '@onekey/core/endpoin
 import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
 import { fromDataToObject } from '@onekey/core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyProvider, PublicKeyStore } from '@onekey/core/crypto';
+import { PublicKeyProvider, PublicKeyStore, SeedSignatureContainer } from '@onekey/core/crypto';
 import {
   IJsonValidator,
   JsonSchemaRepository,
@@ -229,6 +229,19 @@ export class ClientNode extends Node {
       this.catchErrors,
       this.endHandling
     );
+
+    this.setEndpointConfig('POST', jsonProxyEndpoints.verifySeed, {
+      endPointName: 'VerifySeed',
+    });
+    this.app.expressApp.post(
+      jsonProxyEndpoints.verifySeed,
+      this.beginHandling,
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
+      this.verifySeed,
+      this.catchErrors,
+      this.endHandling
+    );
   }
 
   static async fromConfig(
@@ -439,6 +452,37 @@ export class ClientNode extends Node {
       }
     } catch (e) {
       this.logger.Error(jsonProxyEndpoints.verifyRead, e, req.correlationId());
+      // FIXME finer error return
+      const error: NodeError = {
+        type: 'UNKNOWN_ERROR',
+        details: '',
+      };
+      res.status(400);
+      res.json(error);
+      next(error);
+    }
+  };
+
+  verifySeed = (req: Request, res: Response, next: NextFunction) => {
+    const message = fromDataToObject<SeedSignatureContainer>(req.body);
+    try {
+      const isResponseValid = this.client.verifySeed(message);
+      if (!isResponseValid) {
+        // TODO [errors] finer error feedback
+        const error: NodeError = {
+          type: 'VERIFICATION_FAILED',
+          details: '',
+        };
+        this.logger.Error(jsonProxyEndpoints.verifySeed, error);
+        res.status(400);
+        res.json(error);
+        next(error);
+      } else {
+        res.json(); // For the moment, send empty response
+        next();
+      }
+    } catch (e) {
+      this.logger.Error(jsonProxyEndpoints.verifySeed, e);
       // FIXME finer error return
       const error: NodeError = {
         type: 'UNKNOWN_ERROR',

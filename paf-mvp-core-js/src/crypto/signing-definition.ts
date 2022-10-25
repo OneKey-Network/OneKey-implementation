@@ -15,12 +15,17 @@ import {
   Seed,
 } from '@onekey/core/model/generated-model';
 import { Unsigned, UnsignedSource } from '@onekey/core/model/model';
-import { SignatureStringBuilder } from './signer';
 
 /**
  * Definition of how to get signature, signature domain and input string to sign
  */
-export interface SigningDefinition<T, U = Partial<T>> extends SignatureStringBuilder<U> {
+export interface SigningDefinition<T, U = Partial<T>> {
+  /**
+   * How to get input string from unsigned data
+   * @param data
+   */
+  getInputString(data: U): string;
+
   /**
    * How to get signature from signed data
    * @param data
@@ -37,12 +42,19 @@ export interface SigningDefinition<T, U = Partial<T>> extends SignatureStringBui
 export const SIGN_SEP = '\u2063';
 
 export interface SeedSignatureContainer {
+  seed: Seed;
+  idsAndPreferences: IdsAndPreferences;
+}
+
+export interface UnsignedSeedSignatureContainer {
   seed: UnsignedSource<Seed>;
   idsAndPreferences: IdsAndPreferences;
 }
 
-export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatureContainer> {
-  getInputString(data: SeedSignatureContainer): string {
+export class SeedSigningDefinition
+  implements SigningDefinition<SeedSignatureContainer, UnsignedSeedSignatureContainer>
+{
+  getInputString(data: UnsignedSeedSignatureContainer): string {
     // FIXME[security] add version
     const seed = data.seed;
     const ids = data.idsAndPreferences.identifiers;
@@ -58,6 +70,14 @@ export class SeedSignatureBuilder implements SignatureStringBuilder<SeedSignatur
     ];
 
     return array.join(SIGN_SEP);
+  }
+
+  getSignature(data: SeedSignatureContainer): string {
+    return data.seed.source.signature;
+  }
+
+  getSignerDomain(data: UnsignedSeedSignatureContainer): string {
+    return data.seed.publisher;
   }
 }
 

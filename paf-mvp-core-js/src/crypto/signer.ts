@@ -1,13 +1,6 @@
 import { Log } from '@onekey/core/log';
 import { ECDSA_NIT_P256Builder, IDSABuilder, IDSASigner, PEM } from '@onekey/core/crypto/digital-signature';
-
-export interface SignatureStringBuilder<U> {
-  /**
-   * How to get input string from unsigned data
-   * @param data
-   */
-  getInputString(data: U): string;
-}
+import { SigningDefinition } from '@onekey/core/crypto/signing-definition';
 
 export interface ISigner<U> {
   sign(inputData: U): Promise<string>;
@@ -28,7 +21,8 @@ export class Signer<U> implements ISigner<U> {
    */
   constructor(
     private ecdsaPrivateKey: PEM,
-    protected definition: SignatureStringBuilder<U>,
+    // Note: here we don't care about the _signed_ type, only about the _unsigned_ type U
+    protected definition: SigningDefinition<unknown, U>,
     builder: IDSABuilder = new ECDSA_NIT_P256Builder()
   ) {
     this.signer = builder.buildSigner(ecdsaPrivateKey);
