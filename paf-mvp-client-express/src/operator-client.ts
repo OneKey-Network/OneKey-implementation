@@ -34,6 +34,10 @@ import {
   IdsAndUnsignedPreferences,
 } from '@onekey/core/signing-definition/ids-prefs-signing-definition';
 import { ResponseSigningDefinition } from '@onekey/core/signing-definition/response-signing-definition';
+import {
+  TransmissionResultSignatureData,
+  TransmissionResultSigningDefinition,
+} from '@onekey/core/signing-definition/transmission-result-signing-definition';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
@@ -51,7 +55,11 @@ export class OperatorClient {
     privateKey: string,
     private readonly publicKeyProvider: PublicKeyProvider,
     private readonly readVerifier = new ResponseVerifier(publicKeyProvider, new ResponseSigningDefinition()),
-    private readonly seedVerifier = new Verifier(publicKeyProvider, new SeedSigningDefinition())
+    private readonly seedVerifier = new Verifier(publicKeyProvider, new SeedSigningDefinition()),
+    private readonly transmissionResultVerifier = new Verifier(
+      publicKeyProvider,
+      new TransmissionResultSigningDefinition()
+    )
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
@@ -69,6 +77,12 @@ export class OperatorClient {
 
   async verifySeed(seedToVerify: SeedSignatureData): Promise<MessageVerificationResult> {
     return this.seedVerifier.verifySignature(seedToVerify);
+  }
+
+  async verifyTransmissionResult(
+    transmissionDataToVerify: TransmissionResultSignatureData
+  ): Promise<MessageVerificationResult> {
+    return this.transmissionResultVerifier.verifySignature(transmissionDataToVerify);
   }
 
   async buildPreferences(

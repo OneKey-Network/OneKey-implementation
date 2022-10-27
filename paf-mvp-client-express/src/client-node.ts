@@ -14,6 +14,7 @@ import {
 } from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
+import { TransmissionResultSignatureData } from '@onekey/core/signing-definition/transmission-result-signing-definition';
 
 /**
  * The configuration of a OneKey client Node
@@ -245,6 +246,19 @@ export class ClientNode extends Node {
       this.catchErrors,
       this.endHandling
     );
+
+    this.setEndpointConfig('POST', jsonProxyEndpoints.verifyTransmission, {
+      endPointName: 'VerifyTransmission',
+    });
+    this.app.expressApp.post(
+      jsonProxyEndpoints.verifyTransmission,
+      this.beginHandling,
+      this.websiteIdentityValidator.cors,
+      this.websiteIdentityValidator.checkOrigin,
+      this.verifyTransmission,
+      this.catchErrors,
+      this.endHandling
+    );
   }
 
   static async fromConfig(
@@ -374,6 +388,28 @@ export class ClientNode extends Node {
     const message = fromDataToObject<SeedSignatureData>(req.body);
     try {
       const verificationResult = await this.client.verifySeed(message);
+      if (!verificationResult.isValid) {
+        const error: NodeError = {
+          type:
+            verificationResult.errors[0] instanceof UnableToIdentifySignerError
+              ? 'UNKNOWN_SIGNER'
+              : 'VERIFICATION_FAILED',
+          details: verificationResult.errors[0].message,
+        };
+        next(error);
+      } else {
+        res.json(); // Empty response is fine if code is 200
+        next();
+      }
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  verifyTransmission = async (req: Request, res: Response, next: NextFunction) => {
+    const message = fromDataToObject<TransmissionResultSignatureData>(req.body);
+    try {
+      const verificationResult = await this.client.verifyTransmissionResult(message);
       if (!verificationResult.isValid) {
         const error: NodeError = {
           type:

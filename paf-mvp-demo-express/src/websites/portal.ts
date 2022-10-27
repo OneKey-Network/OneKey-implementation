@@ -45,6 +45,10 @@ import {
 } from '@onekey/core/signing-definition/request-signing-definition';
 import { ResponseSigningDefinition, ResponseType } from '@onekey/core/signing-definition/response-signing-definition';
 import { IdentifierSigningDefinition } from '@onekey/core/signing-definition/identifier-signing-definition';
+import {
+  TransmissionResultSignatureData,
+  TransmissionResultSigningDefinition,
+} from '@onekey/core/signing-definition/transmission-result-signing-definition';
 
 const { name, host }: WebSiteConfig = {
   name: 'A OneKey portal',
@@ -169,6 +173,8 @@ export const portalWebSiteApp = new VHostApp(name, host);
     new ResponseVerifier(keyStore.provider, new ResponseSigningDefinition()).verifySignature(response);
   const seedVerifier = (seed: UnsignedSeedSignatureData) =>
     new Verifier(keyStore.provider, new SeedSigningDefinition()).verifySignature(seed);
+  const transmissionResultVerifier = (transmission: TransmissionResultSignatureData) =>
+    new Verifier(keyStore.provider, new TransmissionResultSigningDefinition()).verifySignature(transmission);
 
   const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<MessageVerificationResult> } = {
     identifier: (id: Identifier) =>
@@ -182,6 +188,7 @@ export const portalWebSiteApp = new VHostApp(name, host);
     'post-ids-prefs-request': postIdsPrefsRequestVerifier,
     'post-ids-prefs-response': responseVerifier,
     seed: seedVerifier,
+    'transmission-result': transmissionResultVerifier,
   };
 
   type Mappings = { [host: string]: { [path: string]: keyof Model } };

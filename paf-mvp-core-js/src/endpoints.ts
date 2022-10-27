@@ -34,10 +34,12 @@ export const participantEndpoints = {
 const proxyPrefix = '/paf-proxy';
 const jsonVerifyRead = '/v1/verify/read';
 const jsonVerifySeed = '/v1/verify/seed';
+const jsonVerifyTransmission = '/v1/verify/transmissionResult';
 const jsonSignPrefs = '/v1/sign/prefs';
 export const jsonProxyEndpoints = {
   verifyRead: `${proxyPrefix}${jsonVerifyRead}`,
   verifySeed: `${proxyPrefix}${jsonVerifySeed}`,
+  verifyTransmission: `${proxyPrefix}${jsonVerifyTransmission}`,
   signPrefs: `${proxyPrefix}${jsonSignPrefs}`,
   read: `${proxyPrefix}${jsonRead}`,
   write: `${proxyPrefix}${jsonWrite}`,
