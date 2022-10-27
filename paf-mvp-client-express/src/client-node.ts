@@ -370,7 +370,7 @@ export class ClientNode extends Node {
     }
   };
 
-  verifySeed = (req: Request, res: Response, next: NextFunction) => {
+  verifySeed = async (req: Request, res: Response, next: NextFunction) => {
     const message = fromDataToObject<SeedSignatureContainer>(req.body);
     try {
       const verificationResult = await this.client.verifySeed(message);
