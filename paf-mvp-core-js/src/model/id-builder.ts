@@ -3,13 +3,16 @@ import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { Identifier } from '@onekey/core/model/generated-model';
 import { UnsignedSource } from '@onekey/core/model/model';
 import { ISigner, Signer } from '@onekey/core/crypto/signer';
-import { IdentifierDefinition } from '@onekey/core/crypto/signing-definition';
+import { IdentifierSigningDefinition } from '@onekey/core/signing-definition/identifier-signing-definition';
 
 export class IdBuilder {
   constructor(
     public host: string,
     privateKey: string,
-    private readonly idSigner: ISigner<UnsignedSource<Identifier>> = new Signer(privateKey, new IdentifierDefinition())
+    private readonly idSigner: ISigner<UnsignedSource<Identifier>> = new Signer(
+      privateKey,
+      new IdentifierSigningDefinition()
+    )
   ) {}
 
   async generateNewId(timestamp = getTimeStampInSec()): Promise<Identifier> {

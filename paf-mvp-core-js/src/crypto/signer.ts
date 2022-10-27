@@ -1,6 +1,6 @@
 import { Log } from '@onekey/core/log';
 import { ECDSA_NIT_P256Builder, IDSABuilder, IDSASigner, PEM } from '@onekey/core/crypto/digital-signature';
-import { SigningDefinition } from '@onekey/core/crypto/signing-definition';
+import { SigningDefinition } from '@onekey/core/signing-definition/signing-definition';
 
 export interface ISigner<U> {
   sign(inputData: U): Promise<string>;

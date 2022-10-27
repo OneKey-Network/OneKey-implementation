@@ -1,9 +1,13 @@
 import { MessageBase } from '@onekey/core/model/generated-model';
 import { RedirectRequest, Unsigned } from '@onekey/core/model/model';
-import { RedirectContext, RequestDefinition, RestContext } from '@onekey/core/crypto/signing-definition';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { Signer } from '@onekey/core/crypto/signer';
 import { setInQueryString } from '@onekey/core/query-string';
+import {
+  RedirectContext,
+  RequestSigningDefinition,
+  RestContext,
+} from '@onekey/core/signing-definition/request-signing-definition';
 
 export abstract class RestRequestBuilder<R extends object | undefined> {
   constructor(public serverHost: string, protected restEndpoint: string) {}
@@ -37,7 +41,7 @@ export abstract class RestAndRedirectRequestBuilder<
     protected restEndpoint: string,
     protected redirectEndpoint: string,
     privateKey: string,
-    definition: RequestDefinition<T>,
+    definition: RequestSigningDefinition<T>,
     private readonly signer = new Signer(privateKey, definition)
   ) {
     super(operatorHost, restEndpoint);

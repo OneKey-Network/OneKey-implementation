@@ -1,10 +1,10 @@
+import { GetNewIdRequest, PostIdsPrefsRequest } from '@onekey/core/model/generated-model';
 import {
   RedirectContext,
   RequestWithBodyDefinition,
   RequestWithoutBodyDefinition,
   RestContext,
-} from '@onekey/core/crypto/signing-definition';
-import { GetNewIdRequest, PostIdsPrefsRequest } from '@onekey/core/model/generated-model';
+} from '@onekey/core/signing-definition/request-signing-definition';
 
 describe('RequestWithoutBodyDefinition', () => {
   const request: GetNewIdRequest = {

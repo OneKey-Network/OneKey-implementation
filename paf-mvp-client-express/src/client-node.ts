@@ -5,7 +5,7 @@ import { jsonProxyEndpoints, redirectProxyEndpoints } from '@onekey/core/endpoin
 import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
 import { fromDataToObject } from '@onekey/core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyProvider, PublicKeyStore, SeedSignatureContainer } from '@onekey/core/crypto';
+import { PublicKeyProvider, PublicKeyStore, SeedSignatureData } from '@onekey/core/crypto';
 import {
   IJsonValidator,
   JsonSchemaRepository,
@@ -371,7 +371,7 @@ export class ClientNode extends Node {
   };
 
   verifySeed = async (req: Request, res: Response, next: NextFunction) => {
-    const message = fromDataToObject<SeedSignatureContainer>(req.body);
+    const message = fromDataToObject<SeedSignatureData>(req.body);
     try {
       const verificationResult = await this.client.verifySeed(message);
       if (!verificationResult.isValid) {

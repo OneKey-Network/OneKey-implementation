@@ -1,16 +1,16 @@
-import {
-  IdentifierDefinition,
-  IdsAndPreferencesDefinition,
-  RequestWithContext,
-  SigningDefinition,
-  UnsignedRequestWithContext,
-} from '@onekey/core/crypto/signing-definition';
+import { SigningDefinition } from '@onekey/core/signing-definition/signing-definition';
 import { Identifier, IdsAndPreferences, MessageBase } from '@onekey/core/model/generated-model';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { Unsigned } from '@onekey/core/model/model';
 import { Log } from '@onekey/core/log';
 import { PublicKeyProvider } from '@onekey/core/crypto/key-store';
 import { ECDSA_NIT_P256Builder, IDSABuilder } from '@onekey/core/crypto/digital-signature';
+import { IdsAndPrefsSigningDefinition } from '@onekey/core/signing-definition/ids-prefs-signing-definition';
+import {
+  RequestWithContext,
+  UnsignedRequestWithContext,
+} from '@onekey/core/signing-definition/request-signing-definition';
+import { IdentifierSigningDefinition } from '@onekey/core/signing-definition/identifier-signing-definition';
 
 /**
  * Verifier class
@@ -58,8 +58,8 @@ export class Verifier<T> {
 export class IdsAndPreferencesVerifier extends Verifier<IdsAndPreferences> {
   constructor(
     publicKeyProvider: PublicKeyProvider,
-    protected definition: IdsAndPreferencesDefinition,
-    protected idVerifier = new Verifier<Identifier>(publicKeyProvider, new IdentifierDefinition())
+    protected definition: IdsAndPrefsSigningDefinition,
+    protected idVerifier = new Verifier<Identifier>(publicKeyProvider, new IdentifierSigningDefinition())
   ) {
     super(publicKeyProvider, definition);
   }

@@ -37,7 +37,7 @@ import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-sto
 import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
 import { parseDuration } from '@onekey/frontend/utils/date-utils';
 import { IHttpService } from '@onekey/frontend/services/http.service';
-import { SeedSignatureContainer } from '@onekey/core/crypto';
+import { SeedSignatureData } from '@onekey/core/crypto';
 
 // TODO ------------------------------------------------------ move to one-key-lib.ts START
 export class OneKeyLib implements IOneKeyLib {
@@ -723,7 +723,7 @@ export class OneKeyLib implements IOneKeyLib {
    */
   verifySeed = async (seed: Seed, idsAndPreferences: IdsAndPreferences): Promise<boolean> => {
     const url = this.getProxyUrl(jsonProxyEndpoints.verifySeed);
-    const requestContent: SeedSignatureContainer = {
+    const requestContent: SeedSignatureData = {
       seed,
       idsAndPreferences,
     };

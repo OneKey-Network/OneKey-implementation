@@ -18,8 +18,8 @@ import {
   VHostApp,
 } from '@onekey/core/express';
 import {
-  IdentifierDefinition,
-  IdsAndPreferencesDefinition,
+  IdentifierSigningDefinition,
+  IdsAndPrefsSigningDefinition,
   MessageVerificationResult,
   PublicKeyProvider,
   PublicKeyStore,
@@ -135,8 +135,8 @@ export class OperatorNode extends Node {
     this.postIdsPrefsResponseBuilder = new PostIdsPrefsResponseBuilder(hostName, privateKey);
     this.getNewIdResponseBuilder = new GetNewIdResponseBuilder(hostName, privateKey);
     this.deleteIdsPrefsResponseBuilder = new DeleteIdsPrefsResponseBuilder(hostName, privateKey);
-    this.idVerifier = new Verifier(this.publicKeyProvider, new IdentifierDefinition());
-    this.prefsVerifier = new Verifier(this.publicKeyProvider, new IdsAndPreferencesDefinition());
+    this.idVerifier = new Verifier(this.publicKeyProvider, new IdentifierSigningDefinition());
+    this.prefsVerifier = new Verifier(this.publicKeyProvider, new IdsAndPrefsSigningDefinition());
     this.postIdsPrefsRequestVerifier = new RequestVerifier(
       this.publicKeyProvider,
       new RequestWithBodyDefinition() // POST ids and prefs has body property
