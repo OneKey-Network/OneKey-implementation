@@ -45,9 +45,9 @@ export interface EndpointConfiguration {
   jsonSchemaName?: JsonSchemaType;
 }
 
-export type CorrelatedRequest = Request & {
+export interface CorrelatedRequest extends Request {
   correlationId(): string;
-};
+}
 
 /**
  * A OneKey ExpressJS participant
