@@ -37,6 +37,7 @@ import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-sto
 import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
 import { parseDuration } from '@onekey/frontend/utils/date-utils';
 import { IHttpService } from '@onekey/frontend/services/http.service';
+import { SeedSignatureContainer } from '@onekey/core/crypto';
 
 // TODO ------------------------------------------------------ move to one-key-lib.ts START
 export class OneKeyLib implements IOneKeyLib {
@@ -715,6 +716,22 @@ export class OneKeyLib implements IOneKeyLib {
   };
 
   /**
+   * Calls the proxy to verify the seed signature, based on both the seed and the ids and preferences.
+   * Note: ids and preferences must be provided because they might be different from the ones currently stored as cookies.
+   * @param seed
+   * @param idsAndPreferences
+   */
+  verifySeed = async (seed: Seed, idsAndPreferences: IdsAndPreferences): Promise<boolean> => {
+    const url = this.getProxyUrl(jsonProxyEndpoints.verifySeed);
+    const requestContent: SeedSignatureContainer = {
+      seed,
+      idsAndPreferences,
+    };
+    const response = await this.httpService.postJson(url, requestContent);
+    return response.ok;
+  };
+
+  /**
    * Register the Transmission Response of an initial Transmission Request for a given Seed.
    * @param context
    * @param transmissionResponse Transmission Response of an initial Transmission Request containing all the children.
@@ -895,6 +912,7 @@ export interface IOneKeyLib {
   getNewId: () => Promise<Identifier>;
   getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined>;
   generateSeed: (pafTransactionIds: TransactionId[]) => Promise<Seed | undefined>;
+  verifySeed: (seed: Seed, idsAndPreferences: IdsAndPreferences) => Promise<boolean>;
   registerTransmissionResponse: (
     { divIdOrAdUnitCode, contentId, auditHandler }: TransmissionRegistryContext,
     transmissionResponse: TransmissionResponse
