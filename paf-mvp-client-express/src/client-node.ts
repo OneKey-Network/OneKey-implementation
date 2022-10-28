@@ -270,119 +270,83 @@ export class ClientNode extends Node {
     }
   };
 
-  restBuildUrlToWriteIdsAndPreferences = async (
-    req: Request & { correlationId(): string },
-    res: Response,
-    next: NextFunction
-  ) => {
+  restBuildUrlToWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const response = await this.client.getWriteResponse(req);
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.write, e, req.correlationId());
       next(e);
     }
   };
 
-  buildUrlToVerify3PC = (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  buildUrlToVerify3PC = (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = this.client.getVerify3PCResponse();
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verify3PC, e, req.correlationId());
       next(e);
     }
   };
 
-  buildUrlToGetNewId = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  buildUrlToGetNewId = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = await this.client.getNewIdResponse(req);
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.newId, e, req.correlationId());
       next(e);
     }
   };
 
-  restBuildUrlToDeleteIdsAndPreferences = async (
-    req: Request & { correlationId(): string },
-    res: Response,
-    next: NextFunction
-  ) => {
+  restBuildUrlToDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = await this.client.getDeleteResponse(req);
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.delete, e, req.correlationId());
       next(e);
     }
   };
 
-  redirectBuildUrlToReadIdsAndPreferences = async (
-    req: Request & { correlationId(): string },
-    res: Response,
-    next: NextFunction
-  ) => {
+  redirectBuildUrlToReadIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = await this.client.getReadRedirectResponse(req);
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(redirectProxyEndpoints.read, e, req.correlationId());
       next(e);
     }
   };
 
-  redirectBuildUrlToWriteIdsAndPreferences = async (
-    req: Request & { correlationId(): string },
-    res: Response,
-    next: NextFunction
-  ) => {
+  redirectBuildUrlToWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = await this.client.getWriteRedirectResponse(req);
       res.send(url);
       next();
     } catch (e) {
-      this.logger.Error(redirectProxyEndpoints.write, e, req.correlationId());
       next(e);
     }
   };
 
-  redirectBuildUrlToDeleteIdsAndPreferences = async (
-    req: Request & { correlationId(): string },
-    res: Response,
-    next: NextFunction
-  ) => {
+  redirectBuildUrlToDeleteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = await this.client.getDeleteRedirectResponse(req);
       res.send(url.toString());
       next();
     } catch (e) {
-      this.logger.Error(redirectProxyEndpoints.delete, e, req.correlationId());
       next(e);
     }
   };
 
-  verifyOperatorReadResponse = async (
-    req: Request & { correlationId(): string },
-    res: Response,
-    next: NextFunction
-  ) => {
+  verifyOperatorReadResponse = async (req: Request, res: Response, next: NextFunction) => {
     const message = fromDataToObject<RedirectGetIdsPrefsResponse>(req.body);
 
     const hasResponse = message.response !== undefined;
 
     if (!hasResponse) {
-      this.logger.Error(jsonProxyEndpoints.verifyRead, message.error, req.correlationId());
-      const error: NodeError = {
-        type: 'INVALID_JSON_BODY',
-        details: `Request body : '${req.body}' is not valid`,
-      };
-      next(error);
+      next(message.error);
       return;
     }
 
@@ -402,12 +366,11 @@ export class ClientNode extends Node {
         next();
       }
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verifyRead, e, req.correlationId());
       next(e);
     }
   };
 
-  verifySeed = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  verifySeed = async (req: Request, res: Response, next: NextFunction) => {
     const message = fromDataToObject<SeedSignatureContainer>(req.body);
     try {
       const verificationResult = await this.client.verifySeed(message);
@@ -425,23 +388,21 @@ export class ClientNode extends Node {
         next();
       }
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.verifySeed, e, req.correlationId());
       next(e);
     }
   };
 
-  signPreferences = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  signPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const preferences = await this.client.getSignPreferencesResponse(req);
       res.json(preferences);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.signPrefs, e, req.correlationId());
       next(e);
     }
   };
 
-  createSeed = async (req: Request & { correlationId(): string }, res: Response, next: NextFunction) => {
+  createSeed = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const request = JSON.parse(req.body as string) as PostSeedRequest;
       const seed = await this.client.buildSeed(request.transaction_ids, request.data);
@@ -449,7 +410,6 @@ export class ClientNode extends Node {
       res.json(response);
       next();
     } catch (e) {
-      this.logger.Error(jsonProxyEndpoints.createSeed, e, req.correlationId());
       next(e);
     }
   };
