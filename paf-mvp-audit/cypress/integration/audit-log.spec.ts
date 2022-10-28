@@ -79,6 +79,13 @@ n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
     },
   };
 
+  const mockVerifySeed = (success = true) =>
+    cy
+      .intercept('POST', `https://${proxyHostname}/paf-proxy/v1/verify/seed`, {
+        statusCode: success ? 200 : 400,
+      })
+      .as('verify seed');
+
   beforeEach(() => {
     page = new AuditLogPage();
     page.open();
@@ -90,9 +97,10 @@ n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
 
   describe('audit log button', () => {
     beforeEach(() => {
-      cy.intercept('POST', `https://${proxyHostname}/paf-proxy/v1/seed`, seed);
+      cy.intercept('POST', `https://${proxyHostname}/paf-proxy/v1/seed`, seed).as('get seed');
+      mockVerifySeed();
       Object.entries(identities).forEach(([key, value]) => {
-        cy.intercept('GET', `https://${key}/paf/v1/identity`, value);
+        cy.intercept('GET', `https://${key}/paf/v1/identity`, value).as(`identity ${key}`);
       });
     });
 
@@ -121,48 +129,62 @@ n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
         });
     });
 
-    it('should display success audit', () => {
-      cy.window()
-        .its('OneKey')
-        .then(async (oneKey: IOneKeyLib) => {
-          // PrebidJS would call this on bid request
-          await oneKey.generateSeed(transactions);
+    [true, false].forEach((seedSuccess) => {
+      // FIXME implement transmission verification
+      [true /*, false */].forEach((transmissionSuccess) => {
+        const expectedResults = [
+          {
+            name: 'Publisher',
+            email: 'mailto:dpo@publisher.com',
+            url: 'https://publisher.com/privacy',
+            success: seedSuccess,
+          },
+          {
+            name: 'Receiver',
+            email: 'mailto:dpo@receiver.com',
+            url: 'https://receiver.com/privacy',
+            success: transmissionSuccess,
+          },
+        ];
 
-          // PrebidJS would call this on bid response
-          oneKey.registerTransmissionResponse(context, transmissionResponse);
+        it(`should display proper icons for ${seedSuccess ? 'successful' : 'failed'} seed and ${
+          transmissionSuccess ? 'successful' : 'failed'
+        } transmission`, () => {
+          mockVerifySeed(seedSuccess);
 
-          // Click to show audit
-          page.getAuditLogBtn(divId).click();
+          cy.window()
+            .its('OneKey')
+            .then(async (oneKey: IOneKeyLib) => {
+              // PrebidJS would call this on bid request
+              await oneKey.generateSeed(transactions);
 
-          const providersDiv = page.getProviders(divId);
-          providersDiv.should('be.visible');
+              // PrebidJS would call this on bid response
+              oneKey.registerTransmissionResponse(context, transmissionResponse);
 
-          const providers = providersDiv.children<HTMLDivElement>('div');
+              // Click to show audit
+              page.getAuditLogBtn(divId).click();
 
-          const expectedResults = [
-            {
-              name: 'Publisher',
-              email: 'mailto:dpo@publisher.com',
-              url: 'https://publisher.com/privacy',
-            },
-            {
-              name: 'Receiver',
-              email: 'mailto:dpo@receiver.com',
-              url: 'https://receiver.com/privacy',
-            },
-          ];
+              const providersDiv = page.getProviders(divId);
+              providersDiv.should('be.visible');
 
-          providers.should('have.length', expectedResults.length);
+              const providers = providersDiv.children<HTMLDivElement>('div');
 
-          providers.each((provider, index) => {
-            const { name, email, url } = expectedResults[index];
-            cy.wrap(provider).get('h2').contains(name);
-            cy.wrap(provider).findByTestId('email').invoke('attr', 'href').should('eq', email);
-            cy.wrap(provider).findByTestId('url').invoke('attr', 'href').should('eq', url);
-          });
+              providers.should('have.length', expectedResults.length);
 
-          // TODO icon should be green check
+              providers.each((provider, index) => {
+                const { name, email, url, success } = expectedResults[index];
+                cy.wrap(provider).get('h2').contains(name);
+                cy.wrap(provider).findByTestId('email').invoke('attr', 'href').should('eq', email);
+                cy.wrap(provider).findByTestId('url').invoke('attr', 'href').should('eq', url);
+                // Verify expected icon
+                cy.wrap(provider)
+                  .find('svg')
+                  .invoke('attr', 'id')
+                  .should('eq', success ? 'tick' : 'cross');
+              });
+            });
         });
+      });
     });
   });
 });

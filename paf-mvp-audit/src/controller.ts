@@ -5,9 +5,12 @@ import { View } from './view';
 import { BindingViewOnly } from '@onekey/core/ui/binding';
 import providerComponent from './html/components/provider.html';
 import iconTick from './images/IconTick.svg';
+import iconCross from './images/IconCross.svg';
 import { Window } from '@onekey/frontend/global';
 import { GetIdentityRequestBuilder, GetIdentityResponse } from '@onekey/core/model';
 import { HttpService, IHttpService } from '@onekey/frontend/services/http.service';
+
+const OneKeyLib = (<Window>window).OneKey;
 
 /**
  * Controller class used with the model and views. Uses paf-lib for data access services.
@@ -45,11 +48,13 @@ export class Controller {
     if (auditLog !== undefined) {
       const seedField = new FieldSeed(this.model, auditLog.seed);
       await this.populateFieldValues(seedField);
+      seedField.value.isValid = await OneKeyLib.verifySeed(auditLog.seed, auditLog.data);
       await this.model.addField(seedField);
 
       for (const t of auditLog.transmissions) {
         const transmissionField = new FieldTransmissionResult(this.model, t);
         await this.populateFieldValues(transmissionField);
+        transmissionField.value.isValid = true; //await OneKeyLib.verifySeed(auditLog.seed, auditLog.data); // FIXME call new endpoint
         await this.model.addField(transmissionField);
       }
 
@@ -164,7 +169,7 @@ class BindingProviders extends BindingViewOnly<AuditLine, Model, HTMLDivElement>
       item.className = 'ok-ui-provider';
 
       item.innerHTML = providerComponent({
-        ResultSVG: iconTick,
+        ResultSVG: this.field.value.isValid ? iconTick : iconCross,
         Name: this.field.value.name,
         Email: this.field.value.dpoEmailAddress,
         PrivacyUrl: this.field.value.privacyUrl,
