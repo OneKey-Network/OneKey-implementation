@@ -54,7 +54,7 @@ export class Controller {
       for (const t of auditLog.transmissions) {
         const transmissionField = new FieldTransmissionResult(this.model, t);
         await this.populateFieldValues(transmissionField);
-        transmissionField.value.isValid = true; //await OneKeyLib.verifySeed(auditLog.seed, auditLog.data); // FIXME call new endpoint
+        transmissionField.value.isValid = await OneKeyLib.verifyTransmissionResult(t, auditLog.seed);
         await this.model.addField(transmissionField);
       }
 
