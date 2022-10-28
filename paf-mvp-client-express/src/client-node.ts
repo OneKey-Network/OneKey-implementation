@@ -398,7 +398,7 @@ export class ClientNode extends Node {
         };
         next(error);
       } else {
-        res.json(); // Empty response is fine if code is 200
+        res.statusCode = 204; // OK - no content
         next();
       }
     } catch (e) {
@@ -420,7 +420,7 @@ export class ClientNode extends Node {
         };
         next(error);
       } else {
-        res.json(); // Empty response is fine if code is 200
+        res.statusCode = 204; // OK - no content
         next();
       }
     } catch (e) {
