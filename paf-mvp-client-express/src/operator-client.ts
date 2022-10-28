@@ -19,26 +19,28 @@ import {
   PostIdsPrefsRequestBuilder,
 } from '@onekey/core/model/operator-request-builders';
 import { Signer } from '@onekey/core/crypto/signer';
-import {
-  IdsAndPreferencesDefinition,
-  IdsAndUnsignedPreferences,
-  ResponseDefinition,
-  SeedSignatureContainer,
-  SeedSigningDefinition,
-  UnsignedSeedSignatureContainer,
-} from '@onekey/core/crypto/signing-definition';
 import { MessageVerificationResult, ResponseVerifier, Verifier } from '@onekey/core/crypto/verifier';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { Request } from 'express';
 import { getPayload } from '@onekey/core/express';
 import { proxyUriParams } from '@onekey/core/endpoints';
+import {
+  SeedSignatureData,
+  SeedSigningDefinition,
+  UnsignedSeedSignatureData,
+} from '@onekey/core/signing-definition/seed-signing-definition';
+import {
+  IdsAndPrefsSigningDefinition,
+  IdsAndUnsignedPreferences,
+} from '@onekey/core/signing-definition/ids-prefs-signing-definition';
+import { ResponseSigningDefinition } from '@onekey/core/signing-definition/response-signing-definition';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
   private readonly getIdsPrefsRequestBuilder: GetIdsPrefsRequestBuilder;
   private readonly deleteIdsPrefsRequestBuilder: DeleteIdsPrefsRequestBuilder;
   private readonly prefsSigner: Signer<IdsAndUnsignedPreferences>;
-  private readonly seedSigner: Signer<UnsignedSeedSignatureContainer>;
+  private readonly seedSigner: Signer<UnsignedSeedSignatureData>;
   private readonly postIdsPrefsRequestBuilder: PostIdsPrefsRequestBuilder;
   private readonly get3PCRequestBuilder: Get3PCRequestBuilder;
   private readonly getNewIdRequestBuilder: GetNewIdRequestBuilder;
@@ -48,12 +50,12 @@ export class OperatorClient {
     private clientHost: string,
     privateKey: string,
     private readonly publicKeyProvider: PublicKeyProvider,
-    private readonly readVerifier = new ResponseVerifier(publicKeyProvider, new ResponseDefinition()),
+    private readonly readVerifier = new ResponseVerifier(publicKeyProvider, new ResponseSigningDefinition()),
     private readonly seedVerifier = new Verifier(publicKeyProvider, new SeedSigningDefinition())
   ) {
     this.getIdsPrefsRequestBuilder = new GetIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.deleteIdsPrefsRequestBuilder = new DeleteIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
-    this.prefsSigner = new Signer(privateKey, new IdsAndPreferencesDefinition());
+    this.prefsSigner = new Signer(privateKey, new IdsAndPrefsSigningDefinition());
     this.seedSigner = new Signer(privateKey, new SeedSigningDefinition());
     this.postIdsPrefsRequestBuilder = new PostIdsPrefsRequestBuilder(operatorHost, clientHost, privateKey);
     this.get3PCRequestBuilder = new Get3PCRequestBuilder(operatorHost);
@@ -65,7 +67,7 @@ export class OperatorClient {
     return this.readVerifier.verifySignatureAndContent(request, this.operatorHost, this.clientHost);
   }
 
-  async verifySeed(seedToVerify: SeedSignatureContainer): Promise<MessageVerificationResult> {
+  async verifySeed(seedToVerify: SeedSignatureData): Promise<MessageVerificationResult> {
     return this.seedVerifier.verifySignature(seedToVerify);
   }
 

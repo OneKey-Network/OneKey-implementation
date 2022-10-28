@@ -23,17 +23,6 @@ import { PostIdsPrefsRequestBuilder } from '@onekey/core/model/operator-request-
 import { s2sOptions } from '../demo-utils';
 import { PublicKeyStore } from '@onekey/core/crypto/key-store';
 import {
-  IdentifierDefinition,
-  IdsAndPreferencesDefinition,
-  RequestWithBodyDefinition,
-  RequestWithContext,
-  RequestWithoutBodyDefinition,
-  ResponseDefinition,
-  ResponseType,
-  SeedSigningDefinition,
-  UnsignedSeedSignatureContainer,
-} from '@onekey/core/crypto/signing-definition';
-import {
   IdsAndPreferencesVerifier,
   MessageVerificationResult,
   RequestVerifier,
@@ -44,6 +33,18 @@ import { jsonOperatorEndpoints, redirectEndpoints } from '@onekey/core/endpoints
 import { VHostApp } from '@onekey/core/express/express-apps';
 import { parseConfig } from '@onekey/core/express/config';
 import { ClientNodeConfig } from '@onekey/client-node/client-node';
+import {
+  SeedSigningDefinition,
+  UnsignedSeedSignatureData,
+} from '@onekey/core/signing-definition/seed-signing-definition';
+import { IdsAndPrefsSigningDefinition } from '@onekey/core/signing-definition/ids-prefs-signing-definition';
+import {
+  RequestWithBodyDefinition,
+  RequestWithContext,
+  RequestWithoutBodyDefinition,
+} from '@onekey/core/signing-definition/request-signing-definition';
+import { ResponseSigningDefinition, ResponseType } from '@onekey/core/signing-definition/response-signing-definition';
+import { IdentifierSigningDefinition } from '@onekey/core/signing-definition/identifier-signing-definition';
 
 const { name, host }: WebSiteConfig = {
   name: 'A OneKey portal',
@@ -165,14 +166,15 @@ export const portalWebSiteApp = new VHostApp(name, host);
   const postIdsPrefsRequestVerifier = (request: RequestWithContext<PostIdsPrefsRequest>) =>
     new RequestVerifier(keyStore.provider, new RequestWithBodyDefinition()).verifySignature(request);
   const responseVerifier = (response: ResponseType) =>
-    new ResponseVerifier(keyStore.provider, new ResponseDefinition()).verifySignature(response);
-  const seedVerifier = (seed: UnsignedSeedSignatureContainer) =>
+    new ResponseVerifier(keyStore.provider, new ResponseSigningDefinition()).verifySignature(response);
+  const seedVerifier = (seed: UnsignedSeedSignatureData) =>
     new Verifier(keyStore.provider, new SeedSigningDefinition()).verifySignature(seed);
 
   const verifiers: { [name in keyof Model]?: (payload: unknown) => Promise<MessageVerificationResult> } = {
-    identifier: (id: Identifier) => new Verifier(keyStore.provider, new IdentifierDefinition()).verifySignature(id),
+    identifier: (id: Identifier) =>
+      new Verifier(keyStore.provider, new IdentifierSigningDefinition()).verifySignature(id),
     'ids-and-preferences': (idAndPrefs: IdsAndPreferences) =>
-      new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPreferencesDefinition()).verifySignature(idAndPrefs),
+      new IdsAndPreferencesVerifier(keyStore.provider, new IdsAndPrefsSigningDefinition()).verifySignature(idAndPrefs),
     'get-ids-prefs-request': requestWithoutBodyVerifier,
     'get-ids-prefs-response': responseVerifier,
     'get-new-id-request': requestWithoutBodyVerifier,

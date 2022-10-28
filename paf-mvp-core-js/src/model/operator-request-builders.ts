@@ -11,11 +11,11 @@ import { getTimeStampInSec } from '../timestamp';
 import { RestAndRedirectRequestBuilder, RestRequestBuilder } from '@onekey/core/model/request-builders';
 import { Signer } from '@onekey/core/crypto/signer';
 import {
-  RequestDefinition,
+  RequestSigningDefinition,
   RequestWithBodyDefinition,
   RequestWithoutBodyDefinition,
   RestContext,
-} from '@onekey/core/crypto/signing-definition';
+} from '@onekey/core/signing-definition/request-signing-definition';
 
 export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
   constructor(operatorHost: string) {
@@ -62,7 +62,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
     operatorHost: string,
     clientHost: string,
     privateKey: string,
-    definition: RequestDefinition<GetIdsPrefsRequest> = new RequestWithoutBodyDefinition()
+    definition: RequestSigningDefinition<GetIdsPrefsRequest> = new RequestWithoutBodyDefinition()
   ) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.read, redirectEndpoints.read, privateKey, definition);
   }
@@ -81,7 +81,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
     operatorHost: string,
     clientHost: string,
     privateKey: string,
-    definition: RequestDefinition<PostIdsPrefsRequest> = new RequestWithBodyDefinition()
+    definition: RequestSigningDefinition<PostIdsPrefsRequest> = new RequestWithBodyDefinition()
   ) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.write, redirectEndpoints.write, privateKey, definition);
   }
@@ -111,7 +111,7 @@ export class DeleteIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<
     operatorHost: string,
     clientHost: string,
     privateKey: string,
-    definition: RequestDefinition<DeleteIdsPrefsRequest> = new RequestWithoutBodyDefinition()
+    definition: RequestSigningDefinition<DeleteIdsPrefsRequest> = new RequestWithoutBodyDefinition()
   ) {
     super(operatorHost, clientHost, jsonOperatorEndpoints.delete, redirectEndpoints.delete, privateKey, definition);
   }

@@ -1,4 +1,4 @@
-import { SigningDefinition } from '@onekey/core/crypto/signing-definition';
+import { SigningDefinition } from '@onekey/core/signing-definition/signing-definition';
 import { IDSABuilder } from '@onekey/core/crypto/digital-signature';
 
 export interface FooType {

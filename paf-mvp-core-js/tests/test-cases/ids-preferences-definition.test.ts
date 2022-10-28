@@ -1,5 +1,5 @@
-import { IdsAndPreferencesDefinition } from '@onekey/core/crypto/signing-definition';
 import { IdsAndPreferences } from '@onekey/core/model/generated-model';
+import { IdsAndPrefsSigningDefinition } from '@onekey/core/signing-definition/ids-prefs-signing-definition';
 
 describe('IdsAndPreferencesDefinition', () => {
   test('should extract appropriate data', () => {
@@ -41,7 +41,7 @@ describe('IdsAndPreferencesDefinition', () => {
       },
     };
 
-    const definition = new IdsAndPreferencesDefinition();
+    const definition = new IdsAndPrefsSigningDefinition();
 
     expect(definition.getInputString(idsAndPreferences)).toEqual(
       'cmp.com\u20631642504560\u2063id-signature\u2063use_browsing_for_personalization\u2063true'
