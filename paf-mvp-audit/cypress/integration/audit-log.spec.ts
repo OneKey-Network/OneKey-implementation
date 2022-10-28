@@ -82,9 +82,16 @@ n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
   const mockVerifySeed = (success = true) =>
     cy
       .intercept('POST', `https://${proxyHostname}/paf-proxy/v1/verify/seed`, {
-        statusCode: success ? 200 : 400,
+        statusCode: success ? 204 : 400,
       })
       .as('verify seed');
+
+  const mockVerifyTransmission = (success = true) =>
+    cy
+      .intercept('POST', `https://${proxyHostname}/paf-proxy/v1/verify/transmissionResult`, {
+        statusCode: success ? 204 : 400,
+      })
+      .as('verify transmission result');
 
   beforeEach(() => {
     page = new AuditLogPage();
@@ -99,6 +106,7 @@ n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
     beforeEach(() => {
       cy.intercept('POST', `https://${proxyHostname}/paf-proxy/v1/seed`, seed).as('get seed');
       mockVerifySeed();
+      mockVerifyTransmission();
       Object.entries(identities).forEach(([key, value]) => {
         cy.intercept('GET', `https://${key}/paf/v1/identity`, value).as(`identity ${key}`);
       });
@@ -130,8 +138,7 @@ n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
     });
 
     [true, false].forEach((seedSuccess) => {
-      // FIXME implement transmission verification
-      [true /*, false */].forEach((transmissionSuccess) => {
+      [true, false].forEach((transmissionSuccess) => {
         const expectedResults = [
           {
             name: 'Publisher',
@@ -147,10 +154,11 @@ n07PJaNI22v+s7hR1Hkb71De6Ot5Z4JLoZ7aj1xYhFcQJsYkFlXxcBWfRQ==
           },
         ];
 
-        it(`should display proper icons for ${seedSuccess ? 'successful' : 'failed'} seed and ${
-          transmissionSuccess ? 'successful' : 'failed'
-        } transmission`, () => {
+        it(`should display proper icons for\n
+        - ${seedSuccess ? '❌' : '✅'} seed\n
+        - ${transmissionSuccess ? '❌' : '✅'} transmission`, () => {
           mockVerifySeed(seedSuccess);
+          mockVerifyTransmission(transmissionSuccess);
 
           cy.window()
             .its('OneKey')
