@@ -142,7 +142,6 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.setEndpointConfig('GET', redirectProxyEndpoints.read, {
       endPointName: 'RedirectRead',
-      isRedirect: true,
     });
     this.app.expressApp.get(
       redirectProxyEndpoints.read,
@@ -157,7 +156,6 @@ export class ClientNode extends Node {
 
     this.setEndpointConfig('GET', redirectProxyEndpoints.write, {
       endPointName: 'RedirectWrite',
-      isRedirect: true,
     });
     this.app.expressApp.get(
       redirectProxyEndpoints.write,
@@ -172,7 +170,6 @@ export class ClientNode extends Node {
 
     this.setEndpointConfig('GET', redirectProxyEndpoints.delete, {
       endPointName: 'RedirectDelete',
-      isRedirect: true,
     });
     this.app.expressApp.get(
       redirectProxyEndpoints.delete,
@@ -398,7 +395,7 @@ export class ClientNode extends Node {
         };
         next(error);
       } else {
-        res.statusCode = 204; // OK - no content
+        res.sendStatus(204); // OK - no content
         next();
       }
     } catch (e) {
