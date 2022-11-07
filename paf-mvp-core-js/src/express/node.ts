@@ -154,7 +154,9 @@ export class Node implements INode {
     this.logger.Info(`${endPointName} --correlation-id=${req.correlationId()} - START`);
     //Push a new span
     res.locals.spans ??= [];
-    const spanOptions: SpanOptions = { kind: SpanKind.SERVER };
+    //add request correlationId as a span tag
+    //this will enable us correlate traces manually on the jaeger ui using the filter box
+    const spanOptions: SpanOptions = { kind: SpanKind.SERVER, attributes: { correlation_id: req.correlationId() } };
     const currentSpan = this.tracer.startSpan(endPointName, spanOptions);
     res.locals.spans.push(currentSpan);
     next();
