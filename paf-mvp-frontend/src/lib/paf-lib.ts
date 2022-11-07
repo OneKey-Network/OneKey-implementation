@@ -21,6 +21,7 @@ import {
   Seed,
   TransactionId,
   TransmissionResponse,
+  TransmissionResult,
 } from '@onekey/core/model';
 import { NotificationEnum } from '@onekey/frontend/enums/notification.enum';
 import { Log } from '@onekey/core/log';
@@ -38,6 +39,7 @@ import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.serv
 import { parseDuration } from '@onekey/frontend/utils/date-utils';
 import { IHttpService } from '@onekey/frontend/services/http.service';
 import { SeedSignatureData } from '@onekey/core/crypto';
+import { TransmissionResultSignatureData } from '@onekey/core/signing-definition/transmission-result-signing-definition';
 
 // TODO ------------------------------------------------------ move to one-key-lib.ts START
 export class OneKeyLib implements IOneKeyLib {
@@ -732,6 +734,21 @@ export class OneKeyLib implements IOneKeyLib {
   };
 
   /**
+   * Calls the proxy to verify the transmission result, based on both the transmission result and the seed.
+   * @param transmissionResult
+   * @param seed
+   */
+  verifyTransmissionResult = async (transmissionResult: TransmissionResult, seed: Seed): Promise<boolean> => {
+    const url = this.getProxyUrl(jsonProxyEndpoints.verifyTransmission);
+    const requestContent: TransmissionResultSignatureData = {
+      seed,
+      transmissionResult,
+    };
+    const response = await this.httpService.postJson(url, requestContent);
+    return response.ok;
+  };
+
+  /**
    * Register the Transmission Response of an initial Transmission Request for a given Seed.
    * @param context
    * @param transmissionResponse Transmission Response of an initial Transmission Request containing all the children.
@@ -913,6 +930,7 @@ export interface IOneKeyLib {
   getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined>;
   generateSeed: (pafTransactionIds: TransactionId[]) => Promise<Seed | undefined>;
   verifySeed: (seed: Seed, idsAndPreferences: IdsAndPreferences) => Promise<boolean>;
+  verifyTransmissionResult: (transmissionResult: TransmissionResult, seed: Seed) => Promise<boolean>;
   registerTransmissionResponse: (
     { divIdOrAdUnitCode, contentId, auditHandler }: TransmissionRegistryContext,
     transmissionResponse: TransmissionResponse
