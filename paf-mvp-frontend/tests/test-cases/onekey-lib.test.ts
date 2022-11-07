@@ -11,11 +11,12 @@ import {
 } from '@onekey/core/model/generated-model';
 import fetch from 'jest-fetch-mock';
 import { isBrowserKnownToSupport3PC } from '@onekey/core/user-agent';
-import { IdsAndPreferencesResult, OneKeyLib, SeedEntry } from '@onekey/frontend/lib/paf-lib';
+import { OneKeyLib, SeedEntry } from '@onekey/frontend/lib/paf-lib';
 import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-storage.service';
 import { HttpService } from '@onekey/frontend/services/http.service';
 import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
 import { DEFAULT_TTL_IN_SECONDS, MAXIMUM_TTL_IN_SECONDS } from '@onekey/frontend/utils/cookie';
+import { IdsAndPreferencesResult } from '@onekey/frontend/lib/i-one-key-lib';
 
 jest.mock('@onekey/core/user-agent');
 const mockedIsBrowserKnownToSupport3PC = jest.mocked(isBrowserKnownToSupport3PC, true);

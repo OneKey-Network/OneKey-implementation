@@ -40,6 +40,13 @@ import { parseDuration } from '@onekey/frontend/utils/date-utils';
 import { IHttpService } from '@onekey/frontend/services/http.service';
 import { SeedSignatureData } from '@onekey/core/crypto';
 import { TransmissionResultSignatureData } from '@onekey/core/signing-definition/transmission-result-signing-definition';
+import {
+  CookieData,
+  IdsAndPreferencesResult,
+  IOneKeyLib,
+  RefreshResult,
+  ShowPromptOption,
+} from '@onekey/frontend/lib/i-one-key-lib';
 
 // TODO ------------------------------------------------------ move to one-key-lib.ts START
 export class OneKeyLib implements IOneKeyLib {
@@ -805,11 +812,6 @@ export class OneKeyLib implements IOneKeyLib {
     this.auditLogManager.handler = handler;
   }
 
-  /**
-   * Delete the identifiers and preferences of the current website (locally and from the operator)
-   * @param options:
-   * - proxyBase: base URL (scheme, servername) of the PAF client node. ex: https://paf.my-website.com
-   */
   deleteIdsAndPreferences = async (): Promise<void> => {
     this.log.Info('Attempt to delete ids and preferences');
 
@@ -889,64 +891,5 @@ export interface SeedEntry {
 }
 
 // TODO ------------------------------------------------------ move to rtb.ts END
-
-// TODO ------------------------------------------------------ move to i-one-key-lib.ts START
-export enum ShowPromptOption {
-  doNotPrompt = 'doNotPrompt',
-  doPrompt = 'doPrompt',
-  promptIfUnknownUser = 'promptIfUnknownUser',
-}
-
-/**
- * Refresh result
- */
-export interface RefreshResult {
-  status: PafStatus;
-  data?: IdsAndOptionalPreferences;
-}
-
-/**
- * Refresh result
- */
-export interface IdsAndPreferencesResult {
-  status: PafStatus;
-  data?: IdsAndPreferences;
-}
-
-export type CookieData = {
-  strIds: string;
-  lastRefresh: string;
-  strPreferences: string;
-  currentlySelectedConsent: boolean;
-  currentPafData: IdsAndOptionalPreferences;
-};
-
-export interface IOneKeyLib {
-  unpersistedIds?: Identifier[];
-  triggerNotification: (initialData: CookieData, newConsent: boolean) => Promise<void>;
-  refreshIdsAndPreferences: (showPrompt?: ShowPromptOption) => Promise<RefreshResult>;
-  signPreferences: (input: PostSignPreferencesRequest) => Promise<Preferences>;
-  getNewId: () => Promise<Identifier>;
-  getIdsAndPreferences: () => Promise<IdsAndPreferencesResult | undefined>;
-  generateSeed: (pafTransactionIds: TransactionId[]) => Promise<Seed | undefined>;
-  verifySeed: (seed: Seed, idsAndPreferences: IdsAndPreferences) => Promise<boolean>;
-  verifyTransmissionResult: (transmissionResult: TransmissionResult, seed: Seed) => Promise<boolean>;
-  registerTransmissionResponse: (
-    { divIdOrAdUnitCode, contentId, auditHandler }: TransmissionRegistryContext,
-    transmissionResponse: TransmissionResponse
-  ) => AuditLog | undefined;
-  getAuditLogByDivId: (divId: DivId) => AuditLog | undefined;
-  deleteIdsAndPreferences: () => Promise<void>;
-  setPromptHandler: (handler: () => Promise<boolean>) => void;
-  promptConsent: () => Promise<boolean>;
-  setNotificationHandler: (handler: (notificationType: NotificationEnum) => Promise<void>) => void;
-  showNotification: (notificationType: NotificationEnum) => Promise<void>;
-  updateIdsAndPreferences: (
-    optIn: boolean,
-    identifiers: Identifier[]
-  ) => Promise<IdsAndOptionalPreferences | undefined>;
-  removeCookie: (cookieName: string) => void;
-  setAuditLogHandler: (handler: (element: HTMLElement) => Promise<void>) => void;
-}
 
 // TODO ------------------------------------------------------ move to i-one-key-lib.ts END

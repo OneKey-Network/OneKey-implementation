@@ -1,6 +1,6 @@
 {
   "name": "@onkey/demo",
-  "description": "Prebid Addressability Framework (PAF): Demo websites",
+  "description": "OneKey: Demo websites",
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
