@@ -59,14 +59,14 @@ git submodule update --init --recursive
 
 ## Directories
 
-| Sub-project                                            | Description                                                                                                                                         |
-|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| [paf-mvp-demo-express](./paf-mvp-demo-express)         | A set of **demo** publishers and advertisers hosted on NodeJS and using Prebid Addressability Framework                                             |
-| [paf-mvp-frontend](./paf-mvp-frontend)                 | The official implementation of a **frontend client** for OneKey, including Javascript library and reference **UI widgets**                          |
-| [paf-mvp-client-express](./paf-mvp-client-express)     | A NodeJS (Express) implementation of the [client node](https://github.com/OneKey-Network/addressability-framework/blob/main/mvp-spec/paf-client-node.md)    |
-| [paf-mvp-operator-express](./paf-mvp-operator-express) | A NodeJS (Express) implementation of the [operator API](https://github.com/criteo/addressable-network-proposals/blob/main/mvp-spec/operator-api.md) |
-| [paf-mvp-core-js](./paf-mvp-core-js)                   | The Javascript fondation (**data model**, endpoint paths...) used by all other projects                                                             |
-| [paf-mvp-cmp](./paf-mvp-cmp)                           | A OneKey and TCF compatible CMP widget                                                                                                              |
-| [paf-mvp-audit](./paf-mvp-audit)                       | The code to generate and show an audit log viewer                                                                                                   |
+| Sub-project                                            | Description                                                                                                                                              |
+|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [paf-mvp-demo-express](./paf-mvp-demo-express)         | A set of **demo** publishers and advertisers hosted on NodeJS and using OneKey                                                                           |
+| [paf-mvp-frontend](./paf-mvp-frontend)                 | The official implementation of a **frontend client** for OneKey, including Javascript library and reference **UI widgets**                               |
+| [paf-mvp-client-express](./paf-mvp-client-express)     | A NodeJS (Express) implementation of the [client node](https://github.com/OneKey-Network/addressability-framework/blob/main/mvp-spec/paf-client-node.md) |
+| [paf-mvp-operator-express](./paf-mvp-operator-express) | A NodeJS (Express) implementation of the [operator API](https://github.com/criteo/addressable-network-proposals/blob/main/mvp-spec/operator-api.md)      |
+| [paf-mvp-core-js](./paf-mvp-core-js)                   | The Javascript fondation (**data model**, endpoint paths...) used by all other projects                                                                  |
+| [paf-mvp-cmp](./paf-mvp-cmp)                           | A OneKey and TCF compatible CMP widget                                                                                                                   |
+| [paf-mvp-audit](./paf-mvp-audit)                       | The code to generate and show an audit log viewer                                                                                                        |
 
 To run a demo project of OneKey, visit [paf-mvp-demo-express](./paf-mvp-demo-express)

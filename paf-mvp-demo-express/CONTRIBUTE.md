@@ -1,4 +1,4 @@
-# Prebid Addressability Framework (PAF): contribute to demo
+# OneKey: contribute to demo
 
 Start with [root contribute file](../CONTRIBUTE.md)
 

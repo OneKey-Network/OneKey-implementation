@@ -2,8 +2,9 @@ import { AuditLogPage } from '../pages/audit-log.page';
 import { GetIdentityResponse, Seed, TransactionId, TransmissionResponse } from '@onekey/core/model';
 import { getFakeIdentifiers, getFakePreferences } from '@test-fixtures/cookies';
 import { Cookies } from '@onekey/core/cookies';
-import { IOneKeyLib, TransmissionRegistryContext } from '@onekey/frontend/lib/paf-lib';
+import { TransmissionRegistryContext } from '@onekey/frontend/lib/paf-lib';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
+import { IOneKeyLib } from '@onekey/frontend/lib/i-one-key-lib';
 
 describe('Audit log', () => {
   let page: AuditLogPage;
