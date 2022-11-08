@@ -64,6 +64,9 @@ export class ClientNode extends Node {
   async setup(): Promise<void> {
     await super.setup();
 
+    // All endpoints support CORS pre-flight
+    this.app.expressApp.options('*', this.websiteIdentityValidator.cors);
+
     // *****************************************************************************************************************
     // ************************************************************************************************************ REST
     // *****************************************************************************************************************
@@ -94,8 +97,6 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.app.expressApp.options('*', this.websiteIdentityValidator.cors);
-
     this.setEndpointConfig('GET', jsonProxyEndpoints.verify3PC, {
       endPointName: 'Verify3PC',
     });
@@ -125,8 +126,6 @@ export class ClientNode extends Node {
     this.setEndpointConfig('DELETE', jsonProxyEndpoints.delete, {
       endPointName: 'Delete',
     });
-    // enable pre-flight request for DELETE request
-    this.app.expressApp.options(jsonProxyEndpoints.delete, this.websiteIdentityValidator.cors);
     this.app.expressApp.delete(
       jsonProxyEndpoints.delete,
       this.beginHandling,
@@ -142,6 +141,7 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     this.setEndpointConfig('GET', redirectProxyEndpoints.read, {
       endPointName: 'RedirectRead',
+      // Note this endpoint is returning a redirect operator URL, but is not redirecting (redirectResponse == false)
     });
     this.app.expressApp.get(
       redirectProxyEndpoints.read,
@@ -156,6 +156,7 @@ export class ClientNode extends Node {
 
     this.setEndpointConfig('GET', redirectProxyEndpoints.write, {
       endPointName: 'RedirectWrite',
+      // Note this endpoint is returning a redirect operator URL, but is not redirecting (redirectResponse == false)
     });
     this.app.expressApp.get(
       redirectProxyEndpoints.write,
@@ -170,6 +171,7 @@ export class ClientNode extends Node {
 
     this.setEndpointConfig('GET', redirectProxyEndpoints.delete, {
       endPointName: 'RedirectDelete',
+      // Note this endpoint is returning a redirect operator URL, but is not redirecting (redirectResponse == false)
     });
     this.app.expressApp.get(
       redirectProxyEndpoints.delete,

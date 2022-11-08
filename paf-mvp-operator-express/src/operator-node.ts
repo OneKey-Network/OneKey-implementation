@@ -239,7 +239,7 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     this.setEndpointConfig('GET', redirectEndpoints.read, {
       endPointName: 'RedirectRead',
-      isRedirect: true,
+      redirectResponse: true,
       jsonSchemaName: JsonSchemaType.readIdAndPreferencesRedirectRequest,
     });
     this.app.expressApp.get(
@@ -257,7 +257,7 @@ export class OperatorNode extends Node {
 
     this.setEndpointConfig('GET', redirectEndpoints.write, {
       endPointName: 'RedirectWrite',
-      isRedirect: true,
+      redirectResponse: true,
       jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRedirectRequest,
     });
     this.app.expressApp.get(
@@ -275,7 +275,7 @@ export class OperatorNode extends Node {
 
     this.setEndpointConfig('GET', redirectEndpoints.delete, {
       endPointName: 'RedirectDelete',
-      isRedirect: true,
+      redirectResponse: true,
       jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRedirectRequest,
     });
     this.app.expressApp.get(
@@ -458,8 +458,8 @@ export class OperatorNode extends Node {
   }
 
   checkWriteIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getRequestConfig(req);
-    const request = isRedirect
+    const { redirectResponse } = this.getRequestConfig(req);
+    const request = redirectResponse
       ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
       : getPayload<PostIdsPrefsRequest>(req);
     const validationResult = await this.validateWriteRequest(request, req);
@@ -476,9 +476,9 @@ export class OperatorNode extends Node {
   };
 
   checkDeleteIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getRequestConfig(req);
+    const { redirectResponse } = this.getRequestConfig(req);
 
-    const request = isRedirect
+    const request = redirectResponse
       ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
       : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
     const requestValidationResult = await this.validateDeleteRequest(request, req);
@@ -497,8 +497,8 @@ export class OperatorNode extends Node {
   };
 
   checkReadIdsAndPreferencesSignature = async (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getRequestConfig(req);
-    const request = isRedirect
+    const { redirectResponse } = this.getRequestConfig(req);
+    const request = redirectResponse
       ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
       : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
 
@@ -566,8 +566,8 @@ export class OperatorNode extends Node {
   };
 
   checkWritePermission = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getRequestConfig(req);
-    const input = isRedirect
+    const { redirectResponse } = this.getRequestConfig(req);
+    const input = redirectResponse
       ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
       : getPayload<PostIdsPrefsRequest>(req);
     const request = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
@@ -588,8 +588,8 @@ export class OperatorNode extends Node {
 
   // FIXME merge with checkWritePermission
   checkDeletePermission = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getRequestConfig(req);
-    const input = isRedirect
+    const { redirectResponse } = this.getRequestConfig(req);
+    const input = redirectResponse
       ? getPafDataFromQueryString<RedirectDeleteIdsPrefsRequest>(req)
       : getPafDataFromQueryString<DeleteIdsPrefsRequest>(req);
     const request = extractRequestAndContextFromHttp<DeleteIdsPrefsRequest, RedirectDeleteIdsPrefsRequest>(
@@ -684,8 +684,8 @@ export class OperatorNode extends Node {
   };
 
   checkReadPermission = (req: Request, res: Response, next: NextFunction) => {
-    const { isRedirect } = this.getRequestConfig(req);
-    const input = isRedirect
+    const { redirectResponse } = this.getRequestConfig(req);
+    const input = redirectResponse
       ? getPafDataFromQueryString<RedirectGetIdsPrefsRequest>(req)
       : getPafDataFromQueryString<GetIdsPrefsRequest>(req);
     const request = extractRequestAndContextFromHttp<GetIdsPrefsRequest, RedirectGetIdsPrefsRequest>(
