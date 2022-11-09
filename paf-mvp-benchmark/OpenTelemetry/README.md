@@ -77,3 +77,29 @@ All services inherited from class Node are monitored.
 ### Viewers
 A docker image with a collector, Jaeger and Prometheus is given under paf-mvp-benchmark.\
 Default viewer is accessible at [Jaeger UI](http://localhost:16686/search).
+
+
+## Span correlation
+[Spans](https://opentelemetry.io/docs/concepts/signals/traces/#spans-in-opentelemetry) are now started in the `beginHandling` handler and ended in the `endHandling` of each endpoint.\
+Response object is used to store and keep track of the current span.\
+With the current implementation we have the guarantee that **spans** within the **same endpoint** are correctly correlated but that will not be the case when chaining requests (ex: pafLib => clientNode => operatorNode).\
+To do so, we need to make use of `correlation-id` propagated in the http header of each request. For now, we added this `correlation-id` as a span attribute to be able to visualize it on the **jaeger-ui** and correlate spans by using manual filtering.\
+A more sophisticated solution, would be to make use of **context propagation**. To do so we need to:
+1. Identify request chains (paf, clientNode, operatorNode)
+2. Create custom contexts: A **context** is basically a key-value store. we can define a `correlation-id` key on the defaultContext like this:
+````typescript
+import * as api from "@opentelemetry/api";
+
+const correlationIdKey = api.createContextKey("correlation-id");
+const rootCtx = api.ROOT_CONTEXT;
+const ctx = rootCtx.setValue(correlationIdKey, req.correlationId());
+````
+3. Pass the created context to the tracer when starting the span:
+```` typescript
+const spanOptions: SpanOptions = { kind: SpanKind.SERVER }
+const currentSpan = tracer.startSpan('span name', spanOptions, ctx);
+````
+
+We may need to configure a custom **Context Manager** ??
+
+See [openTelemetry documentation](https://opentelemetry.io/docs/instrumentation/js/context/) for more details.
