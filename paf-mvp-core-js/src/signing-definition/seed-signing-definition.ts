@@ -1,17 +1,12 @@
-import { IdsAndPreferences, Seed, UnsignedSource } from '@onekey/core/model';
+import { IdsAndPreferences, PostVerifySeedRequest, Seed, UnsignedSource } from '@onekey/core/model';
 import { SIGN_SEP, SigningDefinition } from '@onekey/core/signing-definition/signing-definition';
-
-export interface SeedSignatureData {
-  seed: Seed;
-  idsAndPreferences: IdsAndPreferences;
-}
 
 export interface UnsignedSeedSignatureData {
   seed: UnsignedSource<Seed>;
   idsAndPreferences: IdsAndPreferences;
 }
 
-export class SeedSigningDefinition implements SigningDefinition<SeedSignatureData, UnsignedSeedSignatureData> {
+export class SeedSigningDefinition implements SigningDefinition<PostVerifySeedRequest, UnsignedSeedSignatureData> {
   getInputString(data: UnsignedSeedSignatureData): string {
     // FIXME[security] add version
     const seed = data.seed;
@@ -30,7 +25,7 @@ export class SeedSigningDefinition implements SigningDefinition<SeedSignatureDat
     return array.join(SIGN_SEP);
   }
 
-  getSignature(data: SeedSignatureData): string {
+  getSignature(data: PostVerifySeedRequest): string {
     return data.seed.source.signature;
   }
 

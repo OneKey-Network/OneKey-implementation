@@ -3,6 +3,8 @@ import {
   Identifiers,
   IdsAndPreferences,
   PostSignPreferencesRequest,
+  PostVerifySeedRequest,
+  PostVerifyTransmissionResultRequest,
   Preferences,
   ProxyPostIdsPrefsResponse,
   Seed,
@@ -25,7 +27,6 @@ import { Request } from 'express';
 import { getPayload } from '@onekey/core/express';
 import { proxyUriParams } from '@onekey/core/endpoints';
 import {
-  SeedSignatureData,
   SeedSigningDefinition,
   UnsignedSeedSignatureData,
 } from '@onekey/core/signing-definition/seed-signing-definition';
@@ -34,10 +35,7 @@ import {
   IdsAndUnsignedPreferences,
 } from '@onekey/core/signing-definition/ids-prefs-signing-definition';
 import { ResponseSigningDefinition } from '@onekey/core/signing-definition/response-signing-definition';
-import {
-  TransmissionResultSignatureData,
-  TransmissionResultSigningDefinition,
-} from '@onekey/core/signing-definition/transmission-result-signing-definition';
+import { TransmissionResultSigningDefinition } from '@onekey/core/signing-definition/transmission-result-signing-definition';
 
 // FIXME should probably be moved to core library
 export class OperatorClient {
@@ -75,12 +73,12 @@ export class OperatorClient {
     return this.readVerifier.verifySignatureAndContent(request, this.operatorHost, this.clientHost);
   }
 
-  async verifySeed(seedToVerify: SeedSignatureData): Promise<MessageVerificationResult> {
+  async verifySeed(seedToVerify: PostVerifySeedRequest): Promise<MessageVerificationResult> {
     return this.seedVerifier.verifySignature(seedToVerify);
   }
 
   async verifyTransmissionResult(
-    transmissionDataToVerify: TransmissionResultSignatureData
+    transmissionDataToVerify: PostVerifyTransmissionResultRequest
   ): Promise<MessageVerificationResult> {
     return this.transmissionResultVerifier.verifySignature(transmissionDataToVerify);
   }

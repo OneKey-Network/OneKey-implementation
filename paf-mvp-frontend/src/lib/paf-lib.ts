@@ -17,6 +17,8 @@ import {
   PostIdsPrefsResponse,
   PostSeedRequest,
   PostSignPreferencesRequest,
+  PostVerifySeedRequest,
+  PostVerifyTransmissionResultRequest,
   Preferences,
   Seed,
   TransactionId,
@@ -38,8 +40,6 @@ import { IAuditLogStorageService } from '@onekey/frontend/services/audit-log-sto
 import { ISeedStorageService } from '@onekey/frontend/services/seed-storage.service';
 import { parseDuration } from '@onekey/frontend/utils/date-utils';
 import { IHttpService } from '@onekey/frontend/services/http.service';
-import { SeedSignatureData } from '@onekey/core/crypto';
-import { TransmissionResultSignatureData } from '@onekey/core/signing-definition/transmission-result-signing-definition';
 import {
   CookieData,
   IdsAndPreferencesResult,
@@ -732,7 +732,7 @@ export class OneKeyLib implements IOneKeyLib {
    */
   verifySeed = async (seed: Seed, idsAndPreferences: IdsAndPreferences): Promise<boolean> => {
     const url = this.getProxyUrl(jsonProxyEndpoints.verifySeed);
-    const requestContent: SeedSignatureData = {
+    const requestContent: PostVerifySeedRequest = {
       seed,
       idsAndPreferences,
     };
@@ -747,7 +747,7 @@ export class OneKeyLib implements IOneKeyLib {
    */
   verifyTransmissionResult = async (transmissionResult: TransmissionResult, seed: Seed): Promise<boolean> => {
     const url = this.getProxyUrl(jsonProxyEndpoints.verifyTransmission);
-    const requestContent: TransmissionResultSignatureData = {
+    const requestContent: PostVerifyTransmissionResultRequest = {
       seed,
       transmissionResult,
     };

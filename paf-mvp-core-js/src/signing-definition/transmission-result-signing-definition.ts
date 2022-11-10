@@ -1,13 +1,8 @@
 import { SIGN_SEP, SigningDefinition } from '@onekey/core/signing-definition/signing-definition';
-import { Seed, TransmissionResult } from '@onekey/core/model';
+import { PostVerifyTransmissionResultRequest } from '@onekey/core/model';
 
-export interface TransmissionResultSignatureData {
-  transmissionResult: TransmissionResult;
-  seed: Seed;
-}
-
-export class TransmissionResultSigningDefinition implements SigningDefinition<TransmissionResultSignatureData> {
-  getInputString(data: Partial<TransmissionResultSignatureData>): string {
+export class TransmissionResultSigningDefinition implements SigningDefinition<PostVerifyTransmissionResultRequest> {
+  getInputString(data: Partial<PostVerifyTransmissionResultRequest>): string {
     const { transmissionResult, seed } = data;
     return [
       transmissionResult.receiver,
@@ -19,11 +14,11 @@ export class TransmissionResultSigningDefinition implements SigningDefinition<Tr
     ].join(SIGN_SEP);
   }
 
-  getSignature(data: TransmissionResultSignatureData): string {
+  getSignature(data: PostVerifyTransmissionResultRequest): string {
     return data.transmissionResult.source.signature;
   }
 
-  getSignerDomain(data: TransmissionResultSignatureData): string {
+  getSignerDomain(data: PostVerifyTransmissionResultRequest): string {
     return data.transmissionResult.source.domain;
   }
 }
