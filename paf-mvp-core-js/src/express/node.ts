@@ -40,7 +40,7 @@ export interface EndpointConfiguration {
   // Endpoint display name
   endPointName: string;
   // Whether this endpoint requires redirect return (303 + data in the query string) or not (default = not)
-  isRedirect?: boolean;
+  redirectResponse?: boolean;
   // Name of the JSON schema used to validate the request
   jsonSchemaName?: JsonSchemaType;
 }
@@ -184,7 +184,7 @@ export class Node implements INode {
   catchErrors =
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (error: unknown, req: CorrelatedRequest, res: Response, next: NextFunction) => {
-      const { endPointName, isRedirect } = this.getRequestConfig(req);
+      const { endPointName, redirectResponse } = this.getRequestConfig(req);
 
       res.locals.currentSpanStatus = SpanStatusCode.ERROR;
 
@@ -243,7 +243,7 @@ export class Node implements INode {
       this.logger.Error(errorMessage);
 
       // Now send the appropriate response
-      if (isRedirect) {
+      if (redirectResponse) {
         // Best case, we can redirect to the provided returnUrl. Worst case, we redirect to the referer
 
         // This would have been set by this.checkReturnUrl
