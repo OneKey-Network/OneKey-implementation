@@ -8,6 +8,8 @@ export type Json = any;
 
 export enum JsonSchemaType {
   createSeedRequest = 'post-seed-request.json',
+  verifySeedRequest = 'post-verify-seed-request.json',
+  verifyTransmissionRequest = 'post-verify-transmission-result-request.json',
   writeIdAndPreferencesRestRequest = 'post-ids-prefs-request.json',
   writeIdAndPreferencesRedirectRequest = 'redirect-post-ids-prefs-request.json',
   readIdAndPreferencesRestRequest = 'get-ids-prefs-request.json',
