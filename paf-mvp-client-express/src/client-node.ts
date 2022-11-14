@@ -241,6 +241,7 @@ export class ClientNode extends Node {
 
     this.setEndpointConfig('POST', jsonProxyEndpoints.verifySeed, {
       endPointName: 'VerifySeed',
+      jsonSchemaName: JsonSchemaType.verifySeedRequest,
     });
     this.app.expressApp.post(
       jsonProxyEndpoints.verifySeed,
@@ -254,6 +255,7 @@ export class ClientNode extends Node {
 
     this.setEndpointConfig('POST', jsonProxyEndpoints.verifyTransmission, {
       endPointName: 'VerifyTransmission',
+      jsonSchemaName: JsonSchemaType.verifyTransmissionRequest,
     });
     this.app.expressApp.post(
       jsonProxyEndpoints.verifyTransmission,
