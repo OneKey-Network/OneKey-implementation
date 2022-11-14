@@ -51,3 +51,13 @@ npm publish
 ```
 
 Note that you must be part of the [OneKey NPM organisation](https://www.npmjs.com/settings/onekey) and be authenticated to publish.
+
+# Generate model
+
+The data & messages model can be **generated from JSON schemas**, themselves handled in the [Adressability framework](https://github.com/OneKey-Network/addressability-framework/tree/main/mvp-spec/json-schemas)
+
+To update the [generated-model.ts](paf-mvp-core-js/src/model/generated-model.ts) file, run the following command:
+
+```shell
+npm run generate-model --prefix paf-mvp-core-js
+```

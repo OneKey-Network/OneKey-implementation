@@ -4,13 +4,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { ResolverOptions } from '@apidevtools/json-schema-ref-parser';
 
-if (!(process.argv[2]?.length > 0)) {
-  const scriptName = path.basename(__filename);
-  console.error(`Usage: ts-node ${scriptName} <inputDir>
-Example: ts-node ${scriptName}`);
-  process.exit(1);
-}
-
 const inputDir = path.join(__dirname, '..', '..', 'addressability-framework', 'mvp-spec', 'json-schemas');
 
 if (!fs.existsSync(inputDir)) {
