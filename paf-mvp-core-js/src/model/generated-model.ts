@@ -102,6 +102,8 @@ export interface _ {
   'post-seed-request'?: PostSeedRequest;
   'post-seed-response'?: PostSeedResponse;
   'post-sign-preferences-request'?: PostSignPreferencesRequest;
+  'post-verify-seed-request'?: PostVerifySeedRequest;
+  'post-verify-transmission-result-request'?: PostVerifyTransmissionResultRequest;
   'preferences-data'?: PreferencesData;
   preferences?: Preferences;
   'proxy-post-ids-prefs-response'?: ProxyPostIdsPrefsResponse;
@@ -538,6 +540,20 @@ export interface PostSignPreferencesRequest {
 export interface UnsignedPreferences {
   version: Version;
   data: PreferencesData;
+}
+/**
+ * POST /paf-proxy/v1/verify/seed request
+ */
+export interface PostVerifySeedRequest {
+  idsAndPreferences: IdsAndPreferences;
+  seed: Seed;
+}
+/**
+ * POST /paf-proxy/v1/verify/seed request
+ */
+export interface PostVerifyTransmissionResultRequest {
+  seed: Seed;
+  transmissionResult: TransmissionResult;
 }
 /**
  * POST /paf-proxy/v1/ids-prefs response

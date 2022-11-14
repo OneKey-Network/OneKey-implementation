@@ -5,7 +5,7 @@ export { IDSABuilder, ECDSA_NIT_P256Builder } from './digital-signature';
 export { isValidKey } from './identity';
 export { SeedSigningDefinition } from '@onekey/core/signing-definition/seed-signing-definition';
 export { UnsignedSeedSignatureData } from '@onekey/core/signing-definition/seed-signing-definition';
-export { SeedSignatureData } from '@onekey/core/signing-definition/seed-signing-definition';
+export { PostVerifySeedRequest } from '@onekey/core/model/generated-model';
 export { IdsAndPrefsSigningDefinition } from '@onekey/core/signing-definition/ids-prefs-signing-definition';
 export { IdsAndUnsignedPreferences } from '@onekey/core/signing-definition/ids-prefs-signing-definition';
 export { RequestWithBodyDefinition } from '@onekey/core/signing-definition/request-signing-definition';

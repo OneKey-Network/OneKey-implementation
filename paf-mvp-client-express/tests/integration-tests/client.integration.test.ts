@@ -19,12 +19,13 @@ import {
   PostSeedRequest,
   PostSeedResponse,
   PostSignPreferencesRequest,
+  PostVerifySeedRequest,
   Preferences,
   ProxyPostIdsPrefsResponse,
   RedirectGetIdsPrefsResponse,
 } from '@onekey/core/model';
 import { id, preferences } from '../utils/const';
-import { ResponseSigningDefinition, SeedSignatureData } from '@onekey/core/crypto';
+import { ResponseSigningDefinition } from '@onekey/core/crypto';
 import { encodeBase64 } from '@onekey/core/query-string';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { Signer } from '@onekey/core/crypto/signer';
@@ -569,7 +570,7 @@ describe('client node', () => {
         .send(JSON.stringify(seedRequest))
         .set('origin', defaultRefererUrl);
       const generatedSeed = JSON.parse(seedResponse.text) as PostSeedResponse;
-      const seedSignatureData: SeedSignatureData = {
+      const seedSignatureData: PostVerifySeedRequest = {
         idsAndPreferences: sampleIdsAndPreferences,
         seed: generatedSeed,
       };

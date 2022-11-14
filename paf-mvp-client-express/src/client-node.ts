@@ -1,11 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
 import { OperatorClient } from './operator-client';
-import { NodeError, PostSeedRequest, PostSeedResponse, RedirectGetIdsPrefsResponse } from '@onekey/core/model';
+import {
+  NodeError,
+  PostSeedRequest,
+  PostSeedResponse,
+  PostVerifySeedRequest,
+  PostVerifyTransmissionResultRequest,
+  RedirectGetIdsPrefsResponse,
+} from '@onekey/core/model';
 import { jsonProxyEndpoints, redirectProxyEndpoints } from '@onekey/core/endpoints';
 import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
 import { fromDataToObject } from '@onekey/core/query-string';
 import { AxiosRequestConfig } from 'axios';
-import { PublicKeyProvider, PublicKeyStore, SeedSignatureData } from '@onekey/core/crypto';
+import { PublicKeyProvider, PublicKeyStore } from '@onekey/core/crypto';
 import {
   IJsonValidator,
   JsonSchemaRepository,
@@ -14,7 +21,6 @@ import {
 } from '@onekey/core/validation/json-validator';
 import { WebsiteIdentityValidator } from './website-identity-validator';
 import { UnableToIdentifySignerError } from '@onekey/core/express/errors';
-import { TransmissionResultSignatureData } from '@onekey/core/signing-definition/transmission-result-signing-definition';
 
 /**
  * The configuration of a OneKey client Node
@@ -384,7 +390,7 @@ export class ClientNode extends Node {
   };
 
   verifySeed = async (req: Request, res: Response, next: NextFunction) => {
-    const message = fromDataToObject<SeedSignatureData>(req.body);
+    const message = fromDataToObject<PostVerifySeedRequest>(req.body);
     try {
       const verificationResult = await this.client.verifySeed(message);
       if (!verificationResult.isValid) {
@@ -406,7 +412,7 @@ export class ClientNode extends Node {
   };
 
   verifyTransmission = async (req: Request, res: Response, next: NextFunction) => {
-    const message = fromDataToObject<TransmissionResultSignatureData>(req.body);
+    const message = fromDataToObject<PostVerifyTransmissionResultRequest>(req.body);
     try {
       const verificationResult = await this.client.verifyTransmissionResult(message);
       if (!verificationResult.isValid) {
