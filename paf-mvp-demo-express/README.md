@@ -106,6 +106,10 @@ To install and run the demo project locally, follow these instructions:
             ```shell
             sudo security add-trusted-cert -d -r trustRoot -k "$HOME/Library/Keychains/login.keychain" paf.crt
             ```
+          Or, if this is not sufficient, add it at **system** level:
+            ```shell
+            sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain paf.crt
+            ```
 
         - Windows
 
