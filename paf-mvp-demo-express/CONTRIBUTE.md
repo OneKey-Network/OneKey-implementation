@@ -28,3 +28,25 @@ npm run generate-examples -- ../addressability-framework/mvp-spec/partials
 ```
 
 (and then, push your changes to a PR)
+
+## Prebid.js
+
+The demo websites are using prebid.js to handle ad auctions.
+
+The bundled script is stored in [`public/assets/publisher/prebid/prebid.js`](public/assets/publisher/prebid/prebid.js).
+
+To update the bundle to a more recent version of prebid.js:
+1. clone [PrebidJS project](https://github.com/prebid/Prebid.js)
+   ```shell
+   git clone https://github.com/prebid/Prebid.js
+   cd Prebid.js
+   ```
+2. build a bundle with OneKey, Criteo and OpenX modules (see [read me](https://github.com/prebid/Prebid.js#Build) for details)
+   ```shell
+   npm ci
+   gulp build --modules=userId,oneKeyIdSystem,rtdModule,oneKeyRtdProvider,criteoBidAdapter,openxOrtbBidAdapter
+   ```
+3. move the generated prebid.js file into `public/assets/publisher/prebid/prebid.js`, for instance:
+   ```shell
+   mv build/dist/prebid.js ../paf/paf-mvp-demo-express/public/assets/publisher/prebid/
+   ```
