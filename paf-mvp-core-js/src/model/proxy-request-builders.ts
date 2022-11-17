@@ -1,5 +1,5 @@
 import { GetIdsPrefsResponse, Identifiers, PostSignPreferencesRequest, PreferencesData } from './generated-model';
-import { jsonProxyEndpoints } from '../endpoints';
+import { client } from '../routes';
 import { setInQueryString } from '@onekey/core/query-string';
 
 export abstract class ProxyRestRequestBuilder<T extends object | undefined> {
@@ -22,7 +22,7 @@ export abstract class ProxyRestRequestBuilder<T extends object | undefined> {
 
 export class ProxyRestSignPreferencesRequestBuilder extends ProxyRestRequestBuilder<PostSignPreferencesRequest> {
   constructor(proxyHost: string) {
-    super(proxyHost, jsonProxyEndpoints.signPrefs);
+    super(proxyHost, client.signPrefs.rest);
   }
 
   buildRequest(identifiers: Identifiers, data: PreferencesData): PostSignPreferencesRequest {
@@ -38,6 +38,6 @@ export class ProxyRestSignPreferencesRequestBuilder extends ProxyRestRequestBuil
 
 export class ProxyRestVerifyGetIdsPrefsRequestBuilder extends ProxyRestRequestBuilder<GetIdsPrefsResponse> {
   constructor(proxyHost: string) {
-    super(proxyHost, jsonProxyEndpoints.verifyRead);
+    super(proxyHost, client.verifyRead.rest);
   }
 }

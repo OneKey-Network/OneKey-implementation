@@ -2,7 +2,7 @@ import cors, { CorsOptions } from 'cors';
 import { NextFunction, Request, Response } from 'express';
 import { escapeRegExp, getTopLevelDomain } from '@onekey/core/express';
 import { NodeError } from '@onekey/core/model';
-import { proxyUriParams } from '@onekey/core/endpoints';
+import { clientUriParams } from '@onekey/core/routes';
 import { CORRELATION_ID_HEADER_NAME } from '@onekey/core/log';
 
 /**
@@ -84,7 +84,7 @@ export class WebsiteIdentityValidator {
    * Returns a handler that will verify that the provided returnUrl is valid
    */
   checkReturnUrl = (req: Request, res: Response, next: NextFunction) => {
-    const returnUrl = req.query[proxyUriParams.returnUrl] as string;
+    const returnUrl = req.query[clientUriParams.returnUrl] as string;
 
     if (this.isValidWebsiteUrl(returnUrl)) {
       next();
