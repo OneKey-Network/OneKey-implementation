@@ -107,7 +107,7 @@ describe('operator client', () => {
   test('get read redirect request', async () => {
     const url = await operatorClient.getReadRedirectResponse(clientRedirectRequest);
     const { path, queryParams } = parseUrlString(url);
-    expect(path).toEqual(operator.read.rest);
+    expect(path).toEqual(operator.read.redirect);
     expect(queryParams['returnUrl']).toEqual(defaultReturnUrl);
     expect(queryParams['request']['sender']).toEqual(ClientBuilder.defaultHost);
     expect(queryParams['request']['receiver']).toEqual(clientBuilder.operatorHost);
@@ -116,7 +116,7 @@ describe('operator client', () => {
   test('get delete redirect response', async () => {
     const url = await operatorClient.getDeleteRedirectResponse(clientRedirectRequest);
     const { path, queryParams } = parseUrlString(url);
-    expect(path).toEqual(operator.delete.rest);
+    expect(path).toEqual(operator.delete.redirect);
     expect(queryParams['request']['sender']).toEqual(ClientBuilder.defaultHost);
     expect(queryParams['request']['receiver']).toEqual(clientBuilder.operatorHost);
     expect(queryParams['request']['signature']).toBeTruthy();
@@ -125,7 +125,7 @@ describe('operator client', () => {
   test('get write redirect response', async () => {
     const url = await operatorClient.getWriteRedirectResponse(clientWriteRedirectRequest);
     const { path, queryParams } = parseUrlString(url);
-    expect(path).toEqual(operator.write.rest);
+    expect(path).toEqual(operator.write.redirect);
     expect(queryParams['returnUrl']).toEqual(defaultReturnUrl);
     expect(queryParams['request']['body']).toEqual(sampleIdsAndPreferences);
     expect(queryParams['request']['sender']).toEqual(ClientBuilder.defaultHost);
