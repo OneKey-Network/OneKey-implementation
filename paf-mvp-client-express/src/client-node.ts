@@ -8,7 +8,7 @@ import {
   PostVerifyTransmissionResultRequest,
   RedirectGetIdsPrefsResponse,
 } from '@onekey/core/model';
-import { jsonProxyEndpoints, redirectProxyEndpoints } from '@onekey/core/endpoints';
+import { client } from '@onekey/core/routes';
 import { Config, Node, parseConfig, VHostApp } from '@onekey/core/express';
 import { fromDataToObject } from '@onekey/core/query-string';
 import { AxiosRequestConfig } from 'axios';
@@ -76,12 +76,12 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     // ************************************************************************************************************ REST
     // *****************************************************************************************************************
-    this.setEndpointConfig('GET', jsonProxyEndpoints.read, {
+    this.setEndpointConfig('GET', client.read.rest, {
       endPointName: 'Read',
     });
 
     this.app.expressApp.get(
-      jsonProxyEndpoints.read,
+      client.read.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -90,11 +90,11 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('POST', jsonProxyEndpoints.write, {
+    this.setEndpointConfig('POST', client.write.rest, {
       endPointName: 'Write',
     });
     this.app.expressApp.post(
-      jsonProxyEndpoints.write,
+      client.write.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -103,11 +103,11 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('GET', jsonProxyEndpoints.verify3PC, {
+    this.setEndpointConfig('GET', client.verify3PC.rest, {
       endPointName: 'Verify3PC',
     });
     this.app.expressApp.get(
-      jsonProxyEndpoints.verify3PC,
+      client.verify3PC.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -116,11 +116,11 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('GET', jsonProxyEndpoints.newId, {
+    this.setEndpointConfig('GET', client.newId.rest, {
       endPointName: 'GetNewId',
     });
     this.app.expressApp.get(
-      jsonProxyEndpoints.newId,
+      client.newId.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -129,11 +129,11 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('DELETE', jsonProxyEndpoints.delete, {
+    this.setEndpointConfig('DELETE', client.delete.rest, {
       endPointName: 'Delete',
     });
     this.app.expressApp.delete(
-      jsonProxyEndpoints.delete,
+      client.delete.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -145,12 +145,12 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
-    this.setEndpointConfig('GET', redirectProxyEndpoints.read, {
+    this.setEndpointConfig('GET', client.read.redirect, {
       endPointName: 'RedirectRead',
       // Note this endpoint is returning a redirect operator URL, but is not redirecting (redirectResponse == false)
     });
     this.app.expressApp.get(
-      redirectProxyEndpoints.read,
+      client.read.redirect,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
@@ -160,12 +160,12 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('GET', redirectProxyEndpoints.write, {
+    this.setEndpointConfig('GET', client.write.redirect, {
       endPointName: 'RedirectWrite',
       // Note this endpoint is returning a redirect operator URL, but is not redirecting (redirectResponse == false)
     });
     this.app.expressApp.get(
-      redirectProxyEndpoints.write,
+      client.write.redirect,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
@@ -175,12 +175,12 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('GET', redirectProxyEndpoints.delete, {
+    this.setEndpointConfig('GET', client.delete.redirect, {
       endPointName: 'RedirectDelete',
       // Note this endpoint is returning a redirect operator URL, but is not redirecting (redirectResponse == false)
     });
     this.app.expressApp.get(
-      redirectProxyEndpoints.delete,
+      client.delete.redirect,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkReferer,
@@ -193,11 +193,11 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     // ******************************************************************************************** JSON - SIGN & VERIFY
     // *****************************************************************************************************************
-    this.setEndpointConfig('POST', jsonProxyEndpoints.verifyRead, {
+    this.setEndpointConfig('POST', client.verifyRead.rest, {
       endPointName: 'VerifyRead',
     });
     this.app.expressApp.post(
-      jsonProxyEndpoints.verifyRead,
+      client.verifyRead.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -206,12 +206,12 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('POST', jsonProxyEndpoints.signPrefs, {
+    this.setEndpointConfig('POST', client.signPrefs.rest, {
       endPointName: 'SignPrefs',
       jsonSchemaName: JsonSchemaType.signPreferencesRequest,
     });
     this.app.expressApp.post(
-      jsonProxyEndpoints.signPrefs,
+      client.signPrefs.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -224,12 +224,12 @@ export class ClientNode extends Node {
     // *****************************************************************************************************************
     // ***************************************************************************************************** JSON - SEED
     // *****************************************************************************************************************
-    this.setEndpointConfig('POST', jsonProxyEndpoints.createSeed, {
+    this.setEndpointConfig('POST', client.createSeed.rest, {
       endPointName: 'CreateSeed',
       jsonSchemaName: JsonSchemaType.createSeedRequest,
     });
     this.app.expressApp.post(
-      jsonProxyEndpoints.createSeed,
+      client.createSeed.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -239,12 +239,12 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('POST', jsonProxyEndpoints.verifySeed, {
+    this.setEndpointConfig('POST', client.verifySeed.rest, {
       endPointName: 'VerifySeed',
       jsonSchemaName: JsonSchemaType.verifySeedRequest,
     });
     this.app.expressApp.post(
-      jsonProxyEndpoints.verifySeed,
+      client.verifySeed.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,
@@ -253,12 +253,12 @@ export class ClientNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('POST', jsonProxyEndpoints.verifyTransmission, {
+    this.setEndpointConfig('POST', client.verifyTransmission.rest, {
       endPointName: 'VerifyTransmission',
       jsonSchemaName: JsonSchemaType.verifyTransmissionRequest,
     });
     this.app.expressApp.post(
-      jsonProxyEndpoints.verifyTransmission,
+      client.verifyTransmission.rest,
       this.beginHandling,
       this.websiteIdentityValidator.cors,
       this.websiteIdentityValidator.checkOrigin,

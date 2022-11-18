@@ -30,7 +30,7 @@ import {
   ResponseVerifier,
   Verifier,
 } from '@onekey/core/crypto/verifier';
-import { jsonOperatorEndpoints, redirectEndpoints } from '@onekey/core/endpoints';
+import { operator } from '@onekey/core/routes';
 import { VHostApp } from '@onekey/core/express/express-apps';
 import { parseConfig } from '@onekey/core/express/config';
 import { ClientNodeConfig } from '@onekey/client-node/client-node';
@@ -194,11 +194,11 @@ export const portalWebSiteApp = new VHostApp(name, host);
   // Mapping of paths => types
   const mappings: Mappings = {
     ['crto-poc-1.onekey.network']: {
-      [jsonOperatorEndpoints.read]: 'get-ids-prefs-request',
-      // [jsonOperatorEndpoints.write]: 'post-ids-prefs-request', cannot happen because is POST payload
-      [jsonOperatorEndpoints.newId]: 'get-new-id-request',
-      [redirectEndpoints.write]: 'redirect-post-ids-prefs-request',
-      [redirectEndpoints.read]: 'redirect-get-ids-prefs-request',
+      [operator.read.rest]: 'get-ids-prefs-request',
+      // [operator.write.rest]: 'post-ids-prefs-request', cannot happen because is POST payload
+      [operator.newId.rest]: 'get-new-id-request',
+      [operator.write.redirect]: 'redirect-post-ids-prefs-request',
+      [operator.read.redirect]: 'redirect-get-ids-prefs-request',
     },
     default: {
       // By default, consider it's a response from the operator (read & write have the same response)

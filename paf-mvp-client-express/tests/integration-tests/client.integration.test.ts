@@ -6,12 +6,7 @@ import { ClientBuilder } from '../utils/client-builder';
 import { IJsonValidator, JsonValidator } from '@onekey/core/validation/json-validator';
 import { Express } from 'express';
 import supertest from 'supertest';
-import {
-  jsonOperatorEndpoints,
-  jsonProxyEndpoints,
-  redirectEndpoints,
-  redirectProxyEndpoints,
-} from '@onekey/core/endpoints';
+import { client, operator } from '@onekey/core/routes';
 import { assertRestError } from '../helpers/integration.helpers';
 import { parseUrlString } from '../utils/url-utils';
 import {
@@ -94,7 +89,7 @@ describe('client node', () => {
   describe('read', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(jsonProxyEndpoints.read);
+      const request = supertest(server).get(client.read.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -102,11 +97,11 @@ describe('client node', () => {
     });
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
-      const response = await supertest(server).get(jsonProxyEndpoints.read).set('origin', defaultRefererUrl);
+      const response = await supertest(server).get(client.read.rest).set('origin', defaultRefererUrl);
       expect(response.status).toEqual(200);
       const { path, queryParams } = parseUrlString(response.text);
       checkQueryParams(queryParams);
-      expect(path).toEqual(jsonOperatorEndpoints.read);
+      expect(path).toEqual(operator.read.rest);
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
     });
@@ -114,7 +109,7 @@ describe('client node', () => {
   describe('write', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).post(jsonProxyEndpoints.write);
+      const request = supertest(server).post(client.write.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -123,7 +118,7 @@ describe('client node', () => {
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .post(jsonProxyEndpoints.write)
+        .post(client.write.rest)
         .type('text/plain')
         .send(JSON.stringify(sampleIdsAndPreferences))
         .set('origin', defaultRefererUrl);
@@ -134,7 +129,7 @@ describe('client node', () => {
       const { path } = parseUrlString(parsedResponse.url);
       checkQueryParams(parsedResponse.payload);
       expect(parsedResponse.payload['body']).toEqual(sampleIdsAndPreferences);
-      expect(path).toEqual(jsonOperatorEndpoints.write);
+      expect(path).toEqual(operator.write.rest);
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
     });
@@ -142,7 +137,7 @@ describe('client node', () => {
   describe('verify 3pc', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(jsonProxyEndpoints.verify3PC);
+      const request = supertest(server).get(client.verify3PC.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -150,10 +145,10 @@ describe('client node', () => {
     });
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
-      const response = await supertest(server).get(jsonProxyEndpoints.verify3PC).set('origin', defaultRefererUrl);
+      const response = await supertest(server).get(client.verify3PC.rest).set('origin', defaultRefererUrl);
       expect(response.status).toEqual(200);
       const { path } = parseUrlString(response.text);
-      expect(path).toEqual(jsonOperatorEndpoints.verify3PC);
+      expect(path).toEqual(operator.verify3PC.rest);
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
     });
@@ -161,7 +156,7 @@ describe('client node', () => {
   describe('get newId', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(jsonProxyEndpoints.newId);
+      const request = supertest(server).get(client.newId.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -169,11 +164,11 @@ describe('client node', () => {
     });
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
-      const response = await supertest(server).get(jsonProxyEndpoints.newId).set('origin', defaultRefererUrl);
+      const response = await supertest(server).get(client.newId.rest).set('origin', defaultRefererUrl);
       expect(response.status).toEqual(200);
       const { path, queryParams } = parseUrlString(response.text);
       checkQueryParams(queryParams);
-      expect(path).toEqual(jsonOperatorEndpoints.newId);
+      expect(path).toEqual(operator.newId.rest);
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
     });
@@ -181,7 +176,7 @@ describe('client node', () => {
   describe('delete', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(jsonProxyEndpoints.delete);
+      const request = supertest(server).get(client.delete.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -189,11 +184,11 @@ describe('client node', () => {
     });
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
-      const response = await supertest(server).get(jsonProxyEndpoints.delete).set('origin', defaultRefererUrl);
+      const response = await supertest(server).get(client.delete.rest).set('origin', defaultRefererUrl);
       expect(response.status).toEqual(200);
       const { path, queryParams } = parseUrlString(response.text);
       checkQueryParams(queryParams);
-      expect(path).toEqual(jsonOperatorEndpoints.delete);
+      expect(path).toEqual(operator.delete.rest);
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
     });
@@ -201,7 +196,7 @@ describe('client node', () => {
   describe('redirect read', () => {
     it.each(invalid_domains)('should check referer header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(redirectProxyEndpoints.read);
+      const request = supertest(server).get(client.read.redirect);
       const response = input.value ? await request.set('referer', input.value) : await request;
       assertRestError(response, 400, 'INVALID_REFERER');
       expect(startMock).toHaveBeenCalled();
@@ -210,7 +205,7 @@ describe('client node', () => {
 
     it.each(invalid_domains)('should check return url when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(redirectProxyEndpoints.read).set('referer', defaultRefererUrl);
+      const request = supertest(server).get(client.read.redirect).set('referer', defaultRefererUrl);
       const response = input.value ? await request.query({ returnUrl: input.value }) : await request;
       assertRestError(response, 400, 'INVALID_RETURN_URL');
       expect(startMock).toHaveBeenCalled();
@@ -220,7 +215,7 @@ describe('client node', () => {
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .get(redirectProxyEndpoints.read)
+        .get(client.read.redirect)
         .query({ returnUrl: defaultReturnUrl })
         .set('referer', defaultRefererUrl);
 
@@ -229,7 +224,7 @@ describe('client node', () => {
       const { path, queryParams } = parseUrlString(response.text);
 
       checkQueryParams(queryParams.request);
-      expect(path).toEqual(redirectEndpoints.read);
+      expect(path).toEqual(operator.read.redirect);
       expect(queryParams.returnUrl).toEqual(defaultReturnUrl);
 
       expect(startMock).toHaveBeenCalled();
@@ -239,7 +234,7 @@ describe('client node', () => {
   describe('redirect write', () => {
     it.each(invalid_domains)('should check referer header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(redirectProxyEndpoints.write);
+      const request = supertest(server).get(client.write.redirect);
       const response = input.value ? await request.set('referer', input.value) : await request;
       assertRestError(response, 400, 'INVALID_REFERER');
       expect(startMock).toHaveBeenCalled();
@@ -248,7 +243,7 @@ describe('client node', () => {
 
     it.each(invalid_domains)('should check return url when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(redirectProxyEndpoints.write).set('referer', defaultRefererUrl);
+      const request = supertest(server).get(client.write.redirect).set('referer', defaultRefererUrl);
       const response = input.value ? await request.query({ returnUrl: input.value }) : await request;
       assertRestError(response, 400, 'INVALID_RETURN_URL');
       expect(startMock).toHaveBeenCalled();
@@ -258,13 +253,13 @@ describe('client node', () => {
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .get(redirectProxyEndpoints.write)
+        .get(client.write.redirect)
         .query({ returnUrl: defaultReturnUrl, message: JSON.stringify(sampleIdsAndPreferences) })
         .set('referer', defaultRefererUrl);
       expect(response.status).toEqual(200);
       const { path, queryParams } = parseUrlString(response.text);
       checkQueryParams(queryParams.request);
-      expect(path).toEqual(redirectEndpoints.write);
+      expect(path).toEqual(operator.write.redirect);
       expect(queryParams.returnUrl).toEqual(defaultReturnUrl);
       expect(queryParams.request.body).toEqual(sampleIdsAndPreferences);
       expect(startMock).toHaveBeenCalled();
@@ -274,7 +269,7 @@ describe('client node', () => {
   describe('redirect delete', () => {
     it.each(invalid_domains)('should check referer header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(redirectProxyEndpoints.delete);
+      const request = supertest(server).get(client.delete.redirect);
       const response = input.value ? await request.set('referer', input.value) : await request;
       assertRestError(response, 400, 'INVALID_REFERER');
       expect(startMock).toHaveBeenCalled();
@@ -283,7 +278,7 @@ describe('client node', () => {
 
     it.each(invalid_domains)('should check return url when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).get(redirectProxyEndpoints.delete).set('referer', defaultRefererUrl);
+      const request = supertest(server).get(client.delete.redirect).set('referer', defaultRefererUrl);
       const response = input.value ? await request.query({ returnUrl: input.value }) : await request;
       assertRestError(response, 400, 'INVALID_RETURN_URL');
       expect(startMock).toHaveBeenCalled();
@@ -293,7 +288,7 @@ describe('client node', () => {
     it('should handle valid request', async () => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .get(redirectProxyEndpoints.delete)
+        .get(client.delete.redirect)
         .query({ returnUrl: defaultReturnUrl })
         .set('referer', defaultRefererUrl);
 
@@ -302,7 +297,7 @@ describe('client node', () => {
       const { path, queryParams } = parseUrlString(response.text);
 
       checkQueryParams(queryParams.request);
-      expect(path).toEqual(redirectEndpoints.delete);
+      expect(path).toEqual(operator.delete.redirect);
       expect(queryParams.returnUrl).toEqual(defaultReturnUrl);
 
       expect(startMock).toHaveBeenCalled();
@@ -321,7 +316,7 @@ describe('client node', () => {
 
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).post(jsonProxyEndpoints.verifyRead);
+      const request = supertest(server).post(client.verifyRead.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -393,7 +388,7 @@ describe('client node', () => {
     it.each(invalid_inputs)('should verify $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .post(jsonProxyEndpoints.verifyRead)
+        .post(client.verifyRead.rest)
         .type('text/plain')
         .send(encodeBase64(JSON.stringify(input.value)))
         .set('origin', defaultRefererUrl);
@@ -412,7 +407,7 @@ describe('client node', () => {
       };
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .post(jsonProxyEndpoints.verifyRead)
+        .post(client.verifyRead.rest)
         .type('text/plain')
         .send(encodeBase64(JSON.stringify(input)))
         .set('origin', defaultRefererUrl);
@@ -425,7 +420,7 @@ describe('client node', () => {
   describe('sign prefs', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).post(jsonProxyEndpoints.signPrefs);
+      const request = supertest(server).post(client.signPrefs.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -433,7 +428,7 @@ describe('client node', () => {
     });
     it('should validate received json object', async () => {
       const { server, startMock, endMock } = await getContext();
-      const response = await supertest(server).post(jsonProxyEndpoints.signPrefs).set('origin', defaultRefererUrl);
+      const response = await supertest(server).post(client.signPrefs.rest).set('origin', defaultRefererUrl);
       assertRestError(response, 400, 'INVALID_JSON_BODY');
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
@@ -449,7 +444,7 @@ describe('client node', () => {
       };
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .post(jsonProxyEndpoints.signPrefs)
+        .post(client.signPrefs.rest)
         .type('text/plain')
         .send(JSON.stringify(input))
         .set('origin', defaultRefererUrl);
@@ -467,7 +462,7 @@ describe('client node', () => {
   describe('create seed', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).post(jsonProxyEndpoints.createSeed);
+      const request = supertest(server).post(client.createSeed.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -475,7 +470,7 @@ describe('client node', () => {
     });
     it('should validate received json object', async () => {
       const { server, startMock, endMock } = await getContext();
-      const response = await supertest(server).post(jsonProxyEndpoints.createSeed).set('origin', defaultRefererUrl);
+      const response = await supertest(server).post(client.createSeed.rest).set('origin', defaultRefererUrl);
       assertRestError(response, 400, 'INVALID_JSON_BODY');
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
@@ -488,7 +483,7 @@ describe('client node', () => {
       };
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .post(jsonProxyEndpoints.createSeed)
+        .post(client.createSeed.rest)
         .type('text/plain')
         .send(JSON.stringify(input))
         .set('origin', defaultRefererUrl);
@@ -506,7 +501,7 @@ describe('client node', () => {
   describe('verify seed', () => {
     it.each(invalid_domains)('should check origin header when it is $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
-      const request = supertest(server).post(jsonProxyEndpoints.verifySeed);
+      const request = supertest(server).post(client.verifySeed.rest);
       const response = input.value ? await request.set('origin', input.value) : await request;
       assertRestError(response, 400, 'INVALID_ORIGIN');
       expect(startMock).toHaveBeenCalled();
@@ -544,7 +539,7 @@ describe('client node', () => {
     it.each(invalid_inputs)('should check invalidate request for $description', async (input) => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
-        .post(jsonProxyEndpoints.verifySeed)
+        .post(client.verifySeed.rest)
         .type('text/plain')
         .send(encodeBase64(JSON.stringify(input.value)))
         .set('origin', defaultRefererUrl);
@@ -565,7 +560,7 @@ describe('client node', () => {
       };
       const { server, startMock, endMock } = await getContext(JsonValidator.default(), customPublicKeyProvider);
       const seedResponse = await supertest(server)
-        .post(jsonProxyEndpoints.createSeed)
+        .post(client.createSeed.rest)
         .type('text/plain')
         .send(JSON.stringify(seedRequest))
         .set('origin', defaultRefererUrl);
@@ -577,7 +572,7 @@ describe('client node', () => {
 
       //test
       await supertest(server)
-        .post(jsonProxyEndpoints.verifySeed)
+        .post(client.verifySeed.rest)
         .type('text/plain')
         .send(encodeBase64(JSON.stringify(seedSignatureData)))
         .set('origin', defaultRefererUrl)

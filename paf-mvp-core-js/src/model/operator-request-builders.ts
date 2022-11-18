@@ -6,7 +6,7 @@ import {
   PostIdsPrefsRequest,
 } from './generated-model';
 import { Unsigned } from './model';
-import { jsonOperatorEndpoints, redirectEndpoints } from '../endpoints';
+import { operator } from '../routes';
 import { getTimeStampInSec } from '../timestamp';
 import { RestAndRedirectRequestBuilder, RestRequestBuilder } from '@onekey/core/model/request-builders';
 import { Signer } from '@onekey/core/crypto/signer';
@@ -19,7 +19,7 @@ import {
 
 export class Get3PCRequestBuilder extends RestRequestBuilder<undefined> {
   constructor(operatorHost: string) {
-    super(operatorHost, jsonOperatorEndpoints.verify3PC);
+    super(operatorHost, operator.verify3PC.rest);
   }
 
   buildRestRequest(): undefined {
@@ -41,7 +41,7 @@ export class GetNewIdRequestBuilder extends RestRequestBuilder<GetNewIdRequest> 
     privateKey: string,
     private readonly signer = new Signer(privateKey, new RequestWithoutBodyDefinition())
   ) {
-    super(operatorHost, jsonOperatorEndpoints.newId);
+    super(operatorHost, operator.newId.rest);
   }
 
   async buildRestRequest(context: RestContext, timestamp = getTimeStampInSec()): Promise<GetNewIdRequest> {
@@ -64,7 +64,7 @@ export class GetIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Get
     privateKey: string,
     definition: RequestSigningDefinition<GetIdsPrefsRequest> = new RequestWithoutBodyDefinition()
   ) {
-    super(operatorHost, clientHost, jsonOperatorEndpoints.read, redirectEndpoints.read, privateKey, definition);
+    super(operatorHost, clientHost, operator.read.rest, operator.read.redirect, privateKey, definition);
   }
 
   protected buildUnsignedRequest(data: undefined, timestamp: number): Unsigned<GetIdsPrefsRequest> {
@@ -83,7 +83,7 @@ export class PostIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<Po
     privateKey: string,
     definition: RequestSigningDefinition<PostIdsPrefsRequest> = new RequestWithBodyDefinition()
   ) {
-    super(operatorHost, clientHost, jsonOperatorEndpoints.write, redirectEndpoints.write, privateKey, definition);
+    super(operatorHost, clientHost, operator.write.rest, operator.write.redirect, privateKey, definition);
   }
 
   protected buildUnsignedRequest(
@@ -113,7 +113,7 @@ export class DeleteIdsPrefsRequestBuilder extends RestAndRedirectRequestBuilder<
     privateKey: string,
     definition: RequestSigningDefinition<DeleteIdsPrefsRequest> = new RequestWithoutBodyDefinition()
   ) {
-    super(operatorHost, clientHost, jsonOperatorEndpoints.delete, redirectEndpoints.delete, privateKey, definition);
+    super(operatorHost, clientHost, operator.delete.rest, operator.delete.redirect, privateKey, definition);
   }
 
   protected buildUnsignedRequest(data: undefined, timestamp: number): Unsigned<DeleteIdsPrefsRequest> {

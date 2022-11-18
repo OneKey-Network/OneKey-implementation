@@ -2,7 +2,7 @@ import { Log } from '@onekey/core/log';
 import { PublicKeyProvider } from '@onekey/core/crypto';
 import { VHostApp } from '@onekey/core/express/express-apps';
 import { GetIdentityResponseBuilder, NodeError, RedirectErrorResponse, RedirectRequest } from '@onekey/core/model';
-import { participantEndpoints } from '@onekey/core/endpoints';
+import { participant } from '@onekey/core/routes';
 import cors from 'cors';
 import {
   corsOptionsAcceptAll,
@@ -127,12 +127,12 @@ export class Node implements INode {
 
     // --------------------------------------------------------------- Identity endpoint
     // All nodes must implement the identity endpoint
-    this.setEndpointConfig('GET', participantEndpoints.identity, {
+    this.setEndpointConfig('GET', participant.identity.rest, {
       endPointName: 'Identity',
     });
 
     this.app.expressApp.get(
-      participantEndpoints.identity,
+      participant.identity.rest,
       this.beginHandling,
       cors(corsOptionsAcceptAll),
       (req: Request, res: Response, next: NextFunction) => {

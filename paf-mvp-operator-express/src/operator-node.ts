@@ -54,7 +54,7 @@ import {
 } from '@onekey/core/model';
 import { Cookies, toTest3pcCookie, typedCookie } from '@onekey/core/cookies';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
-import { jsonOperatorEndpoints, redirectEndpoints } from '@onekey/core/endpoints';
+import { operator } from '@onekey/core/routes';
 import {
   IJsonValidator,
   JsonSchemaRepository,
@@ -156,12 +156,12 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     // ************************************************************************************************************ JSON
     // *****************************************************************************************************************
-    this.setEndpointConfig('GET', jsonOperatorEndpoints.read, {
+    this.setEndpointConfig('GET', operator.read.rest, {
       endPointName: 'Read',
       jsonSchemaName: JsonSchemaType.readIdAndPreferencesRestRequest,
     });
     this.app.expressApp.get(
-      jsonOperatorEndpoints.read,
+      operator.read.rest,
       this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkQueryString,
@@ -172,12 +172,12 @@ export class OperatorNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('POST', jsonOperatorEndpoints.write, {
+    this.setEndpointConfig('POST', operator.write.rest, {
       endPointName: 'Write',
       jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRestRequest,
     });
     this.app.expressApp.post(
-      jsonOperatorEndpoints.write,
+      operator.write.rest,
       this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkJsonBody,
@@ -189,11 +189,11 @@ export class OperatorNode extends Node {
     );
 
     this.app.expressApp.options('*', cors(corsOptionsAcceptAll));
-    this.setEndpointConfig('GET', jsonOperatorEndpoints.verify3PC, {
+    this.setEndpointConfig('GET', operator.verify3PC.rest, {
       endPointName: 'Verify3PC',
     });
     this.app.expressApp.get(
-      jsonOperatorEndpoints.verify3PC,
+      operator.verify3PC.rest,
       this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.read3PCCookie,
@@ -201,14 +201,14 @@ export class OperatorNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('DELETE', jsonOperatorEndpoints.delete, {
+    this.setEndpointConfig('DELETE', operator.delete.rest, {
       endPointName: 'Delete',
       jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRequest,
     });
     // enable pre-flight request for DELETE request
-    this.app.expressApp.options(jsonOperatorEndpoints.delete, cors(corsOptionsAcceptAll));
+    this.app.expressApp.options(operator.delete.rest, cors(corsOptionsAcceptAll));
     this.app.expressApp.delete(
-      jsonOperatorEndpoints.delete,
+      operator.delete.rest,
       this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkQueryString,
@@ -219,12 +219,12 @@ export class OperatorNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('GET', jsonOperatorEndpoints.newId, {
+    this.setEndpointConfig('GET', operator.newId.rest, {
       endPointName: 'GetNewId',
       jsonSchemaName: JsonSchemaType.getNewIdRequest,
     });
     this.app.expressApp.get(
-      jsonOperatorEndpoints.newId,
+      operator.newId.rest,
       this.beginHandling,
       cors(corsOptionsAcceptAll),
       this.checkQueryString,
@@ -237,13 +237,13 @@ export class OperatorNode extends Node {
     // *****************************************************************************************************************
     // ******************************************************************************************************* REDIRECTS
     // *****************************************************************************************************************
-    this.setEndpointConfig('GET', redirectEndpoints.read, {
+    this.setEndpointConfig('GET', operator.read.redirect, {
       endPointName: 'RedirectRead',
       redirectResponse: true,
       jsonSchemaName: JsonSchemaType.readIdAndPreferencesRedirectRequest,
     });
     this.app.expressApp.get(
-      redirectEndpoints.read,
+      operator.read.redirect,
       this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
@@ -255,13 +255,13 @@ export class OperatorNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('GET', redirectEndpoints.write, {
+    this.setEndpointConfig('GET', operator.write.redirect, {
       endPointName: 'RedirectWrite',
       redirectResponse: true,
       jsonSchemaName: JsonSchemaType.writeIdAndPreferencesRedirectRequest,
     });
     this.app.expressApp.get(
-      redirectEndpoints.write,
+      operator.write.redirect,
       this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
@@ -273,13 +273,13 @@ export class OperatorNode extends Node {
       this.endHandling
     );
 
-    this.setEndpointConfig('GET', redirectEndpoints.delete, {
+    this.setEndpointConfig('GET', operator.delete.redirect, {
       endPointName: 'RedirectDelete',
       redirectResponse: true,
       jsonSchemaName: JsonSchemaType.deleteIdAndPreferencesRedirectRequest,
     });
     this.app.expressApp.get(
-      redirectEndpoints.delete,
+      operator.delete.redirect,
       this.beginHandling,
       timeout(this.redirectResponseTimeoutInMs),
       this.checkQueryString,
