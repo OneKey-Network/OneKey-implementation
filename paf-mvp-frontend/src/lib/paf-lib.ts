@@ -31,7 +31,7 @@ import { EventHandler } from '@onekey/frontend/utils/event-handler';
 import { Cookies, getPrebidDataCacheExpiration, typedCookie } from '@onekey/core/cookies';
 import { DEFAULT_TTL_IN_SECONDS, getCookieValue, MAXIMUM_TTL_IN_SECONDS } from '@onekey/frontend/utils/cookie';
 import { QSParam } from '@onekey/core/query-string';
-import { jsonProxyEndpoints, proxyUriParams, redirectProxyEndpoints } from '@onekey/core/endpoints';
+import { client, clientUriParams } from '@onekey/core/routes';
 import { isBrowserKnownToSupport3PC } from '@onekey/core/user-agent';
 import { browserName } from 'detect-browser';
 import { mapAdUnitCodeToDivId } from '@onekey/frontend/utils/ad-unit-code';
@@ -291,11 +291,11 @@ export class OneKeyLib implements IOneKeyLib {
     const redirectToRead = async () => {
       this.log.Info('Redirect to operator');
 
-      const clientUrl = new URL(this.getProxyUrl(redirectProxyEndpoints.read));
+      const clientUrl = new URL(this.getProxyUrl(client.read.redirect));
       const boomerangUrl = new URL(location.href);
       boomerangUrl.searchParams.set(this.localQSParamShowPrompt, showPrompt);
 
-      clientUrl.searchParams.set(proxyUriParams.returnUrl, boomerangUrl.toString());
+      clientUrl.searchParams.set(clientUriParams.returnUrl, boomerangUrl.toString());
       const clientResponse = await this.httpService.get(clientUrl.toString());
       // TODO handle errors
       const operatorUrl = await clientResponse.text();
@@ -340,7 +340,7 @@ export class OneKeyLib implements IOneKeyLib {
         this.log.Info('Browser known to support 3PC: YES');
 
         this.log.Info('Attempt to read from JSON');
-        const getOperatorUrlResponse = await this.httpService.get(this.getProxyUrl(jsonProxyEndpoints.read));
+        const getOperatorUrlResponse = await this.httpService.get(this.getProxyUrl(client.read.rest));
         const operatorUrl = await getOperatorUrlResponse.text();
         const readResponse = await this.httpService.get(operatorUrl);
         const operatorData = (await readResponse.json()) as GetIdsPrefsResponse;
@@ -376,7 +376,7 @@ export class OneKeyLib implements IOneKeyLib {
 
         this.log.Info('Verify 3PC on operator');
         // Note: need to include credentials to make sure cookies are sent
-        const verifyUrl = await this.httpService.get(this.getProxyUrl(jsonProxyEndpoints.verify3PC));
+        const verifyUrl = await this.httpService.get(this.getProxyUrl(client.verify3PC.rest));
         const verifyResponse = await this.httpService.get(await verifyUrl.text());
         const testOk: Get3PcResponse | Error = await verifyResponse.json();
 
@@ -491,10 +491,7 @@ export class OneKeyLib implements IOneKeyLib {
       this.thirdPartyCookiesSupported = false;
 
       // Verify message
-      const response = await this.httpService.postText(
-        this.getProxyUrl(jsonProxyEndpoints.verifyRead),
-        uriOperatorData
-      );
+      const response = await this.httpService.postText(this.getProxyUrl(client.verifyRead.rest), uriOperatorData);
       const operatorData = (await response.json()) as
         | GetIdsPrefsResponse
         | PostIdsPrefsResponse
@@ -568,7 +565,7 @@ export class OneKeyLib implements IOneKeyLib {
         this.log.Info('3PC supported');
 
         // Sign the request and get operator URL to call
-        const clientResponse = await this.httpService.postJson(this.getProxyUrl(jsonProxyEndpoints.write), input);
+        const clientResponse = await this.httpService.postJson(this.getProxyUrl(client.write.rest), input);
         // TODO handle errors
         const { url, payload } = (await clientResponse.json()) as { url: string; payload: PostIdsPrefsRequest };
         const operatorResponse = await this.httpService.postJson(url, payload);
@@ -588,9 +585,9 @@ export class OneKeyLib implements IOneKeyLib {
       this.log.Info('3PC not supported: redirect');
 
       // Redirect. Signing of the request will happen on the backend proxy
-      const clientUrl = new URL(this.getProxyUrl(redirectProxyEndpoints.write));
-      clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
-      clientUrl.searchParams.set(proxyUriParams.message, JSON.stringify(input));
+      const clientUrl = new URL(this.getProxyUrl(client.write.redirect));
+      clientUrl.searchParams.set(clientUriParams.returnUrl, location.href);
+      clientUrl.searchParams.set(clientUriParams.message, JSON.stringify(input));
 
       const clientResponse = await this.httpService.get(clientUrl.toString());
       // TODO handle errors
@@ -614,7 +611,7 @@ export class OneKeyLib implements IOneKeyLib {
    */
   signPreferences = async (input: PostSignPreferencesRequest): Promise<Preferences> => {
     // TODO use ProxyRestSignPreferencesRequestBuilder
-    const signedResponse = await this.httpService.postJson(this.getProxyUrl(jsonProxyEndpoints.signPrefs), input);
+    const signedResponse = await this.httpService.postJson(this.getProxyUrl(client.signPrefs.rest), input);
     return (await signedResponse.json()) as Preferences;
   };
 
@@ -625,7 +622,7 @@ export class OneKeyLib implements IOneKeyLib {
    * @return the new Id, signed
    */
   getNewId = async (): Promise<Identifier> => {
-    const newIdUrl = await this.httpService.get(this.getProxyUrl(jsonProxyEndpoints.newId));
+    const newIdUrl = await this.httpService.get(this.getProxyUrl(client.newId.rest));
     const response = await this.httpService.get(await newIdUrl.text());
     // Assume no error. FIXME should handle potential errors
     return ((await response.json()) as GetNewIdResponse).body.identifiers[0];
@@ -686,7 +683,7 @@ export class OneKeyLib implements IOneKeyLib {
     if (transactionIds.length == 0) {
       return undefined;
     }
-    const url = this.getProxyUrl(jsonProxyEndpoints.createSeed);
+    const url = this.getProxyUrl(client.createSeed.rest);
     const idsAndPreferencesResult = await this.getIdsAndPreferences();
     if (idsAndPreferencesResult === undefined || idsAndPreferencesResult.data === undefined) {
       return undefined;
@@ -731,7 +728,7 @@ export class OneKeyLib implements IOneKeyLib {
    * @param idsAndPreferences
    */
   verifySeed = async (seed: Seed, idsAndPreferences: IdsAndPreferences): Promise<boolean> => {
-    const url = this.getProxyUrl(jsonProxyEndpoints.verifySeed);
+    const url = this.getProxyUrl(client.verifySeed.rest);
     const requestContent: PostVerifySeedRequest = {
       seed,
       idsAndPreferences,
@@ -746,7 +743,7 @@ export class OneKeyLib implements IOneKeyLib {
    * @param seed
    */
   verifyTransmissionResult = async (transmissionResult: TransmissionResult, seed: Seed): Promise<boolean> => {
-    const url = this.getProxyUrl(jsonProxyEndpoints.verifyTransmission);
+    const url = this.getProxyUrl(client.verifyTransmission.rest);
     const requestContent: PostVerifyTransmissionResultRequest = {
       seed,
       transmissionResult,
@@ -829,7 +826,7 @@ export class OneKeyLib implements IOneKeyLib {
       this.log.Info('3PC supported: deleting the ids and preferences');
 
       // Get the signed request for the operator
-      const clientNodeDeleteResponse = await this.httpService.deleteHttp(this.getProxyUrl(jsonProxyEndpoints.delete));
+      const clientNodeDeleteResponse = await this.httpService.deleteHttp(this.getProxyUrl(client.delete.rest));
       const operatorDeleteUrl = await clientNodeDeleteResponse.text();
 
       // Call the operator, which will clean its cookies
@@ -846,8 +843,8 @@ export class OneKeyLib implements IOneKeyLib {
     this.log.Info('3PC not supported: redirecting to delete ids and preferences');
 
     // Redirect. Signing of the request will happen on the backend proxy
-    const clientUrl = new URL(this.getProxyUrl(redirectProxyEndpoints.delete));
-    clientUrl.searchParams.set(proxyUriParams.returnUrl, location.href);
+    const clientUrl = new URL(this.getProxyUrl(client.delete.redirect));
+    clientUrl.searchParams.set(clientUriParams.returnUrl, location.href);
     const clientResponse = await this.httpService.get(clientUrl.toString());
 
     // TODO handle errors

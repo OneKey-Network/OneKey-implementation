@@ -25,7 +25,7 @@ import { MessageVerificationResult, ResponseVerifier, Verifier } from '@onekey/c
 import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { Request } from 'express';
 import { getPayload } from '@onekey/core/express';
-import { proxyUriParams } from '@onekey/core/endpoints';
+import { clientUriParams } from '@onekey/core/routes';
 import {
   SeedSigningDefinition,
   UnsignedSeedSignatureData,
@@ -145,7 +145,7 @@ export class OperatorClient {
     const returnUrl = this.getReturnUrl(req);
 
     // TODO errors trigger error if req.query[proxyUriParams.message] undefined or empty
-    const input = JSON.parse(req.query[proxyUriParams.message] as string) as IdsAndPreferences;
+    const input = JSON.parse(req.query[clientUriParams.message] as string) as IdsAndPreferences;
 
     const postIdsPrefsRequestJson = await this.postIdsPrefsRequestBuilder.buildRedirectRequest(
       {
@@ -196,7 +196,7 @@ export class OperatorClient {
   }
 
   private getReturnUrl(req: Request) {
-    return req.query[proxyUriParams.returnUrl] as string;
+    return req.query[clientUriParams.returnUrl] as string;
   }
 
   private createUnsignedSeed(transactionIds: TransactionId[], timestamp = getTimeStampInSec()): UnsignedSource<Seed> {
