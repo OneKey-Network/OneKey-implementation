@@ -1,6 +1,6 @@
 {
   "name": "@onekey/client-node",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "OneKey Client node based on ExpressJS",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
