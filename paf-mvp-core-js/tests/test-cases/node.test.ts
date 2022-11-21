@@ -69,7 +69,7 @@ describe('Json body validator handler', () => {
 
     node.checkJsonBody(request, response, nextFunction);
 
-    expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
+    expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, JSON.stringify(payload));
 
     const expectedError: NodeError = {
       type: 'INVALID_JSON_BODY',
@@ -85,7 +85,7 @@ describe('Json body validator handler', () => {
 
     node.checkJsonBody(request, response, nextFunction);
 
-    expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, payload);
+    expect(validationSpy).toBeCalledWith(JsonSchemaType.createSeedRequest, JSON.stringify(payload));
 
     expect(nextFunction).toBeCalledWith();
   });
