@@ -4,21 +4,21 @@ import { randomUUID } from 'crypto';
 export interface IHttpService {
   /** Yes if the service has started a redirection. */
   isRedirecting: boolean;
+
   /**
    * Starts a redirection on the given URL if the service
    * hasn't started already one.
    */
   redirect(url: string): boolean;
+
   /**
    * Stringifies the JS object and HTTP-POST it at the given URL
-   * with headers including 'credentials: include'.
+   * with headers including 'credentials: include', and content-type json
    *
    * Returns a rejected promise if the service is currently redirecting.
-   *
-   * For now, we don't use Content-type JSON to avoid CORS pre-flight request.
-   * See https://stackoverflow.com/questions/37668282/unable-to-fetch-post-without-no-cors-in-header
    */
   postJson(url: string, input: object): Promise<Response>;
+
   /**
    * Calls HTTP POST the given body at the given URL
    * with headers including 'credentials: include'.
@@ -26,6 +26,7 @@ export interface IHttpService {
    * Returns a rejected promise if the service is currently redirecting.
    */
   postText(url: string, input: string): Promise<Response>;
+
   /**
    * Calls HTTP GET at the given URL
    * with headers including 'credentials: include'.
@@ -33,6 +34,7 @@ export interface IHttpService {
    * Returns a rejected promise if the service is currently redirecting.
    */
   get(url: string): Promise<Response>;
+
   /**
    * Calls HTTP DELETE at the given URL
    * with headers including 'credentials: include'.
@@ -51,6 +53,7 @@ export interface IHttpClient {
    * Calls the fetch API including custom init for aborting.
    */
   fetch(input: RequestInfo, init?: RequestInit): Promise<Response>;
+
   /**
    * Aborts all fech calls that are in progress thanks to the
    * AbortController API.
@@ -99,6 +102,9 @@ export class HttpService implements IHttpService {
       method: 'POST',
       body: JSON.stringify(input),
       credentials: 'include',
+      headers: {
+        'content-type': 'application/json',
+      },
     });
   }
 
@@ -142,7 +148,7 @@ export class HttpClient implements IHttpClient {
   }
 
   fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    const requestHeaders: HeadersInit = new Headers();
+    const requestHeaders: HeadersInit = new Headers(init?.headers);
     requestHeaders.set(CORRELATION_ID_HEADER_NAME, randomUUID());
     const enhancedInit: RequestInit = {
       ...init,

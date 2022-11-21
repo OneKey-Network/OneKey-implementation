@@ -55,8 +55,7 @@ export class VHostApp {
   }
 
   private addPostBodyParser() {
-    // POST parser TODO ideally should parse it as JSON directly (but issues with CORS)
-    this.expressApp.use(bodyParser.text());
+    this.expressApp.use(bodyParser.text(), bodyParser.json());
   }
 
   private addCorrelator() {
