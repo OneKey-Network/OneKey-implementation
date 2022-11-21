@@ -22,17 +22,19 @@ const sampleIdsAndPreferences: IdsAndPreferences = {
   preferences: preferences,
   identifiers: [id],
 };
+
 const getRestWriteRequest = async (operatorClient: OperatorClient) => {
   const request = new MockExpressRequest({
     headers: {
       origin: defaultRefererUrl,
     },
-    body: JSON.stringify(sampleIdsAndPreferences),
+    body: sampleIdsAndPreferences,
   });
   const proxyPostIdsPrefsResponse = await operatorClient.getWriteResponse(request);
   proxyPostIdsPrefsResponse.url = proxyPostIdsPrefsResponse.url.replace(/^https?:\/\/[^/]+/i, '');
   return proxyPostIdsPrefsResponse;
 };
+
 const getRedirectWriteUrl = async (operatorClient: OperatorClient, returnUrl = defaultReturnUrl) => {
   const request = new MockExpressRequest({
     headers: {
@@ -46,11 +48,13 @@ const getRedirectWriteUrl = async (operatorClient: OperatorClient, returnUrl = d
   const postIdsPrefsUrl = await operatorClient.getWriteRedirectResponse(request);
   return postIdsPrefsUrl.replace(/^https?:\/\/[^/]+/i, '');
 };
+
 const publicKeyProvider = (host: string) => {
   if (host === ClientBuilder.defaultHost) return Promise.resolve(ClientBuilder.defaultPublicKey);
 
   throw new UnableToIdentifySignerError(`Error calling Identity endpoint on ${host}`);
 };
+
 describe('write', () => {
   const getContext = async (
     validator: IJsonValidator = JsonValidator.default(),
@@ -99,10 +103,7 @@ describe('write', () => {
           .set('Origin', defaultRefererUrl);
       } else {
         const writeRequest = await getRestWriteRequest(operatorClient);
-        response = await supertest(server)
-          .post(writeRequest.url)
-          .type('text/plain')
-          .send(JSON.stringify(writeRequest.payload));
+        response = await supertest(server).post(writeRequest.url).type('application/json').send(writeRequest.payload);
       }
 
       assertError(response, 500, 'UNKNOWN_ERROR');
@@ -129,6 +130,7 @@ describe('write', () => {
       expect(startMock).toHaveBeenCalled();
       expect(endMock).toHaveBeenCalled();
     });
+
     it('should check permissions', async () => {
       const { server, startMock, endMock } = await getContext();
 
@@ -142,10 +144,7 @@ describe('write', () => {
           .set('Origin', defaultRefererUrl);
       } else {
         const writeRequest = await getRestWriteRequest(operatorClient);
-        response = await supertest(server)
-          .post(writeRequest.url)
-          .type('text/plain')
-          .send(JSON.stringify(writeRequest.payload));
+        response = await supertest(server).post(writeRequest.url).type('application/json').send(writeRequest.payload);
       }
 
       assertError(response, 403, 'UNAUTHORIZED_OPERATION');
@@ -168,10 +167,7 @@ describe('write', () => {
             .set('Origin', defaultRefererUrl);
         } else {
           const writeRequest = await getRestWriteRequest(operatorClient);
-          response = await supertest(server)
-            .post(writeRequest.url)
-            .type('text/plain')
-            .send(JSON.stringify(writeRequest.payload));
+          response = await supertest(server).post(writeRequest.url).type('application/json').send(writeRequest.payload);
         }
         assertError(response, 403, 'VERIFICATION_FAILED');
 
@@ -197,10 +193,7 @@ describe('write', () => {
             .set('Origin', defaultRefererUrl);
         } else {
           const writeRequest = await getRestWriteRequest(operatorClient);
-          response = await supertest(server)
-            .post(writeRequest.url)
-            .type('text/plain')
-            .send(JSON.stringify(writeRequest.payload));
+          response = await supertest(server).post(writeRequest.url).type('application/json').send(writeRequest.payload);
         }
 
         assertError(response, 502, 'UNKNOWN_SIGNER');
@@ -221,10 +214,7 @@ describe('write', () => {
         response = await supertest(server).get(await getRedirectWriteUrl(operatorClient));
       } else {
         const writeRequest = await getRestWriteRequest(operatorClient);
-        response = await supertest(server)
-          .post(writeRequest.url)
-          .type('text/plain')
-          .send(JSON.stringify(writeRequest.payload));
+        response = await supertest(server).post(writeRequest.url).type('application/json').send(writeRequest.payload);
       }
 
       assertRestError(response, 403, 'VERIFICATION_FAILED');
@@ -297,10 +287,10 @@ describe('write', () => {
         const writeRequest = await getRestWriteRequest(operatorClient);
         response = await supertest(server)
           .post(writeRequest.url)
-          .type('text/plain')
+          .type('application/json')
           .set('referer', defaultRefererUrl)
           .set('Origin', defaultRefererUrl)
-          .send(JSON.stringify(writeRequest.payload));
+          .send(writeRequest.payload);
       }
 
       expect(response.status).toEqual(isRedirect ? 303 : 200);

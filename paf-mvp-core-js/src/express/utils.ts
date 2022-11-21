@@ -57,18 +57,8 @@ export const corsOptionsAcceptAll = (req: Request, callback: (err: Error | null,
     origin: req.header('Origin'),
     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
     credentials: true,
-    allowedHeaders: CORRELATION_ID_HEADER_NAME,
+    allowedHeaders: [CORRELATION_ID_HEADER_NAME, 'content-type'],
   });
-};
-
-/**
- * Get request payload as object
- * @param req
- */
-export const getPayload = <T>(req: Request): T => {
-  // Note that payload is expected to be plain text to avoid OPTIONS preflight requests
-  // See https://stackoverflow.com/questions/37668282/unable-to-fetch-post-without-no-cors-in-header
-  return JSON.parse(req.body as string) as T;
 };
 
 /**

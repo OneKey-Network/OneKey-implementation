@@ -24,7 +24,6 @@ import { Signer } from '@onekey/core/crypto/signer';
 import { MessageVerificationResult, ResponseVerifier, Verifier } from '@onekey/core/crypto/verifier';
 import { getTimeStampInSec } from '@onekey/core/timestamp';
 import { Request } from 'express';
-import { getPayload } from '@onekey/core/express';
 import { clientUriParams } from '@onekey/core/routes';
 import {
   SeedSigningDefinition,
@@ -126,7 +125,7 @@ export class OperatorClient {
   }
 
   async getWriteResponse(req: Request): Promise<ProxyPostIdsPrefsResponse> {
-    const unsignedRequest = getPayload<IdsAndPreferences>(req);
+    const unsignedRequest = req.body as IdsAndPreferences;
     const signedPayload = await this.postIdsPrefsRequestBuilder.buildRestRequest(
       { origin: req.header('origin') },
       unsignedRequest
@@ -191,7 +190,7 @@ export class OperatorClient {
   }
 
   async getSignPreferencesResponse(req: Request): Promise<Preferences> {
-    const { identifiers, unsignedPreferences } = getPayload<PostSignPreferencesRequest>(req);
+    const { identifiers, unsignedPreferences } = req.body as PostSignPreferencesRequest;
     return this.buildPreferences(identifiers, unsignedPreferences.data);
   }
 

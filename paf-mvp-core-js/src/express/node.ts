@@ -274,7 +274,7 @@ export class Node implements INode {
    */
   checkJsonBody = (req: Request, res: Response, next: NextFunction) => {
     const { jsonSchemaName } = this.getRequestConfig(req);
-    const validation = this.jsonValidator.validate(jsonSchemaName, req.body as string);
+    const validation = this.jsonValidator.validate(jsonSchemaName, JSON.stringify(req.body));
     if (!validation.isValid) {
       const details = validation.errors.map((e) => e.message).join(' - ');
       const error: NodeError = {

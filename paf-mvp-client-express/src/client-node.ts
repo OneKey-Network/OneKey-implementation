@@ -447,7 +447,7 @@ export class ClientNode extends Node {
 
   createSeed = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const request = JSON.parse(req.body as string) as PostSeedRequest;
+      const request = req.body as PostSeedRequest;
       const seed = await this.client.buildSeed(request.transaction_ids, request.data);
       const response = seed as PostSeedResponse; // For now, the response is only a Seed.
       res.json(response);

@@ -277,10 +277,6 @@ export class OneKeyLib implements IOneKeyLib {
   /**
    * Ensure local cookies for OneKey identifiers and preferences are up-to-date.
    * If they aren't, contact the operator to get fresh values.
-   * @param options:
-   * - proxyHostName: servername of the OneKey client node. ex: paf.my-website.com
-   * - triggerRedirectIfNeeded: `true` if redirect can be triggered immediately, `false` if it should wait
-   * - returnUrl: the URL that must be called in return (after a redirect to the operator) when no 3PC are available. Default = current page
    * @return a status and optional data
    */
   refreshIdsAndPreferences = async (
@@ -547,8 +543,6 @@ export class OneKeyLib implements IOneKeyLib {
 
   /**
    * Write update of identifiers and preferences on the OneKey domain
-   * @param options:
-   * - proxyBase: base URL (scheme, servername) of the OneKey client node. ex: https://paf.my-website.com
    * @param input the identifiers and preferences to write
    * @return the written identifiers and preferences
    */
@@ -560,7 +554,7 @@ export class OneKeyLib implements IOneKeyLib {
       this.removeCookie(Cookies.identifiers);
       this.removeCookie(Cookies.preferences);
 
-      // FIXME this boolean will be up to date only if a read occurred just before. If not, would need to explicitly test
+      // FIXME this boolean will be up-to-date only if a read occurred just before. If not, would need to explicitly test
       if (this.thirdPartyCookiesSupported) {
         this.log.Info('3PC supported');
 
@@ -604,8 +598,6 @@ export class OneKeyLib implements IOneKeyLib {
 
   /**
    * Sign preferences
-   * @param options:
-   * - proxyBase: base URL (scheme, servername) of the OneKey client node. ex: https://paf.my-website.com
    * @param input the main identifier of the web user, and the optin value
    * @return the signed Preferences
    */
@@ -617,7 +609,6 @@ export class OneKeyLib implements IOneKeyLib {
 
   /**
    * Get new random identifier
-   * @param options:
    * - proxyBase: base URL (scheme, servername) of the OneKey client node. ex: https://paf.my-website.com
    * @return the new Id, signed
    */
@@ -705,7 +696,6 @@ export class OneKeyLib implements IOneKeyLib {
    * Call hostname endpoint for generating a seed
    * and store the Seed on Browser side so that it can be retrieved later.
    *
-   * @param options domain called for creating the Seed (POST /paf-proxy/v1/seed).
    * @param pafTransactionIds List of Transaction Ids for OneKey (visible in the Audit).
    * @returns A new signed Seed that can be used to start Transmissions Requests.
    */

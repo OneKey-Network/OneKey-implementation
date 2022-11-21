@@ -108,13 +108,12 @@ ZxbtbfH3C+VfhheolRApHZzSW96pUOPiHA7SRNkO41FSGDGTiKvBXd/P
         url: targetUrl.toString(),
       });
     } else {
-      const payload = JSON.stringify(postIdsPrefRequest);
       const targetUrl = new URL(`https://${this.operatorHost}/paf/v1/ids-prefs`);
       const postRequest = createRequest({
         method: 'POST',
         url: targetUrl.toString(),
       });
-      postRequest.body = payload;
+      postRequest.body = postIdsPrefRequest;
       return postRequest;
     }
   }

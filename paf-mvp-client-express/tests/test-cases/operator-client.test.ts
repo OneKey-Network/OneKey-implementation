@@ -36,7 +36,7 @@ const clientWriteRequest = new MockExpressRequest({
   headers: {
     origin: defaultRefererUrl,
   },
-  body: JSON.stringify(sampleIdsAndPreferences),
+  body: sampleIdsAndPreferences,
 });
 const clientWriteRedirectRequest = new MockExpressRequest({
   headers: {
@@ -55,7 +55,7 @@ const signPreferencesRequest = new MockExpressRequest({
   headers: {
     origin: 'www.read-write.com',
   },
-  body: JSON.stringify(samplePostSignPreferencesRequest),
+  body: samplePostSignPreferencesRequest,
 });
 const clientBuilder = new ClientBuilder();
 describe('operator client', () => {

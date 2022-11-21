@@ -119,8 +119,8 @@ describe('client node', () => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
         .post(client.write.rest)
-        .type('text/plain')
-        .send(JSON.stringify(sampleIdsAndPreferences))
+        .type('application/json')
+        .send(sampleIdsAndPreferences)
         .set('origin', defaultRefererUrl);
 
       expect(response.status).toEqual(200);
@@ -445,8 +445,8 @@ describe('client node', () => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
         .post(client.signPrefs.rest)
-        .type('text/plain')
-        .send(JSON.stringify(input))
+        .type('application/json')
+        .send(input)
         .set('origin', defaultRefererUrl);
 
       expect(response.status).toEqual(200);
@@ -484,8 +484,8 @@ describe('client node', () => {
       const { server, startMock, endMock } = await getContext();
       const response = await supertest(server)
         .post(client.createSeed.rest)
-        .type('text/plain')
-        .send(JSON.stringify(input))
+        .type('application/json')
+        .send(input)
         .set('origin', defaultRefererUrl);
 
       expect(response.status).toEqual(200);
@@ -561,8 +561,8 @@ describe('client node', () => {
       const { server, startMock, endMock } = await getContext(JsonValidator.default(), customPublicKeyProvider);
       const seedResponse = await supertest(server)
         .post(client.createSeed.rest)
-        .type('text/plain')
-        .send(JSON.stringify(seedRequest))
+        .type('application/json')
+        .send(seedRequest)
         .set('origin', defaultRefererUrl);
       const generatedSeed = JSON.parse(seedResponse.text) as PostSeedResponse;
       const seedSignatureData: PostVerifySeedRequest = {

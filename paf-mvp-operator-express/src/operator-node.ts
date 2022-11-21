@@ -6,7 +6,6 @@ import {
   corsOptionsAcceptAll,
   extractRequestAndContextFromHttp,
   getPafDataFromQueryString,
-  getPayload,
   getTopLevelDomain,
   httpRedirect,
   IdentityConfig,
@@ -461,7 +460,7 @@ export class OperatorNode extends Node {
     const { redirectResponse } = this.getRequestConfig(req);
     const request = redirectResponse
       ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
-      : getPayload<PostIdsPrefsRequest>(req);
+      : (req.body as PostIdsPrefsRequest);
     const validationResult = await this.validateWriteRequest(request, req);
     if (validationResult.isValid) {
       next();
@@ -554,7 +553,7 @@ export class OperatorNode extends Node {
   };
 
   restWriteIdsAndPreferences = async (req: Request, res: Response, next: NextFunction) => {
-    const input = getPayload<PostIdsPrefsRequest>(req);
+    const input = req.body as PostIdsPrefsRequest;
     try {
       const signedData = await this.getWriteResponse(input, req, res);
       res.json(signedData);
@@ -569,7 +568,7 @@ export class OperatorNode extends Node {
     const { redirectResponse } = this.getRequestConfig(req);
     const input = redirectResponse
       ? getPafDataFromQueryString<RedirectPostIdsPrefsRequest>(req)
-      : getPayload<PostIdsPrefsRequest>(req);
+      : (req.body as PostIdsPrefsRequest);
     const request = extractRequestAndContextFromHttp<PostIdsPrefsRequest, RedirectPostIdsPrefsRequest>(
       input,
       req
